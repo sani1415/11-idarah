@@ -139,18 +139,19 @@
 </div>
 
 <script src="js/api.js"></script>
+<script src="js/mm-session.js"></script>
 <script src="js/dept-api.js"></script>
 <script src="js/chat-api.js"></script>
 <script>
   /* ── IDENTITY ── */
-  const myRole     = sessionStorage.getItem('mm_role')     || '';
-  const myDeptRole = sessionStorage.getItem('mm_dept_role')|| '';
-  const myName     = sessionStorage.getItem('mm_name') || sessionStorage.getItem('mm_dept_name') || 'স্টাফ';
+  const myRole     = MMSession.getRole()     || '';
+  const myDeptRole = MMSession.getDeptRole()|| '';
+  const myName     = MMSession.getName() || MMSession.getDeptName() || 'স্টাফ';
   const isAdmin    = myRole === 'admin';
 
   function getMyThread() {
-    if (myDeptRole === 'dept')  return 'dept-' + (sessionStorage.getItem('mm_dept_id')||'x');
-    if (myRole === 'teacher')   return 'teacher-' + (sessionStorage.getItem('mm_teacher_id')||'x');
+    if (myDeptRole === 'dept')  return 'dept-' + (MMSession.getDeptId()||'x');
+    if (myRole === 'teacher')   return 'teacher-' + (MMSession.getTeacherId()||'x');
     if (['daftar','hifz','library','alumni','khedmat'].includes(myRole)) return myRole;
     return null;
   }

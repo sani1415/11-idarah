@@ -30,6 +30,8 @@
 ## Architecture Rules
 
 - সব ডেটা লজিক আলাদা JS-এ — প্রোটোটাইপে `js/api.js`, `js/dept-api.js`, `js/khedmat-api.js`, `js/chat-api.js`; HTML শুধু `API` / `DeptAPI` ইত্যাদি call করবে। ভবিষ্যতে ফাইল নাম `api-*.js` বা মডিউল ভাগ একই নীতি।
+- **`js/mm-session.js` (`MMSession`)** — `sessionStorage`-এর কী নাম ও লগইন স্টেট এক জায়গায়; HTML সরাসরি `sessionStorage` ব্যবহার করবে না (ব্যতিক্রম নেই)।
+- **`API.persistLoadArr` / `API.persistSaveArr`** — হিফজ/লাইব্রেরি/পুরনো ছাত্রের মতো অস্থায়ী অতিরিক্ত লোকাল ডেটা; পরে ডোমেইন API-তে টেনে নেওয়া সহজ। **`localStorage` সরাসরি HTML-এ নয়।**
 - **Shared CSS:** `css/style.css` (রুট HTML: `href="css/style.css"`; সাবফোল্ডার: `href="../css/style.css"`)
 - বিদ্যমান ওয়াকফ অ্যাপের pattern অনুসরণ করো: RLS + RPC-gated access
 - Direct REST call নেই — সব কিছু RPC দিয়ে (প্রোটোটাইপে এখনও Supabase নেই; `localStorage` শুধু ডেভ/ডেমো)
@@ -588,6 +590,7 @@ test-markaz/
 │   └── style.css                ← যৌথ স্টাইল (max 500 lines)
 ├── js/
 │   ├── api.js                   ← মাদ্রাসা মডিউল API (localStorage)
+│   ├── mm-session.js            ← সেশন কী / MMSession (শুধু এখান থেকে)
 │   ├── dept-api.js              ← বিভাগ মডিউল + উপ-বিভাগ extra field config
 │   ├── khedmat-api.js
 │   ├── chat-api.js

@@ -253,13 +253,14 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="../js/monitor-mode.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
+<script src="../js/monitor-mode.js"></script>
 <script>
-  if (!sessionStorage.getItem('mm_role')) location.href = '../index.html';
-  document.getElementById('top-name').textContent = sessionStorage.getItem('mm_name') || 'দায়িত্বশীল';
+  if (!MMSession.getRole()) location.href = '../index.html';
+  document.getElementById('top-name').textContent = MMSession.getName() || 'দায়িত্বশীল';
   mmInsertMonitorBanner();
-  if (sessionStorage.getItem('mm_role') === 'admin') {
+  if (MMSession.isAdmin()) {
     const hb = document.getElementById('topbar-hub');
     if (hb) hb.style.removeProperty('display');
   }
@@ -270,28 +271,26 @@
   const HIFZ_MEMBERS_KEY = 'mm_hifz_members';
   const HIFZ_ACTIVITY_KEY = 'mm_hifz_activity';
 
-  function hLoad(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } }
-  function hSave(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
   function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
 
   /* seed */
-  if (!hLoad(HIFZ_KEY).length) {
+  if (!API.persistLoadArr(HIFZ_KEY).length) {
     const groups = [
       { id: 'grp_1', name: 'গ্রুপ আলিফ', start: '2025-01-01', note: 'প্রথম গ্রুপ', active: true },
       { id: 'grp_2', name: 'গ্রুপ বা', start: '2025-02-01', note: '', active: true },
     ];
-    hSave(HIFZ_KEY, groups);
-    hSave(HIFZ_PROG_KEY, [
+    API.persistSaveArr(HIFZ_KEY, groups);
+    API.persistSaveArr(HIFZ_PROG_KEY, [
       { id: API.uid(), group_id: 'grp_1', para_done: 15, surah_done: 40, revision_para: 10, current_para: 16, note: 'ভালো অগ্রগতি', date: API.today() },
       { id: API.uid(), group_id: 'grp_2', para_done: 8, surah_done: 22, revision_para: 5, current_para: 9, note: '', date: API.today() },
     ]);
-    hSave(HIFZ_MEMBERS_KEY, [
+    API.persistSaveArr(HIFZ_MEMBERS_KEY, [
       { id: API.uid(), group_id: 'grp_1', student_id: 'std_2', joined: '2025-01-01' },
       { id: API.uid(), group_id: 'grp_1', student_id: 'std_4', joined: '2025-01-01' },
       { id: API.uid(), group_id: 'grp_2', student_id: 'std_1', joined: '2025-02-01' },
     ]);
-    hSave(HIFZ_ACTIVITY_KEY, [
-      { id: API.uid(), group_id: 'grp_1', type: 'পাঠ', text: 'আজ ১৬তম পারার ৫ম রুকু পর্যন্ত পড়ানো হয়েছে। সবাই মনোযোগী ছিল।', date: API.today(), by: sessionStorage.getItem('mm_name') || 'দায়িত্বশীল' },
+    API.persistSaveArr(HIFZ_ACTIVITY_KEY, [
+      { id: API.uid(), group_id: 'grp_1', type: 'পাঠ', text: 'আজ ১৬তম পারার ৫ম রুকু পর্যন্ত পড়ানো হয়েছে। সবাই মনোযোগী ছিল।', date: API.today(), by: MMSession.getName() || 'দায়িত্বশীল' },
     ]);
   }
 
@@ -319,9 +318,9 @@
 
   /* ── HOME ── */
   function renderHome() {
-    const groups = hLoad(HIFZ_KEY).filter(g => g.active);
-    const members = hLoad(HIFZ_MEMBERS_KEY);
-    const prog = hLoad(HIFZ_PROG_KEY);
+    const groups = API.persistLoadArr(HIFZ_KEY).filter(g => g.active);
+    const members = API.persistLoadArr(HIFZ_MEMBERS_KEY);
+    const prog = API.persistLoadArr(HIFZ_PROG_KEY);
 
     const hifzStudents = [...new Set(members.map(m => m.student_id))];
     document.getElementById('total-hifz').textContent = toBn(hifzStudents.length);
@@ -364,7 +363,7 @@
 
   function openGroup(gid) {
     currentGroupId = gid;
-    const g = hLoad(HIFZ_KEY).find(g => g.id === gid);
+    const g = API.persistLoadArr(HIFZ_KEY).find(g => g.id === gid);
     document.getElementById('group-detail-name').textContent = g ? g.name : '';
     currentGroupTab = 'progress';
     ['progress','members','activity'].forEach((t,i) => {
@@ -377,7 +376,7 @@
 
   /* ── GROUP PROGRESS ── */
   function renderGroupProgress() {
-    const prog = hLoad(HIFZ_PROG_KEY).filter(p => p.group_id === currentGroupId).sort((a,b) => b.date.localeCompare(a.date));
+    const prog = API.persistLoadArr(HIFZ_PROG_KEY).filter(p => p.group_id === currentGroupId).sort((a,b) => b.date.localeCompare(a.date));
     const latest = prog[0];
     const paraDone = latest ? latest.para_done : 0;
     const surahDone = latest ? latest.surah_done : 0;
@@ -429,9 +428,9 @@
     const surah = parseInt(document.getElementById('upd-surah').value) || 0;
     const current = parseInt(document.getElementById('upd-current').value) || 1;
     const note = document.getElementById('upd-note').value;
-    const list = hLoad(HIFZ_PROG_KEY);
+    const list = API.persistLoadArr(HIFZ_PROG_KEY);
     list.push({ id: API.uid(), group_id: currentGroupId, para_done: para, surah_done: surah, revision_para: revision, current_para: current, note, date: API.today() });
-    hSave(HIFZ_PROG_KEY, list);
+    API.persistSaveArr(HIFZ_PROG_KEY, list);
     closeModal('update-progress');
     showToast('অগ্রগতি সংরক্ষিত ✓');
     renderGroupProgress();
@@ -439,7 +438,7 @@
 
   /* ── MEMBERS ── */
   function renderGroupMembers() {
-    const members = hLoad(HIFZ_MEMBERS_KEY).filter(m => m.group_id === currentGroupId);
+    const members = API.persistLoadArr(HIFZ_MEMBERS_KEY).filter(m => m.group_id === currentGroupId);
     const el = document.getElementById('member-list');
     el.innerHTML = members.map(m => {
       const s = API.Students.getById(m.student_id);
@@ -466,9 +465,9 @@
     const sid = document.getElementById('member-student').value;
     const date = document.getElementById('member-date').value || API.today();
     if (!sid) { showToast('ছাত্র নির্বাচন করুন'); return; }
-    const list = hLoad(HIFZ_MEMBERS_KEY);
+    const list = API.persistLoadArr(HIFZ_MEMBERS_KEY);
     list.push({ id: API.uid(), group_id: currentGroupId, student_id: sid, joined: date });
-    hSave(HIFZ_MEMBERS_KEY, list);
+    API.persistSaveArr(HIFZ_MEMBERS_KEY, list);
     closeModal('add-member');
     showToast('সদস্য যোগ করা হয়েছে ✓');
     renderGroupMembers();
@@ -476,7 +475,7 @@
 
   /* ── ACTIVITY ── */
   function renderGroupActivity() {
-    const acts = hLoad(HIFZ_ACTIVITY_KEY).filter(a => a.group_id === currentGroupId).sort((a,b) => b.date.localeCompare(a.date));
+    const acts = API.persistLoadArr(HIFZ_ACTIVITY_KEY).filter(a => a.group_id === currentGroupId).sort((a,b) => b.date.localeCompare(a.date));
     const el = document.getElementById('activity-list');
     el.innerHTML = acts.map(a => `
       <div class="activity-log-item">
@@ -494,9 +493,9 @@
     const type = document.getElementById('act-type').value;
     const text = document.getElementById('act-text').value.trim();
     if (!text) { showToast('বিবরণ দিন'); return; }
-    const list = hLoad(HIFZ_ACTIVITY_KEY);
-    list.push({ id: API.uid(), group_id: currentGroupId, type, text, date: API.today(), by: sessionStorage.getItem('mm_name') || 'দায়িত্বশীল' });
-    hSave(HIFZ_ACTIVITY_KEY, list);
+    const list = API.persistLoadArr(HIFZ_ACTIVITY_KEY);
+    list.push({ id: API.uid(), group_id: currentGroupId, type, text, date: API.today(), by: MMSession.getName() || 'দায়িত্বশীল' });
+    API.persistSaveArr(HIFZ_ACTIVITY_KEY, list);
     closeModal('add-activity');
     showToast('লগ সংরক্ষিত ✓');
     renderGroupActivity();
@@ -508,9 +507,9 @@
     const start = document.getElementById('grp-start').value || API.today();
     const note = document.getElementById('grp-note').value;
     if (!name) { showToast('গ্রুপের নাম দিন'); return; }
-    const list = hLoad(HIFZ_KEY);
+    const list = API.persistLoadArr(HIFZ_KEY);
     list.push({ id: 'grp_' + API.uid(), name, start, note, active: true });
-    hSave(HIFZ_KEY, list);
+    API.persistSaveArr(HIFZ_KEY, list);
     closeModal('add-group');
     showToast('গ্রুপ তৈরি হয়েছে ✓');
     renderHome();

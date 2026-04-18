@@ -6,6 +6,9 @@
     'পর্যবেক্ষণ মোড — অপারেশনাল পরিবর্তনের জন্য সংশ্লিষ্ট স্টাফ অ্যাকাউন্ট ব্যবহার করুন। নীতি ও পিন: সেটিং।';
 
   window.MM_MONITOR_ONLY = function () {
+    if (window.MMSession && typeof window.MMSession.getRole === 'function') {
+      return window.MMSession.getRole() === 'admin';
+    }
     return sessionStorage.getItem('mm_role') === 'admin';
   };
 

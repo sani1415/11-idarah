@@ -213,13 +213,14 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="../js/monitor-mode.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
+<script src="../js/monitor-mode.js"></script>
 <script>
-  if (!sessionStorage.getItem('mm_role')) location.href = '../index.html';
-  document.getElementById('top-name').textContent = sessionStorage.getItem('mm_name') || 'দায়িত্বশীল';
+  if (!MMSession.getRole()) location.href = '../index.html';
+  document.getElementById('top-name').textContent = MMSession.getName() || 'দায়িত্বশীল';
   mmInsertMonitorBanner();
-  if (sessionStorage.getItem('mm_role') === 'admin') {
+  if (MMSession.isAdmin()) {
     const hb = document.getElementById('topbar-hub');
     if (hb) hb.style.removeProperty('display');
   }
@@ -227,18 +228,16 @@
   const AL_KEY = 'mm_alumni';
   const AL_CONTACT_KEY = 'mm_alumni_contacts';
 
-  function aLoad(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } }
-  function aSave(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
   function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
 
   /* seed */
-  if (!aLoad(AL_KEY).length) {
-    aSave(AL_KEY, [
+  if (!API.persistLoadArr(AL_KEY).length) {
+    API.persistSaveArr(AL_KEY, [
       { id: 'al_1', name: 'মাওলানা আব্দুল বাসিত', permanent_id: '৪৫০০১', phone: '০১৭১১-০০০০০১', year: '২০২০', reason: 'সম্পন্ন করে', location: 'স্থানীয় মসজিদে ইমামতি করছেন', status: 'সম্পন্ন' },
       { id: 'al_2', name: 'মুহাম্মাদ রাশেদ', permanent_id: '৪৬০০৩', phone: '০১৮২২-০০০০০২', year: '২০২১', reason: 'মাঝপথে বিদায়', location: 'ব্যবসা করছেন', status: 'মাঝপথে' },
       { id: 'al_3', name: 'মাওলানা ইবরাহীম খলীল', permanent_id: '৪৪০০২', phone: '০১৯৩৩-০০০০০৩', year: '২০১৯', reason: 'সম্পন্ন করে', location: 'মাদ্রাসায় শিক্ষকতা করছেন', status: 'সম্পন্ন' },
     ]);
-    aSave(AL_CONTACT_KEY, [
+    API.persistSaveArr(AL_CONTACT_KEY, [
       { id: API.uid(), alumni_id: 'al_1', type: 'ফোনে কথা', status: 'ভালো আছেন', text: 'মসজিদে ইমামতি করছেন, পরিবার নিয়ে সুখে আছেন। মাদ্রাসার কথা স্মরণ করলেন।', date: API.today(), by: 'দায়িত্বশীল' },
       { id: API.uid(), alumni_id: 'al_2', type: 'সরাসরি সাক্ষাৎ', status: 'ভালো আছেন', text: 'দোকান করছেন, নামাজ ঠিকঠাক পড়ছেন বলে জানালেন।', date: '2025-03-15', by: 'দায়িত্বশীল' },
     ]);
@@ -264,8 +263,8 @@
 
   /* ── HOME ── */
   function renderHome() {
-    const alumni = aLoad(AL_KEY);
-    const contacts = aLoad(AL_CONTACT_KEY);
+    const alumni = API.persistLoadArr(AL_KEY);
+    const contacts = API.persistLoadArr(AL_CONTACT_KEY);
     const thisMonth = new Date().toISOString().slice(0,7);
 
     document.getElementById('total-alumni').textContent = toBn(alumni.length);
@@ -301,7 +300,7 @@
   /* ── DETAIL ── */
   function openAlumni(aid) {
     currentAlumniId = aid;
-    const a = aLoad(AL_KEY).find(a => a.id === aid);
+    const a = API.persistLoadArr(AL_KEY).find(a => a.id === aid);
     if (!a) return;
     document.getElementById('detail-name').textContent = a.name;
     document.getElementById('detail-header').innerHTML = `
@@ -323,7 +322,7 @@
   }
 
   function renderContactHistory() {
-    const contacts = aLoad(AL_CONTACT_KEY).filter(c => c.alumni_id === currentAlumniId).sort((a,b) => b.date.localeCompare(a.date));
+    const contacts = API.persistLoadArr(AL_CONTACT_KEY).filter(c => c.alumni_id === currentAlumniId).sort((a,b) => b.date.localeCompare(a.date));
     const el = document.getElementById('contact-history');
     el.innerHTML = contacts.map(c => `
       <div class="contact-log">
@@ -346,13 +345,13 @@
     const status = document.getElementById('ct-status').value.trim();
     const text = document.getElementById('ct-text').value.trim();
     if (!text) { showToast('বিবরণ দিন'); return; }
-    const list = aLoad(AL_CONTACT_KEY);
-    list.push({ id: API.uid(), alumni_id: currentAlumniId, type, status, text, date: API.today(), by: sessionStorage.getItem('mm_name') || 'দায়িত্বশীল' });
-    aSave(AL_CONTACT_KEY, list);
+    const list = API.persistLoadArr(AL_CONTACT_KEY);
+    list.push({ id: API.uid(), alumni_id: currentAlumniId, type, status, text, date: API.today(), by: MMSession.getName() || 'দায়িত্বশীল' });
+    API.persistSaveArr(AL_CONTACT_KEY, list);
     /* update location if status given */
     if (status) {
-      const alumni = aLoad(AL_KEY).map(a => a.id === currentAlumniId ? { ...a, location: status } : a);
-      aSave(AL_KEY, alumni);
+      const alumni = API.persistLoadArr(AL_KEY).map(a => a.id === currentAlumniId ? { ...a, location: status } : a);
+      API.persistSaveArr(AL_KEY, alumni);
     }
     closeModal('contact');
     showToast('যোগাযোগ লগ সংরক্ষিত ✓');
@@ -364,8 +363,8 @@
     if (mmMutationBlocked(showToast)) return;
     const location = document.getElementById('st-location').value.trim();
     const phone = document.getElementById('st-phone').value.trim();
-    const alumni = aLoad(AL_KEY).map(a => a.id === currentAlumniId ? { ...a, location, phone } : a);
-    aSave(AL_KEY, alumni);
+    const alumni = API.persistLoadArr(AL_KEY).map(a => a.id === currentAlumniId ? { ...a, location, phone } : a);
+    API.persistSaveArr(AL_KEY, alumni);
     closeModal('status');
     showToast('স্ট্যাটাস আপডেট হয়েছে ✓');
     openAlumni(currentAlumniId);
@@ -380,9 +379,9 @@
     const reason = document.getElementById('al-reason').value;
     const location = document.getElementById('al-location').value.trim();
     if (!name) { showToast('নাম দিন'); return; }
-    const list = aLoad(AL_KEY);
+    const list = API.persistLoadArr(AL_KEY);
     list.push({ id: 'al_' + API.uid(), name, permanent_id, phone, year, reason, location, status: reason === 'সম্পন্ন করে' ? 'সম্পন্ন' : 'মাঝপথে' });
-    aSave(AL_KEY, list);
+    API.persistSaveArr(AL_KEY, list);
     closeModal('add-alumni');
     showToast('পুরনো ছাত্র যোগ করা হয়েছে ✓');
     renderHome();

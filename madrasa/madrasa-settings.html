@@ -172,9 +172,10 @@
 
 <div class="toast" id="toast"></div>
 <script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
 <script>
-  if (sessionStorage.getItem('mm_role') !== 'admin') location.href='../index.html';
-  document.getElementById('top-name').textContent = sessionStorage.getItem('mm_name')||'মুহতামিম';
+  if (!MMSession.isAdmin()) location.href='../index.html';
+  document.getElementById('top-name').textContent = MMSession.getName()||'মুহতামিম';
 
   let editingTeacherId = null;
 

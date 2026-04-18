@@ -154,17 +154,18 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../js/monitor-mode.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
+<script src="../js/monitor-mode.js"></script>
 <script>
-  if (!sessionStorage.getItem('mm_role')) location.href = '../index.html';
+  if (!MMSession.getRole()) location.href = '../index.html';
   mmInsertMonitorBanner();
 
-  const teacherId = sessionStorage.getItem('mm_teacher_id');
+  const teacherId = MMSession.getTeacherId();
   const teacher = teacherId ? API.Teachers.getById(teacherId) : API.Teachers.getAll().find(t => t.class_id);
   const myClass = teacher ? API.Classes.getById(teacher.class_id) : null;
 
-  document.getElementById('top-name').textContent = teacher ? teacher.name : sessionStorage.getItem('mm_name') || 'উস্তায';
+  document.getElementById('top-name').textContent = teacher ? teacher.name : MMSession.getName() || 'উস্তায';
   document.getElementById('top-role').textContent = myClass ? myClass.name + ' দায়িত্বশীল' : 'বর্ষ দায়িত্বশীল';
   document.getElementById('class-name-header').textContent = myClass ? myClass.name : '—';
   document.getElementById('teacher-name-header').textContent = teacher ? teacher.name : '—';

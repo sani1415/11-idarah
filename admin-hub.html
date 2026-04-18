@@ -617,6 +617,7 @@
 </div>
 
 <script src="js/api.js"></script>
+<script src="js/mm-session.js"></script>
 <script src="js/dept-api.js"></script>
 <script src="js/khedmat-api.js"></script>
 <script src="js/chat-api.js"></script>
@@ -628,7 +629,7 @@
 
   let pinVal = '';
 
-  if (sessionStorage.getItem('mm_role') === 'admin') {
+  if (MMSession.isAdmin()) {
     showDashboard();
   }
 
@@ -643,10 +644,10 @@
   function resetPin() { pinVal=''; updateDots(); document.getElementById('pin-error').textContent=''; }
 
   function checkPin() {
-    const s = JSON.parse(localStorage.getItem('mm_settings')||'{}');
+    const s = API.Settings.get();
     if (pinVal === (s.admin_pin||'0000')) {
-      sessionStorage.setItem('mm_role','admin');
-      sessionStorage.setItem('mm_name','মুহতামিম');
+      MMSession.setRole('admin');
+      MMSession.setName('মুহতামিম');
       showDashboard();
     } else {
       document.getElementById('pin-error').textContent='পিন ভুল হয়েছে।';
@@ -661,7 +662,7 @@
   }
 
   function logout() {
-    ['mm_role','mm_name','mm_teacher_id','mm_dept_role','mm_dept_id','mm_dept_name','mm_dept_emoji'].forEach(k => sessionStorage.removeItem(k));
+    MMSession.clearAppSession();
     location.reload();
   }
 

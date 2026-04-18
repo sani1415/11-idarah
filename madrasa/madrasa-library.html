@@ -197,13 +197,14 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="../js/monitor-mode.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
+<script src="../js/monitor-mode.js"></script>
 <script>
-  if (!sessionStorage.getItem('mm_role')) location.href = '../index.html';
-  document.getElementById('top-name').textContent = sessionStorage.getItem('mm_name') || 'দায়িত্বশীল';
+  if (!MMSession.getRole()) location.href = '../index.html';
+  document.getElementById('top-name').textContent = MMSession.getName() || 'দায়িত্বশীল';
   mmInsertMonitorBanner();
-  if (sessionStorage.getItem('mm_role') === 'admin') {
+  if (MMSession.isAdmin()) {
     const hb = document.getElementById('topbar-hub');
     if (hb) hb.style.removeProperty('display');
   }
@@ -211,13 +212,11 @@
   const LIB_BOOKS = 'mm_lib_books';
   const LIB_ISSUES = 'mm_lib_issues';
 
-  function lLoad(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } }
-  function lSave(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
   function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
 
   /* seed */
-  if (!lLoad(LIB_BOOKS).length) {
-    lSave(LIB_BOOKS, [
+  if (!API.persistLoadArr(LIB_BOOKS).length) {
+    API.persistSaveArr(LIB_BOOKS, [
       { id: 'bk_1', title: 'হেদায়া', author: 'বুরহানুদ্দীন মারগীনানী', category: 'ফিকহ', copies: 3, rack: 'A-1' },
       { id: 'bk_2', title: 'বুখারী শরীফ', author: 'ইমাম বুখারী', category: 'হাদীস', copies: 2, rack: 'B-1' },
       { id: 'bk_3', title: 'তাফসীরে মাআরেফুল কুরআন', author: 'মুফতী শফী', category: 'তাফসীর', copies: 2, rack: 'C-1' },
@@ -227,7 +226,7 @@
     const today = API.today();
     const due = new Date(); due.setDate(due.getDate() + 14);
     const overdue = new Date(); overdue.setDate(overdue.getDate() - 3);
-    lSave(LIB_ISSUES, [
+    API.persistSaveArr(LIB_ISSUES, [
       { id: API.uid(), book_id: 'bk_1', student_id: 'std_1', issued: today, due: due.toISOString().split('T')[0], returned: null },
       { id: API.uid(), book_id: 'bk_2', student_id: 'std_2', issued: '2025-03-01', due: overdue.toISOString().split('T')[0], returned: null },
       { id: API.uid(), book_id: 'bk_3', student_id: 'std_3', issued: '2025-02-01', due: '2025-02-15', returned: '2025-02-14' },
@@ -255,8 +254,8 @@
 
   /* ── BOOKS ── */
   function renderBooks() {
-    const books = lLoad(LIB_BOOKS);
-    const issues = lLoad(LIB_ISSUES);
+    const books = API.persistLoadArr(LIB_BOOKS);
+    const issues = API.persistLoadArr(LIB_ISSUES);
     const query = document.getElementById('search-input').value.toLowerCase();
 
     /* categories */
@@ -314,9 +313,9 @@
   function filterCat(cat) { currentCat = cat; renderBooks(); }
 
   function showBookDetail(bid) {
-    const b = lLoad(LIB_BOOKS).find(b => b.id === bid);
+    const b = API.persistLoadArr(LIB_BOOKS).find(b => b.id === bid);
     if (!b) return;
-    const issues = lLoad(LIB_ISSUES).filter(i => i.book_id === bid && !i.returned);
+    const issues = API.persistLoadArr(LIB_ISSUES).filter(i => i.book_id === bid && !i.returned);
     const msg = issues.length
       ? issues.map(i => { const s = API.Students.getById(i.student_id); return (s?s.name:'—') + ' (ফেরত: ' + i.due + ')'; }).join(', ')
       : 'সবগুলো কপি পাওয়া যাচ্ছে';
@@ -325,8 +324,8 @@
 
   /* ── ISSUES ── */
   function renderIssues(filter) {
-    const issues = lLoad(LIB_ISSUES);
-    const books = lLoad(LIB_BOOKS);
+    const issues = API.persistLoadArr(LIB_ISSUES);
+    const books = API.persistLoadArr(LIB_BOOKS);
     const today = API.today();
     let filtered = issues;
     if (filter === 'active') filtered = issues.filter(i => !i.returned);
@@ -360,8 +359,8 @@
 
   function returnBook(iid) {
     if (mmMutationBlocked(showToast)) return;
-    const list = lLoad(LIB_ISSUES).map(i => i.id === iid ? { ...i, returned: API.today() } : i);
-    lSave(LIB_ISSUES, list);
+    const list = API.persistLoadArr(LIB_ISSUES).map(i => i.id === iid ? { ...i, returned: API.today() } : i);
+    API.persistSaveArr(LIB_ISSUES, list);
     showToast('বই ফেরত নেওয়া হয়েছে ✓');
     renderIssues(currentIssueTab);
     renderBooks();
@@ -375,9 +374,9 @@
     const copies = parseInt(document.getElementById('bk-copies').value) || 1;
     const rack = document.getElementById('bk-rack').value.trim();
     if (!title) { showToast('বইয়ের নাম দিন'); return; }
-    const list = lLoad(LIB_BOOKS);
+    const list = API.persistLoadArr(LIB_BOOKS);
     list.push({ id: 'bk_' + API.uid(), title, author, category, copies, rack });
-    lSave(LIB_BOOKS, list);
+    API.persistSaveArr(LIB_BOOKS, list);
     closeModal('add-book');
     showToast('বই যোগ করা হয়েছে ✓');
     renderBooks();
@@ -390,9 +389,9 @@
     const issued = document.getElementById('iss-date').value;
     const due = document.getElementById('iss-due').value;
     if (!book_id || !student_id || !issued || !due) { showToast('সব তথ্য দিন'); return; }
-    const list = lLoad(LIB_ISSUES);
+    const list = API.persistLoadArr(LIB_ISSUES);
     list.push({ id: API.uid(), book_id, student_id, issued, due, returned: null });
-    lSave(LIB_ISSUES, list);
+    API.persistSaveArr(LIB_ISSUES, list);
     closeModal('issue-book');
     showToast('বই ইস্যু করা হয়েছে ✓');
     renderBooks();

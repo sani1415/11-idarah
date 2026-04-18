@@ -134,10 +134,11 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="../js/mm-session.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script src="../js/dept-api.js"></script>
 <script>
-  if (sessionStorage.getItem('mm_role') !== 'admin') { location.href = 'dept-index.html'; }
+  if (!MMSession.isAdmin()) { location.href = 'dept-index.html'; }
   mmInsertMonitorBanner();
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);

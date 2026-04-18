@@ -51,6 +51,8 @@
   <div class="login-back" onclick="backToDepts()">← বিভাগ পরিবর্তন করুন</div>
 </div>
 
+<script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
 <script src="../js/dept-api.js"></script>
 <script>
   const BN = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
@@ -78,7 +80,7 @@
   }
 
   function goAdmin() {
-    if (sessionStorage.getItem('mm_role') === 'admin') {
+    if (MMSession.isAdmin()) {
       location.href = 'dept-dashboard.html';
     } else {
       selectedDept = { id:'__admin__', name:'বিভাগ ড্যাশবোর্ড', emoji:'🏠' };
@@ -110,19 +112,16 @@
   function checkPin() {
     if (selectedDept?.id === '__admin__') {
       /* admin PIN from madrasa settings */
-      const s = JSON.parse(localStorage.getItem('mm_settings')||'{}');
+      const s = API.Settings.get();
       if (pinVal === (s.admin_pin||'0000')) {
-        sessionStorage.setItem('mm_role','admin');
-        sessionStorage.setItem('mm_name','মুহতামিম');
+        MMSession.setRole('admin');
+        MMSession.setName('মুহতামিম');
         location.href = 'dept-dashboard.html';
       } else { showError(); }
       return;
     }
     if (DeptAPI.Departments.verifyPin(selectedDept.id, pinVal)) {
-      sessionStorage.setItem('mm_dept_role', 'dept');
-      sessionStorage.setItem('mm_dept_id',   selectedDept.id);
-      sessionStorage.setItem('mm_dept_name', selectedDept.name);
-      sessionStorage.setItem('mm_dept_emoji',selectedDept.emoji);
+      MMSession.setDeptSession(selectedDept.id, selectedDept.name, selectedDept.emoji);
       location.href = 'dept-staff.html';
     } else { showError(); }
   }

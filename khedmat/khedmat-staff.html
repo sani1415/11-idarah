@@ -150,11 +150,12 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="../js/mm-session.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script src="../js/khedmat-api.js"></script>
 <script>
-  const myRole = sessionStorage.getItem('mm_role');
-  const myName = sessionStorage.getItem('mm_name') || 'খেদমত দায়িত্বশীল';
+  const myRole = MMSession.getRole();
+  const myName = MMSession.getName() || 'খেদমত দায়িত্বশীল';
   if (myRole !== 'khedmat' && myRole !== 'admin') { location.href = '../index.html'; }
   mmInsertMonitorBanner();
 

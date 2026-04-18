@@ -410,10 +410,22 @@ const API = (() => {
     save: data => save(KEYS.settings, data),
   };
 
+  /** Raw localStorage array helpers — used by feature pages until moved into domain APIs. */
+  function persistLoadArr(storageKey) {
+    try { return JSON.parse(localStorage.getItem(storageKey)) || []; } catch { return []; }
+  }
+  function persistSaveArr(storageKey, data) {
+    localStorage.setItem(storageKey, JSON.stringify(data));
+  }
+
   /* ── INIT ── */
   seedIfEmpty();
 
   /* ── PUBLIC API ── */
-  return { Students, Classes, Teachers, Attendance, KitabProgress, Khuluk, Logs, Fees, Exams, Settings, uid, today, now, esc };
+  return {
+    Students, Classes, Teachers, Attendance, KitabProgress, Khuluk, Logs, Fees, Exams, Settings,
+    persistLoadArr, persistSaveArr,
+    uid, today, now, esc,
+  };
 
 })();

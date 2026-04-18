@@ -112,10 +112,11 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="../js/mm-session.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script src="../js/khedmat-api.js"></script>
 <script>
-  if (sessionStorage.getItem('mm_role') !== 'admin') { location.href = '../index.html'; }
+  if (!MMSession.isAdmin()) { location.href = '../index.html'; }
   mmInsertMonitorBanner();
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);

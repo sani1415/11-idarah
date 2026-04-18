@@ -146,13 +146,14 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="../js/mm-session.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script src="../js/dept-api.js"></script>
 <script>
-  const deptId   = sessionStorage.getItem('mm_dept_id');
-  const deptName = sessionStorage.getItem('mm_dept_name');
-  const deptEmoji= sessionStorage.getItem('mm_dept_emoji');
-  const isAdmin  = sessionStorage.getItem('mm_role') === 'admin';
+  const deptId   = MMSession.getDeptId();
+  const deptName = MMSession.getDeptName();
+  const deptEmoji= MMSession.getDeptEmoji();
+  const isAdmin  = MMSession.isAdmin();
 
   if (!deptId && !isAdmin) { location.href = 'dept-index.html'; }
 
@@ -354,10 +355,7 @@
   }
 
   function logout() {
-    sessionStorage.removeItem('mm_dept_role');
-    sessionStorage.removeItem('mm_dept_id');
-    sessionStorage.removeItem('mm_dept_name');
-    sessionStorage.removeItem('mm_dept_emoji');
+    MMSession.clearDeptSession();
     location.href = 'dept-index.html';
   }
 
