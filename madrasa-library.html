@@ -64,6 +64,7 @@
     <div class="topbar-name" id="top-name">দায়িত্বশীল</div>
   </div>
   <div class="topbar-actions">
+    <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='admin-hub.html'">হাব</button>
     <button class="topbar-btn" onclick="location.href='index.html'">প্রস্থান</button>
   </div>
 </div>
@@ -202,6 +203,10 @@
   if (!sessionStorage.getItem('mm_role')) location.href = 'index.html';
   document.getElementById('top-name').textContent = sessionStorage.getItem('mm_name') || 'দায়িত্বশীল';
   mmInsertMonitorBanner();
+  if (sessionStorage.getItem('mm_role') === 'admin') {
+    const hb = document.getElementById('topbar-hub');
+    if (hb) hb.style.removeProperty('display');
+  }
 
   const LIB_BOOKS = 'mm_lib_books';
   const LIB_ISSUES = 'mm_lib_issues';
