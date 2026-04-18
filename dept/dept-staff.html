@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>বিভাগ পোর্টাল</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../css/style.css">
 <style>
   .txn-item { background:#fff; border-radius:var(--radius-sm); padding:13px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
   .txn-icon { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
@@ -83,7 +83,7 @@
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" stroke="currentColor" stroke-width="1.5"/></svg></span>
     <span class="nav-label">প্রতিবেদন</span>
   </div>
-  <div class="nav-item" onclick="location.href='chat.html'" title="শুধু মুহতামিমকে">
+  <div class="nav-item" onclick="location.href='../chat.html'" title="শুধু মুহতামিমকে">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="nav-label">মুহতামিমকে</span>
   </div>
@@ -109,6 +109,7 @@
       <label class="form-label">তারিখ</label>
       <input class="form-input" type="date" id="txn-date">
     </div>
+    <div id="txn-extra-wrap"></div>
     <button class="submit-btn" onclick="saveTxn()">সংরক্ষণ করুন</button>
   </div>
 </div>
@@ -145,8 +146,8 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="monitor-mode.js"></script>
-<script src="dept-api.js"></script>
+<script src="../js/monitor-mode.js"></script>
+<script src="../js/dept-api.js"></script>
 <script>
   const deptId   = sessionStorage.getItem('mm_dept_id');
   const deptName = sessionStorage.getItem('mm_dept_name');
@@ -165,7 +166,58 @@
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = n => '৳' + toBn(Number(n).toLocaleString('en'));
   const fmtDate = d => { if (!d) return ''; const p = d.split('-'); return toBn(p[2]+'/'+p[1]); };
+  const txnWhen = t => t.date || t.txn_date || '';
   const monthLabel = m => { const p = m.split('-'); return toBn(p[1]) + ' — ' + toBn(p[0]); };
+
+  function renderTxnExtraFields() {
+    const wrap = document.getElementById('txn-extra-wrap');
+    const defs = DeptAPI.getSubdeptFields(deptId);
+    if (!defs.length) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = defs.map(d => {
+      const opt = d.optional !== false;
+      return `<div class="form-group">
+        <label class="form-label">${DeptAPI.esc(d.label)}${opt ? ' <span style="font-weight:400;color:var(--ink3);">(ঐচ্ছিক)</span>' : ''}</label>
+        <input class="form-input" type="${d.type === 'number' ? 'number' : 'text'}" id="txn-extra-${DeptAPI.esc(d.key)}" placeholder="${DeptAPI.esc(d.placeholder || '')}" data-extra-key="${DeptAPI.esc(d.key)}">
+      </div>`;
+    }).join('');
+  }
+
+  function collectTxnMetadata() {
+    const defs = DeptAPI.getSubdeptFields(deptId);
+    const meta = {};
+    for (const d of defs) {
+      const el = document.getElementById('txn-extra-' + d.key);
+      if (!el) continue;
+      const raw = el.value.trim();
+      const required = d.optional === false;
+      if (d.type === 'number') {
+        if (raw === '') {
+          if (required) return { err: d.label + ' দিন' };
+          continue;
+        }
+        const n = parseFloat(raw);
+        if (isNaN(n)) return { err: d.label + '-এ সঠিক সংখ্যা দিন' };
+        meta[d.key] = n;
+      } else {
+        if (!raw && required) return { err: d.label + ' দিন' };
+        if (raw) meta[d.key] = raw;
+      }
+    }
+    return { meta };
+  }
+
+  function formatTxnMetaLine(t) {
+    const m = t.metadata;
+    if (!m || typeof m !== 'object') return '';
+    const defs = DeptAPI.getSubdeptFields(deptId);
+    const bits = defs.map(def => {
+      const v = m[def.key];
+      if (v === undefined || v === '' || v === null) return null;
+      return DeptAPI.esc(def.label) + ': ' + DeptAPI.esc(String(v));
+    }).filter(Boolean);
+    if (!bits.length) return '';
+    return '<div style="font-size:11px;color:var(--ink3);margin-top:3px;line-height:1.35;">' + bits.join(' · ') + '</div>';
+  }
 
   function showToast(msg) {
     const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
@@ -206,7 +258,8 @@
           <div class="txn-icon ${t.type}">${t.type==='income'?'↑':'↓'}</div>
           <div class="txn-info">
             <div class="txn-desc">${DeptAPI.esc(t.description)}${t.is_locked?'<span class="txn-locked">🔒</span>':''}</div>
-            <div class="txn-date">${fmtDate(t.txn_date)}</div>
+            <div class="txn-date">${fmtDate(txnWhen(t))}</div>
+            ${formatTxnMetaLine(t)}
           </div>
           <div class="txn-amt ${t.type}">${fmtAmt(t.amount)}</div>
         </div>`).join('')
@@ -241,7 +294,8 @@
           <div class="txn-icon ${t.type}">${t.type==='income'?'↑':'↓'}</div>
           <div class="txn-info">
             <div class="txn-desc">${DeptAPI.esc(t.description)}</div>
-            <div class="txn-date">${fmtDate(t.txn_date)}</div>
+            <div class="txn-date">${fmtDate(txnWhen(t))}</div>
+            ${formatTxnMetaLine(t)}
           </div>
           <div class="txn-amt ${t.type}">${fmtAmt(t.amount)}</div>
         </div>`).join('')
@@ -253,6 +307,7 @@
     document.getElementById('txn-amount').value = '';
     document.getElementById('txn-desc').value = '';
     document.getElementById('txn-date').value = new Date().toISOString().split('T')[0];
+    renderTxnExtraFields();
     openModal('modal-txn');
   }
 
@@ -269,7 +324,9 @@
     const date   = document.getElementById('txn-date').value;
     if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
     if (!desc) { showToast('বিবরণ দিন'); return; }
-    DeptAPI.Transactions.add({ dept_id:deptId, type:addType, amount, description:desc, txn_date:date });
+    const collected = collectTxnMetadata();
+    if (collected.err) { showToast(collected.err); return; }
+    DeptAPI.Transactions.add({ dept_id:deptId, type:addType, amount, description:desc, date, metadata: collected.meta });
     closeModal('modal-txn');
     renderTxn();
     showToast('লেনদেন সংরক্ষিত হয়েছে');

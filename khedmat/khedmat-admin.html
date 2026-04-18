@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>খেদমতে খালক — অ্যাডমিন</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../css/style.css">
 <style>
   .type-card { background:#fff; border-radius:var(--radius-sm); padding:14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
   .type-emoji { font-size:24px; width:42px; height:42px; background:var(--teal-light); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -29,7 +29,7 @@
     <div class="topbar-name">খেদমতে খালক</div>
   </div>
   <div class="topbar-actions">
-    <button class="topbar-btn" onclick="location.href='admin-hub.html'">হোম</button>
+    <button class="topbar-btn" onclick="location.href='../admin-hub.html'">হোম</button>
   </div>
 </div>
 
@@ -112,10 +112,10 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="monitor-mode.js"></script>
-<script src="khedmat-api.js"></script>
+<script src="../js/monitor-mode.js"></script>
+<script src="../js/khedmat-api.js"></script>
 <script>
-  if (sessionStorage.getItem('mm_role') !== 'admin') { location.href = 'index.html'; }
+  if (sessionStorage.getItem('mm_role') !== 'admin') { location.href = '../index.html'; }
   mmInsertMonitorBanner();
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);

@@ -33,11 +33,11 @@ const DeptAPI = (() => {
     ]);
 
     save(KEYS.transactions, [
-      { id:'txn_1', dept_id:'dept_1', type:'income',  amount:5000, description:'ধান বিক্রয়',    date:'2026-04-01', proof_note:'', locked:true  },
-      { id:'txn_2', dept_id:'dept_1', type:'expense', amount:800,  description:'সার ক্রয়',       date:'2026-04-05', proof_note:'', locked:false },
-      { id:'txn_3', dept_id:'dept_2', type:'income',  amount:3200, description:'মধু বিক্রয়',   date:'2026-04-03', proof_note:'', locked:true  },
-      { id:'txn_4', dept_id:'dept_3', type:'income',  amount:2500, description:'রুটি বিক্রয়',  date:'2026-04-10', proof_note:'', locked:false },
-      { id:'txn_5', dept_id:'dept_3', type:'expense', amount:1200, description:'আটা ও মসলা',   date:'2026-04-10', proof_note:'', locked:false },
+      { id:'txn_1', dept_id:'dept_1', type:'income',  amount:5000, description:'ধান বিক্রয়',    date:'2026-04-01', proof_note:'', locked:true,  metadata:{ plot:'প্লট-ক' } },
+      { id:'txn_2', dept_id:'dept_1', type:'expense', amount:800,  description:'সার ক্রয়',       date:'2026-04-05', proof_note:'', locked:false, metadata:{} },
+      { id:'txn_3', dept_id:'dept_2', type:'income',  amount:3200, description:'মধু বিক্রয়',   date:'2026-04-03', proof_note:'', locked:true,  metadata:{ hives:12 } },
+      { id:'txn_4', dept_id:'dept_3', type:'income',  amount:2500, description:'রুটি বিক্রয়',  date:'2026-04-10', proof_note:'', locked:false, metadata:{ batch:'ব্যাচ ৩' } },
+      { id:'txn_5', dept_id:'dept_3', type:'expense', amount:1200, description:'আটা ও মসলা',   date:'2026-04-10', proof_note:'', locked:false, metadata:{} },
     ]);
 
     save(KEYS.inventory, [
@@ -69,6 +69,25 @@ const DeptAPI = (() => {
     },
   };
 
+  /* ── Per–sub-department extra fields (keyed by department id)
+      Add rows here when a বিভাগ needs ১–২ extra inputs on top of shared amount/description/date.
+      UI reads this to build the form; values live on each transaction under `metadata`. */
+  const SUBDEPT_EXTRA_FIELDS = {
+    dept_1: [
+      { key:'plot', label:'জমি / প্লট রেফারেন্স', type:'text', placeholder:'যেমন: প্লট-ক', optional:true },
+    ],
+    dept_2: [
+      { key:'hives', label:'মৌচাক সংখ্যা (ঐন)', type:'number', placeholder:'১২', optional:true },
+    ],
+    dept_3: [
+      { key:'batch', label:'ব্যাচ / লট', type:'text', placeholder:'যেমন: ব্যাচ ১২', optional:true },
+    ],
+  };
+
+  function getSubdeptFields(dept_id) {
+    return SUBDEPT_EXTRA_FIELDS[dept_id] ? SUBDEPT_EXTRA_FIELDS[dept_id].slice() : [];
+  }
+
   /* ── TRANSACTIONS ── */
   const Transactions = {
     getByDept: id => load(KEYS.transactions)
@@ -80,7 +99,17 @@ const DeptAPI = (() => {
     getAll: () => load(KEYS.transactions).sort((a,b)=>b.date.localeCompare(a.date)),
     add(data) {
       const list = load(KEYS.transactions);
-      const t = { id:'txn_'+uid(), locked:false, date:today(), proof_note:'', ...data };
+      const dateVal = data.date || data.txn_date || today();
+      const { txn_date, metadata: metaIn, ...rest } = data;
+      const meta = (metaIn && typeof metaIn === 'object') ? { ...metaIn } : {};
+      const t = {
+        id:'txn_'+uid(),
+        locked:false,
+        proof_note: data.proof_note ?? '',
+        ...rest,
+        date: dateVal,
+        metadata: meta,
+      };
       list.push(t);
       save(KEYS.transactions, list);
       return t;
@@ -144,6 +173,6 @@ const DeptAPI = (() => {
   };
 
   seedIfEmpty();
-  return { Departments, Transactions, Inventory, EditRequests, uid, today, esc };
+  return { Departments, Transactions, Inventory, EditRequests, getSubdeptFields, uid, today, esc };
 
 })();

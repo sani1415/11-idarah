@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>মারকাযুল মদীনা</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -64,7 +64,7 @@
         <div class="role-desc">খেদমতে খালক মডিউল</div>
       </div>
     </div>
-    <div class="role-btn" onclick="location.href='dept-index.html'">
+    <div class="role-btn" onclick="location.href='dept/dept-index.html'">
       <div class="role-icon">🏢</div>
       <div>
         <div class="role-name">বিভাগ দায়িত্বশীল</div>
@@ -119,7 +119,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="api.js"></script>
+<script src="js/api.js"></script>
 <script>
   let currentRole = '';
   let selectedTeacher = null;
@@ -228,7 +228,7 @@
         ok = true;
         sessionStorage.setItem('mm_role', 'daftar');
         sessionStorage.setItem('mm_name', daftar.name);
-        redirect = 'madrasa-daftar.html';
+        redirect = 'madrasa/madrasa-daftar.html';
       }
     } else if (currentRole === 'hifz') {
       const user = API.Teachers.getAll().find(t => t.role === 'hifz');
@@ -236,7 +236,7 @@
         ok = true;
         sessionStorage.setItem('mm_role', 'hifz');
         sessionStorage.setItem('mm_name', user.name);
-        redirect = 'madrasa-hifz.html';
+        redirect = 'madrasa/madrasa-hifz.html';
       }
     } else if (currentRole === 'library') {
       const user = API.Teachers.getAll().find(t => t.role === 'library');
@@ -244,7 +244,7 @@
         ok = true;
         sessionStorage.setItem('mm_role', 'library');
         sessionStorage.setItem('mm_name', user.name);
-        redirect = 'madrasa-library.html';
+        redirect = 'madrasa/madrasa-library.html';
       }
     } else if (currentRole === 'alumni') {
       const user = API.Teachers.getAll().find(t => t.role === 'alumni');
@@ -252,7 +252,7 @@
         ok = true;
         sessionStorage.setItem('mm_role', 'alumni');
         sessionStorage.setItem('mm_name', user.name);
-        redirect = 'madrasa-alumni.html';
+        redirect = 'madrasa/madrasa-alumni.html';
       }
     } else if (currentRole === 'khedmat') {
       const user = API.Teachers.getAll().find(t => t.role === 'khedmat');
@@ -260,7 +260,7 @@
         ok = true;
         sessionStorage.setItem('mm_role', 'khedmat');
         sessionStorage.setItem('mm_name', user.name);
-        redirect = 'khedmat-staff.html';
+        redirect = 'khedmat/khedmat-staff.html';
       }
     } else if (currentRole === 'teacher' && selectedTeacher) {
       if (pinVal === selectedTeacher.pin) {
@@ -268,7 +268,7 @@
         sessionStorage.setItem('mm_role', 'teacher');
         sessionStorage.setItem('mm_teacher_id', selectedTeacher.id);
         sessionStorage.setItem('mm_name', selectedTeacher.name);
-        redirect = 'madrasa-staff.html';
+        redirect = 'madrasa/madrasa-staff.html';
       }
     }
 

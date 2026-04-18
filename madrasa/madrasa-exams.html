@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>পরীক্ষা — মারকাযুল মদীনা</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../css/style.css">
 <style>
   .exam-card { background:#fff; border-radius:var(--radius); padding:14px; box-shadow:var(--shadow); margin-bottom:10px; cursor:pointer; transition:transform .12s; }
   .exam-card:active { transform:scale(.98); }
@@ -42,7 +42,7 @@
     <div class="topbar-name" id="top-name">মুহতামিম</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='admin-hub.html'">হাব</button>
+    <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../admin-hub.html'">হাব</button>
     <button class="topbar-btn" onclick="location.href='madrasa-admin.html'">← অ্যাডমিন</button>
   </div>
 </div>
@@ -116,10 +116,10 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="monitor-mode.js"></script>
-<script src="api.js"></script>
+<script src="../js/monitor-mode.js"></script>
+<script src="../js/api.js"></script>
 <script>
-  if (!sessionStorage.getItem('mm_role')) location.href='index.html';
+  if (!sessionStorage.getItem('mm_role')) location.href='../index.html';
   document.getElementById('top-name').textContent = sessionStorage.getItem('mm_name')||'মুহতামিম';
   mmInsertMonitorBanner();
   if (sessionStorage.getItem('mm_role') === 'admin') {

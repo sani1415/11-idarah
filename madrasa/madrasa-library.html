@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>লাইব্রেরি — মারকাযুল মদীনা</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../css/style.css">
 <style>
   .book-card {
     background: #fff; border-radius: var(--radius); padding: 14px;
@@ -64,8 +64,8 @@
     <div class="topbar-name" id="top-name">দায়িত্বশীল</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='admin-hub.html'">হাব</button>
-    <button class="topbar-btn" onclick="location.href='index.html'">প্রস্থান</button>
+    <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../admin-hub.html'">হাব</button>
+    <button class="topbar-btn" onclick="location.href='../index.html'">প্রস্থান</button>
   </div>
 </div>
 
@@ -125,7 +125,7 @@
   <div class="nav-item" id="nav-issued" onclick="switchPanel('issued');renderIssues('all')">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V12.75a9 9 0 00-9-9z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">ইস্যু</span>
   </div>
-  <div class="nav-item" onclick="location.href='chat.html'" title="শুধু মুহতামিমকে">
+  <div class="nav-item" onclick="location.href='../chat.html'" title="শুধু মুহতামিমকে">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">মুহতামিমকে</span>
   </div>
 </nav>
@@ -197,10 +197,10 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="monitor-mode.js"></script>
-<script src="api.js"></script>
+<script src="../js/monitor-mode.js"></script>
+<script src="../js/api.js"></script>
 <script>
-  if (!sessionStorage.getItem('mm_role')) location.href = 'index.html';
+  if (!sessionStorage.getItem('mm_role')) location.href = '../index.html';
   document.getElementById('top-name').textContent = sessionStorage.getItem('mm_name') || 'দায়িত্বশীল';
   mmInsertMonitorBanner();
   if (sessionStorage.getItem('mm_role') === 'admin') {

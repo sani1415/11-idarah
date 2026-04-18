@@ -11,12 +11,17 @@
 ### এই প্রজেক্ট
 একই Supabase project-এ নতুন টেবিল (`shared_*`, `dept_*`, `mdr_*`, `kh_*` prefix) তৈরি হবে। নতুন Vercel deployment হবে আলাদা।
 
+### বর্তমান প্রোটোটাইপ রিপো (`test-markaz`)
+- **ভ্যানিলা HTML + JS**, ডেটা এখন **`localStorage`**-ভিত্তিক (`js/api.js`, `js/dept-api.js`, ইত্যাদি)। Supabase মাইগ্রেশন নিচের স্কিমা অনুযায়ী **ভবিষ্যৎ** ধাপ।
+- **ফাইল বিন্যাস (হাইব্রিড):** যৌথ `css/`, `js/`; মডিউলভিত্তিক HTML — `madrasa/`, `dept/`, `khedmat/`; মূল এন্ট্রি রুটে — `index.html`, `admin-hub.html`, `chat.html`, `staff-portal.html`। CSS: `css/style.css` (রুট) বা `../css/style.css` (সাবফোল্ডার); JS: `js/...` বা `../js/...`।
+- **`backup/`** — পুনর্বিন্যাসের আগের সম্পূর্ণ কপি রাখা যেতে পারে; সমস্যা হলে রুট পুনরুদ্ধারের রেফারেন্স।
+
 ---
 
 ## UI Reference ফাইল (হুবহু copy করবে না)
 
-- `admin-hub.html` → Admin Hub-এর UI ধারণা
-- `staff-portal.html` → Staff Portal-এর UI ধারণা
+- `admin-hub.html` (রুট) → Admin Hub-এর UI ধারণা
+- `staff-portal.html` (রুট) → Staff Portal-এর UI ধারণা
 
 এগুলো শুধু visual reference। Real backend data দিয়ে নতুন করে বানাতে হবে।
 
@@ -24,10 +29,10 @@
 
 ## Architecture Rules
 
-- সব ডেটা লজিক আলাদা `api-*.js` ফাইলে — HTML শুধু `API.*` call করবে
-- `style.css` — সব shared CSS এখানে
+- সব ডেটা লজিক আলাদা JS-এ — প্রোটোটাইপে `js/api.js`, `js/dept-api.js`, `js/khedmat-api.js`, `js/chat-api.js`; HTML শুধু `API` / `DeptAPI` ইত্যাদি call করবে। ভবিষ্যতে ফাইল নাম `api-*.js` বা মডিউল ভাগ একই নীতি।
+- **Shared CSS:** `css/style.css` (রুট HTML: `href="css/style.css"`; সাবফোল্ডার: `href="../css/style.css"`)
 - বিদ্যমান ওয়াকফ অ্যাপের pattern অনুসরণ করো: RLS + RPC-gated access
-- Direct REST call নেই — সব কিছু RPC দিয়ে
+- Direct REST call নেই — সব কিছু RPC দিয়ে (প্রোটোটাইপে এখনও Supabase নেই; `localStorage` শুধু ডেভ/ডেমো)
 - Vanilla JS only (no React/Vue)
 - সব user-facing text বাংলায়
 - Supabase client সবসময় `supabaseClient` নামে
@@ -36,8 +41,8 @@
 
 ## File Size Limits
 
-- যেকোনো `api-*.js` → max 400 lines, প্রয়োজনে module ভাগ করো
-- `style.css` → max 500 lines
+- যেকোনো API/মডিউল JS (`js/api.js`, `js/dept-api.js`, …) → max 400 lines, প্রয়োজনে module ভাগ করো
+- `css/style.css` → max 500 lines
 - যেকোনো `.html` → max 600 lines
 - নতুন `.js` → max 400 lines
 
@@ -54,8 +59,7 @@
 
 ## Service Worker
 
-- প্রতিটি ফাইল পরিবর্তনে `sw.js`-এর cache version বাড়াতে হবে
-- নতুন ফাইল `LOCAL_SHELL` array-তে যোগ করতে হবে
+- প্রোটোটাইপ রিপোতে এখনও `sw.js` নেই। **PWA যোগ করলে:** প্রতিটি ফাইল পরিবর্তনে `sw.js`-এর cache version বাড়াতে হবে; নতুন ফাইল `LOCAL_SHELL` array-তে যোগ করতে হবে।
 
 ---
 
@@ -135,6 +139,8 @@ CREATE TABLE IF NOT EXISTS dept_transactions (
   amount       numeric(12,2) NOT NULL,
   description  text NOT NULL,
   txn_date     date NOT NULL DEFAULT CURRENT_DATE,
+  metadata     jsonb NOT NULL DEFAULT '{}',
+  -- উপ-বিভাগ অনুযায়ী অতিরিক্ত ক্ষেত্র (প্লট, মৌচাক, ব্যাচ ইত্যাদি); প্রোটোটাইপে `js/dept-api.js` TRANSACTION.metadata
   entered_by   uuid NOT NULL REFERENCES shared_users(id),
   is_locked    boolean NOT NULL DEFAULT false,
   -- true হলে শুধু admin পরিবর্তন করতে পারবে
@@ -570,40 +576,67 @@ kh_rel_*   → খেদমত মডিউলের RPCs
 
 ## File Tree
 
+### বর্তমান প্রোটোটাইপ (`test-markaz`)
+
+```
+test-markaz/
+├── CLAUDE.md
+├── WORKFLOW.md                  ← (ঐচ্ছিক) কাজের নোট
+├── backup/                      ← পুনরুদ্ধার রেফারেন্স (ঐচ্ছিক)
+│
+├── css/
+│   └── style.css                ← যৌথ স্টাইল (max 500 lines)
+├── js/
+│   ├── api.js                   ← মাদ্রাসা মডিউল API (localStorage)
+│   ├── dept-api.js              ← বিভাগ মডিউল + উপ-বিভাগ extra field config
+│   ├── khedmat-api.js
+│   ├── chat-api.js
+│   └── monitor-mode.js
+│
+├── index.html                   ← ভূমিকা / PIN → মডিউলে redirect
+├── admin-hub.html               ← মুহতামিম হাব (মডিউল কার্ড)
+├── chat.html                    ← স্টাফ ↔ মুহতামিম বার্তা
+├── staff-portal.html            ← UI রেফারেন্স / পোর্টাল ধারণা
+│
+├── madrasa/                     ← মাদ্রাসা মডিউল পেজ (madrasa-*.html)
+├── dept/                        ← বিভাগ মডিউল (dept-index, dept-staff, dept-dashboard)
+├── khedmat/                     ← খেদমত মডিউল (khedmat-*.html)
+└── .vscode/                     ← (ঐচ্ছিক) এডিটর সেটিং
+```
+
+**নোট:** ভবিষ্যত Vercel/Supabase বিল্ডে ফাইল নাম সরলীকৃত হতে পারে (`admin.html`, `dept.html`, …) — নিচের ব্লক সেই লক্ষ্যের ধারণা।
+
+### ভবিষ্যত production লেআউট (`markaz-hub/` — পরিকল্পনা)
+
 ```
 markaz-hub/
-│
-├── CLAUDE.md                    ← এই ফাইল
-│
+├── CLAUDE.md
 ├── supabase-config.js           ← gitignored (real keys)
-├── supabase-config.example.js   ← template
-├── package.json                 ← Vercel build config
-├── build.js                     ← supabase-config.js generator
-│
-├── sw.js                        ← Service Worker (cache version শুরু v1)
-├── pwa-notify.js                ← Web Push helper
-│
-├── style.css                    ← সব shared CSS (max 500 lines)
-│
-├── migrations/
-│   ├── 012_shared_users.sql
-│   ├── 013_dept_tables.sql
-│   ├── 014_dept_rls_rpc.sql
-│   ├── 015_mdr_tables.sql
-│   ├── 016_mdr_rls_rpc.sql
-│   ├── 017_kh_tables.sql
-│   └── 018_kh_rls_rpc.sql
-│
-├── api-shared.js                ← shared auth, user bootstrap (max 400 lines)
-├── api-dept.js                  ← বিভাগ মডিউলের সব data logic
-├── api-mdr.js                   ← মাদ্রাসা মডিউলের সব data logic
-├── api-kh.js                    ← খেদমত মডিউলের সব data logic
-│
-├── admin.html                   ← Admin Hub (মুহতামিমের ড্যাশবোর্ড)
-├── dept.html                    ← বিভাগ মডিউল (দায়িত্বশীলের পোর্টাল)
-├── madrasa.html                 ← মাদ্রাসা মডিউল (শিক্ষক/দফতরের পোর্টাল)
-└── khedmat.html                 ← খেদমতে খালক মডিউল
+├── supabase-config.example.js
+├── package.json
+├── build.js
+├── sw.js                        ← PWA হলে
+├── pwa-notify.js
+├── css/style.css                ← বা একক style.css (টিম সিদ্ধান্ত)
+├── migrations/                  ← 012–018
+├── api-shared.js / api-dept.js / api-mdr.js / api-kh.js   ← Supabase ক্লায়েন্ট লেয়ার
+├── admin.html
+├── dept.html
+├── madrasa.html
+└── khedmat.html
 ```
+
+---
+
+## বিভাগ মডিউল — উপ-বিভাগ (কৃষি / মধু / বেকারি ইত্যাদি)
+
+প্রোটোটাইপে **একই লেনদেন মডেল** সব `dept_id`-এর জন্য; অতিরিক্ত ১–২টি ক্ষেত্রের প্রয়োজন হলে:
+
+- প্রতিটি লেনদেনে **`metadata`** অবজেক্ট (যেমন `plot`, `hives`, `batch`)।
+- **`js/dept-api.js`**-এ **`SUBDEPT_EXTRA_FIELDS`** — `dept_id` → ফর্ম ফিল্ডের তালিকা; **`getSubdeptFields(dept_id)`** UI ব্যবহার করে।
+- **`dept/dept-staff.html`** মডালে সেই ফিল্ডগুলো ডাইনামিক ভরে; নতুন উপ-বিভাগের জন্য সাধারণত **নতুন HTML কপি নয়**, শুধু কনফিগ/কী বাড়ানো।
+
+Supabase মাইগ্রেশনে `dept_transactions.metadata jsonb` (উপরের 013 স্কিমা) একই ধারণা ধরে রাখে।
 
 ---
 
@@ -638,37 +671,38 @@ markaz-hub/
 3. `api-shared.js` বানাও — login, PIN verify, user bootstrap
 
 ### ধাপ ৩ — বিভাগ মডিউল (সবার আগে, সবচেয়ে সহজ)
-1. `api-dept.js` বানাও
-2. `dept.html` বানাও — দায়িত্বশীলের পোর্টাল
-3. `admin.html`-এ বিভাগ মডিউলের summary যোগ করো
+1. Supabase লেয়ার: `api-dept.js` (বা মডিউল ভাগ) বানাও — প্রোটোটাইপের লজিক `js/dept-api.js` থেকে পোর্ট করতে পারো।
+2. দায়িত্বশীলের পোর্টাল: পরিকল্পনায় `dept.html` — বর্তমান প্রোটোটাইপে `dept/dept-index.html`, `dept/dept-staff.html`, `dept/dept-dashboard.html`।
+3. Admin Hub: পরিকল্পনায় `admin.html` — প্রোটোটাইপে `admin-hub.html`-এ বিভাগ মডিউলের summary/লিঙ্ক।
 
 ### ধাপ ৪ — খেদমত মডিউল
-1. `api-kh.js` বানাও
-2. `khedmat.html` বানাও
-3. `admin.html`-এ খেদমত summary যোগ করো
+1. Supabase লেয়ার: `api-kh.js` (বা মডিউল ভাগ) বানাও — প্রোটোটাইপের লজিক `js/khedmat-api.js` থেকে পোর্ট করতে পারো।
+2. পোর্টাল: পরিকল্পনায় এক পাতা `khedmat.html` — বর্তমান প্রোটোটাইপে `khedmat/khedmat-admin.html`, `khedmat/khedmat-staff.html`।
+3. Admin Hub: পরিকল্পনায় `admin.html` — প্রোটোটাইপে `admin-hub.html`-এ খেদমত মডিউল কার্ড/সারসংক্ষেপ।
 
 ### ধাপ ৫ — মাদ্রাসা মডিউল (সবচেয়ে জটিল, সবশেষে)
-1. `api-mdr.js` বানাও
-2. `madrasa.html` বানাও
-3. `admin.html`-এ মাদ্রাসা summary যোগ করো
+1. Supabase লেয়ার: `api-mdr.js` (বা মডিউল ভাগ) বানাও — প্রোটোটাইপের লজিক `js/api.js` (+ প্রয়োজনে ভাগ) থেকে পোর্ট করতে পারো।
+2. পোর্টাল: পরিকল্পনায় `madrasa.html` — বর্তমান প্রোটোটাইপে `madrasa/` ফোল্ডারে একাধিক পেজ (`madrasa-admin.html`, `madrasa-daftar.html`, `madrasa-staff.html`, `madrasa-hifz.html`, `madrasa-library.html`, `madrasa-exams.html`, `madrasa-alumni.html`, `madrasa-settings.html` ইত্যাদি)।
+3. Admin Hub: পরিকল্পনায় `admin.html` — প্রোটোটাইপে `admin-hub.html`-এ মাদ্রাসা মডিউল কার্ড/লিঙ্ক।
+4. ক্রস-মডিউল: প্রোটোটাইপে `chat.html` স্টাফ↔মুহতামিম বার্তা; Supabase চালু হলে একই ধারণা ধরে রাখো।
 
 ### ধাপ ৬ — PWA ও Service Worker
-1. `sw.js` বানাও
-2. `pwa-notify.js` বানাও
-3. প্রতিটি HTML-এ PWA manifest যোগ করো
+1. `sw.js` বানাও — প্রোটোটাইপে এখনও নেই; নতুন করে যোগ করতে হবে।
+2. `pwa-notify.js` বানাও (Web Push হলে) — প্রোটোটাইপে এখনও নেই।
+3. প্রতিটি HTML-এ PWA manifest লিঙ্ক (ও আইকন মেটা) যোগ করো।
 
 ---
 
 ## UI Guidelines
 
 - Mobile-first, বাংলা ফন্ট: `Noto Sans Bengali` + `Noto Serif Bengali`
-- Color palette: বিদ্যমান prototype থেকে নাও (`admin-hub.html` দেখো)
+- Color palette: বিদ্যমান prototype থেকে নাও (`css/style.css` + `admin-hub.html` দেখো)
 - Bottom navigation: প্রতিটি পোর্টালে
 - PIN-based login: numpad UI (বিদ্যমান prototype দেখো)
 - সব form-এ বাংলা placeholder ও label
 - Toast notification সব action-এ
 
-## Admin Hub Summary (admin.html)
+## Admin Hub Summary (`admin-hub.html` — প্রোটোটাইপ; ভবিষ্যতে `admin.html`)
 
 হোম ড্যাশবোর্ডে দেখাবে:
 - মোট ছাত্র, কর্মী, বিভাগ সংখ্যা

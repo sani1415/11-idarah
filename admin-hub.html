@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>মারকাযুল মদীনা — মুহতামিম হাব</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/style.css">
 <style>
   /* ── Hub: login ── */
   .hub-login-wrap {
@@ -499,7 +499,7 @@
     <p class="hub-section-sub">যেখানে কী আছে — এক নজরে সংখ্যা, ট্যাপ করে বিস্তারিত দেখুন</p>
 
     <div class="hub-mod-grid">
-      <button type="button" class="module-card mc-madrasa" onclick="location.href='madrasa-admin.html'">
+      <button type="button" class="module-card mc-madrasa" onclick="location.href='madrasa/madrasa-admin.html'">
         <div class="mc-inner">
           <div class="mc-accent"></div>
           <div class="mc-body">
@@ -520,7 +520,7 @@
         </div>
       </button>
 
-      <button type="button" class="module-card mc-dept" onclick="location.href='dept-dashboard.html'">
+      <button type="button" class="module-card mc-dept" onclick="location.href='dept/dept-dashboard.html'">
         <div class="mc-inner">
           <div class="mc-accent"></div>
           <div class="mc-body">
@@ -541,7 +541,7 @@
         </div>
       </button>
 
-      <button type="button" class="module-card mc-khedmat" onclick="location.href='khedmat-admin.html'">
+      <button type="button" class="module-card mc-khedmat" onclick="location.href='khedmat/khedmat-admin.html'">
         <div class="mc-inner">
           <div class="mc-accent"></div>
           <div class="mc-body">
@@ -580,21 +580,21 @@
           <span class="quick-btn-hint">স্টাফ ভূমিকা ও পিন</span>
         </div>
       </div>
-      <div class="quick-btn" onclick="location.href='dept-index.html'">
+      <div class="quick-btn" onclick="location.href='dept/dept-index.html'">
         <span class="quick-btn-icon">🏢</span>
         <div class="quick-btn-text">
           <span class="quick-btn-label">বিভাগ লগইন</span>
           <span class="quick-btn-hint">বিভাগ দায়িত্বশীল</span>
         </div>
       </div>
-      <div class="quick-btn" onclick="location.href='madrasa-exams.html'">
+      <div class="quick-btn" onclick="location.href='madrasa/madrasa-exams.html'">
         <span class="quick-btn-icon">📝</span>
         <div class="quick-btn-text">
           <span class="quick-btn-label">পরীক্ষার ফলাফল</span>
           <span class="quick-btn-hint">মার্ক ও ফল দেখা</span>
         </div>
       </div>
-      <div class="quick-btn" onclick="location.href='madrasa-settings.html'">
+      <div class="quick-btn" onclick="location.href='madrasa/madrasa-settings.html'">
         <span class="quick-btn-icon">⚙️</span>
         <div class="quick-btn-text">
           <span class="quick-btn-label">মাদ্রাসা সেটিং</span>
@@ -616,10 +616,10 @@
   </div>
 </div>
 
-<script src="api.js"></script>
-<script src="dept-api.js"></script>
-<script src="khedmat-api.js"></script>
-<script src="chat-api.js"></script>
+<script src="js/api.js"></script>
+<script src="js/dept-api.js"></script>
+<script src="js/khedmat-api.js"></script>
+<script src="js/chat-api.js"></script>
 <script>
   const BN = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
