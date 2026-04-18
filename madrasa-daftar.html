@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>দফতর — মারকাযুল মদীনা</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .att-card { background: #fff; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 10px; }
+  .att-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .att-class-name { font-family: 'Noto Serif Bengali', serif; font-size: 15px; font-weight: 700; color: var(--ink2); }
+  .att-summary { font-size: 12px; color: var(--ink3); }
+  .att-done-badge { font-size: 11px; padding: 3px 8px; border-radius: 10px; }
+
+  .save-att-btn {
+    background: var(--green); color: #fff; border: none; border-radius: 10px;
+    padding: 10px 18px; font-family: 'Noto Sans Bengali', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 12px;
+    width: 100%; transition: all .15s;
+  }
+  .save-att-btn:active { transform: scale(.98); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">দফতর বিভাগ</div>
+    <div class="topbar-name" id="top-name">দফতর দায়িত্বশীল</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="topbar-btn" onclick="location.href='index.html'">প্রস্থান</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- HOME PANEL -->
+  <div class="panel active" id="panel-home">
+
+    <div style="background:linear-gradient(135deg,var(--blue),#2471a3);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
+      <div style="font-size:12px;opacity:.6;margin-bottom:8px;" id="today-date"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-present">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">উপস্থিত</div></div>
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-absent">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">অনুপস্থিত</div></div>
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-students">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">মোট ছাত্র</div></div>
+      </div>
+    </div>
+
+    <div class="sec-header">
+      <span class="sec-title">আজকের উপস্থিতি</span>
+      <span class="sec-link" id="today-label"></span>
+    </div>
+
+    <!-- Class filter tabs -->
+    <div class="tab-bar" id="class-tabs"></div>
+
+    <div id="attendance-area"></div>
+
+    <div class="pb-safe"></div>
+  </div>
+
+  <!-- FEES PANEL -->
+  <div class="panel" id="panel-fees">
+    <div class="sec-header" style="margin-top:8px;">
+      <span class="sec-title">বেতন সারসংক্ষেপ</span>
+    </div>
+    <button class="add-btn" style="background:var(--gold);" onclick="openModal('add-fees')">＋ নতুন মাসের সারসংক্ষেপ</button>
+    <div id="fees-list"></div>
+    <div class="pb-safe"></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active" id="nav-home" onclick="switchPanel('home')">
+    <span class="nav-icon">📋</span><span class="nav-label">উপস্থিতি</span>
+  </div>
+  <div class="nav-item" id="nav-fees" onclick="switchPanel('fees');renderFees()">
+    <span class="nav-icon">💰</span><span class="nav-label">বেতন</span>
+  </div>
+  <div class="nav-item" onclick="location.href='chat.html'" title="শুধু মুহতামিমকে">
+    <span class="nav-icon">💬</span><span class="nav-label">মুহতামিমকে</span>
+  </div>
+  <div class="nav-item" onclick="location.href='madrasa-admin.html'">
+    <span class="nav-icon">🏠</span><span class="nav-label">অ্যাডমিন</span>
+  </div>
+</div>
+
+<!-- FEES MODAL -->
+<div class="modal-bg" id="modal-add-fees">
+  <div class="modal">
+    <div class="modal-title">বেতন সারসংক্ষেপ <button class="modal-close" onclick="closeModal('add-fees')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">বর্ষ</label>
+      <select class="form-input form-select" id="fee-class"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">মাস</label>
+      <input class="form-input" id="fee-month" type="month">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">মোট ছাত্র</label>
+        <input class="form-input" id="fee-total" type="number">
+      </div>
+      <div class="form-group">
+        <label class="form-label">আদায় করেছে</label>
+        <input class="form-input" id="fee-paid" type="number">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">বকেয়া পরিমাণ (টাকা)</label>
+      <input class="form-input" id="fee-arrear" type="number" placeholder="০">
+    </div>
+    <div class="form-group">
+      <label class="form-label">মন্তব্য / বিলম্বকারীদের নাম</label>
+      <textarea class="form-input form-textarea" id="fee-note" placeholder="যেমন: আব্দুর রহমান ২ মাস বাকি..."></textarea>
+    </div>
+    <button class="submit-btn gold" onclick="saveFees()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="monitor-mode.js"></script>
+<script src="api.js"></script>
+<script>
+  if (!sessionStorage.getItem('mm_role')) location.href = 'index.html';
+  document.getElementById('top-name').textContent = sessionStorage.getItem('mm_name') || 'দফতর';
+  mmInsertMonitorBanner();
+
+  let selectedClassId = null;
+  const todayStr = API.today();
+
+  /* date display */
+  const d = new Date();
+  const days = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+  document.getElementById('today-date').textContent = days[d.getDay()] + ', ' + toBn(d.getDate()) + '/' + toBn(d.getMonth()+1) + '/' + toBn(d.getFullYear());
+  document.getElementById('today-label').textContent = toBn(todayStr);
+
+  function switchPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('nav-' + name)?.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  /* ── CLASS TABS ── */
+  function renderClassTabs() {
+    const classes = API.Classes.getAll();
+    if (!selectedClassId) selectedClassId = classes[0]?.id;
+    const el = document.getElementById('class-tabs');
+    el.innerHTML = classes.map(c => `
+      <div class="tab-btn ${c.id === selectedClassId ? 'active' : ''}" onclick="selectClass('${c.id}')">${API.esc(c.name)}</div>
+    `).join('');
+  }
+
+  function selectClass(cid) {
+    selectedClassId = cid;
+    renderClassTabs();
+    renderAttendance();
+  }
+
+  /* ── ATTENDANCE ── */
+  function renderAttendance() {
+    const students = API.Students.getByClass(selectedClassId);
+    const existing = API.Attendance.getByClassDate(selectedClassId, todayStr);
+    const el = document.getElementById('attendance-area');
+
+    if (!students.length) {
+      el.innerHTML = '<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">এই বর্ষে কোনো ছাত্র নেই</div></div>';
+      return;
+    }
+
+    const isDone = existing.length > 0;
+    el.innerHTML = `<div class="att-card">
+      <div class="att-header">
+        <div class="att-class-name">${API.esc(API.Classes.getName(selectedClassId))}</div>
+        <span class="att-done-badge ${isDone ? 'badge-green list-badge' : 'badge-gold list-badge'}">${isDone ? '✓ নেওয়া হয়েছে' : 'বাকি আছে'}</span>
+      </div>
+      ${students.map(s => {
+        const rec = existing.find(a => a.student_id === s.id);
+        const present = rec ? rec.present : true;
+        return `<div class="att-row" id="att-${s.id}">
+          <span class="att-id">${API.esc(s.permanent_id)}</span>
+          <span class="att-name">${API.esc(s.name)}</span>
+          <div class="att-toggle">
+            <button class="att-btn ${present ? 'present' : ''}" onclick="markAtt('${s.id}', true, this.closest('.att-row'))" title="উপস্থিত">✓</button>
+            <button class="att-btn ${!present ? 'absent' : ''}" onclick="markAtt('${s.id}', false, this.closest('.att-row'))" title="অনুপস্থিত">✗</button>
+          </div>
+        </div>`;
+      }).join('')}
+      <button class="save-att-btn" onclick="saveAllAttendance()">✓ উপস্থিতি সংরক্ষণ করুন</button>
+    </div>`;
+    updateSummary();
+  }
+
+  const attState = {};
+
+  function markAtt(sid, present, row) {
+    if (mmMutationBlocked(showToast)) return;
+    attState[sid] = present;
+    const btns = row.querySelectorAll('.att-btn');
+    btns[0].classList.toggle('present', present);
+    btns[1].classList.toggle('absent', !present);
+  }
+
+  function saveAllAttendance() {
+    if (mmMutationBlocked(showToast)) return;
+    const students = API.Students.getByClass(selectedClassId);
+    students.forEach(s => {
+      const present = attState[s.id] !== undefined ? attState[s.id] : true;
+      API.Attendance.save(s.id, todayStr, present);
+    });
+    showToast('উপস্থিতি সংরক্ষিত হয়েছে ✓');
+    updateSummary();
+    renderAttendance();
+  }
+
+  function updateSummary() {
+    const all = API.Attendance.getTodaySummary();
+    document.getElementById('total-present').textContent = toBn(all.present);
+    document.getElementById('total-absent').textContent = toBn(all.absent);
+    document.getElementById('total-students').textContent = toBn(API.Students.getAll().filter(s => s.active).length);
+  }
+
+  /* ── FEES ── */
+  function renderFees() {
+    const classes = API.Classes.getAll();
+    const el = document.getElementById('fees-list');
+    el.innerHTML = classes.map(cls => {
+      const latest = API.Fees.getLatest(cls.id);
+      if (!latest) return '';
+      return `<div class="card-static" style="margin-bottom:10px;">
+        <div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;margin-bottom:8px;">${API.esc(cls.name)} · ${latest.month}</div>
+        <div style="display:flex;gap:14px;font-size:13px;flex-wrap:wrap;">
+          <span>মোট: <strong>${toBn(latest.total)}</strong></span>
+          <span style="color:var(--green)">আদায়: <strong>${toBn(latest.paid)}</strong></span>
+          <span style="color:var(--red)">বাকি: <strong>${toBn(latest.unpaid || (latest.total - latest.paid))}</strong></span>
+          ${latest.arrear ? `<span style="color:var(--red)">বকেয়া: ৳ ${toBn(latest.arrear)}</span>` : ''}
+        </div>
+        ${latest.note ? `<div style="font-size:12px;color:var(--ink3);margin-top:6px;">${API.esc(latest.note)}</div>` : ''}
+      </div>`;
+    }).join('') || '<div class="empty-state"><span class="empty-icon">💰</span><div class="empty-text">কোনো বেতন সারসংক্ষেপ নেই</div></div>';
+
+    // populate select
+    document.getElementById('fee-class').innerHTML = classes.map(c => `<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
+  }
+
+  function saveFees() {
+    if (mmMutationBlocked(showToast)) return;
+    const class_id = document.getElementById('fee-class').value;
+    const month = document.getElementById('fee-month').value;
+    const total = parseInt(document.getElementById('fee-total').value) || 0;
+    const paid = parseInt(document.getElementById('fee-paid').value) || 0;
+    const arrear = parseInt(document.getElementById('fee-arrear').value) || 0;
+    const note = document.getElementById('fee-note').value;
+    if (!month) { showToast('মাস আবশ্যক'); return; }
+    API.Fees.add({ month, class_id, total, paid, unpaid: total - paid, arrear, note });
+    closeModal('add-fees');
+    showToast('সংরক্ষিত হয়েছে ✓');
+    renderFees();
+  }
+
+  function openModal(id) {
+    if (mmMutationBlocked(showToast)) return;
+    document.getElementById('modal-' + id).classList.add('open');
+  }
+  function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
+  function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+  function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
+
+  /* init */
+  renderClassTabs();
+  renderAttendance();
+  updateSummary();
+</script>
+</body>
+</html>

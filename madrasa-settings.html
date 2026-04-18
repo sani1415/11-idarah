@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>সেটিংস — মারকাযুল মদীনা</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .settings-section { background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:12px; }
+  .settings-title { font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; color:var(--ink2); margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+  .teacher-row { display:flex; align-items:center; padding:9px 0; border-bottom:1px solid var(--cream2); gap:8px; }
+  .teacher-row:last-child { border-bottom:none; }
+  .t-name { flex:1; font-size:13px; font-weight:600; }
+  .t-meta { font-size:11px; color:var(--ink3); }
+  .pin-display { font-size:12px; color:var(--ink3); background:var(--cream2); padding:2px 8px; border-radius:6px; }
+  .tab-pills { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:4px; }
+  .pill { background:#fff; border:1px solid var(--cream3); border-radius:20px; padding:7px 14px; font-size:12px; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; color:var(--ink3); white-space:nowrap; flex-shrink:0; }
+  .pill.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">সেটিংস</div>
+    <div class="topbar-name" id="top-name">মুহতামিম</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="topbar-btn" onclick="location.href='madrasa-admin.html'">← অ্যাডমিন</button>
+  </div>
+</div>
+
+<div class="content" style="padding-top:20px;">
+  <div class="tab-pills">
+    <div class="pill active" id="pill-general"  onclick="switchTab('general')">সাধারণ</div>
+    <div class="pill"        id="pill-pin"       onclick="switchTab('pin')">পিন পরিবর্তন</div>
+    <div class="pill"        id="pill-teachers"  onclick="switchTab('teachers')">শিক্ষক</div>
+    <div class="pill"        id="pill-kitab"     onclick="switchTab('kitab')">কিতাব</div>
+  </div>
+
+  <!-- GENERAL -->
+  <div id="tab-general">
+    <div class="settings-section">
+      <div class="settings-title">🏫 প্রতিষ্ঠানের তথ্য</div>
+      <div class="form-group">
+        <label class="form-label">প্রতিষ্ঠানের নাম</label>
+        <input class="form-input" id="inst-name" placeholder="মারকাযুল মদীনা">
+      </div>
+      <div class="form-group">
+        <label class="form-label">চলতি হিজরী বর্ষ</label>
+        <input class="form-input" id="hijri-year" placeholder="যেমন: ১৪৪৭">
+      </div>
+      <button class="submit-btn" onclick="saveGeneral()">সংরক্ষণ করুন</button>
+    </div>
+  </div>
+
+  <!-- PIN -->
+  <div id="tab-pin" style="display:none;">
+    <div class="settings-section">
+      <div class="settings-title">🔐 অ্যাডমিন পিন পরিবর্তন</div>
+      <div class="form-group">
+        <label class="form-label">নতুন পিন (৪ সংখ্যা)</label>
+        <input class="form-input" id="new-admin-pin" type="password" maxlength="4" placeholder="নতুন পিন">
+      </div>
+      <div class="form-group">
+        <label class="form-label">পিন নিশ্চিত করুন</label>
+        <input class="form-input" id="confirm-admin-pin" type="password" maxlength="4" placeholder="আবার দিন">
+      </div>
+      <button class="submit-btn" onclick="changeAdminPin()">পিন পরিবর্তন করুন</button>
+    </div>
+  </div>
+
+  <!-- TEACHERS -->
+  <div id="tab-teachers" style="display:none;">
+    <div class="settings-section">
+      <div class="settings-title">👨‍🏫 শিক্ষক তালিকা</div>
+      <div id="teacher-list"></div>
+    </div>
+    <button class="add-btn" onclick="openModal('add-teacher')">＋ বর্ষ দায়িত্বশীল যোগ করুন</button>
+    <button class="add-btn" style="background:var(--ink2);" onclick="openModal('add-staff')">＋ বিশেষ ভূমিকা যোগ করুন</button>
+  </div>
+
+  <!-- KITAB -->
+  <div id="tab-kitab" style="display:none;">
+    <div class="settings-section">
+      <div class="settings-title">📖 কিতাব যোগ করুন</div>
+      <div class="form-group">
+        <label class="form-label">বর্ষ নির্বাচন করুন</label>
+        <select class="form-input form-select" id="kitab-class"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">কিতাবের নাম</label>
+        <input class="form-input" id="kitab-name" placeholder="কিতাবের পূর্ণ নাম">
+      </div>
+      <div class="form-group">
+        <label class="form-label">মোট পৃষ্ঠা সংখ্যা</label>
+        <input class="form-input" id="kitab-pages" type="number" placeholder="যেমন: ২৫০">
+      </div>
+      <button class="submit-btn" onclick="addKitab()">কিতাব যোগ করুন</button>
+    </div>
+    <div class="settings-section">
+      <div class="settings-title">📚 বর্ষ অনুযায়ী কিতাব তালিকা</div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <select class="form-input form-select" id="kitab-view-class" onchange="renderKitabList()"></select>
+      </div>
+      <div id="kitab-list"></div>
+    </div>
+  </div>
+
+  <div class="pb-safe"></div>
+</div>
+
+<!-- ADD TEACHER MODAL -->
+<div class="modal-bg" id="modal-add-teacher">
+  <div class="modal">
+    <div class="modal-title">বর্ষ দায়িত্বশীল <button class="modal-close" onclick="closeModal('add-teacher')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">নাম</label>
+      <input class="form-input" id="t-name" placeholder="উস্তাযের নাম">
+    </div>
+    <div class="form-group">
+      <label class="form-label">দায়িত্বের বর্ষ</label>
+      <select class="form-input form-select" id="t-class"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">পিন (৪ সংখ্যা)</label>
+      <input class="form-input" id="t-pin" type="password" maxlength="4" value="0000">
+    </div>
+    <button class="submit-btn" onclick="addTeacher()">যোগ করুন</button>
+  </div>
+</div>
+
+<!-- ADD SPECIAL STAFF MODAL -->
+<div class="modal-bg" id="modal-add-staff">
+  <div class="modal">
+    <div class="modal-title">বিশেষ ভূমিকা <button class="modal-close" onclick="closeModal('add-staff')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">নাম</label>
+      <input class="form-input" id="st-name" placeholder="দায়িত্বশীলের নাম">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ভূমিকা</label>
+      <select class="form-input form-select" id="st-role">
+        <option value="daftar">দফতর দায়িত্বশীল</option>
+        <option value="hifz">হিফজ দায়িত্বশীল</option>
+        <option value="library">লাইব্রেরি দায়িত্বশীল</option>
+        <option value="alumni">পুরনো ছাত্র দায়িত্বশীল</option>
+        <option value="khedmat">খেদমত দায়িত্বশীল</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">পিন (৪ সংখ্যা)</label>
+      <input class="form-input" id="st-pin" type="password" maxlength="4" value="0000">
+    </div>
+    <button class="submit-btn" onclick="addStaff()">যোগ করুন</button>
+  </div>
+</div>
+
+<!-- EDIT PIN MODAL -->
+<div class="modal-bg" id="modal-edit-pin">
+  <div class="modal">
+    <div class="modal-title">পিন পরিবর্তন <button class="modal-close" onclick="closeModal('edit-pin')">✕</button></div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px;" id="ep-name"></div>
+    <div class="form-group">
+      <label class="form-label">নতুন পিন (৪ সংখ্যা)</label>
+      <input class="form-input" id="ep-pin" type="password" maxlength="4" placeholder="নতুন পিন">
+    </div>
+    <button class="submit-btn" onclick="saveTeacherPin()">পিন পরিবর্তন করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="api.js"></script>
+<script>
+  if (sessionStorage.getItem('mm_role') !== 'admin') location.href='index.html';
+  document.getElementById('top-name').textContent = sessionStorage.getItem('mm_name')||'মুহতামিম';
+
+  let editingTeacherId = null;
+
+  function switchTab(tab) {
+    ['general','pin','teachers','kitab'].forEach(t=>{
+      document.getElementById('tab-'+t).style.display   = t===tab?'block':'none';
+      document.getElementById('pill-'+t).classList.toggle('active',t===tab);
+    });
+    if (tab==='general')  loadGeneral();
+    if (tab==='teachers') renderTeachers();
+    if (tab==='kitab')    initKitab();
+  }
+
+  /* GENERAL */
+  function loadGeneral() {
+    const s = API.Settings.get();
+    document.getElementById('inst-name').value  = s.institution||'';
+    document.getElementById('hijri-year').value = s.hijri_year||'';
+  }
+  function saveGeneral() {
+    const s = API.Settings.get();
+    s.institution = document.getElementById('inst-name').value.trim()||s.institution;
+    s.hijri_year  = document.getElementById('hijri-year').value.trim()||s.hijri_year;
+    API.Settings.save(s);
+    showToast('সংরক্ষণ হয়েছে ✓');
+  }
+
+  /* PIN */
+  function changeAdminPin() {
+    const p1 = document.getElementById('new-admin-pin').value;
+    const p2 = document.getElementById('confirm-admin-pin').value;
+    if (p1.length !== 4) { showToast('৪ সংখ্যার পিন দিন'); return; }
+    if (p1 !== p2)        { showToast('পিন মিলছে না'); return; }
+    const s = API.Settings.get(); s.admin_pin = p1;
+    API.Settings.save(s);
+    document.getElementById('new-admin-pin').value='';
+    document.getElementById('confirm-admin-pin').value='';
+    showToast('অ্যাডমিন পিন পরিবর্তন হয়েছে ✓');
+  }
+
+  /* TEACHERS */
+  function renderTeachers() {
+    const teachers = API.Teachers.getAll();
+    const classes  = API.Classes.getAll();
+    const roleLabel = { daftar:'দফতর', hifz:'হিফজ', library:'লাইব্রেরি', alumni:'পুরনো ছাত্র', khedmat:'খেদমত' };
+    document.getElementById('teacher-list').innerHTML = teachers.map(t=>{
+      const cls = t.class_id ? classes.find(c=>c.id===t.class_id) : null;
+      const meta = cls ? API.esc(cls.name) : (t.role ? roleLabel[t.role]||t.role : '—');
+      return `<div class="teacher-row">
+        <div style="flex:1;">
+          <div class="t-name">${API.esc(t.name)}</div>
+          <div class="t-meta">${meta}</div>
+        </div>
+        <span class="pin-display">পিন: ${API.esc(t.pin||'—')}</span>
+        <button onclick="openEditPin('${t.id}','${API.esc(t.name)}')" style="background:var(--cream2);border:none;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11px;">✏️</button>
+      </div>`;
+    }).join('')||'<div style="font-size:13px;color:var(--ink3);">কোনো শিক্ষক নেই</div>';
+
+    document.getElementById('t-class').innerHTML = classes.map(c=>`<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
+  }
+
+  function openEditPin(id, name) {
+    editingTeacherId = id;
+    document.getElementById('ep-name').textContent = name;
+    document.getElementById('ep-pin').value = '';
+    openModal('edit-pin');
+  }
+  function saveTeacherPin() {
+    const pin = document.getElementById('ep-pin').value;
+    if (pin.length !== 4) { showToast('৪ সংখ্যার পিন দিন'); return; }
+    API.Teachers.update(editingTeacherId, {pin});
+    closeModal('edit-pin');
+    showToast('পিন আপডেট হয়েছে ✓');
+    renderTeachers();
+  }
+
+  function addTeacher() {
+    const name     = document.getElementById('t-name').value.trim();
+    const class_id = document.getElementById('t-class').value;
+    const pin      = document.getElementById('t-pin').value||'0000';
+    if (!name) { showToast('নাম দিন'); return; }
+    API.Teachers.add({name, class_id, pin, role:'teacher'});
+    document.getElementById('t-name').value='';
+    closeModal('add-teacher');
+    showToast('শিক্ষক যোগ হয়েছে ✓');
+    renderTeachers();
+  }
+
+  function addStaff() {
+    const name = document.getElementById('st-name').value.trim();
+    const role = document.getElementById('st-role').value;
+    const pin  = document.getElementById('st-pin').value||'0000';
+    if (!name) { showToast('নাম দিন'); return; }
+    API.Teachers.add({name, class_id:null, pin, role});
+    document.getElementById('st-name').value='';
+    closeModal('add-staff');
+    showToast('যোগ হয়েছে ✓');
+    renderTeachers();
+  }
+
+  /* KITAB */
+  function initKitab() {
+    const classes = API.Classes.getAll();
+    const opts = classes.map(c=>`<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
+    document.getElementById('kitab-class').innerHTML      = opts;
+    document.getElementById('kitab-view-class').innerHTML = opts;
+    renderKitabList();
+  }
+  function addKitab() {
+    const class_id = document.getElementById('kitab-class').value;
+    const name     = document.getElementById('kitab-name').value.trim();
+    const pages    = parseInt(document.getElementById('kitab-pages').value)||0;
+    if (!name) { showToast('কিতাবের নাম দিন'); return; }
+    API.KitabProgress.addKitab({class_id, name, total_pages:pages});
+    document.getElementById('kitab-name').value='';
+    showToast('কিতাব যোগ হয়েছে ✓');
+    renderKitabList();
+  }
+  function renderKitabList() {
+    const cid   = document.getElementById('kitab-view-class')?.value;
+    const kitabs= API.KitabProgress.getKitabsByClass(cid);
+    document.getElementById('kitab-list').innerHTML = kitabs.map(k=>
+      `<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--cream2);font-size:13px;">
+        <span style="font-weight:600;">${API.esc(k.name)}</span>
+        <span style="color:var(--ink3);">${k.total_pages?k.total_pages+' পৃষ্ঠা':'—'}</span>
+      </div>`
+    ).join('')||'<div style="color:var(--ink3);font-size:13px;">কোনো কিতাব নেই</div>';
+  }
+
+  function openModal(id) { document.getElementById('modal-'+id).classList.add('open'); }
+  function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
+  function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+  loadGeneral();
+</script>
+</body>
+</html>

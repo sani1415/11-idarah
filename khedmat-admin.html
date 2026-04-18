@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>খেদমতে খালক — অ্যাডমিন</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .type-card { background:#fff; border-radius:var(--radius-sm); padding:14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+  .type-emoji { font-size:24px; width:42px; height:42px; background:var(--teal-light); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .type-name { flex:1; font-size:14px; font-weight:600; color:var(--ink); }
+  .type-stats { text-align:right; }
+  .type-count { font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; color:var(--ink2); }
+  .type-total { font-size:11px; color:var(--ink3); }
+
+  .ben-row { display:flex; align-items:center; padding:11px 0; border-bottom:1px solid var(--cream2); gap:10px; }
+  .ben-row:last-child { border-bottom:none; }
+  .ben-row-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
+  .ben-row-sub  { font-size:11px; color:var(--ink3); margin-top:2px; }
+
+  .month-sel { background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:10px 14px; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; color:var(--ink); width:100%; margin-bottom:14px; outline:none; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মুহতামিম</div>
+    <div class="topbar-name">খেদমতে খালক</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="topbar-btn" onclick="location.href='admin-hub.html'">হোম</button>
+  </div>
+</div>
+
+<!-- PANEL: OVERVIEW -->
+<div class="content" id="panel-overview" style="padding-bottom:90px;">
+  <select class="month-sel" id="month-sel" onchange="onMonthChange()"></select>
+  <div class="stat-row" id="stats-row"></div>
+  <div class="sec-header"><div class="sec-title">কার্যক্রমের ধরন অনুযায়ী</div></div>
+  <div id="type-breakdown"></div>
+  <div class="sec-header"><div class="sec-title">সর্বশেষ দৈনিক লগ</div></div>
+  <div id="latest-log"></div>
+</div>
+
+<!-- PANEL: BENEFICIARIES -->
+<div class="content" id="panel-bens" style="display:none;padding-bottom:90px;">
+  <div class="sec-header" style="margin-top:10px;"><div class="sec-title">উপকারভোগী তালিকা</div></div>
+  <div class="card-static" id="ben-table"></div>
+</div>
+
+<!-- PANEL: FINANCE -->
+<div class="content" id="panel-finance" style="display:none;padding-bottom:90px;">
+  <div class="stat-row-2" style="margin-top:10px;" id="fin-stats"></div>
+  <button class="add-btn" onclick="openModal('modal-fin')">+ তহবিল লেনদেন যোগ করুন</button>
+  <div id="fin-list"></div>
+</div>
+
+<!-- PANEL: SETTINGS -->
+<div class="content" id="panel-settings" style="display:none;padding-bottom:90px;">
+  <div class="sec-header" style="margin-top:10px;"><div class="sec-title">কার্যক্রমের ধরন</div></div>
+  <button class="add-btn" onclick="openModal('modal-type')">+ নতুন ধরন যোগ করুন</button>
+  <div id="type-list"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item active" id="nav-overview" onclick="switchPanel('overview')">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">সারসংক্ষেপ</div>
+  </div>
+  <div class="nav-item" id="nav-bens" onclick="switchPanel('bens')">
+    <div class="nav-icon">🤝</div>
+    <div class="nav-label">উপকারভোগী</div>
+  </div>
+  <div class="nav-item" id="nav-finance" onclick="switchPanel('finance')">
+    <div class="nav-icon">💰</div>
+    <div class="nav-label">তহবিল</div>
+  </div>
+  <div class="nav-item" id="nav-settings" onclick="switchPanel('settings')">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-label">সেটিং</div>
+  </div>
+</nav>
+
+<!-- ADD FINANCE MODAL -->
+<div class="modal-bg" id="modal-fin">
+  <div class="modal">
+    <div class="modal-title">তহবিল লেনদেন <button class="modal-close" onclick="closeModal('modal-fin')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">ধরন</label>
+      <select class="form-input form-select" id="fn-type"><option value="income">আয়</option><option value="expense">ব্যয়</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">পরিমাণ</label><input class="form-input" type="number" id="fn-amount" placeholder="০"></div>
+    <div class="form-group"><label class="form-label">বিবরণ</label><input class="form-input" id="fn-desc" placeholder="লেনদেনের বিবরণ"></div>
+    <div class="form-group"><label class="form-label">উৎস (ঐচ্ছিক)</label><input class="form-input" id="fn-source" placeholder="মাদ্রাসা তহবিল / দান"></div>
+    <button class="submit-btn" onclick="saveFin()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<!-- ADD TYPE MODAL -->
+<div class="modal-bg" id="modal-type">
+  <div class="modal">
+    <div class="modal-title">নতুন ধরন <button class="modal-close" onclick="closeModal('modal-type')">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ইমোজি</label><input class="form-input" id="tp-emoji" placeholder="🤝" maxlength="2"></div>
+      <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="tp-name" placeholder="ধরনের নাম"></div>
+    </div>
+    <button class="submit-btn" onclick="saveType()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="monitor-mode.js"></script>
+<script src="khedmat-api.js"></script>
+<script>
+  if (sessionStorage.getItem('mm_role') !== 'admin') { location.href = 'index.html'; }
+  mmInsertMonitorBanner();
+
+  const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  const fmtAmt = n => '৳' + toBn(Number(n).toLocaleString('en'));
+  const fmtDate = d => { if (!d) return ''; const p = d.split('-'); return toBn(p[2]+'/'+p[1]); };
+
+  let selectedMonth = new Date().toISOString().slice(0,7);
+
+  function showToast(msg) {
+    const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+  function openModal(id) {
+    if (mmMutationBlocked(showToast)) return;
+    document.getElementById(id).classList.add('open');
+  }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  function buildMonthOptions() {
+    const sel = document.getElementById('month-sel');
+    const months = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(d.toISOString().slice(0,7));
+    }
+    sel.innerHTML = months.map(m => {
+      const p = m.split('-');
+      return `<option value="${m}" ${m===selectedMonth?'selected':''}>${toBn(p[1])} — ${toBn(p[0])}</option>`;
+    }).join('');
+  }
+
+  function onMonthChange() { selectedMonth = document.getElementById('month-sel').value; renderOverview(); }
+
+  function switchPanel(name) {
+    ['overview','bens','finance','settings'].forEach(p => {
+      document.getElementById('panel-'+p).style.display = p===name ? '' : 'none';
+      document.getElementById('nav-'+p).classList.toggle('active', p===name);
+    });
+    if (name==='overview')  renderOverview();
+    if (name==='bens')      renderBens();
+    if (name==='finance')   renderFinance();
+    if (name==='settings')  renderSettings();
+  }
+
+  function renderOverview() {
+    const allActs = KhAPI.Activities.getAll();
+    const monthActs = allActs.filter(a => a.date?.startsWith(selectedMonth));
+    const bens = KhAPI.Beneficiaries.getAll();
+    const totalSpent = monthActs.reduce((s,a) => s+(a.amount||0), 0);
+    const finSum = KhAPI.Finance.getSummary(selectedMonth);
+
+    document.getElementById('stats-row').innerHTML =
+      `<div class="stat-card"><span class="stat-num">${toBn(bens.length)}</span><span class="stat-label">উপকারভোগী</span></div>
+       <div class="stat-card"><span class="stat-num">${toBn(monthActs.length)}</span><span class="stat-label">এই মাসে কার্যক্রম</span></div>
+       <div class="stat-card"><span class="stat-num" style="font-size:14px;color:var(--red);">${fmtAmt(totalSpent)}</span><span class="stat-label">ব্যয়</span></div>`;
+
+    const breakdown = KhAPI.Activities.getSummaryByType();
+    document.getElementById('type-breakdown').innerHTML = breakdown.filter(t=>t.count>0).map(t =>
+      `<div class="type-card">
+        <div class="type-emoji">${t.emoji}</div>
+        <div class="type-name">${KhAPI.esc(t.name)}</div>
+        <div class="type-stats">
+          <div class="type-count">${toBn(t.count)} বার</div>
+          <div class="type-total">${fmtAmt(t.total)}</div>
+        </div>
+      </div>`
+    ).join('') || '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:13px;">কোনো কার্যক্রম নেই</div>';
+
+    const latest = KhAPI.DailyLogs.getLatest();
+    document.getElementById('latest-log').innerHTML = latest
+      ? `<div class="log-item"><div class="log-meta"><span>${KhAPI.esc(latest.by||'—')}</span><span>${fmtDate(latest.date)}</span></div><div class="log-text">${KhAPI.esc(latest.content)}</div></div>`
+      : '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:13px;">কোনো লগ নেই</div>';
+  }
+
+  function renderBens() {
+    const bens = KhAPI.Beneficiaries.getAll();
+    document.getElementById('ben-table').innerHTML = bens.length
+      ? bens.map(b => {
+          const acts = KhAPI.Activities.getByBeneficiary(b.id);
+          return `<div class="ben-row">
+            <div style="flex:1;">
+              <div class="ben-row-name">${KhAPI.esc(b.name)}</div>
+              <div class="ben-row-sub">${KhAPI.esc(b.address||'—')} · ${KhAPI.esc(b.phone||'')}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;color:var(--ink2);">${toBn(acts.length)} বার</div>
+              <div style="font-size:11px;color:var(--ink3);">${fmtAmt(acts.reduce((s,a)=>s+(a.amount||0),0))}</div>
+            </div>
+          </div>`;
+        }).join('')
+      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো উপকারভোগী নেই</div>';
+  }
+
+  function renderFinance() {
+    const sum = KhAPI.Finance.getSummary(null);
+    document.getElementById('fin-stats').innerHTML =
+      `<div class="stat-card"><span class="stat-num" style="color:var(--green)">${fmtAmt(sum.income)}</span><span class="stat-label">মোট আয়</span></div>
+       <div class="stat-card"><span class="stat-num" style="color:${sum.balance<0?'var(--red)':'var(--ink2)'}">${fmtAmt(sum.balance)}</span><span class="stat-label">ব্যালেন্স</span></div>`;
+    const fins = KhAPI.Finance.getAll();
+    document.getElementById('fin-list').innerHTML = fins.length
+      ? fins.map(f => `
+        <div style="background:#fff;border-radius:var(--radius-sm);padding:13px;box-shadow:var(--shadow);margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:18px;">${f.type==='income'?'↑':'↓'}</span>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${KhAPI.esc(f.description)}</div><div style="font-size:11px;color:var(--ink3);">${KhAPI.esc(f.source||'—')} · ${fmtDate(f.date)}</div></div>
+          <span style="font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:700;color:${f.type==='income'?'var(--green)':'var(--red)'};">${fmtAmt(f.amount)}</span>
+        </div>`).join('')
+      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো লেনদেন নেই</div>';
+  }
+
+  function renderSettings() {
+    const types = KhAPI.ActivityTypes.getAll();
+    document.getElementById('type-list').innerHTML = types.map(t =>
+      `<div class="type-card">
+        <div class="type-emoji">${t.emoji}</div>
+        <div class="type-name">${KhAPI.esc(t.name)}</div>
+      </div>`
+    ).join('');
+  }
+
+  function saveFin() {
+    if (mmMutationBlocked(showToast)) return;
+    const type   = document.getElementById('fn-type').value;
+    const amount = parseFloat(document.getElementById('fn-amount').value);
+    const desc   = document.getElementById('fn-desc').value.trim();
+    const source = document.getElementById('fn-source').value.trim();
+    if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
+    if (!desc) { showToast('বিবরণ দিন'); return; }
+    KhAPI.Finance.add({ type, amount, description:desc, source:source||null });
+    closeModal('modal-fin');
+    renderFinance();
+    showToast('লেনদেন সংরক্ষিত হয়েছে');
+  }
+
+  function saveType() {
+    if (mmMutationBlocked(showToast)) return;
+    const emoji = document.getElementById('tp-emoji').value.trim() || '🤝';
+    const name  = document.getElementById('tp-name').value.trim();
+    if (!name) { showToast('নাম দিন'); return; }
+    KhAPI.ActivityTypes.add({ name, emoji });
+    closeModal('modal-type');
+    renderSettings();
+    showToast('ধরন যোগ হয়েছে');
+  }
+
+  buildMonthOptions();
+  renderOverview();
+</script>
+</body>
+</html>

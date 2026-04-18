@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>বিভাগ পোর্টাল</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .txn-item { background:#fff; border-radius:var(--radius-sm); padding:13px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+  .txn-icon { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+  .txn-icon.income { background:var(--green-light); }
+  .txn-icon.expense { background:var(--red-light); }
+  .txn-info { flex:1; }
+  .txn-desc { font-size:13px; font-weight:600; color:var(--ink); }
+  .txn-date { font-size:11px; color:var(--ink3); margin-top:2px; }
+  .txn-amt { font-family:'Noto Serif Bengali',serif; font-size:15px; font-weight:700; }
+  .txn-amt.income { color:var(--green); }
+  .txn-amt.expense { color:var(--red); }
+  .txn-locked { font-size:13px; opacity:.5; margin-left:4px; }
+
+  .inv-item { background:#fff; border-radius:var(--radius-sm); padding:13px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+  .inv-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
+  .inv-qty { font-family:'Noto Serif Bengali',serif; font-size:15px; font-weight:700; color:var(--ink2); text-align:right; }
+  .inv-unit { font-size:11px; color:var(--ink3); }
+
+  .month-nav { display:flex; align-items:center; justify-content:space-between; background:#fff; border-radius:var(--radius-sm); padding:10px 14px; box-shadow:var(--shadow); margin-bottom:12px; }
+  .month-nav-btn { background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3); padding:4px; }
+  .month-label { font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:600; color:var(--ink2); }
+
+  .type-toggle { display:flex; gap:8px; margin-bottom:14px; }
+  .type-btn { flex:1; padding:10px; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; cursor:pointer; text-align:center; }
+  .type-btn.selected-income { background:var(--green-light); border-color:var(--green2); color:var(--green); font-weight:600; }
+  .type-btn.selected-expense { background:var(--red-light); border-color:var(--red); color:var(--red); font-weight:600; }
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">বিভাগ দায়িত্বশীল</div>
+    <div class="topbar-name" id="dept-name">—</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="topbar-btn" onclick="logout()">লগআউট</button>
+  </div>
+</div>
+
+<!-- PANELS -->
+<div class="content" id="panel-txn" style="padding-bottom:90px;">
+  <div class="month-nav">
+    <button class="month-nav-btn" onclick="changeMonth(-1)">‹</button>
+    <span class="month-label" id="month-label">—</span>
+    <button class="month-nav-btn" onclick="changeMonth(1)">›</button>
+  </div>
+  <div class="stat-row-2" id="txn-summary"></div>
+  <button class="add-btn" onclick="openAddTxn()">+ আয় / ব্যয় যোগ করুন</button>
+  <div id="txn-list"></div>
+</div>
+
+<div class="content" id="panel-inv" style="display:none;padding-bottom:90px;">
+  <div class="sec-header"><div class="sec-title">মজুদ তালিকা</div></div>
+  <button class="add-btn" onclick="openAddInv()">+ মজুদ আপডেট করুন</button>
+  <div id="inv-list"></div>
+</div>
+
+<div class="content" id="panel-report" style="display:none;padding-bottom:90px;">
+  <div class="stat-row-2" style="margin-top:14px;" id="report-summary"></div>
+  <div class="sec-header"><div class="sec-title">সব লেনদেন</div></div>
+  <div id="all-txn-list"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item active" id="nav-txn" onclick="switchPanel('txn')">
+    <div class="nav-icon">💰</div>
+    <div class="nav-label">হিসাব</div>
+  </div>
+  <div class="nav-item" id="nav-inv" onclick="switchPanel('inv')">
+    <div class="nav-icon">📦</div>
+    <div class="nav-label">মজুদ</div>
+  </div>
+  <div class="nav-item" id="nav-report" onclick="switchPanel('report')">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">প্রতিবেদন</div>
+  </div>
+  <div class="nav-item" onclick="location.href='chat.html'" title="শুধু মুহতামিমকে">
+    <div class="nav-icon">💬</div>
+    <div class="nav-label">মুহতামিমকে</div>
+  </div>
+</nav>
+
+<!-- ADD TXN MODAL -->
+<div class="modal-bg" id="modal-txn">
+  <div class="modal">
+    <div class="modal-title">লেনদেন যোগ করুন <button class="modal-close" onclick="closeModal('modal-txn')">✕</button></div>
+    <div class="type-toggle">
+      <button class="type-btn selected-income" id="btn-income" onclick="selType('income')">↑ আয়</button>
+      <button class="type-btn" id="btn-expense" onclick="selType('expense')">↓ ব্যয়</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">পরিমাণ (টাকা)</label>
+      <input class="form-input" type="number" id="txn-amount" placeholder="০">
+    </div>
+    <div class="form-group">
+      <label class="form-label">বিবরণ</label>
+      <input class="form-input" id="txn-desc" placeholder="লেনদেনের বিবরণ">
+    </div>
+    <div class="form-group">
+      <label class="form-label">তারিখ</label>
+      <input class="form-input" type="date" id="txn-date">
+    </div>
+    <button class="submit-btn" onclick="saveTxn()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<!-- ADD INV MODAL -->
+<div class="modal-bg" id="modal-inv">
+  <div class="modal">
+    <div class="modal-title">মজুদ আপডেট <button class="modal-close" onclick="closeModal('modal-inv')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">পণ্যের নাম</label>
+      <input class="form-input" id="inv-name" placeholder="যেমন: ধান, মধু">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">পরিমাণ</label>
+        <input class="form-input" type="number" id="inv-qty" placeholder="০">
+      </div>
+      <div class="form-group">
+        <label class="form-label">একক</label>
+        <input class="form-input" id="inv-unit" placeholder="কেজি / লিটার">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">মূল্য (প্রতি একক, ঐচ্ছিক)</label>
+      <input class="form-input" type="number" id="inv-price" placeholder="০">
+    </div>
+    <div class="form-group">
+      <label class="form-label">নোট</label>
+      <input class="form-input" id="inv-notes" placeholder="ঐচ্ছিক">
+    </div>
+    <button class="submit-btn" onclick="saveInv()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="monitor-mode.js"></script>
+<script src="dept-api.js"></script>
+<script>
+  const deptId   = sessionStorage.getItem('mm_dept_id');
+  const deptName = sessionStorage.getItem('mm_dept_name');
+  const deptEmoji= sessionStorage.getItem('mm_dept_emoji');
+  const isAdmin  = sessionStorage.getItem('mm_role') === 'admin';
+
+  if (!deptId && !isAdmin) { location.href = 'dept-index.html'; }
+
+  document.getElementById('dept-name').textContent = (deptEmoji||'') + ' ' + (deptName||'বিভাগ');
+  mmInsertMonitorBanner();
+
+  const MONTHS_BN = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+  let curMonth = new Date().toISOString().slice(0,7);
+  let addType = 'income';
+
+  const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  const fmtAmt = n => '৳' + toBn(Number(n).toLocaleString('en'));
+  const fmtDate = d => { if (!d) return ''; const p = d.split('-'); return toBn(p[2]+'/'+p[1]); };
+  const monthLabel = m => { const p = m.split('-'); return toBn(p[1]) + ' — ' + toBn(p[0]); };
+
+  function showToast(msg) {
+    const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+  function openModal(id) {
+    if (mmMutationBlocked(showToast)) return;
+    document.getElementById(id).classList.add('open');
+  }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  function switchPanel(name) {
+    ['txn','inv','report'].forEach(p => {
+      document.getElementById('panel-'+p).style.display = p===name ? '' : 'none';
+      document.getElementById('nav-'+p).classList.toggle('active', p===name);
+    });
+    if (name==='txn') renderTxn();
+    if (name==='inv') renderInv();
+    if (name==='report') renderReport();
+  }
+
+  function changeMonth(dir) {
+    const d = new Date(curMonth + '-01');
+    d.setMonth(d.getMonth() + dir);
+    curMonth = d.toISOString().slice(0,7);
+    renderTxn();
+  }
+
+  function renderTxn() {
+    document.getElementById('month-label').textContent = monthLabel(curMonth);
+    const txns = DeptAPI.Transactions.getByMonth(deptId, curMonth);
+    const sum  = DeptAPI.Transactions.getSummary(deptId, curMonth);
+    document.getElementById('txn-summary').innerHTML =
+      `<div class="stat-card"><span class="stat-num" style="color:var(--green)">${fmtAmt(sum.income)}</span><span class="stat-label">মোট আয়</span></div>
+       <div class="stat-card"><span class="stat-num" style="color:var(--red)">${fmtAmt(sum.expense)}</span><span class="stat-label">মোট ব্যয়</span></div>`;
+    document.getElementById('txn-list').innerHTML = txns.length
+      ? txns.map(t => `
+        <div class="txn-item">
+          <div class="txn-icon ${t.type}">${t.type==='income'?'↑':'↓'}</div>
+          <div class="txn-info">
+            <div class="txn-desc">${DeptAPI.esc(t.description)}${t.is_locked?'<span class="txn-locked">🔒</span>':''}</div>
+            <div class="txn-date">${fmtDate(t.txn_date)}</div>
+          </div>
+          <div class="txn-amt ${t.type}">${fmtAmt(t.amount)}</div>
+        </div>`).join('')
+      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">এই মাসে কোনো লেনদেন নেই</div>';
+  }
+
+  function renderInv() {
+    const items = DeptAPI.Inventory.getByDept(deptId);
+    document.getElementById('inv-list').innerHTML = items.length
+      ? items.map(i => `
+        <div class="inv-item">
+          <div class="list-avatar">📦</div>
+          <div class="inv-name">${DeptAPI.esc(i.item_name)}</div>
+          <div>
+            <div class="inv-qty">${toBn(i.quantity)}</div>
+            <div class="inv-unit">${DeptAPI.esc(i.unit)}</div>
+          </div>
+        </div>`).join('')
+      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো মজুদ নেই</div>';
+  }
+
+  function renderReport() {
+    const sum = DeptAPI.Transactions.getSummary(deptId, null);
+    const bal = sum.income - sum.expense;
+    document.getElementById('report-summary').innerHTML =
+      `<div class="stat-card"><span class="stat-num" style="color:var(--green)">${fmtAmt(sum.income)}</span><span class="stat-label">মোট আয়</span></div>
+       <div class="stat-card"><span class="stat-num" style="color:var(--red)">${fmtAmt(sum.expense)}</span><span class="stat-label">মোট ব্যয়</span></div>`;
+    const all = DeptAPI.Transactions.getByDept(deptId);
+    document.getElementById('all-txn-list').innerHTML = all.length
+      ? all.map(t => `
+        <div class="txn-item">
+          <div class="txn-icon ${t.type}">${t.type==='income'?'↑':'↓'}</div>
+          <div class="txn-info">
+            <div class="txn-desc">${DeptAPI.esc(t.description)}</div>
+            <div class="txn-date">${fmtDate(t.txn_date)}</div>
+          </div>
+          <div class="txn-amt ${t.type}">${fmtAmt(t.amount)}</div>
+        </div>`).join('')
+      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো লেনদেন নেই</div>';
+  }
+
+  function openAddTxn() {
+    selType('income');
+    document.getElementById('txn-amount').value = '';
+    document.getElementById('txn-desc').value = '';
+    document.getElementById('txn-date').value = new Date().toISOString().split('T')[0];
+    openModal('modal-txn');
+  }
+
+  function selType(t) {
+    addType = t;
+    document.getElementById('btn-income').className = 'type-btn' + (t==='income'?' selected-income':'');
+    document.getElementById('btn-expense').className = 'type-btn' + (t==='expense'?' selected-expense':'');
+  }
+
+  function saveTxn() {
+    if (mmMutationBlocked(showToast)) return;
+    const amount = parseFloat(document.getElementById('txn-amount').value);
+    const desc   = document.getElementById('txn-desc').value.trim();
+    const date   = document.getElementById('txn-date').value;
+    if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
+    if (!desc) { showToast('বিবরণ দিন'); return; }
+    DeptAPI.Transactions.add({ dept_id:deptId, type:addType, amount, description:desc, txn_date:date });
+    closeModal('modal-txn');
+    renderTxn();
+    showToast('লেনদেন সংরক্ষিত হয়েছে');
+  }
+
+  function openAddInv() {
+    ['inv-name','inv-qty','inv-unit','inv-price','inv-notes'].forEach(id => document.getElementById(id).value='');
+    openModal('modal-inv');
+  }
+
+  function saveInv() {
+    if (mmMutationBlocked(showToast)) return;
+    const name  = document.getElementById('inv-name').value.trim();
+    const qty   = parseFloat(document.getElementById('inv-qty').value);
+    const unit  = document.getElementById('inv-unit').value.trim();
+    const price = parseFloat(document.getElementById('inv-price').value)||null;
+    const notes = document.getElementById('inv-notes').value.trim();
+    if (!name) { showToast('পণ্যের নাম দিন'); return; }
+    if (!unit) { showToast('একক দিন'); return; }
+    if (isNaN(qty)) { showToast('পরিমাণ দিন'); return; }
+    DeptAPI.Inventory.add({ dept_id:deptId, item_name:name, unit, quantity:qty, unit_price:price, notes });
+    closeModal('modal-inv');
+    renderInv();
+    showToast('মজুদ আপডেট হয়েছে');
+  }
+
+  function logout() {
+    sessionStorage.removeItem('mm_dept_role');
+    sessionStorage.removeItem('mm_dept_id');
+    sessionStorage.removeItem('mm_dept_name');
+    sessionStorage.removeItem('mm_dept_emoji');
+    location.href = 'dept-index.html';
+  }
+
+  renderTxn();
+</script>
+</body>
+</html>

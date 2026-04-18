@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>লাইব্রেরি — মারকাযুল মদীনা</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .book-card {
+    background: #fff; border-radius: var(--radius); padding: 14px;
+    box-shadow: var(--shadow); margin-bottom: 8px; display: flex;
+    align-items: flex-start; gap: 12px; cursor: pointer; transition: transform .12s;
+  }
+  .book-card:active { transform: scale(.98); }
+  .book-cover {
+    width: 44px; height: 58px; border-radius: 6px; background: var(--cream2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0; border: 1px solid var(--cream3);
+  }
+  .book-info { flex: 1; }
+  .book-title { font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+  .book-author { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+  .book-meta { font-size: 11px; color: var(--ink3); margin-top: 4px; }
+  .book-right { text-align: right; flex-shrink: 0; }
+  .book-copies { font-family: 'Noto Serif Bengali', serif; font-size: 16px; font-weight: 700; }
+  .book-available { font-size: 10px; color: var(--ink3); }
+
+  .issue-row {
+    background: #fff; border-radius: var(--radius-sm); padding: 13px;
+    box-shadow: var(--shadow); margin-bottom: 8px;
+    border-left: 3px solid var(--blue);
+  }
+  .issue-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .issue-book { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .issue-student { font-size: 12px; color: var(--ink3); margin-top: 2px; }
+  .issue-dates { font-size: 11px; color: var(--ink3); }
+  .overdue { border-left-color: var(--red); }
+  .overdue .issue-book { color: var(--red); }
+
+  .search-bar {
+    display: flex; gap: 8px; margin-bottom: 12px;
+  }
+  .search-input {
+    flex: 1; background: #fff; border: 1px solid var(--cream3); border-radius: var(--radius-sm);
+    padding: 11px 14px; font-family: 'Noto Sans Bengali', sans-serif; font-size: 14px;
+    color: var(--ink); outline: none;
+  }
+  .search-input:focus { border-color: var(--gold); }
+
+  .cat-filter { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
+  .cat-btn {
+    background: #fff; border: 1px solid var(--cream3); border-radius: 20px;
+    padding: 6px 12px; font-size: 11px; white-space: nowrap; cursor: pointer;
+    font-family: 'Noto Sans Bengali', sans-serif; color: var(--ink3); transition: all .15s;
+  }
+  .cat-btn.active { background: var(--ink); color: var(--gold2); border-color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">লাইব্রেরি বিভাগ</div>
+    <div class="topbar-name" id="top-name">দায়িত্বশীল</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="topbar-btn" onclick="location.href='index.html'">প্রস্থান</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- HOME -->
+  <div class="panel active" id="panel-home">
+
+    <div style="background:linear-gradient(135deg,#1a5276,#2980b9);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-books">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">মোট বই</div></div>
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="issued-books">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">ইস্যু করা</div></div>
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="overdue-books">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">মেয়াদ শেষ</div></div>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <input class="search-input" id="search-input" placeholder="বইয়ের নাম বা লেখক খুঁজুন..." oninput="renderBooks()">
+    </div>
+
+    <div class="cat-filter" id="cat-filter"></div>
+
+    <div class="sec-header">
+      <span class="sec-title">বই তালিকা</span>
+      <span class="sec-link" onclick="openModal('add-book')">＋ নতুন বই</span>
+    </div>
+    <div id="book-list"></div>
+
+    <div class="pb-safe"></div>
+  </div>
+
+  <!-- ISSUED -->
+  <div class="panel" id="panel-issued">
+    <div class="sec-header" style="margin-top:8px;">
+      <span class="sec-title">ইস্যু তালিকা</span>
+      <span class="sec-link" onclick="openModal('issue-book')">＋ বই ইস্যু</span>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-btn active" id="itab-all" onclick="switchIssueTab('all')">সব</div>
+      <div class="tab-btn" id="itab-active" onclick="switchIssueTab('active')">চলমান</div>
+      <div class="tab-btn" id="itab-overdue" onclick="switchIssueTab('overdue')">মেয়াদ শেষ</div>
+      <div class="tab-btn" id="itab-returned" onclick="switchIssueTab('returned')">ফেরত দেওয়া</div>
+    </div>
+
+    <div id="issue-list"></div>
+    <div class="pb-safe"></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active" id="nav-home" onclick="switchPanel('home');renderBooks()">
+    <span class="nav-icon">📚</span><span class="nav-label">বই তালিকা</span>
+  </div>
+  <div class="nav-item" id="nav-issued" onclick="switchPanel('issued');renderIssues('all')">
+    <span class="nav-icon">📖</span><span class="nav-label">ইস্যু</span>
+  </div>
+  <div class="nav-item" onclick="location.href='chat.html'" title="শুধু মুহতামিমকে">
+    <span class="nav-icon">💬</span><span class="nav-label">মুহতামিমকে</span>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-add-book">
+  <div class="modal">
+    <div class="modal-title">নতুন বই যোগ <button class="modal-close" onclick="closeModal('add-book')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">বইয়ের নাম</label>
+      <input class="form-input" id="bk-title" placeholder="বইয়ের পূর্ণ নাম">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">লেখক / সংকলক</label>
+        <input class="form-input" id="bk-author" placeholder="লেখকের নাম">
+      </div>
+      <div class="form-group">
+        <label class="form-label">বিভাগ</label>
+        <select class="form-input form-select" id="bk-cat">
+          <option>ফিকহ</option>
+          <option>হাদীস</option>
+          <option>তাফসীর</option>
+          <option>আকীদা</option>
+          <option>সীরাত</option>
+          <option>আরবী সাহিত্য</option>
+          <option>বাংলা</option>
+          <option>অন্যান্য</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">মোট কপি</label>
+        <input class="form-input" id="bk-copies" type="number" min="1" value="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">র‍্যাক নম্বর</label>
+        <input class="form-input" id="bk-rack" placeholder="যেমন: A-3">
+      </div>
+    </div>
+    <button class="submit-btn blue" onclick="addBook()">বই যোগ করুন</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-issue-book">
+  <div class="modal">
+    <div class="modal-title">বই ইস্যু করুন <button class="modal-close" onclick="closeModal('issue-book')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">বই নির্বাচন করুন</label>
+      <select class="form-input form-select" id="iss-book"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ছাত্র নির্বাচন করুন</label>
+      <select class="form-input form-select" id="iss-student"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">ইস্যুর তারিখ</label>
+        <input class="form-input" id="iss-date" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ফেরতের তারিখ</label>
+        <input class="form-input" id="iss-due" type="date">
+      </div>
+    </div>
+    <button class="submit-btn blue" onclick="issueBook()">ইস্যু করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="monitor-mode.js"></script>
+<script src="api.js"></script>
+<script>
+  if (!sessionStorage.getItem('mm_role')) location.href = 'index.html';
+  document.getElementById('top-name').textContent = sessionStorage.getItem('mm_name') || 'দায়িত্বশীল';
+  mmInsertMonitorBanner();
+
+  const LIB_BOOKS = 'mm_lib_books';
+  const LIB_ISSUES = 'mm_lib_issues';
+
+  function lLoad(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } }
+  function lSave(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+  function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
+
+  /* seed */
+  if (!lLoad(LIB_BOOKS).length) {
+    lSave(LIB_BOOKS, [
+      { id: 'bk_1', title: 'হেদায়া', author: 'বুরহানুদ্দীন মারগীনানী', category: 'ফিকহ', copies: 3, rack: 'A-1' },
+      { id: 'bk_2', title: 'বুখারী শরীফ', author: 'ইমাম বুখারী', category: 'হাদীস', copies: 2, rack: 'B-1' },
+      { id: 'bk_3', title: 'তাফসীরে মাআরেফুল কুরআন', author: 'মুফতী শফী', category: 'তাফসীর', copies: 2, rack: 'C-1' },
+      { id: 'bk_4', title: 'সীরাতুন নবী', author: 'শিবলী নুমানী', category: 'সীরাত', copies: 4, rack: 'D-1' },
+      { id: 'bk_5', title: 'আলফিয়া ইবনে মালিক', author: 'ইবনে মালিক', category: 'আরবী সাহিত্য', copies: 5, rack: 'A-2' },
+    ]);
+    const today = API.today();
+    const due = new Date(); due.setDate(due.getDate() + 14);
+    const overdue = new Date(); overdue.setDate(overdue.getDate() - 3);
+    lSave(LIB_ISSUES, [
+      { id: API.uid(), book_id: 'bk_1', student_id: 'std_1', issued: today, due: due.toISOString().split('T')[0], returned: null },
+      { id: API.uid(), book_id: 'bk_2', student_id: 'std_2', issued: '2025-03-01', due: overdue.toISOString().split('T')[0], returned: null },
+      { id: API.uid(), book_id: 'bk_3', student_id: 'std_3', issued: '2025-02-01', due: '2025-02-15', returned: '2025-02-14' },
+    ]);
+  }
+
+  let currentCat = 'সব';
+  let currentIssueTab = 'all';
+
+  function switchPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('nav-' + name)?.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function switchIssueTab(tab) {
+    currentIssueTab = tab;
+    ['all','active','overdue','returned'].forEach(t => {
+      document.getElementById('itab-' + t).classList.toggle('active', t === tab);
+    });
+    renderIssues(tab);
+  }
+
+  /* ── BOOKS ── */
+  function renderBooks() {
+    const books = lLoad(LIB_BOOKS);
+    const issues = lLoad(LIB_ISSUES);
+    const query = document.getElementById('search-input').value.toLowerCase();
+
+    /* categories */
+    const cats = ['সব', ...new Set(books.map(b => b.category))];
+    document.getElementById('cat-filter').innerHTML = cats.map(c =>
+      `<div class="cat-btn ${c === currentCat ? 'active' : ''}" onclick="filterCat('${c}')">${c}</div>`
+    ).join('');
+
+    /* summary */
+    const totalCopies = books.reduce((a,b) => a + (b.copies || 1), 0);
+    const activeIssues = issues.filter(i => !i.returned);
+    const today = API.today();
+    const overdue = activeIssues.filter(i => i.due < today);
+    document.getElementById('total-books').textContent = toBn(books.length) + ' শিরোনাম';
+    document.getElementById('issued-books').textContent = toBn(activeIssues.length);
+    document.getElementById('overdue-books').textContent = toBn(overdue.length);
+
+    /* filter */
+    let filtered = books;
+    if (currentCat !== 'সব') filtered = filtered.filter(b => b.category === currentCat);
+    if (query) filtered = filtered.filter(b =>
+      b.title.toLowerCase().includes(query) || (b.author||'').toLowerCase().includes(query)
+    );
+
+    const el = document.getElementById('book-list');
+    el.innerHTML = filtered.map(b => {
+      const issuedCount = issues.filter(i => i.book_id === b.id && !i.returned).length;
+      const available = (b.copies || 1) - issuedCount;
+      return `<div class="book-card" onclick="showBookDetail('${b.id}')">
+        <div class="book-cover">📖</div>
+        <div class="book-info">
+          <div class="book-title">${API.esc(b.title)}</div>
+          <div class="book-author">${API.esc(b.author || '—')}</div>
+          <div class="book-meta">
+            <span class="list-badge badge-ink">${API.esc(b.category)}</span>
+            ${b.rack ? `<span style="margin-left:4px;font-size:11px;color:var(--ink3);">র‍্যাক ${API.esc(b.rack)}</span>` : ''}
+          </div>
+        </div>
+        <div class="book-right">
+          <div class="book-copies" style="color:${available>0?'var(--green)':'var(--red)'}">${toBn(available)}</div>
+          <div class="book-available">পাওয়া যাচ্ছে</div>
+          <div style="font-size:10px;color:var(--ink3);margin-top:2px;">মোট ${toBn(b.copies||1)}</div>
+        </div>
+      </div>`;
+    }).join('') || '<div class="empty-state"><span class="empty-icon">📚</span><div class="empty-text">কোনো বই নেই</div></div>';
+
+    /* populate issue modal */
+    document.getElementById('iss-book').innerHTML = books.map(b => `<option value="${b.id}">${API.esc(b.title)}</option>`).join('');
+    document.getElementById('iss-student').innerHTML = API.Students.getAll().filter(s=>s.active).map(s => `<option value="${s.id}">${API.esc(s.name)} (${API.esc(s.permanent_id)})</option>`).join('');
+    document.getElementById('iss-date').value = today;
+    const dueD = new Date(); dueD.setDate(dueD.getDate()+14);
+    document.getElementById('iss-due').value = dueD.toISOString().split('T')[0];
+  }
+
+  function filterCat(cat) { currentCat = cat; renderBooks(); }
+
+  function showBookDetail(bid) {
+    const b = lLoad(LIB_BOOKS).find(b => b.id === bid);
+    if (!b) return;
+    const issues = lLoad(LIB_ISSUES).filter(i => i.book_id === bid && !i.returned);
+    const msg = issues.length
+      ? issues.map(i => { const s = API.Students.getById(i.student_id); return (s?s.name:'—') + ' (ফেরত: ' + i.due + ')'; }).join(', ')
+      : 'সবগুলো কপি পাওয়া যাচ্ছে';
+    showToast(b.title + ' — ' + msg);
+  }
+
+  /* ── ISSUES ── */
+  function renderIssues(filter) {
+    const issues = lLoad(LIB_ISSUES);
+    const books = lLoad(LIB_BOOKS);
+    const today = API.today();
+    let filtered = issues;
+    if (filter === 'active') filtered = issues.filter(i => !i.returned);
+    else if (filter === 'overdue') filtered = issues.filter(i => !i.returned && i.due < today);
+    else if (filter === 'returned') filtered = issues.filter(i => i.returned);
+
+    filtered.sort((a,b) => (b.issued||'').localeCompare(a.issued||''));
+
+    const el = document.getElementById('issue-list');
+    el.innerHTML = filtered.map(i => {
+      const book = books.find(b => b.id === i.book_id);
+      const student = API.Students.getById(i.student_id);
+      const isOverdue = !i.returned && i.due < today;
+      return `<div class="issue-row ${isOverdue ? 'overdue' : ''}">
+        <div class="issue-top">
+          <div>
+            <div class="issue-book">${book ? API.esc(book.title) : '—'}</div>
+            <div class="issue-student">${student ? API.esc(student.name) + ' · ' + API.esc(student.permanent_id) : '—'}</div>
+          </div>
+          ${!i.returned ? `<button onclick="returnBook('${i.id}')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:'Noto Sans Bengali',sans-serif;font-size:12px;cursor:pointer;">ফেরত</button>` : '<span class="list-badge badge-green">ফেরত দেওয়া</span>'}
+        </div>
+        <div class="issue-dates">
+          ইস্যু: ${API.esc(i.issued||'—')} · 
+          ফেরতের তারিখ: <span style="color:${isOverdue?'var(--red)':'inherit'}">${API.esc(i.due||'—')}</span>
+          ${i.returned ? ' · ফেরত: ' + API.esc(i.returned) : ''}
+          ${isOverdue ? ' <strong style="color:var(--red)">· মেয়াদ শেষ!</strong>' : ''}
+        </div>
+      </div>`;
+    }).join('') || '<div class="empty-state"><span class="empty-icon">📖</span><div class="empty-text">কোনো রেকর্ড নেই</div></div>';
+  }
+
+  function returnBook(iid) {
+    if (mmMutationBlocked(showToast)) return;
+    const list = lLoad(LIB_ISSUES).map(i => i.id === iid ? { ...i, returned: API.today() } : i);
+    lSave(LIB_ISSUES, list);
+    showToast('বই ফেরত নেওয়া হয়েছে ✓');
+    renderIssues(currentIssueTab);
+    renderBooks();
+  }
+
+  function addBook() {
+    if (mmMutationBlocked(showToast)) return;
+    const title = document.getElementById('bk-title').value.trim();
+    const author = document.getElementById('bk-author').value.trim();
+    const category = document.getElementById('bk-cat').value;
+    const copies = parseInt(document.getElementById('bk-copies').value) || 1;
+    const rack = document.getElementById('bk-rack').value.trim();
+    if (!title) { showToast('বইয়ের নাম দিন'); return; }
+    const list = lLoad(LIB_BOOKS);
+    list.push({ id: 'bk_' + API.uid(), title, author, category, copies, rack });
+    lSave(LIB_BOOKS, list);
+    closeModal('add-book');
+    showToast('বই যোগ করা হয়েছে ✓');
+    renderBooks();
+  }
+
+  function issueBook() {
+    if (mmMutationBlocked(showToast)) return;
+    const book_id = document.getElementById('iss-book').value;
+    const student_id = document.getElementById('iss-student').value;
+    const issued = document.getElementById('iss-date').value;
+    const due = document.getElementById('iss-due').value;
+    if (!book_id || !student_id || !issued || !due) { showToast('সব তথ্য দিন'); return; }
+    const list = lLoad(LIB_ISSUES);
+    list.push({ id: API.uid(), book_id, student_id, issued, due, returned: null });
+    lSave(LIB_ISSUES, list);
+    closeModal('issue-book');
+    showToast('বই ইস্যু করা হয়েছে ✓');
+    renderBooks();
+  }
+
+  function openModal(id) {
+    if (mmMutationBlocked(showToast)) return;
+    document.getElementById('modal-' + id).classList.add('open');
+  }
+  function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
+  function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+
+  renderBooks();
+</script>
+</body>
+</html>

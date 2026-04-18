@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>বিভাগ লগইন — মারকাযুল মদীনা</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- DEPT SELECT -->
+<div class="login-screen" id="dept-screen">
+  <div class="login-logo">مرکز المدینة</div>
+  <div style="font-family:'Noto Serif Bengali',serif;font-size:18px;font-weight:700;color:var(--gold2);text-align:center;margin-bottom:4px;">বিভাগ মডিউল</div>
+  <div class="login-subtitle">আপনার বিভাগ নির্বাচন করুন</div>
+  <div class="role-grid" id="dept-list" style="max-width:360px;"></div>
+  <div style="font-size:12px;color:rgba(255,255,255,0.25);text-align:center;margin-top:20px;cursor:pointer;" onclick="goAdmin()">মুহতামিম → বিভাগ ড্যাশবোর্ড</div>
+</div>
+
+<!-- PIN SCREEN -->
+<div class="login-screen" id="pin-screen" style="display:none;">
+  <div style="text-align:center;margin-bottom:32px;">
+    <span style="font-size:40px;display:block;margin-bottom:8px;" id="dept-icon">📦</span>
+    <div style="font-family:'Noto Serif Bengali',serif;font-size:19px;font-weight:700;color:var(--gold2);" id="dept-title">বিভাগ লগইন</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">পিন দিন</div>
+  </div>
+  <div class="login-box">
+    <span class="login-label">পিন দিন</span>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="numpad">
+      <button class="num-btn" onclick="pressPin('১')">১</button>
+      <button class="num-btn" onclick="pressPin('২')">২</button>
+      <button class="num-btn" onclick="pressPin('৩')">৩</button>
+      <button class="num-btn" onclick="pressPin('৪')">৪</button>
+      <button class="num-btn" onclick="pressPin('৫')">৫</button>
+      <button class="num-btn" onclick="pressPin('৬')">৬</button>
+      <button class="num-btn" onclick="pressPin('৭')">৭</button>
+      <button class="num-btn" onclick="pressPin('৮')">৮</button>
+      <button class="num-btn" onclick="pressPin('৯')">৯</button>
+      <button class="num-btn empty"></button>
+      <button class="num-btn" onclick="pressPin('০')">০</button>
+      <button class="num-btn del" onclick="delPin()">⌫</button>
+    </div>
+    <div class="login-error" id="pin-error"></div>
+  </div>
+  <div class="login-back" onclick="backToDepts()">← বিভাগ পরিবর্তন করুন</div>
+</div>
+
+<script src="dept-api.js"></script>
+<script>
+  const BN = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
+  let selectedDept = null;
+  let pinVal = '';
+
+  function init() {
+    const depts = DeptAPI.Departments.getAll();
+    document.getElementById('dept-list').innerHTML = depts.map(d=>
+      `<div class="role-btn" onclick="selectDept('${d.id}')">
+        <div class="role-icon">${d.emoji}</div>
+        <div><div class="role-name">${DeptAPI.esc(d.name)}</div><div class="role-desc">স্টাফ লগইন</div></div>
+      </div>`
+    ).join('');
+  }
+
+  function selectDept(id) {
+    selectedDept = DeptAPI.Departments.getById(id);
+    if (!selectedDept) return;
+    document.getElementById('dept-icon').textContent  = selectedDept.emoji;
+    document.getElementById('dept-title').textContent = selectedDept.name;
+    document.getElementById('dept-screen').style.display = 'none';
+    document.getElementById('pin-screen').style.display  = 'flex';
+    resetPin();
+  }
+
+  function goAdmin() {
+    if (sessionStorage.getItem('mm_role') === 'admin') {
+      location.href = 'dept-dashboard.html';
+    } else {
+      selectedDept = { id:'__admin__', name:'বিভাগ ড্যাশবোর্ড', emoji:'🏠' };
+      document.getElementById('dept-icon').textContent  = '🏠';
+      document.getElementById('dept-title').textContent = 'অ্যাডমিন লগইন';
+      document.getElementById('dept-screen').style.display = 'none';
+      document.getElementById('pin-screen').style.display  = 'flex';
+      resetPin();
+    }
+  }
+
+  function backToDepts() {
+    selectedDept = null;
+    document.getElementById('dept-screen').style.display = 'flex';
+    document.getElementById('pin-screen').style.display  = 'none';
+    resetPin();
+  }
+
+  function pressPin(n) {
+    if (pinVal.length >= 4) return;
+    pinVal += BN[n];
+    updateDots();
+    if (pinVal.length === 4) setTimeout(checkPin, 200);
+  }
+  function delPin() { pinVal=pinVal.slice(0,-1); updateDots(); document.getElementById('pin-error').textContent=''; }
+  function updateDots() { for(let i=0;i<4;i++) document.getElementById('pd'+i).classList.toggle('filled',i<pinVal.length); }
+  function resetPin() { pinVal=''; updateDots(); document.getElementById('pin-error').textContent=''; }
+
+  function checkPin() {
+    if (selectedDept?.id === '__admin__') {
+      /* admin PIN from madrasa settings */
+      const s = JSON.parse(localStorage.getItem('mm_settings')||'{}');
+      if (pinVal === (s.admin_pin||'0000')) {
+        sessionStorage.setItem('mm_role','admin');
+        sessionStorage.setItem('mm_name','মুহতামিম');
+        location.href = 'dept-dashboard.html';
+      } else { showError(); }
+      return;
+    }
+    if (DeptAPI.Departments.verifyPin(selectedDept.id, pinVal)) {
+      sessionStorage.setItem('mm_dept_role', 'dept');
+      sessionStorage.setItem('mm_dept_id',   selectedDept.id);
+      sessionStorage.setItem('mm_dept_name', selectedDept.name);
+      sessionStorage.setItem('mm_dept_emoji',selectedDept.emoji);
+      location.href = 'dept-staff.html';
+    } else { showError(); }
+  }
+
+  function showError() {
+    document.getElementById('pin-error').textContent='পিন ভুল হয়েছে।';
+    pinVal=''; updateDots();
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+/* ═══════════════════════════════════════════
+   মারকাযুল মদীনা — Shared Stylesheet
+   ═══════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600&display=swap');
+
+:root {
+  --ink: #1a1208;
+  --ink2: #3d2e14;
+  --ink3: #6b5a3e;
+  --cream: #faf6ef;
+  --cream2: #f2ead8;
+  --cream3: #e8dcc4;
+  --gold: #c9952a;
+  --gold2: #e8b84b;
+  --gold-light: #fdf3dc;
+  --green: #2d6a4f;
+  --green2: #40916c;
+  --green-light: #d8f3dc;
+  --red: #c1440e;
+  --red-light: #fde8df;
+  --blue: #1a5276;
+  --blue-light: #d6eaf8;
+  --teal: #0e6655;
+  --teal-light: #d0ece7;
+  --purple: #6c3483;
+  --purple-light: #e8daef;
+  --shadow: 0 2px 12px rgba(26,18,8,0.10);
+  --shadow-md: 0 4px 20px rgba(26,18,8,0.12);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Noto Sans Bengali', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--ink);
+  color: #fff;
+  padding: 14px 18px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-left {}
+.topbar-role { font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: .5px; }
+.topbar-name { font-family: 'Noto Serif Bengali', serif; font-size: 16px; font-weight: 600; color: var(--gold2); }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.topbar-btn {
+  font-size: 11px; color: rgba(255,255,255,0.35); cursor: pointer;
+  padding: 6px 10px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+  background: transparent; font-family: 'Noto Sans Bengali', sans-serif;
+}
+.notif-btn {
+  position: relative; width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; font-size: 18px;
+}
+.notif-badge {
+  position: absolute; top: 5px; right: 5px;
+  width: 8px; height: 8px; background: var(--gold2);
+  border-radius: 50%; border: 2px solid var(--ink);
+}
+
+/* ── CONTENT ── */
+.content { padding: 16px; max-width: 480px; margin: 0 auto; }
+.pb-safe { height: 80px; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--ink); display: flex;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  z-index: 100; max-width: 480px; margin: 0 auto;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 6px; cursor: pointer; opacity: .4; transition: opacity .15s;
+}
+.nav-item.active { opacity: 1; }
+.nav-icon { font-size: 20px; }
+.nav-label { font-size: 10px; color: rgba(255,255,255,0.7); }
+.nav-item.active .nav-label { color: var(--gold2); }
+
+/* ── PANELS ── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── SECTION HEADER ── */
+.sec-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 16px 0 10px;
+}
+.sec-title { font-family: 'Noto Serif Bengali', serif; font-size: 15px; font-weight: 700; color: var(--ink2); }
+.sec-link { font-size: 12px; color: var(--gold); cursor: pointer; }
+
+/* ── STAT ROW ── */
+.stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+.stat-row-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-bottom: 12px; }
+.stat-card {
+  background: #fff; border-radius: var(--radius-sm);
+  padding: 12px 10px; text-align: center; box-shadow: var(--shadow);
+}
+.stat-num { font-family: 'Noto Serif Bengali', serif; font-size: 20px; font-weight: 700; color: var(--ink2); display: block; }
+.stat-label { font-size: 10px; color: var(--ink3); display: block; margin-top: 2px; line-height: 1.3; }
+
+/* ── CARDS ── */
+.card {
+  background: #fff; border-radius: var(--radius);
+  padding: 16px; box-shadow: var(--shadow); margin-bottom: 10px;
+  cursor: pointer; transition: transform .12s;
+}
+.card:active { transform: scale(.98); }
+.card-static { background: #fff; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 10px; }
+
+/* ── HEADER CARD ── */
+.header-card {
+  border-radius: var(--radius); padding: 20px 18px; color: #fff;
+  margin-bottom: 14px; position: relative; overflow: hidden;
+}
+.header-card::after {
+  content: ''; position: absolute; top: -20px; right: -20px;
+  width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.06);
+}
+.hc-icon { font-size: 30px; margin-bottom: 8px; display: block; }
+.hc-name { font-family: 'Noto Serif Bengali', serif; font-size: 19px; font-weight: 700; }
+.hc-sub { font-size: 12px; opacity: .65; margin-top: 3px; }
+
+/* ── LIST ITEMS ── */
+.list-item {
+  background: #fff; border-radius: var(--radius-sm);
+  padding: 14px; box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 8px; cursor: pointer; transition: transform .12s;
+}
+.list-item:active { transform: scale(.98); }
+.list-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--cream3); display: flex; align-items: center;
+  justify-content: center; font-size: 18px; flex-shrink: 0;
+}
+.list-info { flex: 1; }
+.list-name { font-size: 14px; font-weight: 600; color: var(--ink); }
+.list-sub { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+.list-meta { text-align: right; flex-shrink: 0; }
+.list-badge {
+  font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500; display: inline-block;
+}
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-gold { background: var(--gold-light); color: var(--gold); }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+.badge-ink { background: rgba(61,46,20,0.1); color: var(--ink2); }
+
+/* ── ADD BUTTON ── */
+.add-btn {
+  background: var(--green); color: #fff; border: none; border-radius: 12px;
+  padding: 14px 18px; width: 100%; font-family: 'Noto Sans Bengali', sans-serif;
+  font-size: 14px; font-weight: 600; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: 14px; transition: all .15s;
+}
+.add-btn:active { transform: scale(.98); filter: brightness(.95); }
+
+/* ── FORM ── */
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 12px; color: var(--ink3); display: block; margin-bottom: 6px; font-weight: 500; }
+.form-input {
+  width: 100%; background: #fff; border: 1px solid var(--cream3);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  font-family: 'Noto Sans Bengali', sans-serif; font-size: 14px;
+  color: var(--ink); outline: none; transition: border-color .2s;
+}
+.form-input:focus { border-color: var(--gold); }
+.form-textarea { min-height: 90px; resize: none; }
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b5a3e' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.submit-btn {
+  background: var(--green); color: #fff; border: none; border-radius: 12px;
+  padding: 14px; width: 100%; font-family: 'Noto Sans Bengali', sans-serif;
+  font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; transition: all .15s;
+}
+.submit-btn:active { transform: scale(.98); }
+.submit-btn.blue { background: var(--blue); }
+.submit-btn.gold { background: var(--gold); }
+
+/* ── MODAL ── */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 200; display: none; align-items: flex-end;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--cream); border-radius: 20px 20px 0 0;
+  padding: 24px 18px 36px; width: 100%; max-height: 88vh; overflow-y: auto;
+}
+.modal-title {
+  font-family: 'Noto Serif Bengali', serif; font-size: 17px; font-weight: 700;
+  color: var(--ink2); margin-bottom: 20px; display: flex;
+  justify-content: space-between; align-items: center;
+}
+.modal-close { font-size: 20px; cursor: pointer; color: var(--ink3); background: none; border: none; }
+
+/* ── DETAIL VIEW ── */
+.detail-view {
+  display: none; position: fixed; inset: 0;
+  background: var(--cream); z-index: 150; overflow-y: auto;
+}
+.detail-view.open { display: block; }
+.detail-topbar {
+  background: var(--ink); color: #fff; padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px; position: sticky; top: 0;
+}
+.detail-back { font-size: 22px; cursor: pointer; line-height: 1; }
+.detail-title { font-family: 'Noto Serif Bengali', serif; font-size: 16px; font-weight: 600; color: var(--gold2); }
+.detail-content { padding: 16px; max-width: 480px; margin: 0 auto; }
+
+/* ── LOG ITEMS ── */
+.log-item {
+  background: #fff; border-radius: var(--radius-sm);
+  padding: 14px; box-shadow: var(--shadow);
+  border-left: 3px solid var(--green2); margin-bottom: 8px;
+}
+.log-meta { font-size: 11px; color: var(--ink3); margin-bottom: 5px; display: flex; justify-content: space-between; }
+.log-text { font-size: 13px; color: var(--ink); line-height: 1.6; }
+
+/* ── ATTENDANCE ── */
+.att-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid var(--cream2);
+}
+.att-name { font-size: 13px; color: var(--ink); flex: 1; }
+.att-id { font-size: 11px; color: var(--ink3); margin-right: 8px; }
+.att-toggle { display: flex; gap: 6px; }
+.att-btn {
+  width: 32px; height: 32px; border-radius: var(--radius-xs);
+  border: 1.5px solid var(--cream3); background: #fff;
+  font-size: 14px; cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.att-btn.present { background: var(--green-light); border-color: var(--green2); }
+.att-btn.absent { background: var(--red-light); border-color: var(--red); }
+
+/* ── KHULUK SCORE ── */
+.khuluk-bar {
+  height: 6px; border-radius: 3px; background: var(--cream3); overflow: hidden; margin-top: 6px;
+}
+.khuluk-fill { height: 100%; border-radius: 3px; background: var(--green2); transition: width .4s; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: #fff; padding: 10px 20px;
+  border-radius: 20px; font-size: 13px; opacity: 0;
+  transition: opacity .3s; pointer-events: none; z-index: 999; white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* ── LOGIN ── */
+.login-screen {
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: var(--ink); padding: 24px; position: relative; overflow: hidden;
+}
+.login-screen::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,149,42,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.login-logo { font-family: 'Noto Serif Bengali', serif; font-size: 26px; font-weight: 700; color: var(--gold2); text-align: center; line-height: 1.3; margin-bottom: 4px; position: relative; }
+.login-subtitle { font-size: 12px; color: rgba(255,255,255,0.4); text-align: center; margin-bottom: 40px; }
+.login-box {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(201,149,42,0.25);
+  border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 320px;
+  backdrop-filter: blur(10px); position: relative;
+}
+.login-label { font-size: 11px; color: rgba(255,255,255,0.45); display: block; text-align: center; margin-bottom: 12px; letter-spacing: .8px; text-transform: uppercase; }
+.pin-dots { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
+.pin-dot { width: 13px; height: 13px; border-radius: 50%; border: 2px solid rgba(201,149,42,0.35); transition: all .2s; }
+.pin-dot.filled { background: var(--gold2); border-color: var(--gold2); box-shadow: 0 0 8px rgba(232,184,75,0.4); }
+.numpad { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+.num-btn {
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 11px; color: #fff; font-family: 'Noto Sans Bengali', sans-serif;
+  font-size: 19px; padding: 14px; cursor: pointer; transition: all .15s; text-align: center;
+}
+.num-btn:active { background: rgba(201,149,42,0.25); transform: scale(.95); }
+.num-btn.del { font-size: 15px; color: rgba(255,255,255,0.5); }
+.num-btn.empty { visibility: hidden; }
+.login-error { color: #ff7f5e; font-size: 12px; text-align: center; margin-top: 10px; min-height: 16px; }
+.login-back { font-size: 12px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 16px; cursor: pointer; }
+
+/* ── ROLE SELECT ── */
+.role-grid { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+.role-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px; padding: 16px 18px; display: flex; align-items: center;
+  gap: 14px; cursor: pointer; transition: all .15s; color: #fff;
+}
+.role-btn:active { transform: scale(.97); }
+.role-icon { font-size: 26px; flex-shrink: 0; }
+.role-name { font-size: 15px; font-weight: 600; }
+.role-desc { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--ink3); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; display: block; }
+.empty-text { font-size: 14px; }
+
+/* ── মুহতামিম পর্যবেক্ষণ মোড ব্যানার ── */
+.mm-monitor-banner {
+  background: linear-gradient(135deg, #1a5276 0%, #2471a3 100%);
+  color: #fff;
+  font-size: 12px;
+  padding: 10px 14px;
+  text-align: center;
+  line-height: 1.45;
+  position: relative;
+  z-index: 200;
+}

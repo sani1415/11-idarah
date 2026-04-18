@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="bn" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>মারকাযুল মদীনা — স্টাফ পোর্টাল</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1208;
+    --ink2: #3d2e14;
+    --ink3: #6b5a3e;
+    --cream: #faf6ef;
+    --cream2: #f2ead8;
+    --cream3: #e8dcc4;
+    --gold: #c9952a;
+    --gold2: #e8b84b;
+    --gold-light: #fdf3dc;
+    --green: #2d6a4f;
+    --green2: #40916c;
+    --green-light: #d8f3dc;
+    --red: #c1440e;
+    --red-light: #fde8df;
+    --blue: #1a5276;
+    --blue-light: #d6eaf8;
+    --teal: #0e6655;
+    --teal-light: #d0ece7;
+    --shadow: 0 2px 12px rgba(26,18,8,0.10);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans Bengali', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+  /* ── ROLE SELECT SCREEN ── */
+  #role-screen {
+    min-height: 100vh;
+    background: var(--ink);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    position: relative; overflow: hidden;
+  }
+  #role-screen::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(45,106,79,0.2) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .role-logo { font-family:'Noto Serif Bengali',serif; font-size:24px; font-weight:700; color:var(--gold2); text-align:center; margin-bottom:6px; }
+  .role-sub { font-size:12px; color:rgba(255,255,255,0.4); text-align:center; margin-bottom:36px; letter-spacing:.5px; }
+  .role-label { font-size:11px; color:rgba(255,255,255,0.45); text-align:center; margin-bottom:14px; letter-spacing:.8px; text-transform:uppercase; }
+  .role-grid { display:flex; flex-direction:column; gap:10px; width:100%; max-width:320px; }
+  .role-btn {
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    border-radius:14px; padding:16px 18px; display:flex; align-items:center; gap:14px;
+    cursor:pointer; transition:all .15s; color:#fff;
+  }
+  .role-btn:active { transform:scale(.97); background:rgba(255,255,255,0.1); }
+  .role-btn.selected { border-color:var(--gold2); background:rgba(232,184,75,0.12); }
+  .role-icon { font-size:26px; flex-shrink:0; }
+  .role-info {}
+  .role-name { font-size:15px; font-weight:600; }
+  .role-desc { font-size:11px; color:rgba(255,255,255,0.45); margin-top:2px; }
+
+  /* ── PIN SCREEN ── */
+  #pin-screen {
+    min-height:100vh; background:var(--ink);
+    display:none; flex-direction:column; align-items:center; justify-content:center; padding:24px;
+    position:relative; overflow:hidden;
+  }
+  #pin-screen::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(201,149,42,0.15) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .pin-header { text-align:center; margin-bottom:36px; }
+  .pin-role-icon { font-size:36px; margin-bottom:8px; display:block; }
+  .pin-role-name { font-family:'Noto Serif Bengali',serif; font-size:20px; font-weight:700; color:var(--gold2); }
+  .pin-role-sub { font-size:12px; color:rgba(255,255,255,0.4); margin-top:4px; }
+  .pin-box { background:rgba(255,255,255,0.05); border:1px solid rgba(201,149,42,0.25); border-radius:20px; padding:28px 24px; width:100%; max-width:320px; }
+  .pin-label { font-size:11px; color:rgba(255,255,255,0.45); display:block; text-align:center; margin-bottom:12px; letter-spacing:.8px; text-transform:uppercase; }
+  .pin-dots { display:flex; gap:12px; justify-content:center; margin-bottom:24px; }
+  .pin-dot { width:13px; height:13px; border-radius:50%; border:2px solid rgba(201,149,42,0.35); transition:all .2s; }
+  .pin-dot.filled { background:var(--gold2); border-color:var(--gold2); box-shadow:0 0 8px rgba(232,184,75,0.4); }
+  .numpad { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+  .num-btn { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.08); border-radius:11px; color:#fff; font-family:'Noto Sans Bengali',sans-serif; font-size:19px; padding:14px; cursor:pointer; transition:all .15s; text-align:center; }
+  .num-btn:active { background:rgba(201,149,42,0.25); transform:scale(.95); }
+  .num-btn.del { font-size:15px; color:rgba(255,255,255,0.5); }
+  .num-btn.empty { visibility:hidden; }
+  .pin-back { font-size:12px; color:rgba(255,255,255,0.35); text-align:center; margin-top:16px; cursor:pointer; }
+  .pin-back:hover { color:rgba(255,255,255,0.6); }
+  .pin-error { color:#ff7f5e; font-size:12px; text-align:center; margin-top:10px; min-height:16px; }
+
+  /* ── MAIN APP ── */
+  #app { display:none; }
+
+  .topbar { background:var(--ink); color:#fff; padding:14px 18px 12px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+  .topbar-left {}
+  .topbar-role { font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:.5px; }
+  .topbar-name { font-family:'Noto Serif Bengali',serif; font-size:16px; font-weight:600; color:var(--gold2); }
+  .topbar-logout { font-size:11px; color:rgba(255,255,255,0.3); cursor:pointer; padding:6px 10px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; }
+
+  .content { padding:16px; max-width:480px; margin:0 auto; }
+
+  /* DEPT HOME */
+  .dept-header-card {
+    border-radius:var(--radius); padding:20px 18px; color:#fff; margin-bottom:16px; position:relative; overflow:hidden;
+  }
+  .dept-header-card::after { content:''; position:absolute; top:-20px; right:-20px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,0.06); }
+  .dhc-icon { font-size:32px; margin-bottom:8px; display:block; }
+  .dhc-name { font-family:'Noto Serif Bengali',serif; font-size:20px; font-weight:700; }
+  .dhc-person { font-size:12px; opacity:.65; margin-top:3px; }
+
+  .stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+  .stat-card { background:#fff; border-radius:var(--radius-sm); padding:12px 10px; text-align:center; box-shadow:var(--shadow); }
+  .stat-num { font-family:'Noto Serif Bengali',serif; font-size:20px; font-weight:700; color:var(--ink2); display:block; }
+  .stat-label { font-size:10px; color:var(--ink3); display:block; margin-top:2px; line-height:1.3; }
+
+  .sec-header { display:flex; align-items:center; justify-content:space-between; margin:16px 0 10px; }
+  .sec-title { font-family:'Noto Serif Bengali',serif; font-size:15px; font-weight:700; color:var(--ink2); }
+  .sec-link { font-size:12px; color:var(--gold); cursor:pointer; }
+
+  /* ADD BUTTON */
+  .add-btn {
+    background:var(--green); color:#fff; border:none; border-radius:12px;
+    padding:14px 18px; width:100%; font-family:'Noto Sans Bengali',sans-serif;
+    font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center;
+    justify-content:center; gap:8px; margin-bottom:16px; transition:all .15s;
+  }
+  .add-btn:active { transform:scale(.98); background:var(--green2); }
+
+  /* ACTIVITY LIST */
+  .activity-list { display:flex; flex-direction:column; gap:10px; }
+
+  .activity-card {
+    background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); cursor:pointer; transition:transform .12s;
+  }
+  .activity-card:active { transform:scale(.98); }
+
+  .ac-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; }
+  .ac-type { font-size:11px; font-weight:600; padding:3px 8px; border-radius:10px; }
+  .ac-type.medical { background:var(--red-light); color:var(--red); }
+  .ac-type.food { background:var(--green-light); color:var(--green); }
+  .ac-type.financial { background:var(--gold-light); color:var(--gold); }
+  .ac-type.other { background:var(--blue-light); color:var(--blue); }
+  .ac-date { font-size:11px; color:var(--ink3); }
+
+  .ac-title { font-size:14px; font-weight:600; color:var(--ink); margin-bottom:4px; }
+  .ac-desc { font-size:12px; color:var(--ink3); line-height:1.5; }
+
+  .ac-bottom { display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding-top:10px; border-top:1px solid var(--cream2); }
+  .ac-person { font-size:12px; color:var(--ink3); display:flex; align-items:center; gap:5px; }
+  .ac-amount { font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; color:var(--red); }
+
+  /* LOG ENTRIES */
+  .log-list { display:flex; flex-direction:column; gap:8px; }
+  .log-item { background:#fff; border-radius:var(--radius-sm); padding:14px; box-shadow:var(--shadow); border-left:3px solid var(--green2); }
+  .log-meta { font-size:11px; color:var(--ink3); margin-bottom:4px; display:flex; justify-content:space-between; }
+  .log-text { font-size:13px; color:var(--ink); line-height:1.6; }
+
+  /* MODAL */
+  .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; display:none; align-items:flex-end; }
+  .modal-bg.open { display:flex; }
+  .modal { background:var(--cream); border-radius:20px 20px 0 0; padding:24px 18px 36px; width:100%; max-height:85vh; overflow-y:auto; }
+  .modal-title { font-family:'Noto Serif Bengali',serif; font-size:17px; font-weight:700; color:var(--ink2); margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; }
+  .modal-close { font-size:20px; cursor:pointer; color:var(--ink3); }
+
+  .form-group { margin-bottom:14px; }
+  .form-label { font-size:12px; color:var(--ink3); display:block; margin-bottom:6px; font-weight:500; }
+  .form-input {
+    width:100%; background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm);
+    padding:12px 14px; font-family:'Noto Sans Bengali',sans-serif; font-size:14px; color:var(--ink);
+    outline:none; transition:border-color .2s;
+  }
+  .form-input:focus { border-color:var(--gold); }
+  .form-textarea { min-height:90px; resize:none; }
+  .form-select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b5a3e' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
+
+  .type-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  .type-opt { background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:10px 12px; cursor:pointer; text-align:center; font-size:13px; transition:all .15s; }
+  .type-opt.selected { border-color:var(--green); background:var(--green-light); color:var(--green); font-weight:600; }
+
+  .submit-btn { background:var(--green); color:#fff; border:none; border-radius:12px; padding:14px; width:100%; font-family:'Noto Sans Bengali',sans-serif; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px; transition:all .15s; }
+  .submit-btn:active { transform:scale(.98); }
+
+  /* FINANCE TAB */
+  .finance-card { background:var(--ink); border-radius:var(--radius); padding:18px 16px; color:#fff; margin-bottom:12px; }
+  .finance-title { font-family:'Noto Serif Bengali',serif; font-size:13px; color:rgba(255,255,255,0.45); margin-bottom:10px; display:block; }
+  .finance-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; }
+  .finance-row+.finance-row { border-top:1px solid rgba(255,255,255,0.08); }
+  .finance-label { font-size:13px; color:rgba(255,255,255,0.6); }
+  .finance-amount { font-family:'Noto Serif Bengali',serif; font-size:15px; font-weight:600; }
+  .finance-amount.income { color:#6fcf97; }
+  .finance-amount.expense { color:#eb7f7f; }
+  .finance-amount.net { color:var(--gold2); font-size:17px; }
+
+  .txn-list { display:flex; flex-direction:column; gap:8px; }
+  .txn-item { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); display:flex; align-items:center; gap:12px; }
+  .txn-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+  .txn-icon.in { background:var(--green-light); }
+  .txn-icon.out { background:var(--red-light); }
+  .txn-info { flex:1; }
+  .txn-name { font-size:13px; font-weight:600; color:var(--ink); }
+  .txn-date { font-size:11px; color:var(--ink3); margin-top:2px; }
+  .txn-amount { font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; flex-shrink:0; }
+  .txn-amount.in { color:var(--green); }
+  .txn-amount.out { color:var(--red); }
+
+  /* BOTTOM NAV */
+  .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--ink); display:flex; padding:8px 0 max(8px,env(safe-area-inset-bottom)); z-index:100; max-width:480px; margin:0 auto; }
+  .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px; cursor:pointer; opacity:.4; transition:opacity .15s; }
+  .nav-item.active { opacity:1; }
+  .nav-icon { font-size:20px; }
+  .nav-label { font-size:10px; color:rgba(255,255,255,0.7); }
+  .nav-item.active .nav-label { color:var(--gold2); }
+
+  .panel { display:none; }
+  .panel.active { display:block; }
+  .pb-safe { height:72px; }
+
+  .toast { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 20px; border-radius:20px; font-size:13px; opacity:0; transition:opacity .3s; pointer-events:none; z-index:999; white-space:nowrap; }
+  .toast.show { opacity:1; }
+
+  /* TEACHER SPECIAL */
+  .class-card { background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:10px; }
+  .class-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .class-name { font-size:15px; font-weight:700; color:var(--ink2); }
+  .class-badge { font-size:11px; padding:3px 9px; border-radius:10px; }
+  .class-badge.ok { background:var(--green-light); color:var(--green); }
+  .class-badge.pending { background:var(--gold-light); color:var(--gold); }
+  .student-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--cream2); font-size:13px; }
+  .s-name { color:var(--ink); }
+  .s-present { color:var(--green2); font-size:12px; }
+  .s-absent { color:var(--red); font-size:12px; }
+
+  /* DETAIL VIEW */
+  #detail-view { display:none; position:fixed; inset:0; background:var(--cream); z-index:150; overflow-y:auto; }
+  .detail-topbar { background:var(--ink); color:#fff; padding:14px 18px; display:flex; align-items:center; gap:12px; }
+  .detail-back { font-size:20px; cursor:pointer; }
+  .detail-title { font-family:'Noto Serif Bengali',serif; font-size:16px; font-weight:600; color:var(--gold2); }
+  .detail-content { padding:16px; max-width:480px; margin:0 auto; }
+
+  .activity-detail-card { background:#fff; border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); margin-bottom:12px; }
+  .adc-type-badge { display:inline-block; font-size:11px; font-weight:600; padding:4px 10px; border-radius:10px; margin-bottom:12px; }
+  .adc-title { font-family:'Noto Serif Bengali',serif; font-size:17px; font-weight:700; color:var(--ink); margin-bottom:8px; line-height:1.4; }
+  .adc-desc { font-size:13px; color:var(--ink3); line-height:1.7; }
+  .adc-meta-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px solid var(--cream2); }
+  .adc-meta-chip { background:var(--cream2); border-radius:8px; padding:6px 10px; font-size:11px; color:var(--ink3); }
+  .adc-meta-chip strong { color:var(--ink2); display:block; font-size:12px; }
+</style>
+</head>
+<body>
+
+<!-- ROLE SELECT -->
+<div id="role-screen">
+  <div class="role-logo">মারকাযুল মদীনা</div>
+  <div class="role-sub">স্টাফ পোর্টাল</div>
+  <div class="role-label">আপনার বিভাগ নির্বাচন করুন</div>
+  <div class="role-grid">
+    <div class="role-btn" onclick="selectRole('khedmat')">
+      <div class="role-icon">🤝</div>
+      <div class="role-info">
+        <div class="role-name">খেদমতে খালক</div>
+        <div class="role-desc">সেবামূলক কার্যক্রম ও হিসাব</div>
+      </div>
+    </div>
+    <div class="role-btn" onclick="selectRole('teacher')">
+      <div class="role-icon">📖</div>
+      <div class="role-info">
+        <div class="role-name">শিক্ষক / বর্ষ দায়িত্বশীল</div>
+        <div class="role-desc">বর্ষের রিপোর্ট ও ছাত্র ব্যবস্থাপনা</div>
+      </div>
+    </div>
+    <div class="role-btn" onclick="selectRole('dept')">
+      <div class="role-icon">🌾</div>
+      <div class="role-info">
+        <div class="role-name">বিভাগীয় দায়িত্বশীল</div>
+        <div class="role-desc">কৃষি, মধু, বেকারি, স্টোর ইত্যাদি</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PIN SCREEN -->
+<div id="pin-screen">
+  <div class="pin-header">
+    <span class="pin-role-icon" id="pin-icon">🤝</span>
+    <div class="pin-role-name" id="pin-name">খেদমতে খালক</div>
+    <div class="pin-role-sub" id="pin-sub">দায়িত্বশীল লগইন</div>
+  </div>
+  <div class="pin-box">
+    <span class="pin-label">পিন দিন</span>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="numpad">
+      <button class="num-btn" onclick="pressPin('১')">১</button>
+      <button class="num-btn" onclick="pressPin('২')">২</button>
+      <button class="num-btn" onclick="pressPin('৩')">৩</button>
+      <button class="num-btn" onclick="pressPin('৪')">৪</button>
+      <button class="num-btn" onclick="pressPin('৫')">৫</button>
+      <button class="num-btn" onclick="pressPin('৬')">৬</button>
+      <button class="num-btn" onclick="pressPin('৭')">৭</button>
+      <button class="num-btn" onclick="pressPin('৮')">৮</button>
+      <button class="num-btn" onclick="pressPin('৯')">৯</button>
+      <button class="num-btn empty"></button>
+      <button class="num-btn" onclick="pressPin('০')">০</button>
+      <button class="num-btn del" onclick="delPin()">⌫</button>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+  </div>
+  <div class="pin-back" onclick="backToRole()">← বিভাগ পরিবর্তন করুন</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-role" id="app-role-label">খেদমতে খালক বিভাগ</div>
+      <div class="topbar-name" id="app-user-name">মাওলানা করীম</div>
+    </div>
+    <div class="topbar-logout" onclick="doLogout()">প্রস্থান</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ KHEDMAT PANELS ═══ -->
+    <div id="khedmat-panels" style="display:none;">
+
+      <!-- KHEDMAT HOME -->
+      <div class="panel active" id="panel-kh-home">
+        <div class="dept-header-card" style="background:linear-gradient(135deg,#0e6655,#1a8a72);">
+          <span class="dhc-icon">🤝</span>
+          <div class="dhc-name">খেদমতে খালক</div>
+          <div class="dhc-person">দায়িত্বশীল: মাওলানা করীম উদ্দিন</div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card">
+            <span class="stat-num">২৮</span>
+            <span class="stat-label">এই মাসে কার্যক্রম</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">৪৭</span>
+            <span class="stat-label">উপকারভোগী</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">৳ ৩৪ক</span>
+            <span class="stat-label">এই মাসে ব্যয়</span>
+          </div>
+        </div>
+
+        <button class="add-btn" style="background:var(--teal);" onclick="openModal('kh-add')">
+          ＋ নতুন কার্যক্রম যোগ করুন
+        </button>
+
+        <div class="sec-header">
+          <span class="sec-title">সাম্প্রতিক কার্যক্রম</span>
+          <span class="sec-link" onclick="switchKhTab('activities')">সব দেখুন</span>
+        </div>
+        <div class="activity-list">
+          <div class="activity-card" onclick="openDetail('chikitsha')">
+            <div class="ac-top">
+              <span class="ac-type medical">চিকিৎসা সহায়তা</span>
+              <span class="ac-date">আজ, সকাল ১০টা</span>
+            </div>
+            <div class="ac-title">রহিমা বেগমের অপারেশন সহায়তা</div>
+            <div class="ac-desc">পাশের গ্রামের অসহায় বিধবা মহিলা, কিডনির সমস্যা। হাসপাতালে ভর্তি ও ওষুধ খরচ বহন করা হয়েছে।</div>
+            <div class="ac-bottom">
+              <span class="ac-person">👤 মাওলানা করীম</span>
+              <span class="ac-amount">− ৳ ৮,৫০০</span>
+            </div>
+          </div>
+          <div class="activity-card" onclick="openDetail('khabar')">
+            <div class="ac-top">
+              <span class="ac-type food">খাদ্য সহায়তা</span>
+              <span class="ac-date">গতকাল</span>
+            </div>
+            <div class="ac-title">ঈদ উপলক্ষে গরিব পরিবারে খাদ্য বিতরণ</div>
+            <div class="ac-desc">এলাকার ১৫টি অসহায় পরিবারকে ঈদের বাজার সহায়তা দেওয়া হয়েছে।</div>
+            <div class="ac-bottom">
+              <span class="ac-person">👤 মাওলানা করীম</span>
+              <span class="ac-amount">− ৳ ১২,০০০</span>
+            </div>
+          </div>
+          <div class="activity-card" onclick="openDetail('arthik')">
+            <div class="ac-top">
+              <span class="ac-type financial">আর্থিক সহায়তা</span>
+              <span class="ac-date">৩ দিন আগে</span>
+            </div>
+            <div class="ac-title">আব্দুর রহমানের ঋণ পরিশোধ সহায়তা</div>
+            <div class="ac-desc">দুর্ঘটনায় কর্মহীন পরিবারকে মহাজনের ঋণ থেকে মুক্তির জন্য সহায়তা।</div>
+            <div class="ac-bottom">
+              <span class="ac-person">👤 মাওলানা করীম</span>
+              <span class="ac-amount">− ৳ ৫,০০০</span>
+            </div>
+          </div>
+        </div>
+        <div class="pb-safe"></div>
+      </div>
+
+      <!-- KHEDMAT ACTIVITIES -->
+      <div class="panel" id="panel-kh-activities">
+        <div class="sec-header" style="margin-top:8px;">
+          <span class="sec-title">সব কার্যক্রম</span>
+          <span class="sec-link" onclick="switchKhTab('home')">← ফিরুন</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;">
+          <div style="background:var(--ink);color:#fff;border-radius:20px;padding:6px 14px;font-size:12px;white-space:nowrap;cursor:pointer;">সব</div>
+          <div style="background:#fff;border:1px solid var(--cream3);border-radius:20px;padding:6px 14px;font-size:12px;white-space:nowrap;cursor:pointer;">চিকিৎসা</div>
+          <div style="background:#fff;border:1px solid var(--cream3);border-radius:20px;padding:6px 14px;font-size:12px;white-space:nowrap;cursor:pointer;">খাদ্য</div>
+          <div style="background:#fff;border:1px solid var(--cream3);border-radius:20px;padding:6px 14px;font-size:12px;white-space:nowrap;cursor:pointer;">আর্থিক</div>
+          <div style="background:#fff;border:1px solid var(--cream3);border-radius:20px;padding:6px 14px;font-size:12px;white-space:nowrap;cursor:pointer;">অন্যান্য</div>
+        </div>
+        <div class="activity-list">
+          <div class="activity-card" onclick="openDetail('chikitsha')">
+            <div class="ac-top"><span class="ac-type medical">চিকিৎসা</span><span class="ac-date">আজ</span></div>
+            <div class="ac-title">রহিমা বেগমের অপারেশন সহায়তা</div>
+            <div class="ac-bottom"><span class="ac-person">👤 মাওলানা করীম</span><span class="ac-amount">− ৳ ৮,৫০০</span></div>
+          </div>
+          <div class="activity-card" onclick="openDetail('khabar')">
+            <div class="ac-top"><span class="ac-type food">খাদ্য</span><span class="ac-date">গতকাল</span></div>
+            <div class="ac-title">ঈদ উপলক্ষে খাদ্য বিতরণ (১৫ পরিবার)</div>
+            <div class="ac-bottom"><span class="ac-person">👤 মাওলানা করীম</span><span class="ac-amount">− ৳ ১২,০০০</span></div>
+          </div>
+          <div class="activity-card" onclick="openDetail('arthik')">
+            <div class="ac-top"><span class="ac-type financial">আর্থিক</span><span class="ac-date">৩ দিন আগে</span></div>
+            <div class="ac-title">আব্দুর রহমানের ঋণ পরিশোধ সহায়তা</div>
+            <div class="ac-bottom"><span class="ac-person">👤 মাওলানা করীম</span><span class="ac-amount">− ৳ ৫,০০০</span></div>
+          </div>
+          <div class="activity-card">
+            <div class="ac-top"><span class="ac-type other">অন্যান্য</span><span class="ac-date">৫ দিন আগে</span></div>
+            <div class="ac-title">বিধবা মহিলার ঘর মেরামত সহায়তা</div>
+            <div class="ac-bottom"><span class="ac-person">👤 মাওলানা করীম</span><span class="ac-amount">− ৳ ৬,২০০</span></div>
+          </div>
+        </div>
+        <div class="pb-safe"></div>
+      </div>
+
+      <!-- KHEDMAT LOG -->
+      <div class="panel" id="panel-kh-log">
+        <div class="sec-header" style="margin-top:8px;">
+          <span class="sec-title">দৈনিক লগ</span>
+        </div>
+        <button class="add-btn" style="background:var(--teal);" onclick="openModal('log-add')">
+          ＋ নতুন লগ এন্ট্রি
+        </button>
+        <div class="log-list">
+          <div class="log-item">
+            <div class="log-meta"><span>আজ, সকাল ৯টা</span><span>মাওলানা করীম</span></div>
+            <div class="log-text">আজ সকালে রহিমা বেগমের পরিবারের সাথে যোগাযোগ হয়েছে। হাসপাতাল থেকে ছাড়পত্র পেয়েছেন। ফলোআপ ওষুধের জন্য আরও সহায়তা প্রয়োজন হতে পারে।</div>
+          </div>
+          <div class="log-item">
+            <div class="log-meta"><span>গতকাল, বিকাল ৪টা</span><span>মাওলানা করীম</span></div>
+            <div class="log-text">ঈদের খাদ্য বিতরণ সম্পন্ন হয়েছে। ১৫টি পরিবার সহায়তা পেয়েছে। সবাই কৃতজ্ঞতা প্রকাশ করেছেন। আগামী মাসে আরও ৫টি পরিবারকে তালিকায় যোগ করার পরিকল্পনা।</div>
+          </div>
+          <div class="log-item">
+            <div class="log-meta"><span>৩ দিন আগে</span><span>মাওলানা করীম</span></div>
+            <div class="log-text">এলাকায় নতুন একটি অসহায় পরিবারের খোঁজ পাওয়া গেছে। পরিবারের কর্তা অসুস্থ, তিন সন্তান নিয়ে স্ত্রী একা আছেন। পরবর্তী সপ্তাহে ভিজিট করার পরিকল্পনা।</div>
+          </div>
+        </div>
+        <div class="pb-safe"></div>
+      </div>
+
+      <!-- KHEDMAT FINANCE -->
+      <div class="panel" id="panel-kh-finance">
+        <div class="sec-header" style="margin-top:8px;">
+          <span class="sec-title">হিসাব</span>
+        </div>
+        <div class="finance-card">
+          <span class="finance-title">এপ্রিল ২০২৫</span>
+          <div class="finance-row"><span class="finance-label">প্রাপ্ত তহবিল</span><span class="finance-amount income">৳ ৫০,০০০</span></div>
+          <div class="finance-row"><span class="finance-label">মোট ব্যয়</span><span class="finance-amount expense">৳ ৩৪,২০০</span></div>
+          <div class="finance-row"><span class="finance-label">অবশিষ্ট</span><span class="finance-amount net">৳ ১৫,৮০০</span></div>
+        </div>
+        <button class="add-btn" style="background:var(--green);" onclick="openModal('txn-add')">
+          ＋ নতুন লেনদেন যোগ করুন
+        </button>
+        <div class="sec-title" style="margin-bottom:10px;">সাম্প্রতিক লেনদেন</div>
+        <div class="txn-list">
+          <div class="txn-item"><div class="txn-icon out">💸</div><div class="txn-info"><div class="txn-name">রহিমা বেগমের চিকিৎসা</div><div class="txn-date">আজ</div></div><div class="txn-amount out">− ৳ ৮,৫০০</div></div>
+          <div class="txn-item"><div class="txn-icon out">💸</div><div class="txn-info"><div class="txn-name">ঈদ খাদ্য বিতরণ</div><div class="txn-date">গতকাল</div></div><div class="txn-amount out">− ৳ ১২,০০০</div></div>
+          <div class="txn-item"><div class="txn-icon in">💰</div><div class="txn-info"><div class="txn-name">মাসিক তহবিল প্রাপ্তি</div><div class="txn-date">১ এপ্রিল</div></div><div class="txn-amount in">+ ৳ ৫০,০০০</div></div>
+          <div class="txn-item"><div class="txn-icon out">💸</div><div class="txn-info"><div class="txn-name">ঘর মেরামত সহায়তা</div><div class="txn-date">৫ দিন আগে</div></div><div class="txn-amount out">− ৳ ৬,২০০</div></div>
+        </div>
+        <div class="pb-safe"></div>
+      </div>
+
+    </div><!-- /khedmat -->
+
+    <!-- ═══ TEACHER PANELS ═══ -->
+    <div id="teacher-panels" style="display:none;">
+      <div class="panel active" id="panel-tr-home">
+        <div class="dept-header-card" style="background:linear-gradient(135deg,#1a5276,#2471a3);">
+          <span class="dhc-icon">📖</span>
+          <div class="dhc-name">৩য় বর্ষ</div>
+          <div class="dhc-person">দায়িত্বশীল: উস্তায আব্দুল্লাহ</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card"><span class="stat-num">১২</span><span class="stat-label">ছাত্র সংখ্যা</span></div>
+          <div class="stat-card"><span class="stat-num">৯৫%</span><span class="stat-label">উপস্থিতি</span></div>
+          <div class="stat-card"><span class="stat-num">৩</span><span class="stat-label">অমীমাংসিত</span></div>
+        </div>
+        <div class="sec-header"><span class="sec-title">আজকের উপস্থিতি</span><span class="sec-link">সম্পাদনা</span></div>
+        <div class="class-card">
+          <div class="class-top">
+            <div class="class-name">৩য় বর্ষ · ফজর ক্লাস</div>
+            <span class="class-badge ok">✓ সম্পন্ন</span>
+          </div>
+          <div class="student-row"><span class="s-name">মুহাম্মাদ আলী</span><span class="s-present">✓ উপস্থিত</span></div>
+          <div class="student-row"><span class="s-name">আব্দুল্লাহ হাসান</span><span class="s-present">✓ উপস্থিত</span></div>
+          <div class="student-row"><span class="s-name">ইউসুফ আহমাদ</span><span class="s-absent">✗ অনুপস্থিত</span></div>
+          <div class="student-row"><span class="s-name">উমর ফারুক</span><span class="s-present">✓ উপস্থিত</span></div>
+        </div>
+        <button class="add-btn" style="background:var(--blue);" onclick="showToast('রিপোর্ট ফর্ম খুলছে...')">
+          📋 মাসিক রিপোর্ট দাখিল করুন
+        </button>
+        <div class="pb-safe"></div>
+      </div>
+    </div>
+
+    <!-- ═══ DEPT (GENERIC) PANELS ═══ -->
+    <div id="dept-panels" style="display:none;">
+      <div class="panel active" id="panel-dp-home">
+        <div class="dept-header-card" style="background:linear-gradient(135deg,#2d6a4f,#40916c);">
+          <span class="dhc-icon">🌾</span>
+          <div class="dhc-name">কৃষি বিভাগ</div>
+          <div class="dhc-person">দায়িত্বশীল: মাওলানা করীম</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card"><span class="stat-num">৳ ২২ক</span><span class="stat-label">এই মাসে আয়</span></div>
+          <div class="stat-card"><span class="stat-num">৳ ৮ক</span><span class="stat-label">এই মাসে ব্যয়</span></div>
+          <div class="stat-card"><span class="stat-num">৳ ১৪ক</span><span class="stat-label">নিট</span></div>
+        </div>
+        <button class="add-btn" onclick="openModal('txn-add')">＋ নতুন হিসাব যোগ করুন</button>
+        <div class="sec-header"><span class="sec-title">সাম্প্রতিক লেনদেন</span></div>
+        <div class="txn-list">
+          <div class="txn-item"><div class="txn-icon in">🌾</div><div class="txn-info"><div class="txn-name">ধান বিক্রয়</div><div class="txn-date">আজ</div></div><div class="txn-amount in">+ ৳ ৮,০০০</div></div>
+          <div class="txn-item"><div class="txn-icon out">💸</div><div class="txn-info"><div class="txn-name">সার ক্রয়</div><div class="txn-date">গতকাল</div></div><div class="txn-amount out">− ৳ ২,৫০০</div></div>
+        </div>
+        <div class="pb-safe"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- KHEDMAT BOTTOM NAV -->
+  <div class="bottom-nav" id="kh-nav" style="display:none;">
+    <div class="nav-item active" id="khn-home" onclick="switchKhTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">হোম</span></div>
+    <div class="nav-item" id="khn-activities" onclick="switchKhTab('activities')"><span class="nav-icon">🤝</span><span class="nav-label">কার্যক্রম</span></div>
+    <div class="nav-item" id="khn-log" onclick="switchKhTab('log')"><span class="nav-icon">📝</span><span class="nav-label">লগ</span></div>
+    <div class="nav-item" id="khn-finance" onclick="switchKhTab('finance')"><span class="nav-icon">💰</span><span class="nav-label">হিসাব</span></div>
+  </div>
+
+  <!-- TEACHER BOTTOM NAV -->
+  <div class="bottom-nav" id="tr-nav" style="display:none;">
+    <div class="nav-item active"><span class="nav-icon">🏠</span><span class="nav-label">হোম</span></div>
+    <div class="nav-item"><span class="nav-icon">👥</span><span class="nav-label">ছাত্র</span></div>
+    <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">রিপোর্ট</span></div>
+    <div class="nav-item" onclick="showToast('মুহতামিমকে বার্তা: মূল সাইটের index.html থেকে লগইন করুন')"><span class="nav-icon">💬</span><span class="nav-label">মুহতামিমকে</span></div>
+  </div>
+
+  <!-- DEPT BOTTOM NAV -->
+  <div class="bottom-nav" id="dp-nav" style="display:none;">
+    <div class="nav-item active"><span class="nav-icon">🏠</span><span class="nav-label">হোম</span></div>
+    <div class="nav-item"><span class="nav-icon">📦</span><span class="nav-label">ইনভেন্টরি</span></div>
+    <div class="nav-item"><span class="nav-icon">💰</span><span class="nav-label">হিসাব</span></div>
+    <div class="nav-item" onclick="showToast('মুহতামিমকে বার্তা: মূল সাইটের index.html থেকে লগইন করুন')"><span class="nav-icon">💬</span><span class="nav-label">মুহতামিমকে</span></div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- DETAIL VIEW -->
+<div id="detail-view">
+  <div class="detail-topbar">
+    <div class="detail-back" onclick="closeDetail()">←</div>
+    <div class="detail-title" id="detail-title">কার্যক্রমের বিস্তারিত</div>
+  </div>
+  <div class="detail-content" id="detail-content"></div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-kh-add">
+  <div class="modal">
+    <div class="modal-title">নতুন কার্যক্রম <span class="modal-close" onclick="closeModal('kh-add')">✕</span></div>
+    <div class="form-group">
+      <label class="form-label">কার্যক্রমের ধরন</label>
+      <div class="type-grid">
+        <div class="type-opt selected" onclick="selectType(this)">🏥 চিকিৎসা সহায়তা</div>
+        <div class="type-opt" onclick="selectType(this)">🍚 খাদ্য সহায়তা</div>
+        <div class="type-opt" onclick="selectType(this)">💵 আর্থিক সহায়তা</div>
+        <div class="type-opt" onclick="selectType(this)">🏠 অন্যান্য সেবা</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">উপকারভোগীর নাম</label>
+      <input class="form-input" placeholder="যেমন: রহিমা বেগম" type="text">
+    </div>
+    <div class="form-group">
+      <label class="form-label">সংক্ষিপ্ত বিবরণ</label>
+      <textarea class="form-input form-textarea" placeholder="কী সেবা দেওয়া হলো, পরিস্থিতি কেমন ছিল..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ব্যয়িত অর্থ (টাকা)</label>
+      <input class="form-input" placeholder="যেমন: ৫০০০" type="number">
+    </div>
+    <div class="form-group">
+      <label class="form-label">তারিখ</label>
+      <input class="form-input" type="date">
+    </div>
+    <button class="submit-btn" onclick="closeModal('kh-add');showToast('কার্যক্রম সংরক্ষিত হয়েছে ✓')">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-log-add">
+  <div class="modal">
+    <div class="modal-title">নতুন লগ এন্ট্রি <span class="modal-close" onclick="closeModal('log-add')">✕</span></div>
+    <div class="form-group">
+      <label class="form-label">আজকের কার্যক্রম ও পর্যবেক্ষণ</label>
+      <textarea class="form-input form-textarea" style="min-height:140px;" placeholder="আজ কী হলো, কার সাথে দেখা হলো, কী পরিকল্পনা আছে..."></textarea>
+    </div>
+    <button class="submit-btn" onclick="closeModal('log-add');showToast('লগ সংরক্ষিত হয়েছে ✓')">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-txn-add">
+  <div class="modal">
+    <div class="modal-title">নতুন লেনদেন <span class="modal-close" onclick="closeModal('txn-add')">✕</span></div>
+    <div class="form-group">
+      <label class="form-label">ধরন</label>
+      <div class="type-grid">
+        <div class="type-opt selected" onclick="selectType(this)">💸 ব্যয়</div>
+        <div class="type-opt" onclick="selectType(this)">💰 আয়</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">বিবরণ</label>
+      <input class="form-input" placeholder="যেমন: ধান বিক্রয়" type="text">
+    </div>
+    <div class="form-group">
+      <label class="form-label">পরিমাণ (টাকা)</label>
+      <input class="form-input" placeholder="যেমন: ৮০০০" type="number">
+    </div>
+    <button class="submit-btn" onclick="closeModal('txn-add');showToast('লেনদেন সংরক্ষিত হয়েছে ✓')">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let currentRole = '';
+  let pinVal = '';
+  const PINS = { khedmat:'1234', teacher:'5678', dept:'1234' };
+  const ROLE_INFO = {
+    khedmat: { icon:'🤝', name:'খেদমতে খালক', sub:'দায়িত্বশীল লগইন', appRole:'খেদমতে খালক বিভাগ', appName:'মাওলানা করীম উদ্দিন' },
+    teacher: { icon:'📖', name:'৩য় বর্ষ দায়িত্বশীল', sub:'শিক্ষক লগইন', appRole:'মাদ্রাসা · ৩য় বর্ষ', appName:'উস্তায আব্দুল্লাহ' },
+    dept:    { icon:'🌾', name:'কৃষি বিভাগ', sub:'দায়িত্বশীল লগইন', appRole:'কৃষি বিভাগ', appName:'মাওলানা সালেম' },
+  };
+
+  function selectRole(role) {
+    currentRole = role;
+    const info = ROLE_INFO[role];
+    document.getElementById('pin-icon').textContent = info.icon;
+    document.getElementById('pin-name').textContent = info.name;
+    document.getElementById('pin-sub').textContent = info.sub;
+    document.getElementById('role-screen').style.display = 'none';
+    document.getElementById('pin-screen').style.display = 'flex';
+    pinVal = '';
+    updatePinDots();
+    document.getElementById('pin-error').textContent = '';
+  }
+
+  function backToRole() {
+    document.getElementById('pin-screen').style.display = 'none';
+    document.getElementById('role-screen').style.display = 'flex';
+  }
+
+  const bnMap = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
+
+  function pressPin(n) {
+    if (pinVal.length >= 4) return;
+    pinVal += bnMap[n];
+    updatePinDots();
+    if (pinVal.length === 4) setTimeout(checkPinVal, 200);
+  }
+
+  function delPin() {
+    pinVal = pinVal.slice(0,-1);
+    updatePinDots();
+    document.getElementById('pin-error').textContent = '';
+  }
+
+  function updatePinDots() {
+    for (let i=0;i<4;i++) document.getElementById('pd'+i).classList.toggle('filled', i < pinVal.length);
+  }
+
+  function checkPinVal() {
+    const correct = PINS[currentRole];
+    if (pinVal === correct) {
+      document.getElementById('pin-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      const info = ROLE_INFO[currentRole];
+      document.getElementById('app-role-label').textContent = info.appRole;
+      document.getElementById('app-user-name').textContent = info.appName;
+      // show correct panels
+      document.getElementById('khedmat-panels').style.display = currentRole==='khedmat'?'block':'none';
+      document.getElementById('teacher-panels').style.display = currentRole==='teacher'?'block':'none';
+      document.getElementById('dept-panels').style.display = currentRole==='dept'?'block':'none';
+      document.getElementById('kh-nav').style.display = currentRole==='khedmat'?'flex':'none';
+      document.getElementById('tr-nav').style.display = currentRole==='teacher'?'flex':'none';
+      document.getElementById('dp-nav').style.display = currentRole==='dept'?'flex':'none';
+    } else {
+      document.getElementById('pin-error').textContent = 'পিন ভুল হয়েছে। আবার চেষ্টা করুন।';
+      pinVal = '';
+      updatePinDots();
+    }
+  }
+
+  function doLogout() {
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('role-screen').style.display = 'flex';
+    currentRole = '';
+  }
+
+  function switchKhTab(tab) {
+    document.querySelectorAll('#khedmat-panels .panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-kh-'+tab).classList.add('active');
+    document.querySelectorAll('#kh-nav .nav-item').forEach(n=>n.classList.remove('active'));
+    const ni = document.getElementById('khn-'+tab);
+    if(ni) ni.classList.add('active');
+    window.scrollTo(0,0);
+  }
+
+  function openModal(id) {
+    document.getElementById('modal-'+id).classList.add('open');
+  }
+
+  function closeModal(id) {
+    document.getElementById('modal-'+id).classList.remove('open');
+  }
+
+  function selectType(el) {
+    el.closest('.type-grid').querySelectorAll('.type-opt').forEach(o=>o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  const DETAILS = {
+    chikitsha: {
+      title:'রহিমা বেগমের অপারেশন সহায়তা', type:'medical', typeLabel:'চিকিৎসা সহায়তা',
+      desc:'পাশের গ্রামের অসহায় বিধবা মহিলা। দীর্ঘদিন ধরে কিডনির সমস্যায় ভুগছিলেন। পরিবারে উপার্জনক্ষম কেউ নেই। হাসপাতালে ভর্তির জন্য প্রয়োজনীয় অর্থ ছিল না।\n\nমারকাযুল মদীনার খেদমতে খালক বিভাগ থেকে হাসপাতাল ভর্তি ফি, ওষুধ এবং প্রাথমিক পরীক্ষার খরচ বহন করা হয়েছে। অপারেশন সফল হয়েছে।',
+      person:'রহিমা বেগম', location:'পাশের গ্রাম', amount:'৳ ৮,৫০০', date:'আজ, ১৭ এপ্রিল ২০২৫'
+    },
+    khabar: {
+      title:'ঈদ উপলক্ষে গরিব পরিবারে খাদ্য বিতরণ', type:'food', typeLabel:'খাদ্য সহায়তা',
+      desc:'ঈদুল ফিতর উপলক্ষে এলাকার ১৫টি অসহায় পরিবারকে ঈদের বাজার সহায়তা দেওয়া হয়েছে। প্রতিটি পরিবারকে চাল, ডাল, তেল, চিনি এবং নগদ অর্থ দেওয়া হয়েছে। পরিবারগুলো আগে থেকে তালিকাভুক্ত ছিল।',
+      person:'১৫টি পরিবার', location:'এলাকার বিভিন্ন স্থান', amount:'৳ ১২,০০০', date:'গতকাল, ১৬ এপ্রিল ২০২৫'
+    },
+    arthik: {
+      title:'আব্দুর রহমানের ঋণ পরিশোধ সহায়তা', type:'financial', typeLabel:'আর্থিক সহায়তা',
+      desc:'দুর্ঘটনায় পা ভেঙে দীর্ঘদিন কর্মহীন ছিলেন। মহাজনের কাছ থেকে নেওয়া ঋণের সুদ বাড়তে থাকায় পরিবার কঠিন পরিস্থিতিতে পড়েছিল। তিন সন্তানের ভরণপোষণ নিয়ে চিন্তিত ছিলেন।\n\nমারকাযের পক্ষ থেকে মহাজনের ঋণ পরিশোধ করা হয়েছে। ভবিষ্যতে ক্ষুদ্র ব্যবসায় সহায়তার পরিকল্পনা আছে।',
+      person:'আব্দুর রহমান', location:'উত্তর পাড়া', amount:'৳ ৫,০০০', date:'৩ দিন আগে'
+    }
+  };
+
+  function openDetail(id) {
+    const d = DETAILS[id];
+    if(!d) return;
+    const typeColors = {medical:'var(--red-light)',food:'var(--green-light)',financial:'var(--gold-light)',other:'var(--blue-light)'};
+    const typeText = {medical:'var(--red)',food:'var(--green)',financial:'var(--gold)',other:'var(--blue)'};
+    document.getElementById('detail-title').textContent = 'কার্যক্রমের বিস্তারিত';
+    document.getElementById('detail-content').innerHTML = `
+      <div class="activity-detail-card">
+        <span class="adc-type-badge" style="background:${typeColors[d.type]};color:${typeText[d.type]}">${d.typeLabel}</span>
+        <div class="adc-title">${d.title}</div>
+        <div class="adc-desc">${d.desc.replace(/\n\n/g,'<br><br>')}</div>
+        <div class="adc-meta-row">
+          <div class="adc-meta-chip"><strong>উপকারভোগী</strong>${d.person}</div>
+          <div class="adc-meta-chip"><strong>স্থান</strong>${d.location}</div>
+          <div class="adc-meta-chip"><strong>ব্যয়</strong>${d.amount}</div>
+          <div class="adc-meta-chip"><strong>তারিখ</strong>${d.date}</div>
+        </div>
+      </div>
+      <div style="background:#fff;border-radius:var(--radius-sm);padding:14px;box-shadow:var(--shadow);margin-bottom:80px;">
+        <div style="font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:8px;">📝 ফলোআপ নোট</div>
+        <textarea class="form-input form-textarea" placeholder="এই কার্যক্রম সম্পর্কে ফলোআপ বা অতিরিক্ত মন্তব্য লিখুন..."></textarea>
+        <button class="submit-btn" style="margin-top:10px;" onclick="showToast('নোট সংরক্ষিত হয়েছে ✓')">নোট সংরক্ষণ করুন</button>
+      </div>`;
+    document.getElementById('detail-view').style.display = 'block';
+  }
+
+  function closeDetail() {
+    document.getElementById('detail-view').style.display = 'none';
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2200);
+  }
+</script>
+</body>
+</html>

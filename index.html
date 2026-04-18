@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>মারকাযুল মদীনা</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ROLE SELECT -->
+<div class="login-screen" id="role-screen">
+  <div class="login-logo">مرکز المدینة</div>
+  <div style="font-family:'Noto Serif Bengali',serif;font-size:20px;font-weight:700;color:var(--gold2);text-align:center;margin-bottom:4px;">মারকাযুল মদীনা</div>
+  <div class="login-subtitle">আপনার ভূমিকা নির্বাচন করুন</div>
+
+  <div class="role-grid">
+    <div class="role-btn" onclick="selectRole('admin')">
+      <div class="role-icon">🛡️</div>
+      <div>
+        <div class="role-name">মুহতামিম / অ্যাডমিন</div>
+        <div class="role-desc">সম্পূর্ণ নিয়ন্ত্রণ ও সব মডিউল</div>
+      </div>
+    </div>
+    <div class="role-btn" onclick="selectRole('teacher')">
+      <div class="role-icon">📖</div>
+      <div>
+        <div class="role-name">বর্ষ দায়িত্বশীল</div>
+        <div class="role-desc">নিজের বর্ষের রিপোর্ট ও লগ</div>
+      </div>
+    </div>
+    <div class="role-btn" onclick="selectRole('daftar')">
+      <div class="role-icon">📋</div>
+      <div>
+        <div class="role-name">দফতর দায়িত্বশীল</div>
+        <div class="role-desc">উপস্থিতি ও বেতন সারসংক্ষেপ</div>
+      </div>
+    </div>
+    <div class="role-btn" onclick="selectRole('hifz')">
+      <div class="role-icon">📿</div>
+      <div>
+        <div class="role-name">হিফজ দায়িত্বশীল</div>
+        <div class="role-desc">হিফজ বিভাগ পরিচালনা</div>
+      </div>
+    </div>
+    <div class="role-btn" onclick="selectRole('library')">
+      <div class="role-icon">📚</div>
+      <div>
+        <div class="role-name">লাইব্রেরি দায়িত্বশীল</div>
+        <div class="role-desc">বই ইস্যু ও ব্যবস্থাপনা</div>
+      </div>
+    </div>
+    <div class="role-btn" onclick="selectRole('alumni')">
+      <div class="role-icon">🎓</div>
+      <div>
+        <div class="role-name">পুরনো ছাত্র দায়িত্বশীল</div>
+        <div class="role-desc">পুরনো ছাত্রদের ট্র্যাকিং</div>
+      </div>
+    </div>
+    <div class="role-btn" onclick="selectRole('khedmat')">
+      <div class="role-icon">🤝</div>
+      <div>
+        <div class="role-name">খেদমত দায়িত্বশীল</div>
+        <div class="role-desc">খেদমতে খালক মডিউল</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PIN SCREEN -->
+<div class="login-screen" id="pin-screen" style="display:none;">
+  <div style="text-align:center;margin-bottom:32px;position:relative;">
+    <span style="font-size:40px;display:block;margin-bottom:8px;" id="pin-icon">🛡️</span>
+    <div style="font-family:'Noto Serif Bengali',serif;font-size:19px;font-weight:700;color:var(--gold2);" id="pin-title">মুহতামিম লগইন</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;" id="pin-sub">অ্যাডমিন পিন দিন</div>
+  </div>
+
+  <div class="login-box">
+    <span class="login-label">পিন দিন</span>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="numpad">
+      <button class="num-btn" onclick="pressPin('১')">১</button>
+      <button class="num-btn" onclick="pressPin('২')">২</button>
+      <button class="num-btn" onclick="pressPin('৩')">৩</button>
+      <button class="num-btn" onclick="pressPin('৪')">৪</button>
+      <button class="num-btn" onclick="pressPin('৫')">৫</button>
+      <button class="num-btn" onclick="pressPin('৬')">৬</button>
+      <button class="num-btn" onclick="pressPin('৭')">৭</button>
+      <button class="num-btn" onclick="pressPin('৮')">৮</button>
+      <button class="num-btn" onclick="pressPin('৯')">৯</button>
+      <button class="num-btn empty"></button>
+      <button class="num-btn" onclick="pressPin('০')">০</button>
+      <button class="num-btn del" onclick="delPin()">⌫</button>
+    </div>
+    <div class="login-error" id="pin-error"></div>
+  </div>
+  <div class="login-back" onclick="backToRole()">← ভূমিকা পরিবর্তন করুন</div>
+</div>
+
+<!-- TEACHER SELECT (for teacher role) -->
+<div class="login-screen" id="teacher-select-screen" style="display:none;">
+  <div style="font-family:'Noto Serif Bengali',serif;font-size:20px;font-weight:700;color:var(--gold2);text-align:center;margin-bottom:4px;">বর্ষ নির্বাচন করুন</div>
+  <div class="login-subtitle">আপনার বর্ষ বেছে নিন</div>
+  <div class="role-grid" id="teacher-list"></div>
+  <div class="login-back" onclick="backToRole()">← ফিরুন</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="api.js"></script>
+<script>
+  let currentRole = '';
+  let selectedTeacher = null;
+  let pinVal = '';
+
+  const BN_MAP = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
+
+  function selectRole(role) {
+    currentRole = role;
+    if (role === 'teacher') {
+      showTeacherSelect();
+      return;
+    }
+    const info = {
+      admin:   { icon:'🛡️', title:'মুহতামিম লগইন',   sub:'অ্যাডমিন পিন দিন' },
+      daftar:  { icon:'📋', title:'দফতর লগইন',        sub:'দফতর পিন দিন' },
+      hifz:    { icon:'📿', title:'হিফজ লগইন',        sub:'হিফজ পিন দিন' },
+      library: { icon:'📚', title:'লাইব্রেরি লগইন',   sub:'লাইব্রেরি পিন দিন' },
+      alumni:  { icon:'🎓', title:'পুরনো ছাত্র লগইন', sub:'পিন দিন' },
+      khedmat: { icon:'🤝', title:'খেদমত লগইন',       sub:'পিন দিন' },
+    };
+    const i = info[role];
+    document.getElementById('pin-icon').textContent = i.icon;
+    document.getElementById('pin-title').textContent = i.title;
+    document.getElementById('pin-sub').textContent = i.sub;
+    showScreen('pin-screen');
+    resetPin();
+  }
+
+  function showTeacherSelect() {
+    const teachers = API.Teachers.getAll().filter(t => t.class_id);
+    const classes = API.Classes.getAll();
+    const list = document.getElementById('teacher-list');
+    list.innerHTML = teachers.map(t => {
+      const cls = classes.find(c => c.id === t.class_id);
+      return `<div class="role-btn" onclick="selectTeacher('${t.id}')">
+        <div class="role-icon">📖</div>
+        <div>
+          <div class="role-name">${API.esc(t.name)}</div>
+          <div class="role-desc">${cls ? API.esc(cls.name) : ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+    showScreen('teacher-select-screen');
+  }
+
+  function selectTeacher(tid) {
+    selectedTeacher = API.Teachers.getById(tid);
+    const cls = API.Classes.getById(selectedTeacher.class_id);
+    document.getElementById('pin-icon').textContent = '📖';
+    document.getElementById('pin-title').textContent = API.esc(selectedTeacher.name);
+    document.getElementById('pin-sub').textContent = cls ? API.esc(cls.name) : '';
+    showScreen('pin-screen');
+    resetPin();
+  }
+
+  function backToRole() {
+    selectedTeacher = null;
+    currentRole = '';
+    showScreen('role-screen');
+  }
+
+  function showScreen(id) {
+    ['role-screen','pin-screen','teacher-select-screen'].forEach(s => {
+      document.getElementById(s).style.display = s === id ? 'flex' : 'none';
+    });
+  }
+
+  function pressPin(n) {
+    if (pinVal.length >= 4) return;
+    pinVal += BN_MAP[n];
+    updateDots();
+    if (pinVal.length === 4) setTimeout(checkPin, 200);
+  }
+
+  function delPin() {
+    pinVal = pinVal.slice(0, -1);
+    updateDots();
+    document.getElementById('pin-error').textContent = '';
+  }
+
+  function updateDots() {
+    for (let i = 0; i < 4; i++)
+      document.getElementById('pd' + i).classList.toggle('filled', i < pinVal.length);
+  }
+
+  function resetPin() {
+    pinVal = '';
+    updateDots();
+    document.getElementById('pin-error').textContent = '';
+  }
+
+  function checkPin() {
+    const settings = API.Settings.get();
+    let ok = false;
+    let redirect = '';
+
+    if (currentRole === 'admin' && pinVal === settings.admin_pin) {
+      ok = true;
+      sessionStorage.setItem('mm_role', 'admin');
+      sessionStorage.setItem('mm_name', 'মুহতামিম');
+      redirect = 'admin-hub.html';
+    } else if (currentRole === 'daftar') {
+      const daftar = API.Teachers.getAll().find(t => t.role === 'daftar');
+      if (daftar && pinVal === daftar.pin) {
+        ok = true;
+        sessionStorage.setItem('mm_role', 'daftar');
+        sessionStorage.setItem('mm_name', daftar.name);
+        redirect = 'madrasa-daftar.html';
+      }
+    } else if (currentRole === 'hifz') {
+      const user = API.Teachers.getAll().find(t => t.role === 'hifz');
+      if (user && pinVal === user.pin) {
+        ok = true;
+        sessionStorage.setItem('mm_role', 'hifz');
+        sessionStorage.setItem('mm_name', user.name);
+        redirect = 'madrasa-hifz.html';
+      }
+    } else if (currentRole === 'library') {
+      const user = API.Teachers.getAll().find(t => t.role === 'library');
+      if (user && pinVal === user.pin) {
+        ok = true;
+        sessionStorage.setItem('mm_role', 'library');
+        sessionStorage.setItem('mm_name', user.name);
+        redirect = 'madrasa-library.html';
+      }
+    } else if (currentRole === 'alumni') {
+      const user = API.Teachers.getAll().find(t => t.role === 'alumni');
+      if (user && pinVal === user.pin) {
+        ok = true;
+        sessionStorage.setItem('mm_role', 'alumni');
+        sessionStorage.setItem('mm_name', user.name);
+        redirect = 'madrasa-alumni.html';
+      }
+    } else if (currentRole === 'khedmat') {
+      const user = API.Teachers.getAll().find(t => t.role === 'khedmat');
+      if (user && pinVal === user.pin) {
+        ok = true;
+        sessionStorage.setItem('mm_role', 'khedmat');
+        sessionStorage.setItem('mm_name', user.name);
+        redirect = 'khedmat-staff.html';
+      }
+    } else if (currentRole === 'teacher' && selectedTeacher) {
+      if (pinVal === selectedTeacher.pin) {
+        ok = true;
+        sessionStorage.setItem('mm_role', 'teacher');
+        sessionStorage.setItem('mm_teacher_id', selectedTeacher.id);
+        sessionStorage.setItem('mm_name', selectedTeacher.name);
+        redirect = 'madrasa-staff.html';
+      }
+    }
+
+    if (ok) {
+      window.location.href = redirect;
+    } else {
+      document.getElementById('pin-error').textContent = 'পিন ভুল হয়েছে।';
+      pinVal = '';
+      updateDots();
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+</script>
+</body>
+</html>
