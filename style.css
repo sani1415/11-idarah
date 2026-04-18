@@ -42,10 +42,10 @@ body {
   overflow-x: hidden;
 }
 
-/* ── TOPBAR ── */
+/* ── TOPBAR (soft light — easy on the eyes) ── */
 .topbar {
-  background: var(--ink);
-  color: #fff;
+  background: linear-gradient(180deg, #fffefb 0%, #f7f1e6 100%);
+  color: var(--ink);
   padding: 14px 18px 12px;
   display: flex;
   align-items: center;
@@ -53,46 +53,116 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  border-bottom: 1px solid rgba(26, 18, 8, 0.06);
+  box-shadow: 0 4px 18px rgba(26, 18, 8, 0.04);
 }
 .topbar-left {}
-.topbar-role { font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: .5px; }
-.topbar-name { font-family: 'Noto Serif Bengali', serif; font-size: 16px; font-weight: 600; color: var(--gold2); }
+.topbar-role { font-size: 11px; color: var(--ink3); letter-spacing: .4px; }
+.topbar-name { font-family: 'Noto Serif Bengali', serif; font-size: 16px; font-weight: 600; color: var(--ink2); }
 .topbar-actions { display: flex; gap: 8px; align-items: center; }
 .topbar-btn {
-  font-size: 11px; color: rgba(255,255,255,0.35); cursor: pointer;
-  padding: 6px 10px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
-  background: transparent; font-family: 'Noto Sans Bengali', sans-serif;
+  font-size: 11px; color: var(--ink3); cursor: pointer;
+  padding: 6px 10px; border: 1px solid rgba(26, 18, 8, 0.1); border-radius: 10px;
+  background: rgba(255, 255, 255, 0.75); font-family: 'Noto Sans Bengali', sans-serif;
+  transition: background 0.15s, border-color 0.15s;
 }
+.topbar-btn:hover { background: #fff; border-color: rgba(201, 149, 42, 0.28); color: var(--ink2); }
 .notif-btn {
   position: relative; width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; font-size: 18px;
+  background: var(--cream2); border-radius: 12px; cursor: pointer; font-size: 18px;
+  border: 1px solid rgba(26, 18, 8, 0.06);
 }
 .notif-badge {
   position: absolute; top: 5px; right: 5px;
-  width: 8px; height: 8px; background: var(--gold2);
-  border-radius: 50%; border: 2px solid var(--ink);
+  width: 8px; height: 8px; background: var(--gold);
+  border-radius: 50%; border: 2px solid #fffefb;
 }
 
 /* ── CONTENT ── */
 .content { padding: 16px; max-width: 480px; margin: 0 auto; }
-.pb-safe { height: 80px; }
+.pb-safe { height: 100px; }
 
-/* ── BOTTOM NAV ── */
+/* ── BOTTOM NAV — floating light pill, rounded “badge” active state ── */
 .bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--ink); display: flex;
-  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
-  z-index: 100; max-width: 480px; margin: 0 auto;
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  max-width: 456px;
+  margin-left: auto;
+  margin-right: auto;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 4px;
+  padding: 6px 8px;
+  background: linear-gradient(180deg, #ffffff 0%, #faf6ef 100%);
+  border: 1px solid rgba(26, 18, 8, 0.08);
+  border-radius: 999px;
+  box-shadow:
+    0 4px 6px rgba(26, 18, 8, 0.04),
+    0 14px 36px rgba(26, 18, 8, 0.1);
 }
 .nav-item {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  gap: 3px; padding: 6px; cursor: pointer; opacity: .4; transition: opacity .15s;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 8px 6px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  color: var(--ink3);
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
-.nav-item.active { opacity: 1; }
-.nav-icon { font-size: 20px; }
-.nav-label { font-size: 10px; color: rgba(255,255,255,0.7); }
-.nav-item.active .nav-label { color: var(--gold2); }
+.nav-item:hover {
+  color: var(--ink2);
+  background: rgba(232, 184, 75, 0.06);
+}
+.nav-item.active {
+  color: var(--gold);
+  background: linear-gradient(180deg, #fff9ed 0%, #fdf3dc 100%);
+  box-shadow:
+    0 4px 14px rgba(201, 149, 42, 0.15),
+    0 1px 2px rgba(26, 18, 8, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(201, 149, 42, 0.22);
+  transform: translateY(-1px);
+}
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  flex-shrink: 0;
+}
+.nav-icon svg.nav-svg,
+.nav-icon .nav-svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.nav-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: inherit;
+  line-height: 1.15;
+  text-align: center;
+  max-width: 100%;
+  opacity: 0.92;
+}
+.nav-item.active .nav-label {
+  font-weight: 600;
+  opacity: 1;
+}
 
 /* ── PANELS ── */
 .panel { display: none; }
@@ -272,51 +342,143 @@ body {
 }
 .toast.show { opacity: 1; }
 
-/* ── LOGIN ── */
+/* ── LOGIN (light theme — readable numpad on every entry page) ── */
 .login-screen {
-  min-height: 100vh; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  background: var(--ink); padding: 24px; position: relative; overflow: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(165deg, #faf6ef 0%, #f0e8d8 42%, #e6dcc8 100%);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  color: var(--ink);
 }
 .login-screen::before {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,149,42,0.18) 0%, transparent 70%);
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 95% 65% at 50% 0%, rgba(232, 184, 75, 0.16) 0%, transparent 58%);
   pointer-events: none;
 }
-.login-logo { font-family: 'Noto Serif Bengali', serif; font-size: 26px; font-weight: 700; color: var(--gold2); text-align: center; line-height: 1.3; margin-bottom: 4px; position: relative; }
-.login-subtitle { font-size: 12px; color: rgba(255,255,255,0.4); text-align: center; margin-bottom: 40px; }
+.login-logo {
+  font-family: 'Noto Serif Bengali', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink2);
+  text-align: center;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  position: relative;
+}
+.login-subtitle {
+  font-size: 12px;
+  color: var(--ink3);
+  text-align: center;
+  margin-bottom: 40px;
+}
 .login-box {
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(201,149,42,0.25);
-  border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 320px;
-  backdrop-filter: blur(10px); position: relative;
+  background: #fff;
+  border: 1px solid rgba(26, 18, 8, 0.1);
+  border-radius: 20px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 12px 40px rgba(26, 18, 8, 0.08);
+  position: relative;
 }
-.login-label { font-size: 11px; color: rgba(255,255,255,0.45); display: block; text-align: center; margin-bottom: 12px; letter-spacing: .8px; text-transform: uppercase; }
+.login-label {
+  font-size: 11px;
+  color: var(--ink3);
+  display: block;
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .pin-dots { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
-.pin-dot { width: 13px; height: 13px; border-radius: 50%; border: 2px solid rgba(201,149,42,0.35); transition: all .2s; }
-.pin-dot.filled { background: var(--gold2); border-color: var(--gold2); box-shadow: 0 0 8px rgba(232,184,75,0.4); }
-.numpad { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
-.num-btn {
-  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 11px; color: #fff; font-family: 'Noto Sans Bengali', sans-serif;
-  font-size: 19px; padding: 14px; cursor: pointer; transition: all .15s; text-align: center;
+.pin-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid rgba(201, 149, 42, 0.45);
+  transition: all 0.2s;
 }
-.num-btn:active { background: rgba(201,149,42,0.25); transform: scale(.95); }
-.num-btn.del { font-size: 15px; color: rgba(255,255,255,0.5); }
-.num-btn.empty { visibility: hidden; }
-.login-error { color: #ff7f5e; font-size: 12px; text-align: center; margin-top: 10px; min-height: 16px; }
-.login-back { font-size: 12px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 16px; cursor: pointer; }
+.pin-dot.filled {
+  background: var(--gold);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(232, 184, 75, 0.25);
+}
+.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.num-btn {
+  background: #fff;
+  border: 1px solid rgba(26, 18, 8, 0.12);
+  border-radius: 12px;
+  color: var(--ink2);
+  font-family: 'Noto Sans Bengali', sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+  padding: 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(26, 18, 8, 0.04);
+}
+.num-btn:hover {
+  background: var(--cream2);
+  border-color: rgba(201, 149, 42, 0.28);
+}
+.num-btn:active {
+  background: var(--gold-light);
+  border-color: rgba(201, 149, 42, 0.45);
+  transform: scale(0.96);
+}
+.num-btn.del {
+  font-size: 15px;
+  color: var(--ink3);
+  font-weight: 500;
+}
+.num-btn.empty { visibility: hidden; pointer-events: none; }
+.login-error {
+  color: #c1440e;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 10px;
+  min-height: 16px;
+}
+.login-back {
+  font-size: 12px;
+  color: var(--ink3);
+  text-align: center;
+  margin-top: 16px;
+  cursor: pointer;
+}
+.login-back:hover { color: var(--ink2); text-decoration: underline; }
 
 /* ── ROLE SELECT ── */
 .role-grid { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
 .role-btn {
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 14px; padding: 16px 18px; display: flex; align-items: center;
-  gap: 14px; cursor: pointer; transition: all .15s; color: #fff;
+  background: #fff;
+  border: 1px solid rgba(26, 18, 8, 0.1);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  color: var(--ink);
+  box-shadow: var(--shadow);
 }
-.role-btn:active { transform: scale(.97); }
+.role-btn:hover {
+  border-color: rgba(201, 149, 42, 0.3);
+  box-shadow: var(--shadow-md);
+}
+.role-btn:active { transform: scale(0.98); }
 .role-icon { font-size: 26px; flex-shrink: 0; }
-.role-name { font-size: 15px; font-weight: 600; }
-.role-desc { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+.role-name { font-size: 15px; font-weight: 600; color: var(--ink2); }
+.role-desc { font-size: 11px; color: var(--ink3); margin-top: 2px; }
 
 /* ── EMPTY STATE ── */
 .empty-state { text-align: center; padding: 40px 20px; color: var(--ink3); }
