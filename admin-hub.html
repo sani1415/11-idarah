@@ -6,161 +6,609 @@
 <title>মারকাযুল মদীনা — মুহতামিম হাব</title>
 <link rel="stylesheet" href="style.css">
 <style>
+  /* ── Hub: login ── */
+  .hub-login-wrap {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px 32px;
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -20%, rgba(232, 184, 75, 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 50% at 100% 100%, rgba(26, 82, 118, 0.12) 0%, transparent 45%),
+      linear-gradient(165deg, #141008 0%, #1f1810 45%, #1a1510 100%);
+  }
+  .hub-login-card {
+    width: 100%;
+    max-width: 340px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 28px 22px 24px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+  }
+  .hub-login-logo {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gold2);
+    text-align: center;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+  }
+  .hub-login-title {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .hub-login-tag {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.38);
+    text-align: center;
+    line-height: 1.45;
+    margin-bottom: 20px;
+  }
+  .hub-login-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+    text-align: center;
+    margin-bottom: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ── Hub: dashboard shell ── */
+  #dashboard {
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--cream2) 0%, var(--cream) 28%, var(--cream) 100%);
+  }
+  .hub-header {
+    background: linear-gradient(145deg, #1a1208 0%, #2a2218 50%, #1a1510 100%);
+    color: #fff;
+    padding: 16px 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hub-header::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -30px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232, 184, 75, 0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hub-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+  }
+  .hub-brand-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(232, 184, 75, 0.25), rgba(232, 184, 75, 0.06));
+    border: 1px solid rgba(232, 184, 75, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .hub-header-text { flex: 1; min-width: 0; padding-left: 12px; }
+  .hub-greet {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 2px;
+  }
+  .hub-title-name {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold2);
+    line-height: 1.25;
+  }
+  .hub-header-actions { display: flex; gap: 8px; align-items: center; }
+  .hub-logout {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    font-family: 'Noto Sans Bengali', sans-serif;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .hub-logout:active { background: rgba(255, 255, 255, 0.1); }
+
+  .hub-date-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    position: relative;
+    z-index: 1;
+  }
+  .hub-date-pill span { opacity: 0.55; font-size: 11px; }
+
+  .hub-body {
+    padding: 0 16px 28px;
+    max-width: 520px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* Snapshot strip */
+  .hub-snapshot {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: -28px;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 22px;
+  }
+  @media (min-width: 400px) {
+    .hub-snapshot { grid-template-columns: repeat(4, 1fr); }
+  }
+  .snap-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(26, 18, 8, 0.06);
+    text-align: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .snap-card:active { transform: scale(0.98); }
+  .snap-val {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink2);
+    display: block;
+    line-height: 1.2;
+  }
+  .snap-val.snap-accent { color: var(--blue); }
+  .snap-val.snap-gold { color: var(--gold); }
+  .snap-val.snap-alert { color: var(--red); }
+  .snap-label {
+    font-size: 10px;
+    color: var(--ink3);
+    margin-top: 4px;
+    line-height: 1.35;
+  }
+
+  .hub-section-title {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink2);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hub-section-title::before {
+    content: '';
+    width: 4px;
+    height: 18px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--gold), var(--gold2));
+  }
+  .hub-section-sub {
+    font-size: 11px;
+    color: var(--ink3);
+    margin-bottom: 14px;
+    line-height: 1.45;
+    padding-left: 12px;
+  }
+
+  /* Module cards */
+  .hub-mod-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 26px; }
   .module-card {
-    border-radius: var(--radius); padding: 18px; color: #fff;
-    margin-bottom: 12px; cursor: pointer; transition: transform .12s; position: relative; overflow: hidden;
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 0;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(26, 18, 8, 0.07);
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.2s;
+    display: block;
+    text-align: left;
+    width: 100%;
+    font: inherit;
+    color: inherit;
+    -webkit-appearance: none;
+    appearance: none;
   }
-  .module-card:active { transform: scale(.98); }
-  .module-card::after { content:''; position:absolute; top:-20px; right:-20px; width:90px; height:90px; border-radius:50%; background:rgba(255,255,255,0.07); }
-  .mc-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-  .mc-icon { font-size:26px; }
-  .mc-title { font-family:'Noto Serif Bengali',serif; font-size:17px; font-weight:700; }
-  .mc-sub { font-size:11px; opacity:.65; }
-  .mc-stats { display:flex; gap:12px; }
-  .mc-stat { flex:1; }
-  .mc-stat-val { font-family:'Noto Serif Bengali',serif; font-size:18px; font-weight:700; display:block; }
-  .mc-stat-label { font-size:10px; opacity:.65; }
-  .mc-arrow { position:absolute; bottom:16px; right:16px; font-size:18px; opacity:.4; }
+  .module-card:active { transform: scale(0.992); }
+  .module-card:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+  .mc-inner {
+    display: flex;
+    align-items: stretch;
+    min-height: 100px;
+  }
+  .mc-accent {
+    width: 5px;
+    flex-shrink: 0;
+  }
+  .mc-madrasa .mc-accent { background: linear-gradient(180deg, #1a5276, #2e86c1); }
+  .mc-dept .mc-accent { background: linear-gradient(180deg, #1e8449, #27ae60); }
+  .mc-khedmat .mc-accent { background: linear-gradient(180deg, #9a7b0d, #d4ac0d); }
 
-  .mc-madrasa { background: linear-gradient(135deg, #1a5276, #2e86c1); }
-  .mc-dept    { background: linear-gradient(135deg, #1e8449, #27ae60); }
-  .mc-khedmat { background: linear-gradient(135deg, #7d6608, #d4ac0d); }
+  .mc-body { flex: 1; padding: 16px 14px 14px 14px; position: relative; }
+  .mc-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .mc-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .mc-madrasa .mc-icon-wrap { background: linear-gradient(145deg, #d6eaf8, #eaf4fb); }
+  .mc-dept .mc-icon-wrap { background: linear-gradient(145deg, #d8f3dc, #eaf8ee); }
+  .mc-khedmat .mc-icon-wrap { background: linear-gradient(145deg, #fcf3d4, #fdf8e8); }
 
-  .quick-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:14px; }
+  .mc-title { font-family: 'Noto Serif Bengali', serif; font-size: 16px; font-weight: 700; color: var(--ink2); }
+  .mc-sub { font-size: 11px; color: var(--ink3); margin-top: 3px; line-height: 1.4; }
+  .mc-go {
+    position: absolute;
+    top: 16px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--cream2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--ink3);
+  }
+
+  .mc-stats { display: flex; gap: 8px; }
+  .mc-stat {
+    flex: 1;
+    background: var(--cream);
+    border-radius: var(--radius-sm);
+    padding: 8px 6px;
+    text-align: center;
+  }
+  .mc-stat-val {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink2);
+    display: block;
+    line-height: 1.2;
+  }
+  .mc-stat-label { font-size: 9px; color: var(--ink3); margin-top: 3px; line-height: 1.25; }
+
+  /* Quick actions */
+  .hub-quick-head {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink2);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hub-quick-head::before {
+    content: '';
+    width: 4px;
+    height: 18px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--blue), var(--blue-light));
+  }
+  .hub-quick-sub { font-size: 11px; color: var(--ink3); margin-bottom: 12px; padding-left: 12px; }
+
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
   .quick-btn {
-    background:#fff; border-radius:var(--radius-sm); padding:14px 12px;
-    box-shadow:var(--shadow); display:flex; align-items:center; gap:10px;
-    cursor:pointer; transition:transform .12s;
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(26, 18, 8, 0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.2s;
+    text-align: left;
   }
-  .quick-btn:active { transform:scale(.97); }
-  .quick-btn-icon { font-size:22px; }
-  .quick-btn-label { font-size:12px; font-weight:600; color:var(--ink2); }
+  .quick-btn:active { transform: scale(0.98); }
+  .quick-btn-wide { grid-column: 1 / -1; flex-direction: row; align-items: center; }
+  .quick-btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--cream2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .quick-btn-text { flex: 1; min-width: 0; }
+  .quick-btn-label { font-size: 13px; font-weight: 600; color: var(--ink2); display: block; }
+  .quick-btn-hint { font-size: 10px; color: var(--ink3); margin-top: 2px; line-height: 1.35; }
 
-  .recent-item { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:10px; }
-  .recent-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-  .recent-text { flex:1; font-size:12px; color:var(--ink); line-height:1.4; }
-  .recent-date { font-size:10px; color:var(--ink3); }
+  /* Tip */
+  .hub-tip {
+    background: linear-gradient(135deg, rgba(26, 82, 118, 0.08), rgba(232, 184, 75, 0.08));
+    border: 1px solid rgba(26, 82, 118, 0.12);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .hub-tip-icon { font-size: 22px; flex-shrink: 0; }
+  .hub-tip-body { font-size: 12px; color: var(--ink2); line-height: 1.55; }
+  .hub-tip-body strong { color: var(--ink); }
+
+  /* Recent */
+  .recent-wrap { margin-bottom: 16px; }
+  .recent-item {
+    background: #fff;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border: 1px solid rgba(26, 18, 8, 0.05);
+  }
+  .recent-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .recent-text { flex: 1; font-size: 12px; color: var(--ink); line-height: 1.45; }
+  .recent-date { font-size: 10px; color: var(--ink3); flex-shrink: 0; margin-top: 2px; }
+  .recent-empty {
+    text-align: center;
+    color: var(--ink3);
+    padding: 28px 16px;
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--cream3);
+  }
 </style>
 </head>
 <body>
 
 <!-- LOGIN SCREEN -->
-<div class="login-screen" id="login-screen">
-  <div class="login-logo">مرکز المدینة</div>
-  <div style="font-family:'Noto Serif Bengali',serif;font-size:18px;font-weight:700;color:var(--gold2);text-align:center;margin-bottom:4px;">মুহতামিম হাব</div>
-  <div style="font-size:11px;color:rgba(255,255,255,0.35);text-align:center;margin-bottom:2px;">সব মডিউলের প্রবেশ · একই পিন</div>
-  <div class="login-subtitle">মুহতামিম পিন দিন</div>
-  <div class="login-box">
-    <span class="login-label">পিন</span>
-    <div class="pin-dots">
-      <div class="pin-dot" id="pd0"></div>
-      <div class="pin-dot" id="pd1"></div>
-      <div class="pin-dot" id="pd2"></div>
-      <div class="pin-dot" id="pd3"></div>
+<div class="login-screen hub-login-wrap" id="login-screen">
+  <div class="hub-login-card">
+    <div class="login-logo hub-login-logo">مرکز المدینة</div>
+    <div class="hub-login-title">মুহতামিম হাব</div>
+    <div class="hub-login-tag">সব মডিউল এক জায়গা থেকে · একটি পিন</div>
+    <div class="hub-login-label">পিন দিন</div>
+    <div class="login-box" style="background:transparent;border:none;box-shadow:none;padding:0;">
+      <div class="pin-dots" style="margin-bottom:16px;">
+        <div class="pin-dot" id="pd0"></div>
+        <div class="pin-dot" id="pd1"></div>
+        <div class="pin-dot" id="pd2"></div>
+        <div class="pin-dot" id="pd3"></div>
+      </div>
+      <div class="numpad">
+        <button type="button" class="num-btn" onclick="pressPin('১')">১</button>
+        <button type="button" class="num-btn" onclick="pressPin('২')">২</button>
+        <button type="button" class="num-btn" onclick="pressPin('৩')">৩</button>
+        <button type="button" class="num-btn" onclick="pressPin('৪')">৪</button>
+        <button type="button" class="num-btn" onclick="pressPin('৫')">৫</button>
+        <button type="button" class="num-btn" onclick="pressPin('৬')">৬</button>
+        <button type="button" class="num-btn" onclick="pressPin('৭')">৭</button>
+        <button type="button" class="num-btn" onclick="pressPin('৮')">৮</button>
+        <button type="button" class="num-btn" onclick="pressPin('৯')">৯</button>
+        <button type="button" class="num-btn empty"></button>
+        <button type="button" class="num-btn" onclick="pressPin('০')">০</button>
+        <button type="button" class="num-btn del" onclick="delPin()">⌫</button>
+      </div>
+      <div class="login-error" id="pin-error"></div>
     </div>
-    <div class="numpad">
-      <button class="num-btn" onclick="pressPin('১')">১</button>
-      <button class="num-btn" onclick="pressPin('২')">২</button>
-      <button class="num-btn" onclick="pressPin('৩')">৩</button>
-      <button class="num-btn" onclick="pressPin('৪')">৪</button>
-      <button class="num-btn" onclick="pressPin('৫')">৫</button>
-      <button class="num-btn" onclick="pressPin('৬')">৬</button>
-      <button class="num-btn" onclick="pressPin('৭')">৭</button>
-      <button class="num-btn" onclick="pressPin('৮')">৮</button>
-      <button class="num-btn" onclick="pressPin('৯')">৯</button>
-      <button class="num-btn empty"></button>
-      <button class="num-btn" onclick="pressPin('০')">০</button>
-      <button class="num-btn del" onclick="delPin()">⌫</button>
-    </div>
-    <div class="login-error" id="pin-error"></div>
   </div>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard" style="display:none;">
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="topbar-role">মুহতামিম</div>
-      <div class="topbar-name">মারকাযুল মদীনা</div>
+  <header class="hub-header">
+    <div class="hub-header-top">
+      <div style="display:flex;align-items:flex-start;flex:1;min-width:0;">
+        <div class="hub-brand-mark" aria-hidden="true">📖</div>
+        <div class="hub-header-text">
+          <div class="hub-greet" id="hub-greet">আসসালামু আলাইকুম</div>
+          <div class="hub-title-name">মারকাযুল মদীনা</div>
+        </div>
+      </div>
+      <div class="hub-header-actions">
+        <button type="button" class="hub-logout" onclick="logout()">লগআউট</button>
+      </div>
     </div>
-    <div class="topbar-actions">
-      <button class="topbar-btn" onclick="logout()">লগআউট</button>
-    </div>
-  </div>
+    <div class="hub-date-pill" id="date-line">—</div>
+  </header>
 
-  <div class="content" style="padding-bottom:24px;">
-    <div id="date-line" style="font-size:11px;color:var(--ink3);text-align:right;margin-bottom:12px;"></div>
-
-    <!-- MADRASA CARD -->
-    <div class="module-card mc-madrasa" onclick="location.href='madrasa-admin.html'">
-      <div class="mc-header">
-        <span class="mc-icon">📚</span>
-        <div><div class="mc-title">মাদ্রাসা মডিউল</div><div class="mc-sub">কিতাব ও মক্তব বিভাগ</div></div>
+  <div class="hub-body">
+    <!-- Snapshot -->
+    <div class="hub-snapshot">
+      <div class="snap-card">
+        <span class="snap-val" id="hub-snap-students">—</span>
+        <div class="snap-label">সক্রিয় ছাত্র</div>
       </div>
-      <div class="mc-stats">
-        <div class="mc-stat"><span class="mc-stat-val" id="mc-students">—</span><span class="mc-stat-label">সক্রিয় ছাত্র</span></div>
-        <div class="mc-stat"><span class="mc-stat-val" id="mc-present">—</span><span class="mc-stat-label">আজ উপস্থিত</span></div>
-        <div class="mc-stat"><span class="mc-stat-val" id="mc-classes">—</span><span class="mc-stat-label">বর্ষ</span></div>
+      <div class="snap-card">
+        <span class="snap-val snap-accent" id="hub-snap-present">—</span>
+        <div class="snap-label">আজ উপস্থিত</div>
       </div>
-      <span class="mc-arrow">›</span>
-    </div>
-
-    <!-- DEPT CARD -->
-    <div class="module-card mc-dept" onclick="location.href='dept-dashboard.html'">
-      <div class="mc-header">
-        <span class="mc-icon">🏢</span>
-        <div><div class="mc-title">বিভাগ মডিউল</div><div class="mc-sub">আয়-ব্যয় ও মজুদ ব্যবস্থাপনা</div></div>
+      <div class="snap-card">
+        <span class="snap-val snap-gold" id="hub-snap-inbox">—</span>
+        <div class="snap-label">ইনবক্স (নতুন)</div>
       </div>
-      <div class="mc-stats">
-        <div class="mc-stat"><span class="mc-stat-val" id="mc-depts">—</span><span class="mc-stat-label">বিভাগ</span></div>
-        <div class="mc-stat"><span class="mc-stat-val" id="mc-dept-income">—</span><span class="mc-stat-label">এ মাসে আয়</span></div>
-        <div class="mc-stat"><span class="mc-stat-val" id="mc-dept-expense">—</span><span class="mc-stat-label">এ মাসে ব্যয়</span></div>
+      <div class="snap-card">
+        <span class="snap-val" id="hub-snap-depts">—</span>
+        <div class="snap-label">বিভাগ</div>
       </div>
-      <span class="mc-arrow">›</span>
     </div>
 
-    <!-- KHEDMAT CARD -->
-    <div class="module-card mc-khedmat" onclick="location.href='khedmat-admin.html'">
-      <div class="mc-header">
-        <span class="mc-icon">🤝</span>
-        <div><div class="mc-title">খেদমতে খালক</div><div class="mc-sub">সেবামূলক কার্যক্রম পরিচালনা</div></div>
-      </div>
-      <div class="mc-stats">
-        <div class="mc-stat"><span class="mc-stat-val" id="mc-bens">—</span><span class="mc-stat-label">উপকারভোগী</span></div>
-        <div class="mc-stat"><span class="mc-stat-val" id="mc-acts">—</span><span class="mc-stat-label">এ মাসে কার্যক্রম</span></div>
-        <div class="mc-stat"><span class="mc-stat-val" id="mc-kh-balance">—</span><span class="mc-stat-label">তহবিল ব্যালেন্স</span></div>
-      </div>
-      <span class="mc-arrow">›</span>
+    <div class="hub-section-title">মডিউলসমূহ</div>
+    <p class="hub-section-sub">যেখানে কী আছে — এক নজরে সংখ্যা, ট্যাপ করে বিস্তারিত দেখুন</p>
+
+    <div class="hub-mod-grid">
+      <button type="button" class="module-card mc-madrasa" onclick="location.href='madrasa-admin.html'">
+        <div class="mc-inner">
+          <div class="mc-accent"></div>
+          <div class="mc-body">
+            <div class="mc-top">
+              <div class="mc-icon-wrap"><span class="mc-icon">📚</span></div>
+              <div style="flex:1;min-width:0;padding-right:36px;">
+                <div class="mc-title">মাদ্রাসা মডিউল</div>
+                <div class="mc-sub">কিতাব ও মক্তব · ছাত্র ও বর্ষ</div>
+              </div>
+              <span class="mc-go">›</span>
+            </div>
+            <div class="mc-stats">
+              <div class="mc-stat"><span class="mc-stat-val" id="mc-students">—</span><span class="mc-stat-label">ছাত্র</span></div>
+              <div class="mc-stat"><span class="mc-stat-val" id="mc-present">—</span><span class="mc-stat-label">আজ উপস্থিত</span></div>
+              <div class="mc-stat"><span class="mc-stat-val" id="mc-classes">—</span><span class="mc-stat-label">বর্ষ</span></div>
+            </div>
+          </div>
+        </div>
+      </button>
+
+      <button type="button" class="module-card mc-dept" onclick="location.href='dept-dashboard.html'">
+        <div class="mc-inner">
+          <div class="mc-accent"></div>
+          <div class="mc-body">
+            <div class="mc-top">
+              <div class="mc-icon-wrap"><span class="mc-icon">🏢</span></div>
+              <div style="flex:1;min-width:0;padding-right:36px;">
+                <div class="mc-title">বিভাগ মডিউল</div>
+                <div class="mc-sub">আয়-ব্যয় · মজুদ · অনুরোধ</div>
+              </div>
+              <span class="mc-go">›</span>
+            </div>
+            <div class="mc-stats">
+              <div class="mc-stat"><span class="mc-stat-val" id="mc-depts">—</span><span class="mc-stat-label">বিভাগ</span></div>
+              <div class="mc-stat"><span class="mc-stat-val" id="mc-dept-income">—</span><span class="mc-stat-label">এ মাসে আয়</span></div>
+              <div class="mc-stat"><span class="mc-stat-val" id="mc-dept-expense">—</span><span class="mc-stat-label">এ মাসে ব্যয়</span></div>
+            </div>
+          </div>
+        </div>
+      </button>
+
+      <button type="button" class="module-card mc-khedmat" onclick="location.href='khedmat-admin.html'">
+        <div class="mc-inner">
+          <div class="mc-accent"></div>
+          <div class="mc-body">
+            <div class="mc-top">
+              <div class="mc-icon-wrap"><span class="mc-icon">🤝</span></div>
+              <div style="flex:1;min-width:0;padding-right:36px;">
+                <div class="mc-title">খেদমতে খালক</div>
+                <div class="mc-sub">উপকারভোগী · তহবিল · কার্যক্রম</div>
+              </div>
+              <span class="mc-go">›</span>
+            </div>
+            <div class="mc-stats">
+              <div class="mc-stat"><span class="mc-stat-val" id="mc-bens">—</span><span class="mc-stat-label">উপকারভোগী</span></div>
+              <div class="mc-stat"><span class="mc-stat-val" id="mc-acts">—</span><span class="mc-stat-label">এ মাসে কার্যক্রম</span></div>
+              <div class="mc-stat"><span class="mc-stat-val" id="mc-kh-balance">—</span><span class="mc-stat-label">তহবিল ব্যালেন্স</span></div>
+            </div>
+          </div>
+        </div>
+      </button>
     </div>
 
-    <!-- QUICK ACCESS -->
-    <div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;color:var(--ink2);margin:14px 0 10px;">দ্রুত প্রবেশ</div>
+    <div class="hub-tip">
+      <span class="hub-tip-icon">💡</span>
+      <div class="hub-tip-body">
+        <strong>পর্যবেক্ষণ মোড:</strong> মাদ্রাসা/বিভাগ/খেদমত স্ক্রিনে দৈনন্দিন এন্ট্রি স্টাফ অ্যাকাউন্ট দিয়ে। পিন ও নীতি বদলাতে <strong>মাদ্রাসা সেটিং</strong> খুলুন।
+      </div>
+    </div>
+
+    <div class="hub-quick-head">দ্রুত কাজ</div>
+    <p class="hub-quick-sub">স্টাফ লগইন, ফলাফল, সেটিং ও বার্তা</p>
     <div class="quick-grid">
-      <div class="quick-btn" onclick="location.href='index.html'">
+      <div class="quick-btn" onclick="location.href='index.html'" title="বর্ষ দায়িত্বশীল, দফতর ইত্যাদি">
         <span class="quick-btn-icon">📖</span>
-        <span class="quick-btn-label">মাদ্রাসা লগইন</span>
+        <div class="quick-btn-text">
+          <span class="quick-btn-label">মাদ্রাসা লগইন</span>
+          <span class="quick-btn-hint">স্টাফ ভূমিকা ও পিন</span>
+        </div>
       </div>
       <div class="quick-btn" onclick="location.href='dept-index.html'">
         <span class="quick-btn-icon">🏢</span>
-        <span class="quick-btn-label">বিভাগ লগইন</span>
+        <div class="quick-btn-text">
+          <span class="quick-btn-label">বিভাগ লগইন</span>
+          <span class="quick-btn-hint">বিভাগ দায়িত্বশীল</span>
+        </div>
       </div>
       <div class="quick-btn" onclick="location.href='madrasa-exams.html'">
         <span class="quick-btn-icon">📝</span>
-        <span class="quick-btn-label">পরীক্ষার ফলাফল</span>
+        <div class="quick-btn-text">
+          <span class="quick-btn-label">পরীক্ষার ফলাফল</span>
+          <span class="quick-btn-hint">মার্ক ও ফল দেখা</span>
+        </div>
       </div>
       <div class="quick-btn" onclick="location.href='madrasa-settings.html'">
         <span class="quick-btn-icon">⚙️</span>
-        <span class="quick-btn-label">মাদ্রাসা সেটিং</span>
+        <div class="quick-btn-text">
+          <span class="quick-btn-label">মাদ্রাসা সেটিং</span>
+          <span class="quick-btn-hint">পিন, শিক্ষক, সাধারণ</span>
+        </div>
       </div>
-      <div class="quick-btn" onclick="location.href='chat.html'" style="grid-column:span 2;" title="স্টাফ ↔ মুহতামিম; স্টাফদের মধ্যে বার্তা নেই">
+      <div class="quick-btn quick-btn-wide" onclick="location.href='chat.html'" title="স্টাফ ↔ মুহতামিম; স্টাফদের মধ্যে বার্তা নেই">
         <span class="quick-btn-icon">💬</span>
-        <span class="quick-btn-label">স্টাফ থেকে বার্তা (ইনবক্স) <span id="hub-chat-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:6px;"></span></span>
+        <div class="quick-btn-text">
+          <span class="quick-btn-label">স্টাফ থেকে বার্তা <span id="hub-chat-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:2px 8px;font-size:10px;margin-left:6px;font-weight:700;"></span></span>
+          <span class="quick-btn-hint">ইনবক্স — শুধু আপনার কাছে</span>
+        </div>
       </div>
     </div>
 
-    <!-- RECENT ACTIVITY -->
-    <div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:10px;">সাম্প্রতিক কার্যক্রম</div>
-    <div id="recent-feed"></div>
+    <div class="hub-section-title" style="margin-top:4px;">সাম্প্রতিক কার্যক্রম</div>
+    <p class="hub-section-sub">মাদ্রাসা লগ, বিভাগ লেনদেন ও খেদমত থেকে মিশ্রিত</p>
+    <div class="recent-wrap" id="recent-feed"></div>
   </div>
 </div>
 
@@ -213,10 +661,22 @@
     location.reload();
   }
 
+  function setGreeting() {
+    const h = new Date().getHours();
+    const el = document.getElementById('hub-greet');
+    if (!el) return;
+    if (h < 12) el.textContent = 'সুপ্রভাত';
+    else if (h < 17) el.textContent = 'শুভ অপরাহ্ন';
+    else el.textContent = 'আসসালামু আলাইকুম';
+  }
+
   function loadDashboard() {
+    setGreeting();
     const today = new Date();
     const weekdays = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
-    document.getElementById('date-line').textContent = weekdays[today.getDay()] + ', ' + toBn(today.getDate()) + '/' + toBn(today.getMonth()+1) + '/' + toBn(today.getFullYear());
+    document.getElementById('date-line').innerHTML =
+      '<span>📅</span> ' + weekdays[today.getDay()] + ', ' +
+      toBn(today.getDate()) + '/' + toBn(today.getMonth()+1) + '/' + toBn(today.getFullYear());
 
     // Madrasa stats
     const students = API.Students.getAll().filter(s => s.active);
@@ -246,36 +706,49 @@
     document.getElementById('mc-acts').textContent = toBn(monthActs.length);
     document.getElementById('mc-kh-balance').textContent = fmtAmt(khFin.balance);
 
+    // Snapshot strip + inbox
+    const unreadChat = ChatAPI.countUnreadAdmin();
+    document.getElementById('hub-snap-students').textContent = toBn(students.length);
+    document.getElementById('hub-snap-present').textContent = toBn(att.present);
+    document.getElementById('hub-snap-depts').textContent = toBn(depts.length);
+    const inboxEl = document.getElementById('hub-snap-inbox');
+    if (unreadChat > 0) {
+      inboxEl.textContent = toBn(unreadChat);
+      inboxEl.classList.add('snap-alert');
+    } else {
+      inboxEl.textContent = '০';
+      inboxEl.classList.remove('snap-alert');
+    }
+
     // Recent feed
     const feed = [];
 
-    // Khedmat: latest log
     const khLog = KhAPI.DailyLogs.getLatest();
     if (khLog) feed.push({ color:'var(--gold)', text:'খেদমত লগ: ' + khLog.content.slice(0,50) + (khLog.content.length>50?'...':''), date: fmtDate(khLog.date) });
 
-    // Khedmat: recent activities
     KhAPI.Activities.getAll().slice(0,2).forEach(a => {
       const ben = KhAPI.Beneficiaries.getById(a.beneficiary_id);
       feed.push({ color:'var(--teal)', text: (ben?.name||'—') + ': ' + a.title, date: fmtDate(a.date) });
     });
 
-    // Dept: recent transactions
     DeptAPI.Transactions.getAll().slice(0,2).forEach(t => {
       const dept = DeptAPI.Departments.getById(t.dept_id);
       feed.push({ color: t.type==='income'?'var(--green)':'var(--red)', text: (dept?.name||'—') + ' — ' + t.description + ' ' + fmtAmt(t.amount), date: fmtDate(t.txn_date) });
     });
 
-    // Madrasa: recent logs
     API.Logs.getAll().slice(0,2).forEach(l => {
       feed.push({ color:'var(--blue)', text: l.text.slice(0,60) + (l.text.length>60?'...':''), date: fmtDate(l.date) });
     });
 
     feed.sort((a,b) => (b.date||'').localeCompare(a.date||''));
-    // Chat unread badge
-    const unreadChat = ChatAPI.countUnreadAdmin();
+
     const badge = document.getElementById('hub-chat-badge');
-    if (unreadChat > 0) { badge.textContent = toBn(unreadChat) + ' নতুন'; badge.style.display = 'inline'; }
-    else { badge.style.display = 'none'; }
+    if (unreadChat > 0) {
+      badge.textContent = toBn(unreadChat) + ' নতুন';
+      badge.style.display = 'inline';
+    } else {
+      badge.style.display = 'none';
+    }
 
     document.getElementById('recent-feed').innerHTML = feed.slice(0,6).map(f =>
       `<div class="recent-item">
@@ -283,7 +756,7 @@
         <div class="recent-text">${API.esc(f.text)}</div>
         <div class="recent-date">${f.date}</div>
       </div>`
-    ).join('') || '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:13px;">কোনো কার্যক্রম নেই</div>';
+    ).join('') || '<div class="recent-empty">এখনো কোনো কার্যক্রমের রেকর্ড নেই। মডিউলে গিয়ে কাজ শুরু হলে এখানে দেখা যাবে।</div>';
   }
 </script>
 </body>
