@@ -457,6 +457,8 @@
 <div class="toast" id="toast"></div>
 
 <script src="../js/api.js"></script>
+<script>window.MM_USE_EXAMPLE = true;</script>
+<script src="../js/mm-example-data.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/hijri-utils.js"></script>
 <script src="../js/mm-permissions.js"></script>
@@ -1012,6 +1014,10 @@
   /* ── INIT ── */
   updateDeptFields();
   renderHome();
+  (function () {
+    const d = new URLSearchParams(location.search).get('dept');
+    if (d === 'kitab' || d === 'maktab') switchDeptTab(d);
+  })();
 </script>
 </body>
 </html>

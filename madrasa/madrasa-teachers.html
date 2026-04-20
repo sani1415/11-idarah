@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>শিক্ষক ও স্টাফ — মাদ্রাসা</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .mmt-page { max-width: 520px; margin: 0 auto; padding: 12px 16px calc(24px + env(safe-area-inset-bottom)); }
+  .mmt-head { font-family: 'Noto Serif Bengali', serif; font-size: 18px; font-weight: 700; color: var(--ink2); margin-bottom: 4px; }
+  .mmt-sub { font-size: 12px; color: var(--ink3); margin-bottom: 14px; line-height: 1.45; }
+  .mmt-row {
+    background: #fff;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(26, 18, 8, 0.06);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .mmt-row:active { background: rgba(0,0,0,0.04); }
+  .mmt-name { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .mmt-meta { font-size: 11px; color: var(--ink3); margin-top: 4px; }
+  .mmt-empty { text-align: center; color: var(--ink3); padding: 36px 12px; font-size: 14px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মাদ্রাসা</div>
+    <div class="topbar-name" id="mmt-top-name">শিক্ষক ও স্টাফ</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
+    <button type="button" class="topbar-btn" onclick="location.href='madrasa-admin.html'">অ্যাডমিন</button>
+  </div>
+</div>
+
+<div class="mmt-page">
+  <div class="mmt-head" id="mmt-title">শিক্ষক ও স্টাফ</div>
+  <p class="mmt-sub" id="mmt-sub">—</p>
+  <div id="mmt-list"></div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>window.MM_USE_EXAMPLE = true;</script>
+<script src="../js/mm-example-data.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.isAdmin()) location.href = '../index.html';
+
+  const params = new URLSearchParams(location.search);
+  const dept = params.get('dept') === 'maktab' ? 'maktab' : 'kitab';
+  const deptLabel = dept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
+
+  document.getElementById('mmt-sub').textContent = deptLabel + ' · নামে ট্যাপ করলে বিস্তারিত দেখুন';
+
+  function render() {
+    const list = API.Teachers.getByDept(dept);
+    const el = document.getElementById('mmt-list');
+    if (!list.length) {
+      el.innerHTML = '<div class="mmt-empty">এই বিভাগে কোনো শ্রেণি শিক্ষক নিবন্ধিত নেই।</div>';
+      return;
+    }
+    el.innerHTML = list.map((t) => {
+      const cls = t.class_id ? API.Classes.getById(t.class_id) : null;
+      const meta = cls ? API.esc(cls.name) : '—';
+      return `<div class="mmt-row" role="button" tabindex="0" data-id="${API.esc(t.id)}">
+        <div class="mmt-name">${API.esc(t.name)}</div>
+        <div class="mmt-meta">${meta}</div>
+      </div>`;
+    }).join('');
+
+    el.querySelectorAll('.mmt-row').forEach((row) => {
+      const go = () => {
+        location.href = 'madrasa-teacher-detail.html?id=' + encodeURIComponent(row.dataset.id) + '&dept=' + encodeURIComponent(dept);
+      };
+      row.addEventListener('click', go);
+      row.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+    });
+  }
+  render();
+</script>
+</body>
+</html>

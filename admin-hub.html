@@ -391,6 +391,8 @@
   /* Module carousel (home): near full-width slides */
   .hub-mod-carousel {
     margin: 0 -16px 6px;
+    overflow: visible;
+    /* কার্ড উচ্চতা vh-তে বেশি হলে মোবাইলে ব্রাউজার UI বদলালে লেআউট লাফায় — নিচের min-height ছোট + svh */
   }
   .hub-mod-scroll {
     display: flex;
@@ -402,10 +404,15 @@
     padding: 8px 18px 6px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: contain;
   }
   .hub-mod-scroll::-webkit-scrollbar { display: none; }
   .hub-mod-slide {
+    /* scroll-snap-stop: always = each swipe stops on one card (no skipping on mobile) */
     scroll-snap-align: center;
+    scroll-snap-stop: always;
     flex: 0 0 min(90vw, 468px);
     max-width: min(90vw, 468px);
   }
@@ -450,18 +457,82 @@
     -webkit-appearance: none;
     appearance: none;
   }
-  .hub-mod-slide:active { transform: scale(0.995); }
+  /* টাচে কার্ড সামান্য ছোট হয়ে লাফ দেখায় — শুধু মাউস/ট্র্যাকপ্যাড */
+  @media (hover: hover) and (pointer: fine) {
+    .hub-mod-slide:active { transform: scale(0.995); }
+  }
   .module-card:focus-visible {
     outline: 2px solid var(--gold);
     outline-offset: 3px;
+  }
+  /* মাদ্রাসা কার্ড সম্পূর্ণ ক্লিকযোগ্য নয় — হাতের কার্সার নয় */
+  /* স্লাইড উচ্চতা বড় স্লাইডের সাথে মিললে .mc-inner শুধু কন্টেন্ট-উচ্চতায় থাকে — বিস্তারিত নিচে আটকে না */
+  .hub-mod-slide.mc-madrasa.module-card {
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    height: 100%;
+    min-height: 0;
+  }
+  .hub-mod-slide.mc-madrasa:active {
+    transform: none;
+  }
+  .mc-madrasa .mc-inner {
+    cursor: default;
+  }
+  .mc-madrasa .mc-body {
+    cursor: default;
+    padding-bottom: 14px;
   }
   .mc-inner {
     display: flex;
     align-items: stretch;
     min-height: min(480px, 58vh);
+    min-height: min(480px, 58svh);
   }
-  .hub-mod-slide .mc-inner { min-height: min(520px, 62vh); }
-  .hub-mod-slide.mc-dept .mc-inner { min-height: min(620px, 72vh); }
+  .hub-mod-slide .mc-inner {
+    min-height: min(520px, 62vh);
+    min-height: min(520px, 62svh);
+  }
+  .hub-mod-slide.mc-madrasa .mc-inner {
+    flex: 1 1 auto;
+    width: 100%;
+    display: flex;
+    align-items: stretch;
+    min-height: min(620px, 76vh);
+    min-height: min(620px, 76svh);
+  }
+  .hub-mod-slide.mc-dept .mc-inner {
+    min-height: min(620px, 72vh);
+    min-height: min(620px, 72svh);
+  }
+  /* মোবাইলে সামান্য ছোট — ডট দেখা যায়, কার্ড খুব ছোট হয় না */
+  @media (max-width: 540px) {
+    .mc-inner {
+      min-height: min(460px, 56vh);
+      min-height: min(460px, 56svh);
+    }
+    .hub-mod-slide .mc-inner {
+      min-height: min(500px, 60vh);
+      min-height: min(500px, 60svh);
+    }
+    .hub-mod-slide.mc-madrasa .mc-inner {
+      min-height: min(580px, 72vh);
+      min-height: min(580px, 72svh);
+    }
+    .hub-mod-slide.mc-dept .mc-inner {
+      min-height: min(590px, 70vh);
+      min-height: min(590px, 70svh);
+    }
+    .hub-mod-scroll {
+      padding-top: 7px;
+      padding-bottom: 5px;
+    }
+    .hub-mod-dots {
+      padding: 9px 0 6px;
+    }
+  }
   .mc-accent {
     width: 6px;
     flex-shrink: 0;
@@ -470,7 +541,14 @@
   .mc-dept .mc-accent { background: linear-gradient(180deg, #1e8449, #27ae60); }
   .mc-khedmat .mc-accent { background: linear-gradient(180deg, #9a7b0d, #d4ac0d); }
 
-  .mc-body { flex: 1; padding: 18px 14px 16px 16px; position: relative; display: flex; flex-direction: column; }
+  .mc-body {
+    flex: 1;
+    padding: 18px 14px 16px 16px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
   .mc-top {
     display: flex;
     align-items: flex-start;
@@ -499,6 +577,86 @@
   }
   .mc-madrasa .mc-icon-wrap { background: linear-gradient(145deg, #d6eaf8, #eaf4fb); }
   .mc-madrasa .mc-letter { color: #1a5276; }
+  .mc-madrasa-tophead {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink3);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    text-align: center;
+    width: 100%;
+  }
+  .mc-madrasa-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .mc-madrasa-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 8px;
+    border-radius: 12px;
+    background: var(--cream);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink2);
+    text-decoration: none;
+    border: 1px solid rgba(26, 18, 8, 0.1);
+    transition: background 0.15s, border-color 0.15s;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  button.mc-madrasa-tab { -webkit-appearance: none; appearance: none; margin: 0; }
+  .mc-madrasa-tab.is-active {
+    background: var(--ink);
+    color: var(--gold2);
+    border-color: var(--ink);
+  }
+  .mc-madrasa-tab:active { transform: scale(0.98); }
+  .mc-madrasa-tab:hover { border-color: rgba(26, 82, 118, 0.35); background: #fff; }
+  .mc-madrasa-tab.is-active:hover { background: var(--ink); color: var(--gold2); border-color: var(--ink); }
+  .mc-madrasa .mc-hint {
+    margin-top: auto;
+    padding-top: 20px;
+    cursor: default;
+  }
+  .mc-madrasa-detail-wrap {
+    margin-top: 0;
+    padding-top: 10px;
+    padding-bottom: 0;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .mc-madrasa-detail-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--gold2);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+  }
+  .mc-madrasa-detail-btn:active { transform: scale(0.98); }
+  .mc-stat.mc-stat--teachers {
+    cursor: pointer;
+    border: 1px dashed rgba(26, 82, 118, 0.25);
+    background: linear-gradient(180deg, #f8fbfd, #fff);
+  }
+  .mc-stat.mc-stat--teachers:active { transform: scale(0.98); }
+  .mc-stat.mc-stat--leave {
+    cursor: pointer;
+    border: 1px dashed rgba(201, 149, 42, 0.45);
+    background: linear-gradient(180deg, #fffefb, var(--cream));
+  }
+  .mc-stat.mc-stat--leave:active { transform: scale(0.98); }
+  a.mc-go { text-decoration: none; color: var(--ink3); }
   .mc-dept .mc-icon-wrap { background: linear-gradient(145deg, #d8f3dc, #eaf8ee); }
   .mc-dept .mc-letter { color: #1e8449; }
   .mc-khedmat .mc-icon-wrap { background: linear-gradient(145deg, #fcf3d4, #fdf8e8); }
@@ -528,6 +686,9 @@
     border-radius: var(--radius-sm);
     padding: 10px 6px;
     text-align: center;
+  }
+  .mc-madrasa .mc-stat:not(.mc-stat--leave):not(.mc-stat--teachers) {
+    cursor: default;
   }
   .mc-stat-val {
     font-family: 'Noto Serif Bengali', serif;
@@ -781,32 +942,38 @@
     <section class="hub-tab-panel is-active" id="hub-panel-home" role="tabpanel" aria-labelledby="hub-nav-home">
     <div class="hub-mod-carousel">
       <div class="hub-mod-scroll" id="hub-mod-track" role="region" aria-roledescription="ক্যারোসেল" aria-label="মডিউল সারাংশ — সোয়াইপ করুন" tabindex="0">
-        <button type="button" class="module-card hub-mod-slide mc-madrasa" onclick="location.href='madrasa/madrasa-admin.html'">
+        <div class="module-card hub-mod-slide mc-madrasa">
           <div class="mc-inner">
             <div class="mc-accent"></div>
             <div class="mc-body">
-              <div class="mc-top">
-                <div class="mc-icon-wrap" aria-hidden="true"><span class="mc-letter">ম</span></div>
-                <div class="mc-head-text">
-                  <div class="mc-title">মাদ্রাসা মডিউল</div>
-                  <div class="mc-sub">কিতাব ও মক্তব · ছাত্র ও বর্ষ</div>
-                </div>
-                <span class="mc-go" aria-hidden="true">›</span>
+              <div class="mc-madrasa-tophead">মাদ্রাসা মডিউল</div>
+              <div class="mc-madrasa-tabs" role="tablist" aria-label="বিভাগ">
+                <button type="button" class="mc-madrasa-tab is-active" data-mc-dept="kitab" role="tab" aria-selected="true">কিতাব বিভাগ</button>
+                <button type="button" class="mc-madrasa-tab" data-mc-dept="maktab" role="tab" aria-selected="false">মক্তব বিভাগ</button>
               </div>
               <div class="mc-stats">
                 <div class="mc-stat"><span class="mc-stat-val" id="mc-students">—</span><span class="mc-stat-label">সক্রিয় ছাত্র</span></div>
+                <div class="mc-stat"><span class="mc-stat-val" id="mc-absent">—</span><span class="mc-stat-label">আজ অনুপস্থিত</span></div>
                 <div class="mc-stat"><span class="mc-stat-val" id="mc-present">—</span><span class="mc-stat-label">আজ উপস্থিত</span></div>
-                <div class="mc-stat"><span class="mc-stat-val" id="mc-classes">—</span><span class="mc-stat-label">বর্ষ</span></div>
               </div>
               <div class="mc-stats-secondary">
-                <div class="mc-stat"><span class="mc-stat-val" id="mc-absent">—</span><span class="mc-stat-label">আজ অনুপস্থিত</span></div>
+                <div class="mc-stat mc-stat--leave" id="mc-leave-stat-wrap" role="button" tabindex="0" title="ছুটির তালিকা">
+                  <span class="mc-stat-val" id="mc-leave-students">—</span>
+                  <span class="mc-stat-label">ছুটির রেকর্ড (ছাত্র)</span>
+                </div>
                 <div class="mc-stat"><span class="mc-stat-val" id="mc-leave">—</span><span class="mc-stat-label">আজ ছুটি</span></div>
-                <div class="mc-stat"><span class="mc-stat-val" id="mc-teachers">—</span><span class="mc-stat-label">শিক্ষক/স্টাফ</span></div>
+                <div class="mc-stat mc-stat--teachers" id="mc-teachers-stat-wrap" role="button" tabindex="0" title="শিক্ষক ও স্টাফ">
+                  <span class="mc-stat-val" id="mc-teachers">—</span>
+                  <span class="mc-stat-label">শিক্ষক/স্টাফ</span>
+                </div>
               </div>
               <p class="mc-hint"><strong>আজকের হাজিরা:</strong> <span id="mc-madrasa-att-blurb">—</span></p>
+              <div class="mc-madrasa-detail-wrap">
+                <a class="mc-madrasa-detail-btn" href="madrasa/madrasa-admin.html" id="mc-madrasa-detail-link">বিস্তারিত ›</a>
+              </div>
             </div>
           </div>
-        </button>
+        </div>
 
         <button type="button" class="module-card hub-mod-slide mc-dept" onclick="location.href='dept/dept-dashboard.html'">
           <div class="mc-inner">
@@ -952,6 +1119,8 @@
 </div>
 
 <script src="js/api.js"></script>
+<script>window.MM_USE_EXAMPLE = true;</script>
+<script src="js/mm-example-data.js"></script>
 <script src="js/mm-session.js"></script>
 <script src="js/hijri-utils.js"></script>
 <script src="js/dept-api.js"></script>
@@ -1001,13 +1170,162 @@
     } catch (e) {}
   }
 
+  const HUB_MADRASA_DEPT_KEY = 'hub_madrasa_dept';
+
+  function getHubMadrasaDept() {
+    try {
+      const v = sessionStorage.getItem(HUB_MADRASA_DEPT_KEY);
+      return v === 'maktab' ? 'maktab' : 'kitab';
+    } catch (e) {
+      return 'kitab';
+    }
+  }
+
+  function refreshMadrasaHubCardStats() {
+    const dept = getHubMadrasaDept();
+    const iso = new Date().toISOString().split('T')[0];
+    const att = API.Attendance.getDateSummaryForDept(iso, dept);
+    const el = (id) => document.getElementById(id);
+    const students = API.Students.countActiveByDept(dept);
+    if (el('mc-students')) el('mc-students').textContent = toBn(students);
+    if (el('mc-present')) el('mc-present').textContent = toBn(att.present);
+    if (el('mc-absent')) el('mc-absent').textContent = toBn(att.absent);
+    if (el('mc-leave')) el('mc-leave').textContent = toBn(att.leave);
+    if (el('mc-leave-students')) el('mc-leave-students').textContent = toBn(API.Attendance.countStudentsWithAnyLeaveByDept(dept));
+    const tlist = API.Teachers.getByDept(dept);
+    if (el('mc-teachers')) el('mc-teachers').textContent = toBn(tlist.length);
+    const madrasaBlurb = document.getElementById('mc-madrasa-att-blurb');
+    if (madrasaBlurb) {
+      madrasaBlurb.textContent =
+        'আজ মোট হাজিরা রেকর্ড ' + toBn(att.total) + ' · উপস্থিত ' + toBn(att.present) +
+        ', অনুপস্থিত ' + toBn(att.absent) + ', ছুটি ' + toBn(att.leave) + '।';
+    }
+    const leaveWrap = document.getElementById('mc-leave-stat-wrap');
+    if (leaveWrap) {
+      const goLeave = (e) => {
+        e.stopPropagation();
+        location.href = 'madrasa/madrasa-leave-students.html?dept=' + encodeURIComponent(dept);
+      };
+      leaveWrap.onclick = goLeave;
+      leaveWrap.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          goLeave(e);
+        }
+      };
+    }
+    const teachWrap = document.getElementById('mc-teachers-stat-wrap');
+    if (teachWrap) {
+      const goT = (e) => {
+        e.stopPropagation();
+        location.href = 'madrasa/madrasa-teachers.html?dept=' + encodeURIComponent(dept);
+      };
+      teachWrap.onclick = goT;
+      teachWrap.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          goT(e);
+        }
+      };
+    }
+    const detail = document.getElementById('mc-madrasa-detail-link');
+    if (detail) detail.href = 'madrasa/madrasa-admin.html?dept=' + encodeURIComponent(dept);
+  }
+
+  function initMadrasaHubDeptTabs() {
+    const wrap = document.querySelector('.mc-madrasa-tabs');
+    if (!wrap || wrap.dataset.bound === '1') return;
+    wrap.dataset.bound = '1';
+    const d0 = getHubMadrasaDept();
+    wrap.querySelectorAll('[data-mc-dept]').forEach((b) => {
+      const on = b.dataset.mcDept === d0;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    wrap.querySelectorAll('[data-mc-dept]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const d = btn.dataset.mcDept === 'maktab' ? 'maktab' : 'kitab';
+        try {
+          sessionStorage.setItem(HUB_MADRASA_DEPT_KEY, d);
+        } catch (err) {}
+        wrap.querySelectorAll('[data-mc-dept]').forEach((b) => {
+          const on = b.dataset.mcDept === d;
+          b.classList.toggle('is-active', on);
+          b.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        refreshMadrasaHubCardStats();
+      });
+    });
+  }
+
   function showDashboard() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'flex';
     loadDashboard();
     initHubBottomNav();
     initHubModuleCarousel();
+    initMadrasaHubDeptTabs();
     applyHubUrlTab();
+  }
+
+  const HUB_MOD_CAROUSEL_KEY = 'hubModCarouselIdx';
+
+  function hubModNearestSlideIndex(track, slides) {
+    const tr = track.getBoundingClientRect();
+    const mid = tr.left + tr.width / 2;
+    let best = 0;
+    let bestD = Infinity;
+    slides.forEach((s, i) => {
+      const r = s.getBoundingClientRect();
+      const c = r.left + r.width / 2;
+      const d = Math.abs(c - mid);
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    });
+    return best;
+  }
+
+  function hubModSaveSlideIndex(i) {
+    try {
+      sessionStorage.setItem(HUB_MOD_CAROUSEL_KEY, String(i));
+    } catch (e) {}
+  }
+
+  function hubModRestoreCarouselSlide() {
+    const track = document.getElementById('hub-mod-track');
+    const slides = track ? track.querySelectorAll('.hub-mod-slide') : [];
+    if (!track || !slides.length) return;
+    let i;
+    try {
+      const raw = sessionStorage.getItem(HUB_MOD_CAROUSEL_KEY);
+      if (raw == null || raw === '') return;
+      i = parseInt(raw, 10);
+    } catch (e) {
+      return;
+    }
+    if (i < 0 || i >= slides.length || Number.isNaN(i)) return;
+    const el = slides[i];
+    const dots = document.querySelectorAll('.hub-mod-dot');
+    const setDots = (idx) => {
+      dots.forEach((d, j) => {
+        const on = j === idx;
+        d.classList.toggle('is-active', on);
+        d.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+    };
+    const run = () => {
+      try {
+        el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
+      } catch (e) {
+        el.scrollIntoView({ inline: 'center', block: 'nearest' });
+      }
+      setDots(i);
+    };
+    requestAnimationFrame(() => requestAnimationFrame(run));
   }
 
   function initHubModuleCarousel() {
@@ -1017,11 +1335,13 @@
     track.dataset.bound = '1';
     const slides = track.querySelectorAll('.hub-mod-slide');
     function setActive(i) {
+      if (i < 0 || i >= slides.length) return;
       dots.forEach((d, j) => {
         const on = j === i;
         d.classList.toggle('is-active', on);
         d.setAttribute('aria-selected', on ? 'true' : 'false');
       });
+      hubModSaveSlideIndex(i);
     }
     const io = new IntersectionObserver(
       (entries) => {
@@ -1035,14 +1355,62 @@
     );
     slides.forEach((s) => io.observe(s));
 
+    /* Save which card was used before following a link (scroll may still be moving) */
+    track.addEventListener(
+      'click',
+      (e) => {
+        const slide = e.target.closest('.hub-mod-slide');
+        if (!slide) return;
+        const idx = [...slides].indexOf(slide);
+        if (idx >= 0) hubModSaveSlideIndex(idx);
+      },
+      true
+    );
+
     dots.forEach((dot, i) => {
       dot.addEventListener('click', () => {
         const el = slides[i];
         if (!el) return;
         el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        setActive(i);
       });
     });
+
+    let scrollSaveTimer;
+    const onScrollSettled = () => {
+      const idx = hubModNearestSlideIndex(track, slides);
+      setActive(idx);
+    };
+    track.addEventListener(
+      'scrollend',
+      () => {
+        onScrollSettled();
+      },
+      { passive: true }
+    );
+    track.addEventListener(
+      'scroll',
+      () => {
+        clearTimeout(scrollSaveTimer);
+        scrollSaveTimer = setTimeout(onScrollSettled, 120);
+      },
+      { passive: true }
+    );
+
+    window.addEventListener('pagehide', () => {
+      try {
+        hubModSaveSlideIndex(hubModNearestSlideIndex(track, slides));
+      } catch (e) {}
+    });
+
+    hubModRestoreCarouselSlide();
   }
+
+  window.addEventListener('pageshow', () => {
+    const dash = document.getElementById('dashboard');
+    if (!dash || dash.style.display === 'none') return;
+    hubModRestoreCarouselSlide();
+  });
 
   function initHubBottomNav() {
     const nav = document.querySelector('.hub-bottom-nav');
@@ -1148,22 +1516,8 @@
     const dateEl = document.getElementById('date-line');
     if (dateEl) dateEl.textContent = dateLine;
 
-    // Madrasa stats
-    const students = API.Students.getAll().filter(s => s.active);
-    const att = API.Attendance.getTodaySummary();
-    const classes = API.Classes.getAll();
-    document.getElementById('mc-students').textContent = toBn(students.length);
-    document.getElementById('mc-present').textContent = toBn(att.present);
-    document.getElementById('mc-classes').textContent = toBn(classes.length);
-    document.getElementById('mc-absent').textContent = toBn(att.absent);
-    document.getElementById('mc-leave').textContent = toBn(att.leave);
-    document.getElementById('mc-teachers').textContent = toBn(API.Teachers.getAll().length);
-    const madrasaBlurb = document.getElementById('mc-madrasa-att-blurb');
-    if (madrasaBlurb) {
-      madrasaBlurb.textContent =
-        'আজ মোট হাজিরা রেকর্ড ' + toBn(att.total) + ' · উপস্থিত ' + toBn(att.present) +
-        ', অনুপস্থিত ' + toBn(att.absent) + ', ছুটি ' + toBn(att.leave) + '।';
-    }
+    // Madrasa stats (বিভাগ ট্যাব — refreshMadrasaHubCardStats)
+    refreshMadrasaHubCardStats();
 
     // Dept stats
     const depts = DeptAPI.Departments.getAll();

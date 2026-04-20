@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>শিক্ষক বিবরণ — মাদ্রাসা</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .mtd-page { max-width: 520px; margin: 0 auto; padding: 12px 16px calc(28px + env(safe-area-inset-bottom)); }
+  .mtd-back { font-size: 13px; color: var(--blue); margin-bottom: 12px; cursor: pointer; display: inline-block; border: none; background: none; font-family: inherit; padding: 0; }
+  .mtd-name {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink2);
+    margin-bottom: 14px;
+    line-height: 1.35;
+  }
+  .mtd-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(26, 18, 8, 0.07);
+  }
+  .mtd-card h3 {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink3);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+  }
+  .mtd-kv { display: grid; gap: 8px; }
+  .mtd-kv div { font-size: 13px; color: var(--ink2); line-height: 1.45; }
+  .mtd-kv span { color: var(--ink3); font-size: 11px; display: block; margin-bottom: 2px; }
+  .mtd-note {
+    font-size: 13px;
+    color: var(--ink2);
+    line-height: 1.55;
+    white-space: pre-wrap;
+  }
+  .mtd-log {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--cream2);
+    font-size: 12px;
+    color: var(--ink2);
+    line-height: 1.45;
+  }
+  .mtd-log:last-child { border-bottom: none; }
+  .mtd-log-date { font-size: 10px; color: var(--ink3); margin-bottom: 4px; }
+  .mtd-salary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--cream2);
+    font-size: 12px;
+  }
+  .mtd-salary-row:last-child { border-bottom: none; }
+  .mtd-miss { color: var(--ink3); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মাদ্রাসা</div>
+    <div class="topbar-name">শিক্ষক বিবরণ</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
+    <button type="button" class="topbar-btn" onclick="location.href='madrasa-admin.html'">অ্যাডমিন</button>
+  </div>
+</div>
+
+<div class="mtd-page" id="mtd-root">
+  <button type="button" class="mtd-back" id="mtd-back">← তালিকায় ফিরুন</button>
+  <div class="mtd-name" id="mtd-name">—</div>
+
+  <div class="mtd-card">
+    <h3>মৌলিক তথ্য</h3>
+    <div class="mtd-kv" id="mtd-basic"></div>
+  </div>
+
+  <div class="mtd-card">
+    <h3>বেতন ও আর্থিক নোট</h3>
+    <div id="mtd-salary-block"></div>
+  </div>
+
+  <div class="mtd-card">
+    <h3>প্রশাসনিক নোট</h3>
+    <p class="mtd-note" id="mtd-admin-note">—</p>
+  </div>
+
+  <div class="mtd-card">
+    <h3>কর্ম ও পর্যবেক্ষণ ইতিহাস</h3>
+    <div id="mtd-logs"></div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>window.MM_USE_EXAMPLE = true;</script>
+<script src="../js/mm-example-data.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.isAdmin()) location.href = '../index.html';
+
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+  const dept = params.get('dept') === 'maktab' ? 'maktab' : 'kitab';
+
+  const toBn = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+  const fmtAmt = (n) => '৳' + toBn(Math.round(Number(n) || 0).toLocaleString('en'));
+
+  function esc(s) { return API.esc(s == null ? '' : String(s)); }
+
+  document.getElementById('mtd-back').onclick = () => {
+    location.href = 'madrasa-teachers.html?dept=' + encodeURIComponent(dept);
+  };
+
+  if (!id) {
+    document.getElementById('mtd-root').innerHTML = '<p class="mtd-miss">কোনো শিক্ষক নির্বাচিত হয়নি।</p>';
+  } else {
+    const t = API.Teachers.getById(id);
+    if (!t) {
+      document.getElementById('mtd-root').innerHTML = '<p class="mtd-miss">শিক্ষক পাওয়া যায়নি।</p>';
+    } else {
+      document.getElementById('mtd-name').textContent = t.name || '—';
+
+      const cls = t.class_id ? API.Classes.getById(t.class_id) : null;
+      const basic = document.getElementById('mtd-basic');
+      const rows = [
+        ['পিতার নাম', t.father_name || '—'],
+        ['ঠিকানা', t.address || '—'],
+        ['যোগাযোগ', t.phone || '—'],
+        ['নিয়োজিত শ্রেণি', cls ? cls.name : (t.class_id ? '—' : 'ক্লাসবিহীন দায়িত্ব')],
+        ['চলমান বেতন (মাসিক)', t.salary != null && t.salary !== '' ? fmtAmt(t.salary) : '—'],
+      ];
+      basic.innerHTML = rows.map(([k, v]) => `<div><span>${esc(k)}</span>${esc(v)}</div>`).join('');
+
+      const salBlock = document.getElementById('mtd-salary-block');
+      const hist = Array.isArray(t.salary_history) ? t.salary_history : [];
+      if (!hist.length) {
+        salBlock.innerHTML = '<p class="mtd-miss">বেতন ইতিহাস এখনো লিপিবদ্ধ নেই।</p>';
+      } else {
+        salBlock.innerHTML = hist
+          .slice()
+          .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+          .map(
+            (h) =>
+              `<div class="mtd-salary-row"><span>${esc(h.date || '—')}</span><strong>${fmtAmt(h.amount)}</strong></div>` +
+              (h.note ? `<div style="font-size:11px;color:var(--ink3);padding:0 0 8px;">${esc(h.note)}</div>` : '')
+          )
+          .join('');
+      }
+
+      const noteEl = document.getElementById('mtd-admin-note');
+      const an = t.admin_note && String(t.admin_note).trim();
+      noteEl.textContent = an || 'কোনো বিশেষ নোট নেই।';
+
+      const logs = API.Logs.getByTeacher(id);
+      const logEl = document.getElementById('mtd-logs');
+      if (!logs.length) {
+        logEl.innerHTML = '<p class="mtd-miss">এখনো কোনো পর্যবেক্ষণ লগ যোগ করা হয়নি।</p>';
+      } else {
+        logEl.innerHTML = logs
+          .map(
+            (l) =>
+              `<div class="mtd-log">
+                <div class="mtd-log-date">${esc(l.date)} · ${esc(l.by || '')}</div>
+                ${esc(l.text)}
+              </div>`
+          )
+          .join('');
+      }
+    }
+  }
+</script>
+</body>
+</html>

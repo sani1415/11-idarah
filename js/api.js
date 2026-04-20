@@ -206,6 +206,11 @@ const API = (() => {
     getAll: () => load(KEYS.students),
     getById: id => load(KEYS.students).find(s => s.id === id),
     getByClass: cid => load(KEYS.students).filter(s => s.class_id === cid && s.active),
+    /** কিতাব বা মক্তব বিভাগের সক্রিয় ছাত্র সংখ্যা */
+    countActiveByDept(dept) {
+      const cids = new Set(load(KEYS.classes).filter((c) => c.dept === dept).map((c) => c.id));
+      return load(KEYS.students).filter((s) => s.active && cids.has(s.class_id)).length;
+    },
     add(data) {
       const list = load(KEYS.students);
       const s = { id: 'std_' + uid(), ...data, active: true, admitted: data.admitted || today() };
@@ -255,6 +260,11 @@ const API = (() => {
     getAll: () => load(KEYS.teachers),
     getById: id => load(KEYS.teachers).find(t => t.id === id),
     getByClassId: cid => load(KEYS.teachers).find(t => t.class_id === cid),
+    /** ওই বিভাগের ক্লাসে নিয়োজিত শিক্ষক (ক্লাসবিহীন স্টাফ বাদ) */
+    getByDept(dept) {
+      const cids = new Set(Classes.getByDept(dept).map(c => c.id));
+      return load(KEYS.teachers).filter(t => t.class_id && cids.has(t.class_id));
+    },
     verifyPin(id, pin) { const t = load(KEYS.teachers).find(t => t.id === id); return t && t.pin === pin; },
     update(id, data) {
       save(KEYS.teachers, load(KEYS.teachers).map(t => t.id === id ? { ...t, ...data } : t));
@@ -318,6 +328,55 @@ const API = (() => {
         total: all.length,
       };
     },
+    /** ছাত্র প্রতি মোট ছুটির দিন (স্ট্যাটাস leave) */
+    getLeaveStatsByStudent() {
+      const byStudent = {};
+      load(KEYS.attendance).forEach(a => {
+        if (this.statusOf(a) !== 'leave') return;
+        byStudent[a.student_id] = (byStudent[a.student_id] || 0) + 1;
+      });
+      return byStudent;
+    },
+    /** যে ছাত্রদের কমপক্ষে এক দিন ছুটির রেকর্ড আছে — ছুটির দিন বেশি থেকে কম */
+    getStudentsWithLeaveSorted() {
+      const by = this.getLeaveStatsByStudent();
+      return Students.getAll()
+        .filter(s => s.active)
+        .map(s => ({ student: s, leaveDays: by[s.id] || 0 }))
+        .filter(x => x.leaveDays > 0)
+        .sort((a, b) => b.leaveDays - a.leaveDays);
+    },
+    countStudentsWithAnyLeave() {
+      return this.getStudentsWithLeaveSorted().length;
+    },
+    getDateSummaryForDept(date, dept) {
+      if (dept !== 'kitab' && dept !== 'maktab') return this.getDateSummary(date);
+      const cids = new Set(Classes.getByDept(dept).map(c => c.id));
+      const sidSet = new Set(
+        Students.getAll().filter(s => s.active && cids.has(s.class_id)).map(s => s.id)
+      );
+      const all = load(KEYS.attendance).filter(a => a.date === date && sidSet.has(a.student_id));
+      const st = (a) => this.statusOf(a);
+      return {
+        present: all.filter((a) => st(a) === 'present').length,
+        absent: all.filter((a) => st(a) === 'absent').length,
+        leave: all.filter((a) => st(a) === 'leave').length,
+        total: all.length,
+      };
+    },
+    getStudentsWithLeaveSortedByDept(dept) {
+      if (dept !== 'kitab' && dept !== 'maktab') return this.getStudentsWithLeaveSorted();
+      const cids = new Set(Classes.getByDept(dept).map((c) => c.id));
+      const by = this.getLeaveStatsByStudent();
+      return Students.getAll()
+        .filter((s) => s.active && cids.has(s.class_id))
+        .map((s) => ({ student: s, leaveDays: by[s.id] || 0 }))
+        .filter((x) => x.leaveDays > 0)
+        .sort((a, b) => b.leaveDays - a.leaveDays);
+    },
+    countStudentsWithAnyLeaveByDept(dept) {
+      return this.getStudentsWithLeaveSortedByDept(dept).length;
+    },
   };
 
   /* ══════════════════════════════
@@ -374,6 +433,7 @@ const API = (() => {
   const Logs = {
     getByClass: cid => load(KEYS.logs).filter(l => l.type === 'class' && l.ref_id === cid).sort((a,b) => b.date.localeCompare(a.date)),
     getByStudent: sid => load(KEYS.logs).filter(l => l.type === 'student' && l.ref_id === sid).sort((a,b) => b.date.localeCompare(a.date)),
+    getByTeacher: tid => load(KEYS.logs).filter(l => l.type === 'teacher' && l.ref_id === tid).sort((a,b) => b.date.localeCompare(a.date)),
     add(type, ref_id, text, by, tag = 'normal') {
       const list = load(KEYS.logs);
       const entry = { id: uid(), type, ref_id, text, date: today(), by, tag };
