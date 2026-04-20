@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   মারকাযুল মদীনা — api.js
+   মাদরাসাতুল মদীনা — api.js
    সব ডেটা লজিক এখানে। localStorage ব্যবহার।
    ═══════════════════════════════════════════ */
 
@@ -429,7 +429,7 @@ const API = (() => {
      SETTINGS
      ══════════════════════════════ */
   const Settings = {
-    get: () => loadObj(KEYS.settings, { institution: 'মারকাযুল মদীনা', hijri_year: '১৪৪৭', admin_pin: '0000' }),
+    get: () => loadObj(KEYS.settings, { institution: 'মাদরাসাতুল মদীনা', hijri_year: '১৪৪৭', admin_pin: '0000' }),
     save: data => save(KEYS.settings, data),
   };
 

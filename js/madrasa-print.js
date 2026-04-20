@@ -16,7 +16,7 @@
    * @param {{ title?: string, bodyHtml: string }} opts
    */
   function printHTML(opts) {
-    var title = opts.title || 'মারকাযুল মদীনা';
+    var title = opts.title || 'মাদরাসাতুল মদীনা';
     var body = opts.bodyHtml || '';
     var w = global.open('', '_blank');
     if (!w) {

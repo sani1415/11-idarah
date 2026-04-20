@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>বার্তা (স্টাফ ↔ মুহতামিম) — মারকাযুল মদীনা</title>
+<title>বার্তা (স্টাফ ↔ মুহতামিম) — মাদরাসাতুল মদীনা</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
   /* ── INBOX (soft light header) ── */
@@ -168,7 +168,7 @@
     showInbox();
   } else if (myThread) {
     const inp0 = document.getElementById('chat-inp');
-    if (inp0) inp0.placeholder = 'মুহতামিমকে বার্তা লিখুন…';
+    if (inp0) inp0.placeholder = 'বার্তা লিখুন…';
     const lbl = ChatAPI.getLabel(myThread);
     openChat(myThread, myName, lbl.icon, lbl.name);
   } else {
@@ -255,7 +255,7 @@
     const msgs = ChatAPI.getThread(activeThread);
     const el   = document.getElementById('chat-msgs');
     if (!msgs.length) {
-      el.innerHTML = `<div class="empty-chat"><div class="empty-chat-icon">💬</div><div class="empty-chat-text">এখনো কোনো বার্তা নেই।<br>মুহতামিমকে লিখুন — অন্য স্টাফ দেখবে না।</div></div>`;
+      el.innerHTML = `<div class="empty-chat"><div class="empty-chat-icon">💬</div><div class="empty-chat-text">এখনো কোনো বার্তা নেই।<br>বার্তা লিখুন — অন্য স্টাফ দেখবে না।</div></div>`;
       return;
     }
     let lastDay = '';
