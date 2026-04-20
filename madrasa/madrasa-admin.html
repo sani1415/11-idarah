@@ -5,31 +5,83 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>মাদ্রাসা মডিউল — মুহতামিম</title>
 <link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/print.css">
 <style>
-  .class-card {
-    background: #fff; border-radius: var(--radius); padding: 16px;
-    box-shadow: var(--shadow); margin-bottom: 10px; cursor: pointer; transition: transform .12s;
+  .class-table-wrap {
+    background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+    margin-bottom: 12px; overflow: hidden;
   }
-  .class-card:active { transform: scale(.98); }
-  .class-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-  .class-name { font-family: 'Noto Serif Bengali', serif; font-size: 15px; font-weight: 700; color: var(--ink2); }
-  .class-teacher { font-size: 11px; color: var(--ink3); margin-top: 2px; }
-  .class-stats { display: flex; gap: 10px; }
-  .cstat { text-align: center; }
-  .cstat-num { font-family: 'Noto Serif Bengali', serif; font-size: 18px; font-weight: 700; color: var(--ink); display: block; }
-  .cstat-label { font-size: 10px; color: var(--ink3); }
-  .class-bottom { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--cream2); }
+  .class-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .class-table {
+    width: 100%; min-width: 520px; border-collapse: collapse;
+    font-family: 'Noto Sans Bengali', sans-serif; font-size: 12px;
+  }
+  .class-table thead th {
+    background: var(--ink); color: var(--gold2); font-weight: 600;
+    padding: 10px 8px; text-align: left; white-space: nowrap;
+    font-size: 11px; letter-spacing: 0.02em;
+  }
+  .class-table thead th.col-num { text-align: center; width: 1%; }
+  .class-table tbody td {
+    padding: 10px 8px; border-bottom: 1px solid var(--cream2);
+    vertical-align: middle; color: var(--ink2);
+  }
+  .class-table tbody tr:last-child td { border-bottom: none; }
+  .class-table tbody tr.class-table-row {
+    cursor: pointer; transition: background .12s;
+  }
+  .class-table tbody tr.class-table-row:hover { background: rgba(0,0,0,0.03); }
+  .class-table tbody tr.class-table-row:active { background: rgba(0,0,0,0.06); }
+  .class-table tbody tr.class-table-row--att { box-shadow: inset 3px 0 0 0 var(--gold); }
+  .class-table tbody tr.class-table-row--fee { box-shadow: inset 3px 0 0 0 var(--red); }
+  .class-table .td-name {
+    font-family: 'Noto Serif Bengali', serif; font-size: 14px; font-weight: 700;
+    color: var(--ink); line-height: 1.3;
+  }
+  .class-table .td-teacher { font-size: 11px; color: var(--ink3); max-width: 120px; }
+  .class-table .td-num {
+    font-family: 'Noto Serif Bengali', serif; font-size: 14px; font-weight: 700;
+    text-align: center; white-space: nowrap;
+  }
+  .class-table .td-num.n-in { color: var(--ink); }
+  .class-table .td-num.n-pr { color: var(--green); }
+  .class-table .td-num.n-ab { color: var(--red); }
+  .class-table .td-num.n-lv { color: var(--gold); }
+  .class-table .td-status { font-size: 10px; line-height: 1.45; color: var(--ink3); }
+  .class-table .td-status .st-dot { display: inline-block; margin-left: 6px; }
+  .class-table .td-status .st-dot:first-child { margin-left: 0; }
 
   .summary-box {
-    background: var(--ink); border-radius: var(--radius); padding: 16px;
-    color: #fff; margin-bottom: 14px;
+    background: var(--ink); border-radius: var(--radius); padding: 10px 10px 11px;
+    color: #fff; margin-bottom: 12px;
   }
-  .sb-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; }
-  .sb-row + .sb-row { border-top: 1px solid rgba(255,255,255,0.08); }
-  .sb-label { font-size: 13px; color: rgba(255,255,255,0.6); }
-  .sb-val { font-family: 'Noto Serif Bengali', serif; font-size: 15px; font-weight: 600; color: var(--gold2); }
-  .sb-val.green { color: #6fcf97; }
-  .sb-val.red { color: #eb7f7f; }
+  .summary-box .sb-head {
+    font-size: 10px; color: rgba(255,255,255,0.42); letter-spacing: 0.04em;
+    margin-bottom: 7px; line-height: 1.2;
+  }
+  .sb-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .sb-cell {
+    background: rgba(255,255,255,0.07);
+    border-radius: var(--radius-sm);
+    padding: 7px 9px;
+    min-width: 0;
+  }
+  .sb-cell--full { grid-column: 1 / -1; }
+  .sb-cell-label {
+    display: block; font-size: 10px; color: rgba(255,255,255,0.52);
+    line-height: 1.25; margin-bottom: 3px;
+  }
+  .sb-cell-val {
+    font-family: 'Noto Serif Bengali', serif; font-size: 14px; font-weight: 700;
+    color: var(--gold2); line-height: 1.2; display: block;
+  }
+  .sb-cell-val.green { color: #6fcf97; }
+  .sb-cell-val.red { color: #eb7f7f; }
+  .sb-cell-val.gold { color: var(--gold2); }
 
   .tab-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; }
   .tab-btn {
@@ -96,7 +148,7 @@
   <div class="topbar-actions">
     <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
     <button class="topbar-btn" onclick="location.href='madrasa-settings.html'">⚙️ সেটিং</button>
-    <button class="topbar-btn" onclick="location.href='../index.html'">প্রস্থান</button>
+    <button type="button" class="topbar-btn" onclick="MMSession.logoutToIndex('../index.html')">লগআউট</button>
   </div>
 </div>
 
@@ -107,11 +159,29 @@
 
     <!-- summary -->
     <div class="summary-box" style="margin-top:8px;">
-      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px;">সামগ্রিক সারসংক্ষেপ · আজ</div>
-      <div class="sb-row"><span class="sb-label">মোট ছাত্র (সক্রিয়)</span><span class="sb-val" id="total-students">—</span></div>
-      <div class="sb-row"><span class="sb-label">আজকের উপস্থিতি</span><span class="sb-val green" id="today-present">—</span></div>
-      <div class="sb-row"><span class="sb-label">আজকের অনুপস্থিতি</span><span class="sb-val red" id="today-absent">—</span></div>
-      <div class="sb-row"><span class="sb-label">হুসনুল খুলুক গড় (৩য় বর্ষ)</span><span class="sb-val" id="avg-khuluk">—</span></div>
+      <div class="sb-head">সামগ্রিক সারসংক্ষেপ · আজ</div>
+      <div class="sb-grid">
+        <div class="sb-cell">
+          <span class="sb-cell-label">মোট ছাত্র (সক্রিয়)</span>
+          <span class="sb-cell-val" id="total-students">—</span>
+        </div>
+        <div class="sb-cell">
+          <span class="sb-cell-label">উপস্থিত</span>
+          <span class="sb-cell-val green" id="today-present">—</span>
+        </div>
+        <div class="sb-cell">
+          <span class="sb-cell-label">অনুপস্থিত</span>
+          <span class="sb-cell-val red" id="today-absent">—</span>
+        </div>
+        <div class="sb-cell">
+          <span class="sb-cell-label">ছুটি</span>
+          <span class="sb-cell-val gold" id="today-leave">—</span>
+        </div>
+        <div class="sb-cell sb-cell--full">
+          <span class="sb-cell-label">হুসনুল খুলুক গড় (৩য় বর্ষ)</span>
+          <span class="sb-cell-val" id="avg-khuluk">—</span>
+        </div>
+      </div>
     </div>
 
     <!-- shortcut grid -->
@@ -152,6 +222,7 @@
 
     <div class="tab-bar">
       <div class="tab-btn active" id="ctab-students" onclick="switchClassTab('students')">ছাত্র তালিকা</div>
+      <div class="tab-btn" id="ctab-attendance" onclick="switchClassTab('attendance')">উপস্থিতি</div>
       <div class="tab-btn" id="ctab-kitab" onclick="switchClassTab('kitab')">কিতাব অগ্রগতি</div>
       <div class="tab-btn" id="ctab-khuluk" onclick="switchClassTab('khuluk')">হুসনুল খুলুক</div>
       <div class="tab-btn" id="ctab-log" onclick="switchClassTab('log')">লগ</div>
@@ -161,6 +232,25 @@
     <!-- students tab -->
     <div id="ctab-content-students">
       <div class="card-static" id="student-list-card"></div>
+    </div>
+
+    <!-- attendance tab -->
+    <div id="ctab-content-attendance" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;background:#fff;border-radius:var(--radius-sm);padding:10px 12px;box-shadow:var(--shadow);">
+        <button onclick="attPrevDay()" style="width:32px;height:32px;border-radius:var(--radius-xs);border:1px solid var(--cream3);background:#fff;font-size:16px;cursor:pointer;">‹</button>
+        <div style="text-align:center;flex:1;">
+          <span id="att-date-display" style="font-size:13px;font-weight:600;color:var(--ink2);">আজ</span>
+          <div id="att-hijri-wrap"></div>
+        </div>
+        <button onclick="attNextDay()" style="width:32px;height:32px;border-radius:var(--radius-xs);border:1px solid var(--cream3);background:#fff;font-size:16px;cursor:pointer;">›</button>
+      </div>
+      <div id="att-catchup-banner" style="display:none;"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;margin-top:10px;" id="att-summary"></div>
+      <div id="att-student-list"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="add-btn" style="flex:1;margin-bottom:0;" onclick="saveAttendance()">✓ সংরক্ষণ</button>
+        <button class="add-btn" style="flex:1;margin-bottom:0;background:var(--ink);" onclick="copyPreviousDay()">↩ আগের দিন কপি</button>
+      </div>
     </div>
 
     <!-- kitab tab -->
@@ -176,6 +266,11 @@
 
     <!-- log tab -->
     <div id="ctab-content-log" style="display:none;">
+      <div style="display:flex;gap:6px;margin-bottom:10px;" id="log-filter-row">
+        <button class="tab-btn active" id="lf-all" onclick="setLogFilter('all')">সব</button>
+        <button class="tab-btn" id="lf-important" onclick="setLogFilter('important')">⚠️ গুরুত্বপূর্ণ</button>
+        <button class="tab-btn" id="lf-followup" onclick="setLogFilter('followup')">🔴 ফলোআপ</button>
+      </div>
       <button class="add-btn" onclick="openModal('add-log')">＋ নতুন লগ এন্ট্রি</button>
       <div id="log-list"></div>
     </div>
@@ -195,6 +290,7 @@
       <span class="sec-title" id="student-detail-name">ছাত্রের বিবরণ</span>
       <span class="sec-link" id="student-back-link" onclick="switchPanel('class')">← ফিরুন</span>
     </div>
+    <div id="student-summary-cards" style="display:flex;gap:8px;margin-bottom:10px;"></div>
     <div id="student-detail-content"></div>
     <div class="pb-safe"></div>
   </div>
@@ -292,8 +388,16 @@
   <div class="modal">
     <div class="modal-title">বর্ষের লগ এন্ট্রি <button class="modal-close" onclick="closeModal('add-log')">✕</button></div>
     <div class="form-group">
+      <label class="form-label">ট্যাগ</label>
+      <select class="form-input form-select" id="log-tag">
+        <option value="normal">✅ সাধারণ</option>
+        <option value="important">⚠️ গুরুত্বপূর্ণ</option>
+        <option value="followup">🔴 ফলোআপ দরকার</option>
+      </select>
+    </div>
+    <div class="form-group">
       <label class="form-label">লগের বিবরণ</label>
-      <textarea class="form-input form-textarea" id="log-text" style="min-height:120px;" placeholder="আজকের পাঠ্যক্রম, বিশেষ ঘটনা, পর্যবেক্ষণ..."></textarea>
+      <textarea class="form-input form-textarea" id="log-text" style="min-height:100px;" placeholder="আজকের পাঠ্যক্রম, বিশেষ ঘটনা, পর্যবেক্ষণ..."></textarea>
     </div>
     <button class="submit-btn" onclick="saveLog()">সংরক্ষণ করুন</button>
   </div>
@@ -354,6 +458,10 @@
 
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/hijri-utils.js"></script>
+<script src="../js/mm-permissions.js"></script>
+<script src="../js/madrasa-print.js"></script>
+<script src="../js/madrasa-attendance-ui.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script>
   // শুধু মুহতামিম — মাদ্রাসা অ্যাডমিন স্ক্রিন; অপারেশনাল এডিট স্টাফ অ্যাকাউন্টে
@@ -388,7 +496,7 @@
   /* ── CLASS TAB ── */
   function switchClassTab(tab) {
     currentClassTab = tab;
-    ['students','kitab','khuluk','log','fees'].forEach(t => {
+    ['students','attendance','kitab','khuluk','log','fees'].forEach(t => {
       document.getElementById('ctab-' + t).classList.toggle('active', t === tab);
       document.getElementById('ctab-content-' + t).style.display = t === tab ? 'block' : 'none';
     });
@@ -402,6 +510,7 @@
     const att = API.Attendance.getTodaySummary();
     document.getElementById('today-present').textContent = toBn(att.present) + ' জন';
     document.getElementById('today-absent').textContent = toBn(att.absent) + ' জন';
+    document.getElementById('today-leave').textContent = toBn(att.leave || 0) + ' জন';
     const avg = API.Khuluk.getClassAvg('cls_k3');
     document.getElementById('avg-khuluk').textContent = toBn(avg);
     renderClassList();
@@ -410,35 +519,60 @@
   function renderClassList() {
     const classes = API.Classes.getByDept(currentDept);
     const el = document.getElementById('class-list');
-    el.innerHTML = classes.map(cls => {
+    if (!classes.length) {
+      el.innerHTML = '<div class="empty-state"><span class="empty-icon">📚</span><div class="empty-text">কোনো বর্ষ নেই</div></div>';
+      return;
+    }
+    const rows = classes.map(cls => {
       const students = API.Students.getByClass(cls.id);
       const teacher = API.Teachers.getByClassId(cls.id);
       const att = API.Attendance.getByClassDate(cls.id, API.today());
-      const present = att.filter(a => a.present).length;
+      const st = API.Attendance.statusOf;
+      const present = att.filter(a => st(a) === 'present').length;
+      const absent = att.filter(a => st(a) === 'absent').length;
+      const onLeave = att.filter(a => st(a) === 'leave').length;
+      const attTaken = att.length > 0;
+      const feeSummary = API.Fees.getByClass(cls.id).slice(-1)[0];
+      const feeDue = feeSummary ? feeSummary.unpaid : 0;
       const avg = API.Khuluk.getClassAvg(cls.id);
-      return `<div class="class-card" onclick="openClass('${cls.id}')">
-        <div class="class-top">
-          <div>
-            <div class="class-name">${API.esc(cls.name)}</div>
-            <div class="class-teacher">${teacher ? API.esc(teacher.name) : 'দায়িত্বশীল নেই'}</div>
-          </div>
-          <div class="class-stats">
-            <div class="cstat"><span class="cstat-num">${toBn(students.length)}</span><span class="cstat-label">ছাত্র</span></div>
-            <div class="cstat"><span class="cstat-num">${toBn(present)}</span><span class="cstat-label">উপস্থিত</span></div>
-            <div class="cstat"><span class="cstat-num">${avg ? toBn(avg) : '—'}</span><span class="cstat-label">খুলুক</span></div>
-          </div>
-        </div>
-        <div class="class-bottom">
-          <span class="list-badge badge-green">${toBn(students.length)} ছাত্র</span>
-          ${present > 0 ? `<span class="list-badge badge-blue">✓ উপস্থিতি নেওয়া</span>` : `<span class="list-badge badge-gold">উপস্থিতি বাকি</span>`}
-        </div>
-      </div>`;
-    }).join('') || '<div class="empty-state"><span class="empty-icon">📚</span><div class="empty-text">কোনো বর্ষ নেই</div></div>';
+      const rowFlag = !attTaken ? 'class-table-row--att' : feeDue > 0 ? 'class-table-row--fee' : '';
+      const statusParts = [
+        attTaken
+          ? '<span style="color:var(--green)">✓ উপস্থিতি</span>'
+          : '<span style="color:var(--gold)">⚠ উপস্থিতি বাকি</span>',
+        feeDue > 0 ? `<span class="st-dot" style="color:var(--red)">বেতন বাকি ${toBn(feeDue)}</span>` : '',
+        avg ? `<span class="st-dot">খুলুক ${toBn(avg)}</span>` : ''
+      ].filter(Boolean).join('');
+      const trClass = rowFlag ? `class-table-row ${rowFlag}` : 'class-table-row';
+      return `<tr class="${trClass}" onclick="openClass('${cls.id}')">
+        <td class="td-name">${API.esc(cls.name)}</td>
+        <td class="td-teacher">${teacher ? API.esc(teacher.name) : '—'}</td>
+        <td class="td-num col-num n-in">${toBn(students.length)}</td>
+        <td class="td-num col-num n-pr">${toBn(present)}</td>
+        <td class="td-num col-num n-ab">${toBn(absent)}</td>
+        <td class="td-num col-num n-lv">${toBn(onLeave)}</td>
+        <td class="td-status">${statusParts}</td>
+      </tr>`;
+    }).join('');
+    el.innerHTML = `<div class="class-table-wrap"><div class="class-table-scroll"><table class="class-table" aria-label="বর্ষ অনুযায়ী সারসংক্ষেপ">
+      <thead><tr>
+        <th scope="col">বর্ষ</th>
+        <th scope="col">শিক্ষক</th>
+        <th scope="col" class="col-num">ছাত্র</th>
+        <th scope="col" class="col-num">উপস্থিত</th>
+        <th scope="col" class="col-num">অনুপস্থিত</th>
+        <th scope="col" class="col-num">ছুটি</th>
+        <th scope="col">অবস্থা</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div></div>`;
   }
 
   function openClass(cid) {
     currentClassId = cid;
     currentClassTab = 'students';
+    attDate = API.today();
+    attData = {};
     const cls = API.Classes.getById(cid);
     document.getElementById('class-detail-title').textContent = cls ? cls.name : '';
     switchPanel('class');
@@ -447,7 +581,7 @@
 
   /* ── CLASS PANEL ── */
   function renderClassPanel() {
-    ['students','kitab','khuluk','log','fees'].forEach((t,i) => {
+    ['students','attendance','kitab','khuluk','log','fees'].forEach((t,i) => {
       document.getElementById('ctab-' + t).classList.toggle('active', i === 0);
       document.getElementById('ctab-content-' + t).style.display = i === 0 ? 'block' : 'none';
     });
@@ -456,6 +590,7 @@
 
   function renderClassTabContent(tab) {
     if (tab === 'students') renderStudentList();
+    else if (tab === 'attendance') renderAttendanceTab();
     else if (tab === 'kitab') renderKitabList();
     else if (tab === 'khuluk') renderKhulukList();
     else if (tab === 'log') renderLogList();
@@ -463,11 +598,23 @@
   }
 
   /* students */
+  function printClassRegister() {
+    const students = API.Students.getByClass(currentClassId);
+    const cls = API.Classes.getById(currentClassId);
+    const rows = students.map(s =>
+      '<tr><td>' + MMPrint.esc(s.permanent_id) + '</td><td>' + MMPrint.esc(s.name) + '</td><td>' + MMPrint.esc(s.roll || '') + '</td></tr>'
+    ).join('');
+    const body = '<h1 style="font-size:16px;">' + MMPrint.esc(cls ? cls.name : 'বর্ষ') + '</h1><p style="font-size:11px;color:#666;">ছাত্র তালিকা · প্রোটোটাইপ</p>' +
+      '<table><thead><tr><th>স্থায়ী নং</th><th>নাম</th><th>রোল</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    MMPrint.printHTML({ title: (cls ? cls.name : 'তালিকা') + ' — মাদ্রাসা', bodyHtml: body });
+  }
+
   function renderStudentList() {
     const students = API.Students.getByClass(currentClassId);
     const el = document.getElementById('student-list-card');
     if (!students.length) { el.innerHTML = '<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো ছাত্র নেই</div></div>'; return; }
-    el.innerHTML = students.map(s => `
+    const printRow = '<div class="no-print" style="margin-bottom:10px;"><button type="button" class="add-btn" style="margin-bottom:0;background:var(--ink);" onclick="printClassRegister()">🖨 ছাত্র তালিকা প্রিন্ট</button></div>';
+    el.innerHTML = printRow + students.map(s => `
       <div class="student-row">
         <span class="s-id">${API.esc(s.permanent_id)}</span>
         <span class="s-name">${API.esc(s.name)}</span>
@@ -523,12 +670,25 @@
     if (sel) sel.innerHTML = students.map(s => `<option value="${s.id}">${API.esc(s.name)}</option>`).join('');
   }
 
+  let currentLogFilter = 'all';
+  function setLogFilter(f) {
+    currentLogFilter = f;
+    ['all','important','followup'].forEach(id => document.getElementById('lf-'+id).classList.toggle('active', id === f));
+    renderLogList();
+  }
+
   /* log */
   function renderLogList() {
-    const logs = API.Logs.getByClass(currentClassId);
+    let logs = API.Logs.getByClass(currentClassId);
+    if (currentLogFilter !== 'all') logs = logs.filter(l => l.tag === currentLogFilter);
+    const tagIcon = { important:'⚠️', followup:'🔴', normal:'✅' };
+    const tagBorder = { important:'var(--gold)', followup:'var(--red)', normal:'var(--green2)' };
     const el = document.getElementById('log-list');
     el.innerHTML = logs.length
-      ? logs.map(l => `<div class="log-item"><div class="log-meta"><span>${API.esc(l.date)}</span><span>${API.esc(l.by)}</span></div><div class="log-text">${API.esc(l.text)}</div></div>`).join('')
+      ? logs.map(l => `<div class="log-item" style="border-color:${tagBorder[l.tag||'normal'] || 'var(--cream3)'};">
+          <div class="log-meta"><span>${tagIcon[l.tag||'normal']||''} ${API.esc(l.date)}</span><span>${API.esc(l.by)}</span></div>
+          <div class="log-text">${API.esc(l.text)}</div>
+        </div>`).join('')
       : '<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-text">কোনো লগ নেই</div></div>';
   }
 
@@ -559,8 +719,34 @@
     const khHistory = API.Khuluk.getByStudent(sid);
     const sLogs = API.Logs.getByStudent(sid);
     const cls = API.Classes.getById(s.class_id);
+
+    // Summary cards
+    const attSummary = cls ? API.Attendance.getSummary(s.class_id, API.today().slice(0,7)) : null;
+    const attPct = attSummary ? attSummary.pct : null;
+    const feeSummary = API.Fees.getByClass(s.class_id).slice(-1)[0];
+    const feeDue = feeSummary ? feeSummary.unpaid > 0 : false;
+    const khScore = k ? k.score : null;
+    const khLabel = khScore >= 80 ? 'চমৎকার' : khScore >= 60 ? 'মধ্যম' : khScore ? 'দুর্বল' : '—';
+    const khColor = khScore >= 80 ? 'var(--green)' : khScore >= 60 ? 'var(--gold)' : 'var(--red)';
+    document.getElementById('student-summary-cards').innerHTML = `
+      <div style="flex:1;background:#fff;border-radius:var(--radius-sm);padding:10px;box-shadow:var(--shadow);text-align:center;">
+        <div style="font-size:16px;font-weight:700;color:var(--blue);">${attPct !== null ? toBn(attPct)+'%' : '—'}</div>
+        <div style="font-size:10px;color:var(--ink3);">উপস্থিতি</div>
+      </div>
+      <div style="flex:1;background:#fff;border-radius:var(--radius-sm);padding:10px;box-shadow:var(--shadow);text-align:center;">
+        <div style="font-size:16px;font-weight:700;color:${feeDue?'var(--red)':'var(--green)'};">${feeDue?'বাকি':'ঠিক আছে'}</div>
+        <div style="font-size:10px;color:var(--ink3);">বেতন</div>
+      </div>
+      <div style="flex:1;background:#fff;border-radius:var(--radius-sm);padding:10px;box-shadow:var(--shadow);text-align:center;">
+        <div style="font-size:16px;font-weight:700;color:${khColor};">${khLabel}</div>
+        <div style="font-size:10px;color:var(--ink3);">খুলুক</div>
+      </div>`;
     document.getElementById('student-detail-content').innerHTML = `
       <div class="card-static" style="margin-bottom:10px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+          ${s.hifz ? '<span class="list-badge badge-ink">📿 হিফজ বিভাগ</span>' : ''}
+          ${s.hifz ? '<span class="list-badge badge-blue">🎖️ হিফজ মনিটর</span>' : '<span class="list-badge badge-green">🎖️ সাধারণ ছাত্র</span>'}
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div><div style="font-size:11px;color:var(--ink3);">স্থায়ী আইডি</div><div style="font-weight:700;">${API.esc(s.permanent_id)}</div></div>
           <div><div style="font-size:11px;color:var(--ink3);">রোল নম্বর</div><div style="font-weight:700;">${API.esc(s.roll || '—')}</div></div>
@@ -571,11 +757,15 @@
           <div><div style="font-size:11px;color:var(--ink3);">ফোন</div><div style="font-weight:600;">${API.esc(s.phone || '—')}</div></div>
           <div><div style="font-size:11px;color:var(--ink3);">ঠিকানা</div><div style="font-weight:600;">${API.esc(s.address || '—')}</div></div>
         </div>
-        ${s.hifz ? '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--cream2);"><span class="list-badge badge-ink">📿 হিফজ বিভাগে আছেন</span></div>' : ''}
         <div style="margin-top:12px;display:flex;gap:8px;">
           <button onclick="promoteStudent('${s.id}')" style="flex:1;padding:10px;background:var(--green-light);color:var(--green);border:1.5px solid var(--green2);border-radius:var(--radius-sm);font-family:'Noto Sans Bengali',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">↑ পরের বর্ষে উন্নীত করুন</button>
           <button onclick="toggleHifz('${s.id}',${s.hifz?'false':'true'})" style="flex:1;padding:10px;background:var(--blue-light);color:var(--blue);border:1.5px solid var(--blue);border-radius:var(--radius-sm);font-family:'Noto Sans Bengali',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">${s.hifz?'📿 হিফজ বাতিল':'📿 হিফজে যোগ'}</button>
         </div>
+      </div>
+      <div style="font-family:'Noto Serif Bengali',serif;font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:8px;">📄 দলিলপত্র</div>
+      <div class="card-static" style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--cream2);font-size:12px;"><span>জন্ম নিবন্ধন</span><span class="list-badge badge-gold">অপেক্ষমাণ</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12px;"><span>আইডি কার্ড</span><span class="list-badge badge-green">অনুমোদিত</span></div>
       </div>
 
       <div style="font-family:\'Noto Serif Bengali\',serif;font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:8px;">হুসনুল খুলুক ইতিহাস</div>
@@ -633,9 +823,10 @@
   function saveLog() {
     if (mmMutationBlocked(showToast)) return;
     const text = document.getElementById('log-text').value.trim();
+    const tag = document.getElementById('log-tag').value;
     if (!text) { showToast('লগ টেক্সট আবশ্যক'); return; }
     const by = MMSession.getName() || 'অ্যাডমিন';
-    API.Logs.add('class', currentClassId, text, by);
+    API.Logs.add('class', currentClassId, text, by, tag);
     document.getElementById('log-text').value = '';
     closeModal('add-log');
     showToast('লগ সংরক্ষিত ✓');
@@ -691,6 +882,106 @@
     API.Students.update(sid, { hifz: val });
     showToast(val ? 'হিফজ বিভাগে যোগ করা হয়েছে ✓' : 'হিফজ বিভাগ থেকে বাদ দেওয়া হয়েছে');
     openStudent(sid);
+  }
+
+  /* ── ATTENDANCE ── */
+  let attDate = API.today();
+  let attData = {};
+
+  function renderAttendanceTab() {
+    const students = API.Students.getByClass(currentClassId);
+    const existing = API.Attendance.getByClassDate(currentClassId, attDate);
+    students.forEach(s => {
+      if (attData[s.id] === undefined) {
+        const rec = existing.find(a => a.student_id === s.id);
+        attData[s.id] = rec ? API.Attendance.statusOf(rec) : 'not_marked';
+      }
+    });
+    const present = Object.values(attData).filter(v => v === 'present').length;
+    const absent = Object.values(attData).filter(v => v === 'absent').length;
+    const onLeave = Object.values(attData).filter(v => v === 'leave').length;
+    const notMarked = students.length - present - absent - onLeave;
+
+    const dateEl = document.getElementById('att-date-display');
+    if (dateEl) dateEl.textContent = attDate === API.today() ? 'আজ · ' + attDate : attDate;
+    const hijriWrap = document.getElementById('att-hijri-wrap');
+    if (hijriWrap && typeof MadrasaAttendanceUI !== 'undefined' && typeof HijriUtils !== 'undefined') {
+      hijriWrap.innerHTML = MadrasaAttendanceUI.hijriSublineHtml(attDate, HijriUtils);
+    } else if (hijriWrap) hijriWrap.innerHTML = '';
+
+    const catchEl = document.getElementById('att-catchup-banner');
+    if (catchEl && typeof MadrasaAttendanceUI !== 'undefined') {
+      const show = MadrasaAttendanceUI.shouldWarnCatchUp(attDate, API.today(), notMarked);
+      catchEl.innerHTML = show ? MadrasaAttendanceUI.catchUpBannerHtml(notMarked, toBn) : '';
+      catchEl.style.display = show ? 'block' : 'none';
+    }
+
+    const sumEl = document.getElementById('att-summary');
+    if (sumEl) sumEl.innerHTML = `
+      <div style="flex:1;min-width:40%;background:var(--green-light);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;color:var(--green);">${toBn(present)}</div><div style="font-size:10px;color:var(--ink3);">উপস্থিত</div>
+      </div>
+      <div style="flex:1;min-width:40%;background:var(--red-light);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;color:var(--red);">${toBn(absent)}</div><div style="font-size:10px;color:var(--ink3);">অনুপস্থিত</div>
+      </div>
+      <div style="flex:1;min-width:40%;background:var(--gold-light);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;color:var(--gold);">${toBn(onLeave)}</div><div style="font-size:10px;color:var(--ink3);">ছুটি</div>
+      </div>
+      <div style="flex:1;min-width:40%;background:var(--cream2);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;color:var(--ink3);">${toBn(notMarked)}</div><div style="font-size:10px;color:var(--ink3);">চিহ্নিত নয়</div>
+      </div>`;
+
+    const listEl = document.getElementById('att-student-list');
+    if (listEl) listEl.innerHTML = students.map(s => {
+      const st = attData[s.id] || 'not_marked';
+      const btn = (val, label, c, bg) => `<button onclick="setAtt('${s.id}','${val}')" style="padding:5px 9px;border-radius:var(--radius-xs);border:1.5px solid ${st===val?c:'var(--cream3)'};background:${st===val?bg:'#fff'};font-size:11px;cursor:pointer;font-family:'Noto Sans Bengali',sans-serif;color:${st===val?c:'var(--ink3)'};">${label}</button>`;
+      return `<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--cream2);gap:8px;">
+        <span style="flex:1;font-size:13px;font-weight:600;">${API.esc(s.name)}</span>
+        ${btn('present','উপস্থিত','var(--green)','var(--green-light)')}
+        ${btn('absent','অনুপস্থিত','var(--red)','var(--red-light)')}
+        ${btn('leave','ছুটি','var(--gold)','var(--gold-light)')}
+      </div>`;
+    }).join('');
+  }
+
+  function setAtt(sid, status) { attData[sid] = status; renderAttendanceTab(); }
+
+  function saveAttendance() {
+    if (mmMutationBlocked(showToast)) return;
+    const students = API.Students.getByClass(currentClassId);
+    students.forEach(s => {
+      const st = attData[s.id];
+      if (st && st !== 'not_marked') API.Attendance.save(s.id, attDate, st);
+    });
+    showToast('উপস্থিতি সংরক্ষিত ✓');
+    renderHome();
+  }
+
+  function copyPreviousDay() {
+    const d = new Date(attDate); d.setDate(d.getDate() - 1);
+    const prev = d.toISOString().split('T')[0];
+    const prevAtt = API.Attendance.getByClassDate(currentClassId, prev);
+    if (!prevAtt.length) { showToast('আগের দিনের উপস্থিতি পাওয়া যায়নি'); return; }
+    prevAtt.forEach(a => { attData[a.student_id] = API.Attendance.statusOf(a); });
+    showToast('কপি হয়েছে');
+    renderAttendanceTab();
+  }
+
+  function attPrevDay() {
+    attData = {};
+    const d = new Date(attDate); d.setDate(d.getDate() - 1);
+    attDate = d.toISOString().split('T')[0];
+    renderAttendanceTab();
+  }
+
+  function attNextDay() {
+    const d = new Date(attDate);
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    if (d >= tomorrow) { showToast('ভবিষ্যতের তারিখ নির্বাচন যাবে না'); return; }
+    attData = {};
+    d.setDate(d.getDate() + 1);
+    attDate = d.toISOString().split('T')[0];
+    renderAttendanceTab();
   }
 
   /* ── DEPT CLASS SELECT ── */

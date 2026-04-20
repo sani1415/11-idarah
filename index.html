@@ -5,17 +5,49 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>মারকাযুল মদীনা</title>
 <link rel="stylesheet" href="css/style.css">
+<style>
+  /* Main role screen: admin full width, other roles in two columns */
+  .role-grid.role-grid-index {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .role-grid.role-grid-index > .role-btn-admin {
+    grid-column: 1 / -1;
+  }
+  .role-grid.role-grid-index .role-btn:not(.role-btn-admin) {
+    padding: 12px 12px;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .role-grid.role-grid-index .role-btn:not(.role-btn-admin) .role-icon {
+    font-size: 22px;
+  }
+  .role-grid.role-grid-index .role-btn:not(.role-btn-admin) .role-name {
+    font-size: 13px;
+    line-height: 1.25;
+  }
+  .role-grid.role-grid-index .role-btn:not(.role-btn-admin) .role-desc {
+    font-size: 10px;
+    line-height: 1.3;
+    margin-top: 3px;
+  }
+</style>
 </head>
 <body>
 
 <!-- ROLE SELECT -->
 <div class="login-screen" id="role-screen">
-  <div class="login-logo">مرکز المدینة</div>
+  <div class="login-logo">مدرسة المدينة</div>
   <div style="font-family:'Noto Serif Bengali',serif;font-size:20px;font-weight:700;color:var(--gold2);text-align:center;margin-bottom:4px;">মারকাযুল মদীনা</div>
   <div class="login-subtitle">আপনার ভূমিকা নির্বাচন করুন</div>
 
-  <div class="role-grid">
-    <div class="role-btn" onclick="selectRole('admin')">
+  <div class="role-grid role-grid-index">
+    <div class="role-btn role-btn-admin" onclick="selectRole('admin')">
       <div class="role-icon">🛡️</div>
       <div>
         <div class="role-name">মুহতামিম / অ্যাডমিন</div>

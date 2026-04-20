@@ -1,0 +1,18 @@
+/* প্রিন্ট — একই পেজ থেকে প্রিন্ট করলে .no-print লুকিয়ে রাখুন */
+@media print {
+  .no-print,
+  .topbar,
+  .bottom-nav,
+  .toast,
+  .modal-bg {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .content {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+}

@@ -176,12 +176,12 @@ const API = (() => {
 
     /* Attendance — today */
     const att = [
-      { id: uid(), student_id: 'std_1', date: today(), present: true },
-      { id: uid(), student_id: 'std_2', date: today(), present: true },
-      { id: uid(), student_id: 'std_3', date: today(), present: false },
-      { id: uid(), student_id: 'std_4', date: today(), present: true },
-      { id: uid(), student_id: 'std_5', date: today(), present: true },
-      { id: uid(), student_id: 'std_6', date: today(), present: true },
+      { id: uid(), student_id: 'std_1', date: today(), status: 'present' },
+      { id: uid(), student_id: 'std_2', date: today(), status: 'present' },
+      { id: uid(), student_id: 'std_3', date: today(), status: 'absent' },
+      { id: uid(), student_id: 'std_4', date: today(), status: 'present' },
+      { id: uid(), student_id: 'std_5', date: today(), status: 'present' },
+      { id: uid(), student_id: 'std_6', date: today(), status: 'present' },
     ];
     save(KEYS.attendance, att);
 
@@ -272,30 +272,52 @@ const API = (() => {
      ATTENDANCE
      ══════════════════════════════ */
   const Attendance = {
+    statusOf(a) {
+      if (!a) return 'present';
+      if (a.status === 'present' || a.status === 'absent' || a.status === 'leave') return a.status;
+      return a.present ? 'present' : 'absent';
+    },
     getByDate: date => load(KEYS.attendance).filter(a => a.date === date),
     getByStudentDate: (sid, date) => load(KEYS.attendance).find(a => a.student_id === sid && a.date === date),
     getByClassDate(cid, date) {
       const sids = Students.getByClass(cid).map(s => s.id);
       return load(KEYS.attendance).filter(a => a.date === date && sids.includes(a.student_id));
     },
-    save(student_id, date, present) {
+    save(student_id, date, statusIn) {
+      let status;
+      if (statusIn === true || statusIn === 'present') status = 'present';
+      else if (statusIn === false || statusIn === 'absent') status = 'absent';
+      else if (statusIn === 'leave') status = 'leave';
+      else status = 'absent';
       const list = load(KEYS.attendance);
       const idx = list.findIndex(a => a.student_id === student_id && a.date === date);
-      if (idx >= 0) list[idx].present = present;
-      else list.push({ id: uid(), student_id, date, present });
+      const row = { id: idx >= 0 ? list[idx].id : uid(), student_id, date, status };
+      if (idx >= 0) list[idx] = row;
+      else list.push(row);
       save(KEYS.attendance, list);
     },
     getSummary(cid, month) {
       const sids = Students.getByClass(cid).map(s => s.id);
       const records = load(KEYS.attendance).filter(a => sids.includes(a.student_id) && a.date.startsWith(month));
       const total = records.length;
-      const present = records.filter(a => a.present).length;
-      return { total, present, absent: total - present, pct: total ? Math.round(present / total * 100) : 0 };
+      const present = records.filter(a => this.statusOf(a) === 'present').length;
+      const absent = records.filter(a => this.statusOf(a) === 'absent').length;
+      const leave = records.filter(a => this.statusOf(a) === 'leave').length;
+      return { total, present, absent, leave, pct: total ? Math.round(present / total * 100) : 0 };
     },
     getTodaySummary() {
-      const all = load(KEYS.attendance).filter(a => a.date === today());
-      return { present: all.filter(a => a.present).length, absent: all.filter(a => !a.present).length, total: all.length };
-    }
+      return this.getDateSummary(today());
+    },
+    getDateSummary(date) {
+      const all = load(KEYS.attendance).filter(a => a.date === date);
+      const st = a => this.statusOf(a);
+      return {
+        present: all.filter(a => st(a) === 'present').length,
+        absent: all.filter(a => st(a) === 'absent').length,
+        leave: all.filter(a => st(a) === 'leave').length,
+        total: all.length,
+      };
+    },
   };
 
   /* ══════════════════════════════
@@ -352,13 +374,14 @@ const API = (() => {
   const Logs = {
     getByClass: cid => load(KEYS.logs).filter(l => l.type === 'class' && l.ref_id === cid).sort((a,b) => b.date.localeCompare(a.date)),
     getByStudent: sid => load(KEYS.logs).filter(l => l.type === 'student' && l.ref_id === sid).sort((a,b) => b.date.localeCompare(a.date)),
-    add(type, ref_id, text, by) {
+    add(type, ref_id, text, by, tag = 'normal') {
       const list = load(KEYS.logs);
-      const entry = { id: uid(), type, ref_id, text, date: today(), by };
+      const entry = { id: uid(), type, ref_id, text, date: today(), by, tag };
       list.push(entry);
       save(KEYS.logs, list);
       return entry;
-    }
+    },
+    getAll: () => load(KEYS.logs).sort((a,b) => b.date.localeCompare(a.date))
   };
 
   /* ══════════════════════════════
@@ -418,8 +441,20 @@ const API = (() => {
     localStorage.setItem(storageKey, JSON.stringify(data));
   }
 
+  function migrateAttendanceStatus() {
+    const list = load(KEYS.attendance);
+    if (!list.some(a => a.present !== undefined && !a.status)) return;
+    save(KEYS.attendance, list.map(a => {
+      if (a.status) return a;
+      const status = a.present ? 'present' : 'absent';
+      const { present, ...rest } = a;
+      return { ...rest, status };
+    }));
+  }
+
   /* ── INIT ── */
   seedIfEmpty();
+  migrateAttendanceStatus();
 
   /* ── PUBLIC API ── */
   return {

@@ -67,10 +67,12 @@
     <div class="tab-bar">
       <div class="tab-btn active" id="etab-results" onclick="switchExamTab('results')">ফলাফল</div>
       <div class="tab-btn" id="etab-entry"   onclick="switchExamTab('entry')">মার্ক এন্ট্রি</div>
+      <div class="tab-btn" id="etab-analytics" onclick="switchExamTab('analytics')">বিশ্লেষণ</div>
       <div class="tab-btn" id="etab-history" onclick="switchExamTab('history')">ইতিহাস</div>
     </div>
     <div id="etab-content-results"></div>
     <div id="etab-content-entry"   style="display:none;"></div>
+    <div id="etab-content-analytics" style="display:none;"></div>
     <div id="etab-content-history" style="display:none;"></div>
     <div class="pb-safe"></div>
   </div>
@@ -118,6 +120,8 @@
 <div class="toast" id="toast"></div>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mm-permissions.js"></script>
+<script src="../js/madrasa-exams-analytics.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script>
   if (!MMSession.getRole()) location.href='../index.html';
@@ -149,12 +153,13 @@
     window.scrollTo(0,0);
   }
   function switchExamTab(tab) {
-    ['results','entry','history'].forEach(t=>{
+    ['results','entry','analytics','history'].forEach(t=>{
       document.getElementById('etab-'+t).classList.toggle('active',t===tab);
       document.getElementById('etab-content-'+t).style.display = t===tab?'block':'none';
     });
     if(tab==='results') renderResults();
     else if(tab==='entry') renderEntry();
+    else if(tab==='analytics') renderExamAnalytics();
     else renderHistory();
   }
 
@@ -192,11 +197,21 @@
     const ex = API.Exams.getAll().find(e=>e.id===eid);
     document.getElementById('exam-detail-name').textContent = ex?.name||'';
     switchPanel('exam');
-    ['results','entry','history'].forEach((t,i)=>{
+    ['results','entry','analytics','history'].forEach((t,i)=>{
       document.getElementById('etab-'+t).classList.toggle('active',i===0);
       document.getElementById('etab-content-'+t).style.display = i===0?'block':'none';
     });
     renderResults();
+  }
+
+  function renderExamAnalytics() {
+    const el = document.getElementById('etab-content-analytics');
+    if (!el) return;
+    if (!currentExamId || typeof ExamAnalytics === 'undefined') {
+      el.innerHTML = '<div class="empty-state"><span class="empty-icon">📊</span><div class="empty-text">বিশ্লেষণ লোড হয়নি</div></div>';
+      return;
+    }
+    el.innerHTML = ExamAnalytics.renderPanelHTML(currentExamId, { esc: API.esc, toBn });
   }
 
   function renderResults() {

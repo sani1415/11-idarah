@@ -55,6 +55,12 @@
     clearAppSession: function () {
       ALL_APP_KEYS.forEach(function (k) { sessionStorage.removeItem(k); });
     },
+
+    /** Clear app session then go to role selection (use from madrasa/*, khedmat staff, etc.). */
+    logoutToIndex: function (href) {
+      this.clearAppSession();
+      location.href = href;
+    },
   };
 
   global.MMSession = MMSession;

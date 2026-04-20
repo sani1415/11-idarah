@@ -30,7 +30,7 @@
   </div>
   <div class="topbar-actions">
     <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../admin-hub.html'">হাব</button>
-    <button class="topbar-btn" onclick="location.href='../index.html'">প্রস্থান</button>
+    <button type="button" class="topbar-btn" onclick="MMSession.logoutToIndex('../index.html')">লগআউট</button>
   </div>
 </div>
 
@@ -39,18 +39,31 @@
   <!-- HOME PANEL -->
   <div class="panel active" id="panel-home">
 
+    <div id="daftar-pending-card" style="background:#fff;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin:8px 0 12px;border-left:4px solid var(--gold);">
+      <div style="font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:8px;">📋 আজকের বাকি</div>
+      <div id="daftar-pending-body" style="font-size:12px;color:var(--ink3);line-height:1.55;"></div>
+    </div>
+
     <div style="background:linear-gradient(135deg,var(--blue),#2471a3);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
-      <div style="font-size:12px;opacity:.6;margin-bottom:8px;" id="today-date"></div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+      <div style="font-size:12px;opacity:.85;margin-bottom:8px;" id="today-date"></div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;text-align:center;">
         <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-present">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">উপস্থিত</div></div>
         <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-absent">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">অনুপস্থিত</div></div>
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-students">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">মোট ছাত্র</div></div>
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-leave">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">ছুটি</div></div>
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-students">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">সক্রিয় ছাত্র</div></div>
       </div>
+      <div style="font-size:10px;opacity:.65;margin-top:10px;text-align:center;" id="att-summary-hint">নির্বাচিত তারিখের সারসংক্ষেপ (সারা প্রতিষ্ঠান)</div>
     </div>
 
     <div class="sec-header">
-      <span class="sec-title">আজকের উপস্থিতি</span>
+      <span class="sec-title">উপস্থিতি</span>
       <span class="sec-link" id="today-label"></span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <button type="button" class="topbar-btn" onclick="daftarPrevDay()" title="আগের দিন">‹</button>
+      <input type="date" class="form-input" id="daftar-att-date" style="flex:1;min-width:140px;padding:10px 12px;font-size:14px;" onchange="onDaftarDateInput()">
+      <button type="button" class="topbar-btn" onclick="daftarNextDay()" title="পরের দিন">›</button>
     </div>
 
     <!-- Class filter tabs -->
@@ -64,10 +77,18 @@
   <!-- FEES PANEL -->
   <div class="panel" id="panel-fees">
     <div class="sec-header" style="margin-top:8px;">
-      <span class="sec-title">বেতন সারসংক্ষেপ</span>
+      <span class="sec-title">বেতন ইতিহাস</span>
+    </div>
+    <div class="form-group" style="margin-bottom:10px;">
+      <label class="form-label">বর্ষ</label>
+      <select class="form-input form-select" id="fee-history-class" onchange="renderFeeHistory()"></select>
+    </div>
+    <div id="fee-history-list"></div>
+
+    <div class="sec-header" style="margin-top:16px;">
+      <span class="sec-title">নতুন সারসংক্ষেপ</span>
     </div>
     <button class="add-btn" style="background:var(--gold);" onclick="openModal('add-fees')">＋ নতুন মাসের সারসংক্ষেপ</button>
-    <div id="fees-list"></div>
     <div class="pb-safe"></div>
   </div>
 
@@ -138,13 +159,87 @@
   }
 
   let selectedClassId = null;
-  const todayStr = API.today();
+  let daftarAttDate = API.today();
+  let attState = {};
+  let feeHistoryClassId = null;
 
-  /* date display */
-  const d = new Date();
-  const days = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
-  document.getElementById('today-date').textContent = days[d.getDay()] + ', ' + toBn(d.getDate()) + '/' + toBn(d.getMonth()+1) + '/' + toBn(d.getFullYear());
-  document.getElementById('today-label').textContent = toBn(todayStr);
+  const daysBn = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+
+  function isoToBnWeekday(iso) {
+    const d = new Date(iso + 'T12:00:00');
+    return daysBn[d.getDay()] + ', ' + toBn(d.getDate()) + '/' + toBn(d.getMonth()+1) + '/' + toBn(d.getFullYear());
+  }
+
+  function updateDateBanner() {
+    document.getElementById('today-date').textContent = isoToBnWeekday(daftarAttDate) + (daftarAttDate === API.today() ? ' · আজ' : '');
+    document.getElementById('today-label').textContent = toBn(daftarAttDate);
+    const inp = document.getElementById('daftar-att-date');
+    if (inp) {
+      inp.max = API.today();
+      inp.value = daftarAttDate;
+    }
+  }
+
+  function setDaftarAttDate(iso) {
+    daftarAttDate = iso;
+    attState = {};
+    updateDateBanner();
+    renderAttendance();
+    updateSummary();
+  }
+
+  function daftarPrevDay() {
+    const d = new Date(daftarAttDate + 'T12:00:00');
+    d.setDate(d.getDate() - 1);
+    setDaftarAttDate(d.toISOString().split('T')[0]);
+  }
+
+  function daftarNextDay() {
+    if (daftarAttDate >= API.today()) {
+      showToast('ভবিষ্যতের তারিখ নির্বাচন যাবে না');
+      return;
+    }
+    const d = new Date(daftarAttDate + 'T12:00:00');
+    d.setDate(d.getDate() + 1);
+    const next = d.toISOString().split('T')[0];
+    if (next > API.today()) {
+      showToast('ভবিষ্যতের তারিখ নির্বাচন যাবে না');
+      return;
+    }
+    setDaftarAttDate(next);
+  }
+
+  function onDaftarDateInput() {
+    const v = document.getElementById('daftar-att-date').value;
+    if (!v) return;
+    if (v > API.today()) {
+      showToast('ভবিষ্যতের তারিখ নির্বাচন যাবে না');
+      document.getElementById('daftar-att-date').value = daftarAttDate;
+      return;
+    }
+    setDaftarAttDate(v);
+  }
+
+  function renderPendingCard() {
+    const todayStr = API.today();
+    const classes = API.Classes.getAll();
+    const pendingNames = [];
+    let complete = 0;
+    classes.forEach(cls => {
+      const att = API.Attendance.getByClassDate(cls.id, todayStr);
+      if (att.length === 0) pendingNames.push(cls.name);
+      else complete++;
+    });
+    const el = document.getElementById('daftar-pending-body');
+    if (!el) return;
+    if (pendingNames.length === 0) {
+      el.innerHTML = '<span style="color:var(--green);font-weight:600;">✓ সব বর্ষে আজকের উপস্থিতি নেওয়া হয়েছে</span> · <strong>' + toBn(complete) + '</strong> / ' + toBn(classes.length) + ' বর্ষ';
+      return;
+    }
+    el.innerHTML =
+      '<div style="margin-bottom:6px;"><strong>' + toBn(pendingNames.length) + '</strong> বর্ষে আজ উপস্থিতি এখনো সেভ হয়নি · <strong>' + toBn(complete) + '</strong> বর্ষ সম্পূর্ণ (মোট ' + toBn(classes.length) + ')</div>' +
+      '<div style="font-size:11px;color:var(--ink2);">বাকি: ' + pendingNames.map(n => API.esc(n)).join(' · ') + '</div>';
+  }
 
   function switchPanel(name) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -152,6 +247,7 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('nav-' + name)?.classList.add('active');
     window.scrollTo(0, 0);
+    if (name === 'home') renderPendingCard();
   }
 
   /* ── CLASS TABS ── */
@@ -166,6 +262,7 @@
 
   function selectClass(cid) {
     selectedClassId = cid;
+    attState = {};
     renderClassTabs();
     renderAttendance();
   }
@@ -173,7 +270,7 @@
   /* ── ATTENDANCE ── */
   function renderAttendance() {
     const students = API.Students.getByClass(selectedClassId);
-    const existing = API.Attendance.getByClassDate(selectedClassId, todayStr);
+    const existing = API.Attendance.getByClassDate(selectedClassId, daftarAttDate);
     const el = document.getElementById('attendance-area');
 
     if (!students.length) {
@@ -189,13 +286,14 @@
       </div>
       ${students.map(s => {
         const rec = existing.find(a => a.student_id === s.id);
-        const present = rec ? rec.present : true;
+        const st = attState[s.id] !== undefined ? attState[s.id] : (rec ? API.Attendance.statusOf(rec) : 'present');
         return `<div class="att-row" id="att-${s.id}">
           <span class="att-id">${API.esc(s.permanent_id)}</span>
           <span class="att-name">${API.esc(s.name)}</span>
           <div class="att-toggle">
-            <button class="att-btn ${present ? 'present' : ''}" onclick="markAtt('${s.id}', true, this.closest('.att-row'))" title="উপস্থিত">✓</button>
-            <button class="att-btn ${!present ? 'absent' : ''}" onclick="markAtt('${s.id}', false, this.closest('.att-row'))" title="অনুপস্থিত">✗</button>
+            <button type="button" class="att-btn ${st === 'present' ? 'present' : ''}" onclick="markAtt('${s.id}','present',this.closest('.att-row'))" title="উপস্থিত">✓</button>
+            <button type="button" class="att-btn ${st === 'absent' ? 'absent' : ''}" onclick="markAtt('${s.id}','absent',this.closest('.att-row'))" title="অনুপস্থিত">✗</button>
+            <button type="button" class="att-btn ${st === 'leave' ? 'leave' : ''}" onclick="markAtt('${s.id}','leave',this.closest('.att-row'))" title="ছুটি">ছ</button>
           </div>
         </div>`;
       }).join('')}
@@ -204,56 +302,79 @@
     updateSummary();
   }
 
-  const attState = {};
-
-  function markAtt(sid, present, row) {
+  function markAtt(sid, status, row) {
     if (mmMutationBlocked(showToast)) return;
-    attState[sid] = present;
+    attState[sid] = status;
     const btns = row.querySelectorAll('.att-btn');
-    btns[0].classList.toggle('present', present);
-    btns[1].classList.toggle('absent', !present);
+    btns.forEach(b => b.classList.remove('present', 'absent', 'leave'));
+    if (status === 'present') btns[0].classList.add('present');
+    else if (status === 'absent') btns[1].classList.add('absent');
+    else btns[2].classList.add('leave');
   }
 
   function saveAllAttendance() {
     if (mmMutationBlocked(showToast)) return;
     const students = API.Students.getByClass(selectedClassId);
+    const existing = API.Attendance.getByClassDate(selectedClassId, daftarAttDate);
     students.forEach(s => {
-      const present = attState[s.id] !== undefined ? attState[s.id] : true;
-      API.Attendance.save(s.id, todayStr, present);
+      let st = attState[s.id];
+      if (st === undefined) {
+        const rec = existing.find(a => a.student_id === s.id);
+        st = rec ? API.Attendance.statusOf(rec) : 'present';
+      }
+      API.Attendance.save(s.id, daftarAttDate, st);
     });
     showToast('উপস্থিতি সংরক্ষিত হয়েছে ✓');
+    attState = {};
     updateSummary();
     renderAttendance();
+    renderPendingCard();
   }
 
   function updateSummary() {
-    const all = API.Attendance.getTodaySummary();
-    document.getElementById('total-present').textContent = toBn(all.present);
-    document.getElementById('total-absent').textContent = toBn(all.absent);
+    const sum = API.Attendance.getDateSummary(daftarAttDate);
+    document.getElementById('total-present').textContent = toBn(sum.present);
+    document.getElementById('total-absent').textContent = toBn(sum.absent);
+    document.getElementById('total-leave').textContent = toBn(sum.leave || 0);
     document.getElementById('total-students').textContent = toBn(API.Students.getAll().filter(s => s.active).length);
   }
 
   /* ── FEES ── */
   function renderFees() {
     const classes = API.Classes.getAll();
-    const el = document.getElementById('fees-list');
-    el.innerHTML = classes.map(cls => {
-      const latest = API.Fees.getLatest(cls.id);
-      if (!latest) return '';
-      return `<div class="card-static" style="margin-bottom:10px;">
-        <div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;margin-bottom:8px;">${API.esc(cls.name)} · ${latest.month}</div>
-        <div style="display:flex;gap:14px;font-size:13px;flex-wrap:wrap;">
-          <span>মোট: <strong>${toBn(latest.total)}</strong></span>
-          <span style="color:var(--green)">আদায়: <strong>${toBn(latest.paid)}</strong></span>
-          <span style="color:var(--red)">বাকি: <strong>${toBn(latest.unpaid || (latest.total - latest.paid))}</strong></span>
-          ${latest.arrear ? `<span style="color:var(--red)">বকেয়া: ৳ ${toBn(latest.arrear)}</span>` : ''}
-        </div>
-        ${latest.note ? `<div style="font-size:12px;color:var(--ink3);margin-top:6px;">${API.esc(latest.note)}</div>` : ''}
-      </div>`;
-    }).join('') || '<div class="empty-state"><span class="empty-icon">💰</span><div class="empty-text">কোনো বেতন সারসংক্ষেপ নেই</div></div>';
-
-    // populate select
+    const sel = document.getElementById('fee-history-class');
+    const prev = feeHistoryClassId || sel.value;
+    sel.innerHTML = classes.map(c => `<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
+    if (prev && classes.some(c => c.id === prev)) sel.value = prev;
+    else if (selectedClassId && classes.some(c => c.id === selectedClassId)) sel.value = selectedClassId;
+    feeHistoryClassId = sel.value;
+    renderFeeHistory();
     document.getElementById('fee-class').innerHTML = classes.map(c => `<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
+  }
+
+  function renderFeeHistory() {
+    const sel = document.getElementById('fee-history-class');
+    const cid = sel.value;
+    feeHistoryClassId = cid;
+    const rows = API.Fees.getByClass(cid);
+    const el = document.getElementById('fee-history-list');
+    if (!rows.length) {
+      el.innerHTML = '<div class="empty-state"><span class="empty-icon">💰</span><div class="empty-text">এই বর্ষে কোনো বেতন সারসংক্ষেপ নেই</div></div>';
+      return;
+    }
+    el.innerHTML = rows.map(f => {
+      const unpaid = f.unpaid != null ? f.unpaid : (f.total - f.paid);
+      return `<div class="card-static" style="margin-bottom:10px;">
+        <div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;margin-bottom:8px;">${API.esc(f.month)}</div>
+        <div style="display:flex;gap:14px;font-size:13px;flex-wrap:wrap;">
+          <span>মোট: <strong>${toBn(f.total)}</strong></span>
+          <span style="color:var(--green)">আদায়: <strong>${toBn(f.paid)}</strong></span>
+          <span style="color:var(--red)">বাকি: <strong>${toBn(unpaid)}</strong></span>
+          ${f.arrear ? `<span style="color:var(--red)">বকেয়া: ৳ ${toBn(f.arrear)}</span>` : ''}
+        </div>
+        ${f.note ? `<div style="font-size:12px;color:var(--ink3);margin-top:6px;">${API.esc(f.note)}</div>` : ''}
+      </div>`;
+    }).join('');
   }
 
   function saveFees() {
@@ -268,6 +389,7 @@
     API.Fees.add({ month, class_id, total, paid, unpaid: total - paid, arrear, note });
     closeModal('add-fees');
     showToast('সংরক্ষিত হয়েছে ✓');
+    feeHistoryClassId = class_id;
     renderFees();
   }
 
@@ -280,9 +402,11 @@
   function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
 
   /* init */
+  updateDateBanner();
   renderClassTabs();
   renderAttendance();
   updateSummary();
+  renderPendingCard();
 </script>
 </body>
 </html>

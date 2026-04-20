@@ -1,0 +1,2663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Loading... - Student Management System</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <link href="mobile.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PWA Meta Tags for Android & iOS -->
+    <link rel="manifest" href="/pwa/manifest.json">
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Madani Maktab">
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa/icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/pwa/icons/icon-512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/pwa/icons/icon-192.png">
+    <link rel="icon" type="image/x-icon" href="/pwa/icons/favicon.ico">
+    <script>
+        // Load app name immediately to prevent flash on loading screen
+        (async function() {
+            let appName = 'Loading...'; // Show loading state instead of hardcoded name
+            
+            try {
+                const response = await fetch('/api/settings/appName');
+                if (response.ok) {
+                    const data = await response.json();
+                    appName = data.value || 'Student Management System'; // Generic fallback
+                } else {
+                    // Try localStorage as backup
+                    appName = localStorage.getItem('madaniMaktabAppName') || 'Student Management System';
+                }
+            } catch (error) {
+                console.log('Using fallback app name');
+                appName = localStorage.getItem('madaniMaktabAppName') || 'Student Management System';
+            }
+            
+            // Update loading screen elements immediately
+            const loadingAppName = document.getElementById('loadingAppName');
+            if (loadingAppName) {
+                loadingAppName.textContent = appName;
+            }
+            
+            // Update page title
+            const pageTitle = document.getElementById('pageTitle');
+            if (pageTitle) {
+                        pageTitle.textContent = `${appName} - Student Management System`;
+            }
+            
+            // Save to localStorage for consistency
+            localStorage.setItem('madaniMaktabAppName', appName);
+        })();
+    </script>
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        color: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    ">
+        <div style="text-align: center;">
+            <div style="
+                width: 60px;
+                height: 60px;
+                border: 4px solid rgba(255,255,255,0.3);
+                border-radius: 50%;
+                border-top-color: white;
+                animation: spin 1s ease-in-out infinite;
+                margin: 0 auto 20px;
+            "></div>
+            <h2 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 300;">
+                <i class="fas fa-graduation-cap"></i> <span id="loadingAppName">Loading...</span>
+            </h2>
+            <p style="margin: 0; font-size: 16px; opacity: 0.8;">
+                Loading your dashboard...
+            </p>
+        </div>
+    </div>
+    
+    <!-- Main Application Content (hidden initially) -->
+    <div id="mainAppContent" style="display: none;">
+    <!-- Top bar: app name only (desktop). On mobile, header-controls-mobile shows year/language/user/logout. -->
+    <header class="header">
+        <div class="container header-container">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 onclick="if(typeof navigateToSection === 'function') navigateToSection('dashboard'); else console.error('navigateToSection not available');" style="cursor: pointer;" title="Go to Dashboard">
+                        <i class="fas fa-graduation-cap"></i> <span id="headerAppName">Loading...</span>
+                    </h1>
+                    <p class="header-tagline">Student Management System</p>
+                </div>
+                <div class="header-controls header-controls-mobile">
+                    <div class="language-selector">
+                        <label for="languageSelector"><i class="fas fa-globe"></i></label>
+                        <select id="languageSelector" onchange="changeLanguage(this.value)">
+                            <option value="en">English</option>
+                            <option value="bn">বাংলা</option>
+                        </select>
+                    </div>
+                    <div class="language-selector" id="activeEducationalYearControlMobile">
+                        <label><i class="fas fa-calendar-alt"></i></label>
+                        <div class="header-year-display">
+                            <span class="header-year-label">Year</span>
+                            <span id="currentEducationalYearTextMobile">Loading year...</span>
+                        </div>
+                    </div>
+                    <div class="user-info">
+                        <span id="currentUserMobile" style="margin-right: 15px; color: #fff; font-weight: 500;"></span>
+                        <button onclick="logout()" class="logout-btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                            <i class="fas fa-sign-out-alt"></i> <span data-translate="logout">Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-layout">
+        <!-- Desktop sidebar: navigation + year, language, user, logout -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <ul class="nav-list" id="navList">
+                    <li class="admin-only"><a href="#dashboard" onclick="if(typeof navigateToSection === 'function') navigateToSection('dashboard'); else console.error('navigateToSection not available');" class="nav-link">
+                        <i class="fas fa-home"></i> <span data-translate="dashboard">Dashboard</span>
+                    </a></li>
+                    <li class="admin-only"><a href="#registration" onclick="if(typeof navigateToSection === 'function') navigateToSection('registration'); else console.error('navigateToSection not available');" class="nav-link">
+                        <i class="fas fa-user-plus"></i> <span data-translate="registerStudent">Register Student</span>
+                    </a></li>
+                    <li class="admin-only"><a href="#attendance" onclick="if(typeof navigateToSection === 'function') navigateToSection('attendance'); else console.error('navigateToSection not available');" class="nav-link">
+                        <i class="fas fa-check-circle"></i> <span data-translate="dailyAttendance">Daily Attendance</span>
+                    </a></li>
+                    <li class="admin-only"><a href="#reports" onclick="if(typeof navigateToSection === 'function') navigateToSection('reports'); else console.error('navigateToSection not available');" class="nav-link">
+                        <i class="fas fa-chart-bar"></i> <span data-translate="reports">Reports</span>
+                    </a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" onclick="if(typeof toggleTeachersCornerDropdown === 'function') toggleTeachersCornerDropdown(); else console.error('toggleTeachersCornerDropdown not available');">
+                            <i class="fas fa-chalkboard-teacher"></i> <span data-translate="teachersCorner">Teachers Corner</span> <i class="fas fa-chevron-down"></i>
+                        </a>
+                        <div id="teachersCornerDropdown" class="dropdown-menu" style="display: none;">
+                            <!-- Class options will be populated dynamically -->
+                        </div>
+                    </li>
+                    <li class="admin-only"><a href="#settings" onclick="if(typeof showSection === 'function') showSection('settings'); else console.error('showSection not available');" class="nav-link">
+                        <i class="fas fa-cog"></i> <span data-translate="settings">Settings</span>
+                    </a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-item language-selector" id="activeEducationalYearControl">
+                    <label><i class="fas fa-calendar-alt"></i></label>
+                    <div class="header-year-display">
+                        <span class="header-year-label">Year</span>
+                        <span id="currentEducationalYearText">Loading year...</span>
+                    </div>
+                </div>
+                <div class="sidebar-footer-item language-selector">
+                    <label for="languageSelectorDesktop"><i class="fas fa-globe"></i></label>
+                    <select id="languageSelectorDesktop" onchange="changeLanguage(this.value)">
+                        <option value="en">English</option>
+                        <option value="bn">বাংলা</option>
+                    </select>
+                </div>
+                <div class="sidebar-footer-item user-info">
+                    <span id="currentUser" style="font-weight: 500;"></span>
+                </div>
+                <div class="sidebar-footer-item">
+                    <button onclick="logout()" class="logout-btn sidebar-logout">
+                        <i class="fas fa-sign-out-alt"></i> <span data-translate="logout">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+        <div class="container">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section">
+                <h2>Dashboard</h2>
+
+                <!-- Year setup needed banner (shown when active year has no enrollments) -->
+                <div id="yearSetupBanner" style="display:none;" class="year-setup-banner">
+                    <div class="year-setup-banner-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="year-setup-banner-body">
+                        <strong id="yearSetupBannerTitle" data-translate="yearSetupNeededTitle">এই শিক্ষাবর্ষে এখনো কোনো শিক্ষার্থী enroll করা হয়নি।</strong>
+                        <span id="yearSetupBannerDesc" data-translate="yearSetupNeededDesc"> Settings → Academic → Year Setup থেকে আগের বর্ষের তথ্য কপি করুন অথবা নতুন করে শিক্ষার্থী যোগ করুন।</span>
+                    </div>
+                    <button class="year-setup-banner-btn" onclick="showSection('settings'); setTimeout(() => { if(typeof openAcademicSubtab === 'function') openAcademicSubtab('yearSetup'); }, 300);" data-translate="goToYearSetup">Year Setup খুলুন</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <h3 id="totalStudents">0</h3>
+                        <p data-translate="totalStudents">Total Students</p>
+                    </div>
+                    <div class="stat-card attendance-combined-card">
+                        <div class="performance-tiers">
+                            <div class="tier present-tier">
+                                <span class="tier-count" id="presentToday">0</span>
+                                <span class="tier-label" data-translate="present">Present</span>
+                            </div>
+                            <div class="tier absent-tier">
+                                <span class="tier-count" id="absentToday">0</span>
+                                <span class="tier-label" data-translate="absent">Absent</span>
+                            </div>
+                            <div class="tier percentage-tier">
+                                <span class="tier-count" id="attendanceRate">0%</span>
+                                <span class="tier-label" data-translate="percentage">Percentage</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="showInactiveStudentsList()" style="cursor: pointer;">
+                        <i class="fas fa-user-slash"></i>
+                        <h3 id="inactiveStudents">0</h3>
+                        <p data-translate="inactiveStudents">Inactive Students</p>
+                    </div>
+                    <div class="stat-card" onclick="openCommunicationsWindow()" style="cursor: pointer;">
+                        <i class="fas fa-comments text-4xl text-indigo-500 mb-4"></i>
+                        <p class="text-gray-500 mb-3" data-translate="communications">Communications</p>
+                        <div id="communications-counts" class="text-lg font-semibold text-gray-800">
+                            <!-- Loading spinner (shown initially) -->
+                            <div id="communications-loading" class="flex justify-center items-center">
+                                <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                            </div>
+                            <!-- Actual content (hidden initially, shown after loading) -->
+                            <div id="communications-content" class="flex justify-center items-center gap-4" style="display: none;">
+                                <div class="text-center">
+                                    <div id="main-messages-count" class="text-2xl font-bold text-indigo-600">0</div>
+                                    <div class="text-sm text-gray-600">Messages</div>
+                                </div>
+                                <div class="text-center">
+                                    <div id="main-teacher-logs-count" class="text-2xl font-bold text-purple-600">0</div>
+                                    <div class="text-sm text-gray-600">Logs</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="openBookProgressWindow()" style="cursor: pointer;">
+                        <i class="fas fa-book-open text-4xl text-teal-500 mb-4"></i>
+                        <p class="text-gray-500 mb-3" data-translate="bookProgress">শিক্ষাপ্রগতি</p>
+                        <div id="book-progress-counts" class="text-lg font-semibold text-gray-800">
+                            <!-- Loading spinner (shown initially) -->
+                            <div id="book-progress-loading" class="flex justify-center items-center">
+                                <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                            </div>
+                            <!-- Actual content (hidden initially, shown after loading) -->
+                            <div id="book-progress-content" class="flex flex-col items-center gap-2" style="display: none;">
+                                <div id="book-progress-overall" class="text-3xl font-bold text-teal-600">0%</div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                                    <div id="book-progress-bar" class="bg-teal-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                                <div class="text-xs text-gray-600 text-center">
+                                    <span id="book-progress-stats">0 Books</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card performance-card">
+                        <i class="fas fa-star"></i>
+                        <div class="performance-tiers">
+                            <div class="tier mustaid">
+                                <span class="tier-count" id="mustaidCount">0</span>
+                                <span class="tier-label" data-translate="mustaid">Mustaid</span>
+                            </div>
+                            <div class="tier mutawassit">
+                                <span class="tier-count" id="mutawassitCount">0</span>
+                                <span class="tier-label" data-translate="mutawassit">Mutawassit</span>
+                            </div>
+                            <div class="tier mujtahid">
+                                <span class="tier-count" id="mujtahidCount">0</span>
+                                <span class="tier-label" data-translate="mujtahid">Mujtahid</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card" id="alerts-card" onclick="showAlertsModal()" style="cursor: pointer;">
+                        <div class="alerts-header">
+                            <i id="alerts-icon" class="fas fa-exclamation-triangle text-3xl text-gray-500 mb-2" style="display: none;"></i>
+                            <h3 id="alerts-count" class="text-3xl font-bold text-gray-800">
+                                <i class="fas fa-spinner fa-spin text-gray-400" style="font-size: 1.5rem;"></i>
+                            </h3>
+                            <p data-translate="alerts" class="text-sm text-gray-600">Alerts</p>
+                        </div>
+                        <div class="alerts-preview" id="alerts-preview">
+                            <!-- Compact alerts will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="showAbsenceSummaryModal()" style="cursor: pointer;">
+                        <i class="fas fa-user-clock"></i>
+                        <h3 id="studentsWithAbsences">0</h3>
+                        <p data-translate="studentsWithAbsences">Students with Absences</p>
+                    </div>
+                </div>
+                
+                <!-- Main Dashboard Alerts -->
+                <div id="main-dashboard-alerts" class="dashboard-alerts-section" style="display: none;">
+                    <h3><i class="fas fa-exclamation-triangle"></i> <span data-translate="institution_alerts">Institution Alerts</span></h3>
+                    <div id="main-alerts-content" class="alerts-content">
+                        <!-- Alerts will be rendered here -->
+                    </div>
+                </div>
+                
+                <!-- Class-wise Stats -->
+                <div class="class-wise-stats">
+                    <h3><span data-translate="class_wise_information">Class-wise Information</span></h3>
+                    <div class="class-stats-table-container">
+                        <div id="classStatsLoading" class="loading-indicator">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span data-translate="loading_class_statistics">Loading class statistics...</span>
+                        </div>
+                        <div class="class-stats-scrollable">
+                            <table class="class-stats-table" id="classStatsTable" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th data-translate="class">Class</th>
+                                        <th data-translate="total">Total</th>
+                                        <th data-translate="present">Present</th>
+                                        <th data-translate="absent">Absent</th>
+                                        <th data-translate="rate">Rate</th>
+                                        <th data-translate="inactive">Inactive</th>
+                                        <th data-translate="avg_score">Avg Score</th>
+                                        <th data-translate="mustaid">Mustaid</th>
+                                        <th data-translate="mutawassit">Mutawassit</th>
+                                        <th data-translate="mujtahid">Mujtahid</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="classWiseTableBody">
+                                    <!-- Class-wise statistics will be displayed here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Student Registration Section -->
+            <section id="registration" class="section">
+                <h2>Student Management</h2>
+                
+                
+                <!-- Students List Container -->
+                <div id="studentsListContainer" class="students-management">
+                    <!-- Student list will be populated here by JavaScript -->
+                </div>
+                
+                <!-- Student Registration Form (Hidden by default) -->
+                <div id="studentRegistrationForm" class="student-form-container" style="display: none;">
+                    <div class="form-header">
+                        <h3>Register New Student</h3>
+                        <button type="button" onclick="hideStudentRegistrationForm()" class="btn btn-secondary btn-small">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </button>
+                    </div>
+                    
+                    <form id="studentForm" class="form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="studentName">Student Name *</label>
+                                <input type="text" id="studentName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fatherName">Father's Name *</label>
+                                <input type="text" id="fatherName" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rollNumber">Roll Number *</label>
+                                <input type="text" id="rollNumber" required placeholder="">
+                                <small style="color: #666; font-size: 0.8em;">Each roll number must be unique</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="studentClass">Class *</label>
+                                <select id="studentClass" required>
+                                    <option value="">Select Class</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="district">District *</label>
+                                <input type="text" id="district" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="upazila">Sub-district (Upazila) *</label>
+                                <input type="text" id="upazila" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="mobile">Mobile Number *</label>
+                                <input type="tel" id="mobile" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="studentPhoto">Student Photo (Optional)</label>
+                                <input type="file" id="studentPhoto" accept="image/jpeg,image/png" style="padding: 8px;">
+                                <small style="color: #666; font-size: 0.8em;">Max 200KB, JPG/PNG only</small>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Register Student
+                            </button>
+                            <button type="button" onclick="hideStudentRegistrationForm()" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Daily Attendance Section -->
+            <section id="attendance" class="section">
+                <div class="attendance-header">
+                    <h2><i class="fas fa-check-circle"></i> Daily Attendance</h2>
+                    <div class="attendance-date-selector">
+                        <input type="date" id="attendanceDate" max="">
+                    </div>
+                </div>
+
+                <div class="attendance-controls">
+                    <div class="class-filter">
+                        <label for="classFilter">Class:</label>
+                        <select id="classFilter">
+                            <option value="">All Classes</option>
+                        </select>
+                        <button onclick="resetAttendanceClassFilter()" class="btn btn-sm btn-secondary" title="Reset to All Classes" style="margin-left: 5px; padding: 2px 8px; font-size: 0.8rem;">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <span class="student-count">(<span id="filteredStudentCount">0</span> students)</span>
+                    </div>
+                    <div class="bulk-actions">
+                        <button onclick="markAllPresent()" class="btn btn-success btn-sm">
+                            <i class="fas fa-check-double"></i> <span data-translate="markAllPresent">Mark All Present</span>
+                        </button>
+                        <button onclick="showMarkAllAbsentModal()" class="btn btn-danger btn-sm">
+                            <i class="fas fa-user-slash"></i> <span data-translate="markAllAbsent">Mark All Absent</span>
+                        </button>
+                        <button onclick="markAllHoliday()" class="btn btn-holiday btn-sm">
+                            <i class="fas fa-calendar-day"></i> <span data-translate="markAllHoliday">Mark All Holiday</span>
+                        </button>
+                        <button onclick="markAllNeutral()" class="btn btn-clear btn-sm">
+                            <i class="fas fa-eraser"></i> <span data-translate="markAllNeutral">Clear All</span>
+                        </button>
+                        <button onclick="copyPreviousDayAttendance()" class="btn btn-copy btn-sm">
+                            <i class="fas fa-copy"></i> <span data-translate="copyPreviousDay">Copy Previous Day</span>
+                        </button>
+                        <button onclick="saveAttendance()" class="btn btn-primary btn-sm btn-save-attendance">
+                            <i class="fas fa-save"></i> Save Attendance
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="attendanceList" class="attendance-list">
+                    <!-- Student attendance rows will be populated here -->
+                </div>
+                
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports" class="section">
+                <h2>Attendance Reports</h2>
+                
+                <!-- Attendance Tracking Calendar Button -->
+                <div class="calendar-toggle" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3498db;">
+                    <button onclick="showAttendanceCalendar()" class="btn btn-info" style="margin-bottom: 10px;">
+                        📅 <span data-translate="showAttendanceTrackingCalendar">Show Attendance Tracking Calendar</span>
+                    </button>
+                    <p style="font-size: 0.9rem; color: #666; margin: 0;">
+                        <em>📊 <span data-translate="viewAttendanceStatistics">View which days attendance was taken vs missed this month with summary statistics</span></em>
+                    </p>
+                </div>
+                
+                <div class="report-controls">
+                    <div id="dateRestrictionNotice" class="date-restriction-notice" style="display: none;">
+                        <i class="fas fa-info-circle"></i>
+                        <span data-translate="dateRestrictionNotice">Date selection is restricted to academic year period</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reportStartDate">From Date:</label>
+                            <input type="date" id="reportStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="reportEndDate">To Date:</label>
+                            <input type="date" id="reportEndDate">
+                        </div>
+                    </div>
+                    <button onclick="generateReport()" class="btn btn-primary">
+                        <i class="fas fa-chart-bar"></i> Generate Report
+                    </button>
+                    <button onclick="generateFromBeginningReport()" class="btn btn-success" style="margin-left: 10px;">
+                        <i class="fas fa-calendar-alt"></i> <span data-translate="fromBeginningReport">From Beginning Report</span>
+                    </button>
+                </div>
+                <div id="reportResults" class="report-results">
+                    <p data-translate="selectDateRangeToGenerate">Select date range and click "Generate Report" to view attendance data.</p>
+                </div>
+            </section>
+
+
+
+            <!-- Teachers Corner Section -->
+            <section id="teachers-corner-section" class="section">
+                <h2 id="class-dashboard-title" class="text-2xl font-bold mb-6 pb-2"></h2>
+    
+                <!-- Today's Summary - Redesigned Layout -->
+                <!-- Row 1: 2 cards side by side -->
+                <div class="grid grid-cols-2 gap-4 mb-4" id="tc-stats-row-1">
+                    <div class="stat-card"><i class="fas fa-users text-4xl text-blue-500 mb-4"></i><h3 id="class-total-students" class="text-4xl font-bold text-gray-800">0</h3><p class="text-gray-500" data-translate="totalStudents">মোট ছাত্র</p></div>
+                    <div class="stat-card" onclick="showInactiveStudentsModal()" style="cursor: pointer;"><i class="fas fa-user-slash text-4xl text-orange-500 mb-4"></i><h3 id="class-inactive-students" class="text-4xl font-bold text-gray-800">0</h3><p class="text-gray-500" data-translate="inactiveStudents">বিদায়ী ছাত্র</p></div>
+                </div>
+                
+                <!-- Row 2: 1 full-width attendance card -->
+                <div class="mb-4" id="tc-stats-row-2">
+                    <div class="stat-card attendance-combined-card">
+                        <div class="performance-tiers">
+                            <div class="tier present-tier">
+                                <span class="tier-count" id="class-present-today">0</span>
+                                <span class="tier-label" data-translate="present">Present</span>
+                            </div>
+                            <div class="tier absent-tier">
+                                <span class="tier-count" id="class-absent-today">0</span>
+                                <span class="tier-label" data-translate="absent">Absent</span>
+                            </div>
+                            <div class="tier percentage-tier">
+                                <span class="tier-count" id="class-attendance-rate">0%</span>
+                                <span class="tier-label" data-translate="percentage">Percentage</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Row 3: 2 cards side by side (Messages + Performance Tiers) -->
+                <div class="grid grid-cols-2 gap-4 mb-8" id="tc-stats-row-3">
+                    <div class="stat-card" onclick="if(typeof openCommunicationsWindow === 'function') openCommunicationsWindow(); else if(typeof openTeachersCornerMessaging === 'function') openTeachersCornerMessaging();" style="cursor: pointer;">
+                        <i class="fas fa-comments text-4xl text-indigo-500 mb-4"></i>
+                        <h3 id="tc-messages-count" class="text-4xl font-bold text-gray-800">0</h3>
+                        <p class="text-gray-500" data-translate="messages">Messages</p>
+                    </div>
+                    <div class="stat-card performance-card">
+                        <div class="performance-tiers">
+                            <div class="tier mustaid">
+                                <span class="tier-count" id="tc-mustaid-count">0</span>
+                                <span class="tier-label" data-translate="mustaid">Mustaid</span>
+                            </div>
+                            <div class="tier mutawassit">
+                                <span class="tier-count" id="tc-mutawassit-count">0</span>
+                                <span class="tier-label" data-translate="mutawassit">Mutawassit</span>
+                            </div>
+                            <div class="tier mujtahid">
+                                <span class="tier-count" id="tc-mujtahid-count">0</span>
+                                <span class="tier-label" data-translate="mujtahid">Mujtahid</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Alerts -->
+                <div id="dashboard-alerts" class="mb-8 bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700 flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                        <span data-translate="alertsOverview">এক নজরে সতর্কতা</span>
+                    </h3>
+                    <div id="alerts-content" class="space-y-3">
+                        <!-- Alerts will be rendered here -->
+                    </div>
+                </div>
+    
+                <!-- Class Overview & Teacher's Logbook -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                         <h3 class="text-xl font-semibold mb-4 text-gray-700" data-translate="classOverallStatus">শ্রেণীর সার্বিক অবস্থা</h3>
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                       <div>
+                                  <h4 class="font-semibold text-gray-600 text-sm mb-2" data-translate="studentLevels">ছাত্রদের স্তর</h4>
+                                  <div id="performance-chart" class="space-y-3">
+                                      <!-- Performance categories will be rendered here -->
+                                  </div>
+                              </div>
+                             <div>
+                                 <h4 class="font-semibold text-gray-600 text-sm mb-2" data-translate="recentClassLog">সাম্প্রতিক শ্রেণী বিবরণ</h4>
+                                 <div id="recent-class-logs" class="space-y-2">
+                                     <!-- Recent logs will be rendered here -->
+                                 </div>
+                             </div>
+                         </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold text-gray-700" data-translate="teacherLogbook">📔 শিক্ষকের পাতা</h3>
+                            <button onclick="showAddLogModal()" class="btn-success text-white px-3 py-1 rounded-md text-sm font-semibold flex items-center gap-2"><i class="fas fa-plus"></i> <span data-translate="addNewNote">নতুন বিবরণ</span></button>
+                        </div>
+                        <div class="logbook-tabs border-b border-gray-200 mb-4">
+                            <button onclick="switchLogTab('class')" class="tab-button py-2 px-4 text-gray-500 font-semibold active" data-translate="classLog">শ্রেণী বিবরণ</button>
+                            <button onclick="switchLogTab('student')" class="tab-button py-2 px-4 text-gray-500 font-semibold" data-translate="studentLog">ছাত্র বিবরণ</button>
+                        </div>
+                        <div id="logbook-display" class="space-y-4 max-h-[200px] overflow-y-auto pr-2"></div>
+                    </div>
+                </div>
+    
+                <!-- Student List & Education Progress -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold text-gray-700" data-translate="studentList">ছাত্রদের তালিকা</h3>
+                            <button onclick="clearStudentFilter()" class="text-sm text-blue-600 hover:text-blue-800 underline">
+                                <span data-translate="viewAllStudents">সব ছাত্র দেখুন</span>
+                            </button>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto student-list-container">
+                            <table class="w-full text-sm text-left text-gray-600">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0">
+                                    <tr>
+                                        <th class="px-4 py-3 text-center" data-translate="husnulKhuluk">হুসনুল খুলুক</th>
+                                        <th class="px-4 py-3" data-translate="roll">পরিচিতি</th>
+                                        <th class="px-4 py-3" data-translate="name">নাম</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="class-student-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold text-gray-700">দরসের পরিমাণ</h3>
+                            <div class="flex gap-2">
+                                <button onclick="showBookModal()" class="text-gray-500 hover:text-blue-500" title="নতুন বই যোগ করুন"><i class="fas fa-plus"></i></button>
+                            </div>
+                        </div>
+                        <div id="class-education-progress" class="space-y-4"></div>
+                    </div>
+                    
+                    <!-- Progress History Summary -->
+                    <div class="bg-white p-6 rounded-lg shadow-md mt-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold text-gray-700">অগ্রগতির সারসংক্ষেপ</h3>
+                            <div class="text-sm text-gray-500">
+                                <i class="fas fa-chart-line mr-1"></i>শ্রেণীর সামগ্রিক অগ্রগতি
+                            </div>
+                        </div>
+                        <div id="progress-summary" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Progress summary will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="section">
+                <h2><i class="fas fa-cog"></i> Settings</h2>
+                
+                <div class="settings-tabs">
+                    <button class="tab-button active" onclick="openSettingsTab(event, 'general')">
+                        <i class="fas fa-cogs"></i> <span data-translate="general">General</span>
+                    </button>
+                    <button class="tab-button" onclick="openSettingsTab(event, 'academic')">
+                        <i class="fas fa-school"></i> <span data-translate="academic">Academic</span>
+                    </button>
+                    <button class="tab-button" onclick="openSettingsTab(event, 'books')">
+                        <i class="fas fa-book"></i> <span data-translate="bookManagement">Book Management</span>
+                    </button>
+                    <button class="tab-button" onclick="openSettingsTab(event, 'alerts')">
+                        <i class="fas fa-exclamation-triangle"></i> <span data-translate="alerts">Alerts</span>
+                    </button>
+                    <button class="tab-button" onclick="openSettingsTab(event, 'data')">
+                        <i class="fas fa-database"></i> <span data-translate="dataManagement">Data Management</span>
+                    </button>
+                    <button class="tab-button" onclick="openSettingsTab(event, 'users')">
+                        <i class="fas fa-users"></i> <span data-translate="userManagement">User Management</span>
+                    </button>
+                </div>
+
+                <!-- General Tab -->
+                <div id="general" class="tab-content active">
+                    <div class="settings-section-header settings-panel-header">
+                        <div>
+                            <h3 data-translate="generalWorkspaceTitle">General Workspace</h3>
+                            <p class="help-text" data-translate="generalWorkspaceDescription">Manage application branding, development behavior, and Hijri date preferences from two focused cards.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-panel-grid two-column">
+                        <div class="setting-group settings-card">
+                            <div class="settings-card-heading">
+                                <h4 data-translate="applicationSettings">Application Settings</h4>
+                                <p class="help-text" data-translate="brandingAndExperienceHelp">Control the app name, home-screen short name, and local development experience.</p>
+                            </div>
+
+                            <label for="appNameInput" data-translate="applicationName">Application Name</label>
+                            <p class="help-text" data-translate="appNameDescription">Change the name displayed in the header and title.</p>
+                            <div class="input-group">
+                                <input type="text" id="appNameInput" value="" placeholder="Enter application name">
+                                <button class="btn btn-primary" id="saveAppNameBtn" onclick="saveAppName()">
+                                    <i class="fas fa-save"></i> <span data-translate="save">Save</span>
+                                </button>
+                            </div>
+
+                            <label for="appShortNameInput" id="appShortNameLabel" class="settings-spaced-label" data-translate="shortNamePwaDisplay">Short Name (PWA Display)</label>
+                            <p class="help-text" data-translate="shortNameDescription">Short name for Android home screen (max 20 characters). Leave empty to auto-generate from full name.</p>
+                            <div class="input-group">
+                                <input type="text" id="appShortNameInput" value="" placeholder="Enter short name (optional)" maxlength="20">
+                                <button class="btn btn-primary" id="saveAppShortNameBtn" onclick="saveAppShortName()">
+                                    <i class="fas fa-save"></i> <span data-translate="saveShortNameBtn">Save Short Name</span>
+                                </button>
+                            </div>
+
+                            <div id="devModeSection" class="settings-inline-note" style="display: none;">
+                                <label for="devModeToggle" data-translate="developmentMode">Development Mode</label>
+                                <p class="help-text" data-translate="developmentModeDescription">Disable caching to see code changes instantly. Only works on localhost. Your MySQL database will work normally.</p>
+                                <div class="input-group">
+                                    <label class="settings-checkbox-row">
+                                        <input type="checkbox" id="devModeToggle" onchange="toggleDevMode()">
+                                        <span data-translate="enableDevelopmentModeNoCaching">Enable Development Mode (No Caching)</span>
+                                    </label>
+                                </div>
+                                <p id="devModeStatus" class="settings-status-text"></p>
+                            </div>
+                        </div>
+
+                        <div class="setting-group settings-card">
+                            <div class="settings-card-heading">
+                                <h4 data-translate="hijriSettings">Hijri Date Settings</h4>
+                                <p class="help-text" data-translate="calendarControlHelp">Adjust Hijri date behavior for local usage and verify the current preview instantly.</p>
+                            </div>
+
+                            <label for="hijriAdjustment" data-translate="hijriDateAdjustment">Hijri Date Adjustment</label>
+                            <p class="help-text" data-translate="hijriDateAdjustmentDesc">Adjust the calculated Hijri date for local moon sightings.</p>
+                            <select id="hijriAdjustment" onchange="updateHijriAdjustment()">
+                                <option value="0">No Adjustment (Default)</option>
+                                <option value="1">+1 <span data-translate="day">Day</span> (<span data-translate="ahead">Ahead</span>)</option>
+                                <option value="-1">-1 <span data-translate="day">Day</span> (<span data-translate="behind">Behind</span>)</option>
+                            </select>
+                            <div class="hijri-preview settings-preview-card" style="margin-top: 15px;">
+                                <strong data-translate="currentDatePreview">Current Date Preview:</strong>
+                                <div id="hijriPreview" class="hijri-date-display"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Tab -->
+                <div id="academic" class="tab-content">
+                    <div class="settings-section-header academic-settings-header">
+                        <div>
+                            <h3 data-translate="academicManagement">Academic Management</h3>
+                            <p class="help-text" data-translate="academicWorkspaceDescription">Organize year control, setup, promotion, and class management from focused academic workspaces.</p>
+                        </div>
+                    </div>
+
+                    <div class="academic-subtabs" role="tablist" aria-label="Academic workspace tabs">
+                        <button class="academic-subtab-button active" data-academic-tab="overview" onclick="openAcademicSubtab(event, 'overview')" role="tab">
+                            <i class="fas fa-th-large"></i> <span data-translate="overview">Overview</span>
+                        </button>
+                        <button class="academic-subtab-button" data-academic-tab="educational-years" onclick="openAcademicSubtab(event, 'educational-years')" role="tab">
+                            <i class="fas fa-calendar-alt"></i> <span data-translate="educationalYearManagement">Educational Year Management</span>
+                        </button>
+                        <button class="academic-subtab-button" data-academic-tab="year-setup" onclick="openAcademicSubtab(event, 'year-setup')" role="tab">
+                            <i class="fas fa-layer-group"></i> <span data-translate="yearSetupWorkspace">Year Setup</span>
+                        </button>
+                        <button class="academic-subtab-button" data-academic-tab="promotion" onclick="openAcademicSubtab(event, 'promotion')" role="tab">
+                            <i class="fas fa-exchange-alt"></i> <span data-translate="yearEndPromotion">Transfer</span>
+                        </button>
+                        <button class="academic-subtab-button" data-academic-tab="classes" onclick="openAcademicSubtab(event, 'classes')" role="tab">
+                            <i class="fas fa-school"></i> <span data-translate="manageClasses">Manage Classes</span>
+                        </button>
+                    </div>
+
+                    <div class="academic-subtab-panels">
+                        <div id="academic-overview-panel" class="academic-subtab-panel active" data-academic-panel="overview" role="tabpanel">
+                            <div class="setting-group">
+                                <label data-translate="academicOverview">Academic Overview</label>
+                                <p class="help-text" data-translate="academicOverviewHelp">See the active year, coverage status, and setup readiness before opening a detailed workspace.</p>
+                                <div id="academicOverviewCards" class="academic-overview-grid">
+                                    <div class="academic-overview-card">
+                                        <span class="academic-overview-label" data-translate="activeEducationalYearLabel">Active Educational Year</span>
+                                        <strong>--</strong>
+                                        <p data-translate="loading">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <label data-translate="quickActions">Quick Actions</label>
+                                <p class="help-text" data-translate="academicQuickActionsHelp">Jump directly to the academic workspace you need instead of scrolling through one long page.</p>
+                                <div class="input-group academic-quick-actions">
+                                    <button class="btn btn-secondary" onclick="openAcademicSubtab(null, 'educational-years')">
+                                        <i class="fas fa-calendar-alt"></i> <span data-translate="manageYears">Manage Years</span>
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="openAcademicSubtab(null, 'year-setup')">
+                                        <i class="fas fa-layer-group"></i> <span data-translate="openYearSetup">Open Year Setup</span>
+                                    </button>
+                                    <button class="btn btn-primary" onclick="openAcademicSubtab(null, 'promotion')">
+                                        <i class="fas fa-arrow-up"></i> <span data-translate="openPromotionWorkspace">Open Promotion</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <label for="academicYearStartInput" data-translate="academicYearStartDate">Academic Year Start Date</label>
+                                <p class="help-text" data-translate="usedForReportsAndDateRestrictions">Used for reports and date restrictions.</p>
+                                <div class="input-group">
+                                    <input type="date" id="academicYearStartInput">
+                                    <button class="btn btn-primary" onclick="saveAcademicYearStart()">
+                                        <i class="fas fa-calendar-check"></i> <span data-translate="setStartDate">Set Start Date</span>
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="clearAcademicYearStart()">
+                                        <i class="fas fa-times"></i> <span data-translate="clearAcademicYearStartBtn">Clear</span>
+                                    </button>
+                                </div>
+                                <div id="currentAcademicYearDisplay" style="display: none; margin-top: 10px; padding: 8px; background: #e8f5e8; border-radius: 4px; color: #27ae60;">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span><span data-translate="currentAcademicYearStartsFrom">Current academic year starts from:</span> <strong id="academicYearStartDisplay"></strong></span>
+                                    <div id="academicYearStartSourceNote" style="display: none; margin-top: 6px; font-size: 0.9em; color: #1a7f37;"></div>
+                                </div>
+                            </div>
+                            <p class="help-text" style="margin-top: 4px;" data-translate="activeEducationalYearOverridesLegacyDate">When an active educational year is set, its start date is used for reports and date restrictions. Otherwise the date above is used.</p>
+                        </div>
+
+                        <div id="academic-educational-years-panel" class="academic-subtab-panel" data-academic-panel="educational-years" role="tabpanel">
+                            <div class="setting-group">
+                                <label data-translate="educationalYearManagement">Educational Year Management</label>
+                                <p class="help-text" data-translate="educationalYearManagementDesc">Create and manage educational years for organizing exams and academic periods.</p>
+                                <p class="help-text" data-translate="purgeSampleYearHelp">Use Purge Sample Year only for practice or sample years. The system will show affected record counts and require typed confirmation.</p>
+                                <div class="input-group academic-create-year-row">
+                                    <input type="text" id="newEducationalYearName" placeholder="Educational Year Name (e.g., 2024-2025)" style="flex: 1;">
+                                    <input type="date" id="newEducationalYearStartDate" style="flex: 1;">
+                                    <input type="date" id="newEducationalYearEndDate" style="flex: 1;">
+                                    <button class="btn btn-primary" onclick="createEducationalYear()">
+                                        <i class="fas fa-plus"></i> <span data-translate="addEducationalYear">Add Educational Year</span>
+                                    </button>
+                                </div>
+                                <div id="educationalYearsList" class="list-container">
+                                    <!-- Educational years will be loaded here -->
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <label data-translate="activeEducationalYearLabel">Active Educational Year</label>
+                                <p class="help-text" data-translate="chooseActiveEducationalYearHelp">Choose which educational year the application should use for year-based data entry and reports.</p>
+                                <div class="input-group">
+                                    <select id="settingsEducationalYearSelector" style="flex: 2;" onchange="handleEducationalYearSelectionChange()">
+                                        <option value="" data-translate="selectEducationalYear">Select educational year</option>
+                                    </select>
+                                    <button class="btn btn-primary" onclick="applySelectedEducationalYear()">
+                                        <i class="fas fa-check"></i> <span data-translate="setActiveYear">Set Active Year</span>
+                                    </button>
+                                </div>
+                                <div id="currentEducationalYearSummary" class="item-list" style="margin-top: 12px;">
+                                    <p class="no-data" data-translate="noActiveEducationalYearSelected">No active educational year selected.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="academic-year-setup-panel" class="academic-subtab-panel" data-academic-panel="year-setup" role="tabpanel">
+                            <div class="setting-group">
+                                <label data-translate="copySetupFromPreviousYear">Copy Setup From Previous Year</label>
+                                <p class="help-text" data-translate="copySetupFromPreviousYearHelp">Copy student enrollments, class books, and teacher assignments into the currently active educational year.</p>
+                                <p class="help-text" data-translate="copySetupRiskNotice">If the target year already contains setup data, the system will stop and ask for typed confirmation before anything is overwritten.</p>
+                                <div class="input-group">
+                                    <select id="copySourceEducationalYear" style="flex: 2;">
+                                        <option value="" data-translate="selectSourceYear">Select source year</option>
+                                    </select>
+                                    <button class="btn btn-secondary" onclick="copyEducationalYearSetup()">
+                                        <i class="fas fa-copy"></i> <span data-translate="copySetup">Copy Setup</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <label data-translate="studentEnrollmentsForActiveYear">Student Enrollments For Active Year</label>
+                                <p class="help-text" data-translate="studentEnrollmentsForActiveYearHelp">Master students stay shared. Use this area to decide which students belong to which class in the currently active year.</p>
+                                <div class="input-group">
+                                    <select id="yearEnrollmentStudent" style="flex: 2;">
+                                        <option value="" data-translate="selectStudent">Select student</option>
+                                    </select>
+                                    <select id="yearEnrollmentClass" style="flex: 1;">
+                                        <option value="" data-translate="selectClass">Select class</option>
+                                    </select>
+                                    <input type="text" id="yearEnrollmentRoll" placeholder="Roll number" style="max-width: 160px;">
+                                    <select id="yearEnrollmentStatus" style="max-width: 160px;">
+                                        <option value="active" data-translate="active">Active</option>
+                                        <option value="inactive" data-translate="inactive">Inactive</option>
+                                        <option value="passed_out" data-translate="passedOut">Passed Out</option>
+                                    </select>
+                                    <button class="btn btn-primary" onclick="saveYearEnrollment()">
+                                        <i class="fas fa-save"></i> <span data-translate="saveEnrollment">Save Enrollment</span>
+                                    </button>
+                                </div>
+                                <div id="yearEnrollmentsList" class="list-container">
+                                    <p class="no-data" data-translate="selectOrCreateActiveYearToManageEnrollments">Select or create an active educational year to manage enrollments.</p>
+                                </div>
+                            </div>
+
+                            <!-- Roll numbers can be edited inline from the Promotion panel after transferring students -->
+
+                            <div class="setting-group">
+                                <label data-translate="classBooksForActiveYear">Class Books For Active Year</label>
+                                <p class="help-text" data-translate="classBooksForActiveYearHelp">Choose which books are used by each class for the active educational year. Removing a row here only affects this year.</p>
+                                <div class="input-group">
+                                    <select id="yearClassBookClass" style="flex: 1;">
+                                        <option value="" data-translate="selectClass">Select class</option>
+                                    </select>
+                                    <select id="yearClassBookBook" style="flex: 2;">
+                                        <option value="" data-translate="selectBook">Select book</option>
+                                    </select>
+                                    <input type="number" id="yearClassBookOrder" placeholder="Order" value="0" min="0" style="max-width: 120px;">
+                                    <button class="btn btn-primary" onclick="saveYearClassBook()">
+                                        <i class="fas fa-save"></i> <span data-translate="saveBookLink">Save Book Link</span>
+                                    </button>
+                                </div>
+                                <div id="yearClassBooksList" class="list-container">
+                                    <p class="no-data" data-translate="noClassBookSetupLoadedYet">No class-book setup loaded for the active year yet.</p>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <label data-translate="teacherAssignmentsForActiveYear">Teacher Assignments For Active Year</label>
+                                <p class="help-text" data-translate="teacherAssignmentsForActiveYearHelp">Assign teachers to classes for the active educational year only.</p>
+                                <div class="input-group">
+                                    <select id="yearTeacherUser" style="flex: 2;">
+                                        <option value="" data-translate="selectTeacherUser">Select teacher/user</option>
+                                    </select>
+                                    <select id="yearTeacherClass" style="flex: 1;">
+                                        <option value="" data-translate="selectClass">Select class</option>
+                                    </select>
+                                    <button class="btn btn-primary" onclick="saveYearTeacherAssignment()">
+                                        <i class="fas fa-save"></i> <span data-translate="saveAssignment">Save Assignment</span>
+                                    </button>
+                                </div>
+                                <div id="yearTeacherAssignmentsList" class="list-container">
+                                    <p class="no-data" data-translate="noTeacherAssignmentsLoadedYet">No teacher assignments loaded for the active year yet.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="academic-promotion-panel" class="academic-subtab-panel" data-academic-panel="promotion" role="tabpanel">
+
+                            <!-- Step 1: Year selection -->
+                            <div class="setting-group">
+                                <label data-translate="yearEndPromotion">Year-end Promotion</label>
+                                <p class="help-text" data-translate="promotionWorkflowHelp">Select source and target years, load a class, then bulk-transfer the whole class. Exceptions (repeat, pass out, inactive) can be set per student individually.</p>
+                                <p class="help-text" data-translate="promotionSafetyNotice">All decisions are validated before any data is written — mismatches and duplicates are blocked early.</p>
+                                <div class="input-group" style="flex-wrap:wrap; gap: 8px;">
+                                    <select id="promotionSourceYear" style="flex: 1; min-width: 140px;">
+                                        <option value="" data-translate="sourceYear">Source year</option>
+                                    </select>
+                                    <select id="promotionTargetYear" style="flex: 1; min-width: 140px;">
+                                        <option value="" data-translate="targetYear">Target year</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Class bulk transfer -->
+                            <div class="setting-group">
+                                <label data-translate="bulkClassTransfer">Bulk Class Transfer</label>
+                                <p class="help-text" data-translate="bulkClassTransferHelp">Pick a source class and where all its students should go, then load them. Change exceptions per student if needed, then Run.</p>
+                                <div class="input-group" style="flex-wrap:wrap; gap: 8px;">
+                                    <select id="promotionSourceClass" style="flex: 1; min-width: 140px;" onchange="updateBulkTargetClass()">
+                                        <option value="" data-translate="selectSourceClass">Select source class</option>
+                                    </select>
+                                    <span style="align-self:center; color:#666; font-weight:600;">→</span>
+                                    <select id="promotionTargetClass" style="flex: 1; min-width: 140px;">
+                                        <option value="" data-translate="selectTargetClass">Select target class</option>
+                                    </select>
+                                    <button class="btn btn-secondary" onclick="loadPromotionEnrollments()">
+                                        <i class="fas fa-users"></i> <span data-translate="loadStudents">Load Students</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Student list — set rolls FIRST, then run -->
+                            <div id="promotionEnrollmentsContainer" style="display: none;">
+                                <div class="setting-group">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-wrap:wrap; gap:8px;">
+                                        <label style="margin:0;" data-translate="studentsInClass">Students in Class</label>
+                                        <button class="btn btn-primary" onclick="runPromotion()" id="promotionRunBtn" disabled>
+                                            <i class="fas fa-play"></i> <span data-translate="runPromotion">Run Transfer</span>
+                                        </button>
+                                    </div>
+                                    <p class="help-text" style="margin-bottom:8px;" data-translate="assignRollsBeforeTransfer">Assign new roll numbers below before running the transfer. Duplicates are highlighted in red.</p>
+                                    <div id="promotionRollDuplicateWarning" style="display:none; color:#dc2626; font-size:0.85em; margin-bottom:6px; font-weight:600;">
+                                        ⚠️ <span data-translate="duplicateRollsBlocked">Duplicate roll numbers detected — fix them before running.</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="data-table" id="promotionEnrollmentsTable">
+                                            <thead>
+                                                <tr>
+                                                    <th data-translate="studentLabel">Student</th>
+                                                    <th data-translate="roll">Old Roll</th>
+                                                    <th data-translate="newRoll">New Roll</th>
+                                                    <th data-translate="exceptionAction">Exception</th>
+                                                    <th data-translate="targetClass">→ Class</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="promotionEnrollmentsBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 4: Success summary after transfer -->
+                            <div id="promotionResultContainer" style="display: none;">
+                                <div class="setting-group">
+                                    <div id="promotionResultSummary"></div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div id="academic-classes-panel" class="academic-subtab-panel" data-academic-panel="classes" role="tabpanel">
+                            <div class="setting-group">
+                                <label for="newClassName" data-translate="manageClasses">Manage Classes</label>
+                                <p class="help-text" data-translate="addOrRemoveClassesHelp">Add or remove classes from the system.</p>
+                                <div class="input-group">
+                                    <input type="text" id="newClassName" placeholder="Enter new class name">
+                                    <button class="btn btn-primary" onclick="addClass()">
+                                        <i class="fas fa-plus"></i> <span data-translate="addClass">Add Class</span>
+                                    </button>
+                                </div>
+                                <div class="item-list" id="classesList">
+                                    <!-- Classes will be displayed here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Book Management Tab -->
+                <div id="books" class="tab-content">
+                    <div class="settings-section-header settings-panel-header">
+                        <div>
+                            <h3 data-translate="bookManagement">Book Management</h3>
+                            <p class="help-text" data-translate="booksWorkspaceDescription">Add new books and manage the full book library from one focused workspace.</p>
+                        </div>
+                    </div>
+
+                    <div class="setting-group settings-card">
+                        <div class="settings-card-heading">
+                            <h4 data-translate="addNewBook">Add New Book</h4>
+                            <p class="help-text" data-translate="addBooksStudentsWillStudyHelp">Add books that students will study.</p>
+                        </div>
+
+                        <div class="book-form-stack">
+                            <div class="input-group book-primary-row">
+                                <input type="text" id="newBookName" placeholder="Enter new book name" style="flex: 2;">
+                                <select id="newBookClass" style="flex: 1;">
+                                    <option value="" data-translate="allClassesLabelText">All Classes</option>
+                                    <!-- Class options will be populated dynamically -->
+                                </select>
+                                <input type="number" id="newBookPages" placeholder="Total pages" min="1" style="width: 120px;">
+                            </div>
+                            <textarea id="newBookDescription"
+                                      placeholder="Description/Plan (Optional): e.g., This year's goals, important notes, completion targets..."
+                                      rows="3"
+                                      style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; resize: vertical;"></textarea>
+                            <div class="input-group">
+                                <button class="btn btn-primary" onclick="addBook()">
+                                    <i class="fas fa-plus"></i> <span data-translate="addBook">Add Book</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group settings-card">
+                        <div class="settings-card-heading">
+                            <h4 data-translate="bookLibrary">Book Library</h4>
+                            <p class="help-text" data-translate="bookLibraryHelp">Review all books by class and use the existing actions to edit or delete items when needed.</p>
+                        </div>
+                        <div class="item-list" id="settingsBooksList">
+                            <!-- Books will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+                
+                
+
+                <!-- Alerts Tab -->
+                <div id="alerts" class="tab-content">
+                    <div class="settings-section-header settings-panel-header">
+                        <div>
+                            <h3 data-translate="alertSystemSettings">Alert System Settings</h3>
+                            <p class="help-text" data-translate="alertWorkspaceDescription">Configure all alert thresholds together and save them as one shared alert policy.</p>
+                        </div>
+                    </div>
+
+                    <div class="setting-group settings-card">
+                        <div class="settings-card-heading">
+                            <h4 data-translate="systemAlerts">System Alerts</h4>
+                            <p class="help-text" data-translate="alertsThresholdGroupHelp">These thresholds work together. Update all three levels, then save once.</p>
+                        </div>
+
+                        <div class="alert-threshold-grid">
+                            <div class="alert-threshold-card">
+                                <label for="lowScoreThreshold" data-translate="lowScoreAlertThreshold">Low Score Alert Threshold</label>
+                                <p class="help-text" data-translate="lowScoreAlertThresholdHelp">Set the minimum score below which students will be flagged in dashboard alerts.</p>
+                                <input type="number" id="lowScoreThreshold" min="0" max="100" value="60">
+                            </div>
+
+                            <div class="alert-threshold-card">
+                                <label for="criticalScoreThreshold" data-translate="criticalScoreAlertThreshold">Critical Score Alert Threshold</label>
+                                <p class="help-text" data-translate="criticalScoreAlertThresholdHelp">Set the critical score below which students will be flagged with higher urgency.</p>
+                                <input type="number" id="criticalScoreThreshold" min="0" max="100" value="50">
+                            </div>
+
+                            <div class="alert-threshold-card">
+                                <label for="lowClassAverageThreshold" data-translate="lowClassAverageThresholdLabel">Low Class Average Threshold</label>
+                                <p class="help-text" data-translate="lowClassAverageThresholdHelp">Set the minimum class average score below which the whole class will be flagged.</p>
+                                <input type="number" id="lowClassAverageThreshold" min="0" max="100" value="70">
+                            </div>
+                        </div>
+
+                        <div class="input-group settings-actions-row">
+                            <button class="btn btn-primary" onclick="saveAlertThreshold()">
+                                <i class="fas fa-save"></i> <span data-translate="saveAlertThresholds">Save Alert Thresholds</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Management Tab -->
+                <div id="data" class="tab-content">
+                    <div class="settings-section-header settings-panel-header">
+                        <div>
+                            <h3><i class="fas fa-database"></i> <span data-translate="dataManagement">Data Management</span></h3>
+                            <p class="help-text" data-translate="dataWorkspaceDescription">Separate safe export tasks, import flows, and destructive resets into focused workspaces.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-subtabs" role="tablist" aria-label="Data workspaces">
+                        <button class="settings-subtab-button active" data-data-tab="backup-export" onclick="openDataSubtab(event, 'backup-export')" role="tab">
+                            <i class="fas fa-download"></i> <span data-translate="backupAndExport">Backup & Export</span>
+                        </button>
+                        <button class="settings-subtab-button" data-data-tab="import" onclick="openDataSubtab(event, 'import')" role="tab">
+                            <i class="fas fa-file-import"></i> <span data-translate="importWorkspace">Import</span>
+                        </button>
+                        <button class="settings-subtab-button" data-data-tab="reset" onclick="openDataSubtab(event, 'reset')" role="tab">
+                            <i class="fas fa-radiation"></i> <span data-translate="resetWorkspace">Reset</span>
+                        </button>
+                    </div>
+
+                    <div class="settings-subtab-panels">
+                        <div id="data-backup-export-panel" class="settings-subtab-panel active" data-data-panel="backup-export" role="tabpanel">
+                            <div class="setting-group settings-card">
+                                <div class="settings-card-heading">
+                                    <h4 data-translate="backupAndExport">Backup & Export</h4>
+                                    <p class="help-text" data-translate="backupAndExportHelp">Use these actions for safer data operations before running major resets or imports.</p>
+                                </div>
+                                <div class="settings-action-card-grid">
+                                    <button class="settings-action-card" onclick="showBackupModal()">
+                                        <i class="fas fa-download"></i>
+                                        <strong data-translate="createBackupTitle">Create Backup</strong>
+                                        <span data-translate="downloadCompleteBackupOfAllData">Download complete backup of all data.</span>
+                                    </button>
+                                    <button class="settings-action-card" onclick="downloadAllStudentsCSV()">
+                                        <i class="fas fa-file-export"></i>
+                                        <strong data-translate="exportAllData">Export All Data</strong>
+                                        <span data-translate="exportAllDataHelp">Download student data in a reusable CSV format.</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="data-import-panel" class="settings-subtab-panel" data-data-panel="import" role="tabpanel">
+                            <div id="bulkImportIntro" class="setting-group settings-card">
+                                <div class="settings-card-heading">
+                                    <h4 data-translate="importWorkspace">Import</h4>
+                                    <p class="help-text" data-translate="importWorkspaceHelp">Use the guided bulk import workflow for CSV-based student imports.</p>
+                                </div>
+                                <div class="settings-action-card-grid single-column">
+                                    <button class="settings-action-card" onclick="showBulkImport()">
+                                        <i class="fas fa-file-import"></i>
+                                        <strong data-translate="bulkImportStudents">Bulk Import Students</strong>
+                                        <span data-translate="bulkImportStudentsHelp">Open the import guide, file format instructions, and upload workflow.</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="bulkImportSection" class="bulk-import-section" style="display:none;">
+                        <div class="bulk-import-header">
+                            <h3>📊 Bulk Import Students from CSV</h3>
+                            <button onclick="hideBulkImport()" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Data Management
+                            </button>
+                        </div>
+                        
+                        <div class="bulk-import-instructions">
+                            <h4>📋 File Format Required:</h4>
+                            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2196f3;">
+                                <p style="margin: 0; color: #1565c0; font-weight: 600;">
+                                    💡 <strong>Important for Bengali/Unicode text:</strong> Save as <strong>CSV UTF-8</strong> format
+                                </p>
+                                <p style="margin: 5px 0 0 0; color: #1565c0; font-size: 0.9em;">
+                                    <strong>Excel:</strong> File → Save As → Choose <strong>"CSV UTF-8 (Comma delimited) (*.csv)"</strong>
+                                </p>
+                                <p style="margin: 5px 0 0 0; color: #1565c0; font-size: 0.9em;">
+                                    <strong>Google Sheets:</strong> File → Download → Comma-separated values (.csv)
+                                </p>
+                            </div>
+                            <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ffc107;">
+                                <p style="margin: 0; color: #856404; font-weight: 600;">
+                                    🔤 <strong>Bengali/Unicode Support:</strong> Your Bengali text will display correctly if saved as CSV UTF-8
+                                </p>
+                                <p style="margin: 8px 0 0 0; color: #856404; font-size: 0.9em;">
+                                    <strong>Example:</strong> Name should look like "মোহাম্মদ আলী" not "à¦®à§‹à¦¹à¦¾à¦®à§à¦®à¦¦ à¦†à¦²à§€"
+                                </p>
+                            </div>
+                            
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <button onclick="downloadAllStudentsCSV()" class="btn btn-secondary">
+                                    <i class="fas fa-download"></i> Download All Students Data
+                                </button>
+                            </div>
+                            <div class="format-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>id</th>
+                                            <th>name</th>
+                                            <th>fatherName</th>
+                                            <th>rollNumber</th>
+                                            <th>mobileNumber</th>
+                                            <th>district</th>
+                                            <th>upazila</th>
+                                            <th>class</th>
+                                            <th>registrationDate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>ST001</td>
+                                            <td>Abdullah Rahman</td>
+                                            <td>Rahman Ahmed</td>
+                                            <td>101</td>
+                                            <td>01711234567</td>
+                                            <td>Dhaka</td>
+                                            <td>Dhanmondi</td>
+                                            <td>প্রথম শ্রেণি</td>
+                                            <td>2025-01-01</td>
+                                        </tr>
+                                        <tr>
+                                            <td>ST002</td>
+                                            <td>Fatima Khatun</td>
+                                            <td>Karim Uddin</td>
+                                            <td>102</td>
+                                            <td>01811234567</td>
+                                            <td>Dhaka</td>
+                                            <td>Gulshan</td>
+                                            <td>দ্বিতীয় শ্রেণি</td>
+                                            <td>2025-01-02</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="import-notes">
+                                <p><strong>⚠️ Important:</strong></p>
+                                <ul>
+                                    <li>First row must be headers (exactly as shown above)</li>
+                                    <li>All fields are required - no empty cells</li>
+                                    <li>Students with same ID will be replaced/updated</li>
+                                    <li>Roll numbers must be unique (except for updates)</li>
+                                    <li>Class names must match your existing classes</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="bulk-import-upload">
+                            <div class="upload-area">
+                                <input type="file" id="excelFile" accept=".csv" style="display:none;">
+                                <div class="upload-drop-zone" onclick="document.getElementById('excelFile').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Click to select CSV file</p>
+                                    <p class="file-types">Supports .csv files (Excel saved as CSV)</p>
+                                </div>
+                            </div>
+                            <div class="upload-actions">
+                                <button onclick="processExcelFile()" class="btn btn-primary" id="uploadBtn" disabled>
+                                    <i class="fas fa-upload"></i> Upload & Import Students
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="importResults" class="import-results" style="display:none;">
+                            <!-- Import results will be shown here -->
+                        </div>
+                            </div>
+                        </div>
+
+                        <div id="data-reset-panel" class="settings-subtab-panel" data-data-panel="reset" role="tabpanel">
+                            <div class="setting-group settings-card settings-danger-card">
+                                <div class="settings-card-heading">
+                                    <h4 data-translate="resetWorkspace">Reset</h4>
+                                    <p class="help-text" data-translate="resetWorkspaceHelp">These actions are destructive. Review carefully before opening a reset flow.</p>
+                                </div>
+
+                                <div class="reset-list">
+                                    <div class="reset-category">
+                                        <h4><i class="fas fa-user-graduate"></i> <span data-translate="studentDataCategory">Student Data</span></h4>
+                                        <div class="reset-items">
+                                            <div class="reset-item">
+                                                <span class="reset-label" data-translate="deleteAllStudents">Delete All Students</span>
+                                                <span class="reset-description" data-translate="deleteAllStudentsHelp">Permanently delete all student information, attendance, scores, and progress.</span>
+                                                <button class="btn btn-danger btn-sm" onclick="showResetStudentsModal()">
+                                                    <i class="fas fa-trash-alt"></i> <span data-translate="delete">Delete</span>
+                                                </button>
+                                            </div>
+                                            <div class="reset-item">
+                                                <span class="reset-label" data-translate="resetAllScores">Reset All Scores</span>
+                                                <span class="reset-description" data-translate="resetAllScoresHelp">Clear all student scores back to their default values.</span>
+                                                <button class="btn btn-warning btn-sm" onclick="showResetScoresModal()">
+                                                    <i class="fas fa-chart-line"></i> <span data-translate="reset">Reset</span>
+                                                </button>
+                                            </div>
+                                            <div class="reset-item">
+                                                <span class="reset-label" data-translate="resetEducationProgress">Reset Education Progress</span>
+                                                <span class="reset-description" data-translate="resetEducationProgressHelp">Delete all education progress records.</span>
+                                                <button class="btn btn-warning btn-sm" onclick="showResetProgressModal()">
+                                                    <i class="fas fa-book-open"></i> <span data-translate="reset">Reset</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="reset-category">
+                                        <h4><i class="fas fa-calendar-check"></i> <span data-translate="attendanceDataCategory">Attendance Data</span></h4>
+                                        <div class="reset-items">
+                                            <div class="reset-item">
+                                                <span class="reset-label" data-translate="resetAttendanceHistory">Reset Attendance History</span>
+                                                <span class="reset-description" data-translate="resetAttendanceHistoryHelp">Clear all attendance records.</span>
+                                                <button class="btn btn-warning btn-sm" onclick="showResetAttendanceModal()">
+                                                    <i class="fas fa-calendar-times"></i> <span data-translate="reset">Reset</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="reset-category">
+                                        <h4><i class="fas fa-book"></i> <span data-translate="academicDataCategory">Academic Data</span></h4>
+                                        <div class="reset-items">
+                                            <div class="reset-item">
+                                                <span class="reset-label" data-translate="resetAllBooks">Reset All Books</span>
+                                                <span class="reset-description" data-translate="resetAllBooksHelp">Delete all books and their progress records.</span>
+                                                <button class="btn btn-warning btn-sm" onclick="showResetBooksModal()">
+                                                    <i class="fas fa-books"></i> <span data-translate="reset">Reset</span>
+                                                </button>
+                                            </div>
+                                            <div class="reset-item">
+                                                <span class="reset-label" data-translate="resetTeacherLogs">Reset Teacher Logs</span>
+                                                <span class="reset-description" data-translate="resetTeacherLogsHelp">Delete all teacher logbook entries.</span>
+                                                <button class="btn btn-warning btn-sm" onclick="showResetLogsModal()">
+                                                    <i class="fas fa-clipboard-list"></i> <span data-translate="reset">Reset</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="reset-category">
+                                        <h4><i class="fas fa-users-cog"></i> <span data-translate="systemDataCategory">System Data</span></h4>
+                                        <div class="reset-items">
+                                            <div class="reset-item">
+                                                <span class="reset-label" data-translate="resetAllUsers">Reset All Users</span>
+                                                <span class="reset-description" data-translate="resetAllUsersHelp">Delete all user accounts except the current admin.</span>
+                                                <button class="btn btn-warning btn-sm" onclick="showResetUsersModal()">
+                                                    <i class="fas fa-user-cog"></i> <span data-translate="reset">Reset</span>
+                                                </button>
+                                            </div>
+                                            <div class="reset-item">
+                                                <span class="reset-label" data-translate="resetSettingsTitle">Reset Settings</span>
+                                                <span class="reset-description" data-translate="resetSettingsHelp">Reset all application settings to their default values.</span>
+                                                <button class="btn btn-warning btn-sm" onclick="showResetSettingsModal()">
+                                                    <i class="fas fa-cog"></i> <span data-translate="reset">Reset</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="danger-zone">
+                                    <h4><i class="fas fa-exclamation-triangle"></i> <span data-translate="completeResetTitle">Complete Reset</span></h4>
+                                    <p class="help-text" data-translate="completeResetDangerHelp">This will delete all data and reset the entire application to its initial state. This action cannot be undone.</p>
+                                    <button class="btn btn-danger" onclick="showCompleteResetModal()">
+                                        <i class="fas fa-bomb"></i> <span data-translate="resetEverything">Reset Everything</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Management Tab -->
+                <div id="users" class="tab-content">
+                    <div class="settings-section-header settings-panel-header">
+                        <div>
+                            <h3 data-translate="userAccountManagement">User Account Management</h3>
+                            <p class="help-text" data-translate="usersWorkspaceDescription">Separate user-directory work from your own account and password controls.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-subtabs" role="tablist" aria-label="User workspaces">
+                        <button class="settings-subtab-button active" data-users-tab="directory" onclick="openUsersSubtab(event, 'directory')" role="tab">
+                            <i class="fas fa-users"></i> <span data-translate="userDirectory">User Directory</span>
+                        </button>
+                        <button class="settings-subtab-button" data-users-tab="my-account" onclick="openUsersSubtab(event, 'my-account')" role="tab">
+                            <i class="fas fa-user-shield"></i> <span data-translate="myAccount">My Account</span>
+                        </button>
+                    </div>
+
+                    <div class="settings-subtab-panels">
+                        <div id="users-directory-panel" class="settings-subtab-panel active" data-users-panel="directory" role="tabpanel">
+                            <div class="setting-group settings-card">
+                                <div class="settings-card-heading">
+                                    <h4 data-translate="userDirectory">User Directory</h4>
+                                    <p class="help-text" data-translate="userDirectoryHelp">Create, refresh, and manage system users from one directory view.</p>
+                                </div>
+
+                                <div class="input-group">
+                                    <button class="btn btn-primary" onclick="showCreateUserModal()">
+                                        <i class="fas fa-user-plus"></i> <span data-translate="createNewUser">Create New User</span>
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="refreshUsersList()">
+                                        <i class="fas fa-refresh"></i> <span data-translate="refreshList">Refresh List</span>
+                                    </button>
+                                </div>
+
+                                <div class="item-list" id="usersList" style="margin-top: 20px;">
+                                    <!-- Users will be displayed here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="users-my-account-panel" class="settings-subtab-panel" data-users-panel="my-account" role="tabpanel">
+                            <div class="setting-group settings-card">
+                                <div class="settings-card-heading">
+                                    <h4 data-translate="changeAdminPassword">Change Admin Password</h4>
+                                    <p class="help-text" data-translate="changeAdminPasswordHelp">Update your admin account password for security.</p>
+                                </div>
+
+                                <div class="password-change-form">
+                                    <div class="form-group">
+                                        <label for="currentPassword" data-translate="currentPasswordLabel">Current Password</label>
+                                        <input type="password" id="currentPassword" placeholder="Enter current password">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="newPassword" data-translate="newPasswordLabel">New Password</label>
+                                        <input type="password" id="newPassword" placeholder="Enter new password">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="confirmPassword" data-translate="confirmNewPasswordLabel">Confirm New Password</label>
+                                        <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                                    </div>
+
+                                    <button class="btn btn-primary" onclick="changePassword()">
+                                        <i class="fas fa-key"></i> <span data-translate="changePasswordBtn">Change Password</span>
+                                    </button>
+                                </div>
+
+                                <div id="passwordMessage" style="margin-top: 15px; display: none;"></div>
+                            </div>
+
+                            <div class="setting-group settings-card">
+                                <div class="settings-card-heading">
+                                    <h4 data-translate="accountInformation">Account Information</h4>
+                                    <p class="help-text" data-translate="accountInformationHelp">Review your current account details here.</p>
+                                </div>
+                                <div id="accountInfo" style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                                    <p><strong data-translate="usernameLabel">Username:</strong> <span id="accountUsername">-</span></p>
+                                    <p><strong data-translate="roleLabelSimple">Role:</strong> <span id="accountRole">-</span></p>
+                                    <p><strong data-translate="lastLoginLabelSimple">Last Login:</strong> <span id="accountLastLogin">-</span></p>
+                                    <p><strong data-translate="accountCreatedLabel">Account Created:</strong> <span id="accountCreated">-</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Messages Section -->
+            <section id="messages" class="section">
+                <h2><i class="fas fa-comments"></i> Messages</h2>
+                
+                <div class="messages-container">
+                    <div class="messages-sidebar">
+                        <div class="sidebar-header">
+                            <h3 id="sidebarTitle">Conversations</h3>
+                        </div>
+                        <div id="conversationsList" class="conversations-list">
+                            <div class="loading-state">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p id="loadingText">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="messages-main">
+                        <div class="messages-header" id="conversationHeader">
+                            <div class="conversation-header-info">
+                                <h3>Select a conversation</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="messages-content">
+                            <div id="messagesContainer" class="messages-list">
+                                <div class="empty-messages">
+                                    <i class="fas fa-comment-dots"></i>
+                                    <p>Select a conversation to start messaging</p>
+                                </div>
+                            </div>
+                            
+                            <div class="messages-input-container">
+                                <div class="messages-input-wrapper">
+                                    <textarea 
+                                        id="messageInput" 
+                                        placeholder="Type your message..." 
+                                        rows="1"
+                                        maxlength="1000"
+                                        onkeypress="handleMessageKeyPress(event)"
+                                        oninput="autoResizeTextarea(this)"
+                                    ></textarea>
+                                    <button id="sendMessageBtn" onclick="sendMessageFromInput()" class="send-btn">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                                <div class="message-counter">
+                                    <span id="messageCounter">0/1000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    </div> <!-- End of app-layout -->
+    </div> <!-- End of mainApp div -->
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 <span id="footerAppName">Loading...</span>. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    </div> <!-- End of mainAppContent div -->
+
+    <!-- Teachers Corner Modals -->
+    <div id="log-modal" class="modal-backdrop justify-center items-center">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 lg:w-1/3">
+            <div class="p-6 border-b"><h3 id="log-modal-title" class="text-xl font-semibold text-gray-800"></h3></div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="log-id"><input type="hidden" id="log-class-name">
+                <div><label for="log-type" class="block text-sm font-medium text-gray-700 mb-1">বিবরণের ধরণ</label><select id="log-type" class="w-full border-gray-300 rounded-md shadow-sm"><option value="শিক্ষামূলক">শিক্ষামূলক</option><option value="আচরণগত">আচরণগত</option><option value="অভিভাবক">অভিভাবক</option><option value="বিশেষ ঘটনা">বিশেষ ঘটনা</option><option value="সাধারণ">সাধারণ</option></select></div>
+                <div><label for="log-student-select" class="block text-sm font-medium text-gray-700 mb-1">ছাত্র নির্বাচন (ঐচ্ছিক)</label><select id="log-student-select" class="w-full border-gray-300 rounded-md shadow-sm"><option value="">সবাই (শ্রেণী বিবরণ)</option></select><input type="hidden" id="log-student-id"></div>
+                <div class="flex items-center gap-4">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" id="log-important" class="rounded">
+                        <span class="text-sm font-medium text-gray-700">গুরুত্বপূর্ণ</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" id="log-followup" class="rounded">
+                        <span class="text-sm font-medium text-gray-700">অনুসরণ প্রয়োজন</span>
+                    </label>
+                </div>
+                <div><label for="log-details" class="block text-sm font-medium text-gray-700 mb-1">বিস্তারিত</label><textarea id="log-details" rows="4" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="এখানে বিবরণ লিখুন..."></textarea></div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3"><button onclick="closeLogModal()" class="btn-secondary text-white px-4 py-2 rounded-md">বাতিল</button><button onclick="saveLogEntry()" class="btn-primary text-white px-4 py-2 rounded-md">সংরক্ষণ</button></div>
+        </div>
+    </div>
+    <div id="student-profile-modal" class="modal-backdrop justify-center items-center" data-is-mobile="false">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-11/12 md:w-4/5 lg:w-3/4 xl:w-2/3 student-profile-modal-content">
+            <!-- Mobile Header (Hidden on desktop) -->
+            <div id="student-profile-mobile-header" class="student-profile-mobile-header" style="display: none;">
+                <button onclick="closeStudentProfileModal()" class="student-profile-back-btn" aria-label="Close">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div id="student-profile-mobile-header-info" class="student-profile-mobile-header-info">
+                    <!-- Student name and photo will be inserted here -->
+                </div>
+                <button onclick="closeStudentProfileModal()" class="student-profile-close-btn" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Desktop Header (Hidden on mobile) -->
+            <div class="p-4 border-b student-profile-desktop-header">
+                <!-- Student info and print buttons will be inserted here by JavaScript -->
+                <div id="student-header-content"></div>
+                <div class="flex justify-end mt-2">
+                    <button onclick="closeStudentProfileModal()" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+                </div>
+            </div>
+            
+            <!-- Tab Content Container -->
+            <div id="student-profile-content" class="p-6 max-h-[80vh] overflow-y-auto student-profile-content">
+                <!-- Tab content will be inserted here by JavaScript -->
+            </div>
+            
+            <!-- Bottom Tab Navigation (Mobile Only) -->
+            <div id="student-profile-bottom-tabs" class="student-profile-bottom-tabs" style="display: none;">
+                <button onclick="if(typeof switchStudentProfileTab==='function'){switchStudentProfileTab('overview')}else{console.warn('switchStudentProfileTab not loaded yet')}" class="student-profile-bottom-tab active" data-tab="overview">
+                    <i class="fas fa-home"></i>
+                    <span>এক নজরে</span>
+                </button>
+                <button onclick="if(typeof switchStudentProfileTab==='function'){switchStudentProfileTab('personal')}else{console.warn('switchStudentProfileTab not loaded yet')}" class="student-profile-bottom-tab" data-tab="personal">
+                    <i class="fas fa-user"></i>
+                    <span>ব্যক্তিগত</span>
+                </button>
+                <button onclick="if(typeof switchStudentProfileTab==='function'){switchStudentProfileTab('attendance')}else{console.warn('switchStudentProfileTab not loaded yet')}" class="student-profile-bottom-tab" data-tab="attendance">
+                    <i class="fas fa-check-circle"></i>
+                    <span>উপস্থিতি</span>
+                </button>
+                <button onclick="if(typeof switchStudentProfileTab==='function'){switchStudentProfileTab('exams')}else{console.warn('switchStudentProfileTab not loaded yet')}" class="student-profile-bottom-tab" data-tab="exams">
+                    <i class="fas fa-file-alt"></i>
+                    <span>পরীক্ষা</span>
+                </button>
+                <button onclick="if(typeof switchStudentProfileTab==='function'){switchStudentProfileTab('logs')}else{console.warn('switchStudentProfileTab not loaded yet')}" class="student-profile-bottom-tab" data-tab="logs">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>বিবরণ</span>
+                </button>
+                <button onclick="if(typeof switchStudentProfileTab==='function'){switchStudentProfileTab('score-history')}else{console.warn('switchStudentProfileTab not loaded yet')}" class="student-profile-bottom-tab" data-tab="score-history">
+                    <i class="fas fa-star"></i>
+                    <span>হুসনুল খুলুক</span>
+                </button>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="student-profile-loading" class="student-profile-loading" style="display: none;">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <p>লোড হচ্ছে...</p>
+            </div>
+            
+            <!-- Floating Action Button (Mobile Only) -->
+            <button id="student-profile-fab" class="student-profile-fab" onclick="if(typeof toggleStudentProfileFAB==='function'){toggleStudentProfileFAB()}else{console.warn('toggleStudentProfileFAB not loaded yet')}" style="display: none;">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            
+            <!-- FAB Menu (Mobile Only) -->
+            <div id="student-profile-fab-menu" class="student-profile-fab-menu">
+                <button class="student-profile-fab-item" onclick="document.getElementById('print-student-detail-btn')?.click(); if(typeof toggleStudentProfileFAB==='function'){toggleStudentProfileFAB()}" title="Print">
+                    <i class="fas fa-print"></i>
+                </button>
+                <button class="student-profile-fab-item" onclick="document.getElementById('show-custom-print-modal-btn')?.click(); if(typeof toggleStudentProfileFAB==='function'){toggleStudentProfileFAB()}" title="Custom Print">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="book-modal" class="modal-backdrop justify-center items-center">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 lg:w-1/3">
+            <div class="p-6 border-b"><h3 id="book-modal-title" class="text-xl font-semibold text-gray-800"></h3></div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="book-id">
+                <div><label for="book-name" class="block text-sm font-medium text-gray-700 mb-1">বইয়ের নাম</label><input type="text" id="book-name" class="w-full border-gray-300 rounded-md shadow-sm"></div>
+                <div><label for="book-total-pages" class="block text-sm font-medium text-gray-700 mb-1">মোট পৃষ্ঠা</label><input type="number" id="book-total-pages" class="w-full border-gray-300 rounded-md shadow-sm"></div>
+                <div id="book-description-section">
+                    <label for="book-description" class="block text-sm font-medium text-gray-700 mb-1">পরিকল্পনা/বিবরণ (ঐচ্ছিক)</label>
+                    <textarea id="book-description" rows="3" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="বছরের পরিকল্পনা, লক্ষ্য, গুরুত্বপূর্ণ নোট..."></textarea>
+                </div>
+                <div id="book-progress-section">
+                    <label for="book-completed-pages" class="block text-sm font-medium text-gray-700 mb-1">সম্পন্ন পৃষ্ঠা</label>
+                    <input type="number" id="book-completed-pages" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <label for="book-progress-note" class="block text-sm font-medium text-gray-700 mb-1 mt-2">অগ্রগতির নোট (ঐচ্ছিক)</label>
+                    <textarea id="book-progress-note" rows="2" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="অগ্রগতির বিষয়ে বিবরণ লিখুন..."></textarea>
+                </div>
+                <div id="book-progress-history-section" class="pt-4 border-t">
+                    <h4 class="text-sm font-semibold text-gray-600 mb-2">অগ্রগতির ইতিহাস</h4>
+                    <div id="progress-history-list" class="text-xs text-gray-500 max-h-24 overflow-y-auto space-y-1"></div>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-between items-center">
+                <button id="delete-book-btn" onclick="deleteBook()" class="btn-danger text-white px-4 py-2 rounded-md">মুছে ফেলুন</button>
+                <div>
+                    <button onclick="closeBookModal()" class="btn-secondary text-white px-4 py-2 rounded-md">বাতিল</button>
+                    <button onclick="saveBook()" class="btn-primary text-white px-4 py-2 rounded-md">সংরক্ষণ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="score-modal" class="modal-backdrop justify-center items-center">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-11/12 md:w-1/2">
+            <div class="p-6 border-b"><h3 id="score-modal-title" class="text-xl font-semibold text-gray-800">হুসনুল খুলুক পরিবর্তন করুন</h3></div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="score-student-id">
+                
+                <!-- Score History Section -->
+                <div id="score-history-section" class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">হুসনুল খুলুক পরিবর্তনের ইতিহাস</label>
+                    <div id="score-history-list" class="space-y-2 max-h-48 overflow-y-auto bg-gray-50 p-3 rounded-md border border-gray-200">
+                        <div class="text-center text-gray-500 text-sm py-4">ইতিহাস লোড হচ্ছে...</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="new-score" class="block text-sm font-medium text-gray-700 mb-1">নতুন হুসনুল খুলুক (০-১০০)</label>
+                    <input type="number" id="new-score" min="0" max="100" class="w-full border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div>
+                    <label for="score-change-reason" class="block text-sm font-medium text-gray-700 mb-1">পরিবর্তনের কারণ (ঐচ্ছিক)</label>
+                    <textarea id="score-change-reason" rows="3" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="হুসনুল খুলুক পরিবর্তনের কারণ লিখুন..."></textarea>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3">
+                <button onclick="closeScoreModal()" class="btn-secondary text-white px-4 py-2 rounded-md">বাতিল</button>
+                <button onclick="saveNewScore()" class="btn-primary text-white px-4 py-2 rounded-md">সংরক্ষণ</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inactive Students Modal -->
+    <div id="inactive-students-modal" class="modal-backdrop justify-center items-center">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-11/12 md:w-3/4 lg:w-2/3">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="text-xl font-semibold text-gray-800">বিদায়ী ছাত্রদের তালিকা</h3>
+                <button onclick="closeInactiveStudentsModal()" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <p class="text-gray-600 text-sm">এই ছাত্ররা বর্তমানে বিদায়ী অবস্থায় রয়েছে। তাদের তথ্য দেখানো হচ্ছে কিন্তু সম্পাদনা করা যাবে না।</p>
+                </div>
+                <div id="inactive-students-list" class="space-y-3">
+                    <!-- Inactive students will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    
+
+    <!-- Modal for notifications -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Bulk Absent Modal -->
+    <div id="bulkAbsentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeBulkAbsentModal()">&times;</span>
+            <h3>Mark All Students Absent</h3>
+            <div class="bulk-absent-form">
+                <label for="bulkAbsentReason">Reason for absence (applies to all students):</label>
+                <input type="text" id="bulkAbsentReason" placeholder="e.g., School holiday, Strike, etc." maxlength="100">
+                <div class="modal-buttons">
+                    <button onclick="confirmMarkAllAbsent()" class="btn btn-danger">
+                        <i class="fas fa-times-circle"></i> Mark All Absent
+                    </button>
+                    <button onclick="closeBulkAbsentModal()" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Attendance Modal -->
+    <div id="resetAttendanceModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeResetAttendanceModal()">&times;</span>
+            <h3 style="color: #dc3545;"><i class="fas fa-exclamation-triangle"></i> Reset Attendance History</h3>
+            <div class="reset-attendance-form">
+                <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+                    <p style="color: #721c24; margin-bottom: 10px;"><strong>⚠️ Warning: This action cannot be undone!</strong></p>
+                    <p style="color: #721c24; margin-bottom: 10px;">This will permanently delete:</p>
+                    <ul style="color: #721c24; margin-bottom: 0;">
+                        <li>All attendance records for all students</li>
+                        <li>All saved attendance dates</li>
+                        <li>All attendance history from the calendar</li>
+                    </ul>
+                </div>
+                <p style="margin-bottom: 15px;">Type <strong>"RESET"</strong> to confirm:</p>
+                <input type="text" id="resetConfirmationInput" placeholder="Type RESET to confirm" style="margin-bottom: 15px; width: 100%;">
+                <div class="modal-buttons">
+                    <button onclick="confirmResetAttendance()" class="btn btn-danger" id="confirmResetBtn" disabled>
+                        <i class="fas fa-trash-alt"></i> Reset All Attendance
+                    </button>
+                    <button onclick="closeResetAttendanceModal()" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book Management Edit Modal -->
+    <div id="bookManagementEditModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Book</h3>
+                <button type="button" onclick="closeBookManagementEditModal()" class="btn btn-secondary btn-small">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="bookManagementEditForm" class="form">
+                <input type="hidden" id="bookManagementEditId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bookManagementEditName">Book Name *</label>
+                        <input type="text" id="bookManagementEditName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editBookClass">Class</label>
+                        <select id="editBookClass">
+                            <option value="">All Classes</option>
+                            <!-- Class options will be populated dynamically from database -->
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editBookTotalPages">Total Pages</label>
+                        <input type="number" id="editBookTotalPages" min="1" placeholder="Enter total pages">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editBookDescription">Description/Plan (Optional)</label>
+                        <textarea id="editBookDescription" 
+                                  placeholder="Add yearly plan, goals, important notes, completion targets..." 
+                                  rows="4" 
+                                  style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; resize: vertical;"></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <button type="button" onclick="closeBookManagementEditModal()" class="btn btn-secondary">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div id="createUserModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New User</h3>
+                <button type="button" onclick="closeCreateUserModal()" class="btn btn-secondary btn-small">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="createUserForm" class="form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="createUsername">Username *</label>
+                        <input type="text" id="createUsername" required placeholder="Enter username">
+                    </div>
+                    <div class="form-group">
+                        <label for="createPassword">Password *</label>
+                        <input type="password" id="createPassword" required placeholder="Enter password">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="createRole">User Type *</label>
+                        <select id="createRole" required onchange="toggleCreateUserPermissions()">
+                            <option value="">Select User Type</option>
+                            <option value="admin">👑 Super Administrator (Full Access)</option>
+                            <option value="user">👤 Regular User (Custom Permissions)</option>
+                        </select>
+                        <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
+                            Super Admin: Full unrestricted access | Regular User: Controlled by permissions
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="createUserClass">Assigned Class</label>
+                        <select id="createUserClass">
+                            <option value="">No Class (Admin Access)</option>
+                            <!-- Class options will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                <div id="createUserPermissionTemplate" style="display: none; margin-top: 15px;">
+                    <div class="form-group">
+                        <label for="createPermissionTemplate">Quick Permission Template (Optional)</label>
+                        <select id="createPermissionTemplate">
+                            <option value="">Custom (Set later)</option>
+                            <option value="teacher">👨‍🏫 Teacher (Attendance + Teachers Corner)</option>
+                            <option value="viewer">👁️ Viewer (Read-Only)</option>
+                            <option value="class_admin">🎓 Class Admin (Multiple Classes)</option>
+                            <option value="principal">📋 Principal (All Classes, Limited Admin)</option>
+                            <option value="full_access">🔧 Restricted Admin (Almost Everything)</option>
+                        </select>
+                        <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
+                            You can customize permissions after creating the user
+                        </small>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Create User
+                    </button>
+                    <button type="button" onclick="closeCreateUserModal()" class="btn btn-secondary">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit User</h3>
+                <button type="button" onclick="closeEditUserModal()" class="btn btn-secondary btn-small">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="editUserForm" class="form">
+                <input type="hidden" id="editUserId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editUsername">Username *</label>
+                        <input type="text" id="editUsername" required placeholder="Enter username">
+                    </div>
+                    <div class="form-group">
+                        <label for="editRole">Role *</label>
+                        <select id="editRole" required>
+                            <option value="admin">Admin</option>
+                            <option value="user">User</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editUserClass">Assigned Class</label>
+                        <select id="editUserClass">
+                            <option value="">No Class (Admin Access)</option>
+                            <!-- Class options will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserStatus">Status</label>
+                        <select id="editUserStatus" required>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update User
+                    </button>
+                    <button type="button" onclick="resetUserPassword()" class="btn btn-warning">
+                        <i class="fas fa-key"></i> Reset Password
+                    </button>
+                    <button type="button" onclick="closeEditUserModal()" class="btn btn-secondary">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Permission Editor Modal -->
+    <div id="permissionEditorModal" class="modal" style="display: none;">
+        <div class="modal-content permission-modal-content">
+            <div class="modal-header">
+                <h3>🔐 Edit Permissions: <span id="permissionUsername"></span></h3>
+                <button type="button" onclick="closePermissionEditor()" class="btn btn-secondary btn-small">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="permission-editor-body">
+                <!-- Quick Templates -->
+                <div class="permission-templates">
+                    <h4>⚡ Quick Templates</h4>
+                    <p class="help-text">Apply a pre-configured permission set:</p>
+                    <div class="template-buttons">
+                        <button type="button" onclick="applyPermissionTemplate('teacher')" class="btn btn-template">
+                            👨‍🏫 Teacher
+                        </button>
+                        <button type="button" onclick="applyPermissionTemplate('viewer')" class="btn btn-template">
+                            👁️ Viewer
+                        </button>
+                        <button type="button" onclick="applyPermissionTemplate('class_admin')" class="btn btn-template">
+                            🎓 Class Admin
+                        </button>
+                        <button type="button" onclick="applyPermissionTemplate('principal')" class="btn btn-template">
+                            📋 Principal
+                        </button>
+                        <button type="button" onclick="applyPermissionTemplate('full_access')" class="btn btn-template">
+                            👑 Restricted Admin
+                        </button>
+                    </div>
+                </div>
+
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+                <!-- Section Permissions -->
+                <div class="permission-sections">
+                    <h4>📱 Section Permissions</h4>
+                    <p class="help-text">Select which sections this user can access:</p>
+                    
+                    <div class="permission-grid">
+                        <!-- Dashboard -->
+                        <div class="permission-item">
+                            <div class="permission-header">
+                                <i class="fas fa-home"></i>
+                                <strong>Dashboard</strong>
+                            </div>
+                            <div class="permission-options">
+                                <label>
+                                    <input type="checkbox" name="perm-dashboard-view" class="perm-checkbox">
+                                    Can View
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Registration -->
+                        <div class="permission-item">
+                            <div class="permission-header">
+                                <i class="fas fa-user-plus"></i>
+                                <strong>Student Registration</strong>
+                            </div>
+                            <div class="permission-options">
+                                <label>
+                                    <input type="checkbox" name="perm-registration-view" class="perm-checkbox">
+                                    Can View
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="perm-registration-edit" class="perm-checkbox">
+                                    Can Edit (Add/Edit/Delete)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Attendance -->
+                        <div class="permission-item">
+                            <div class="permission-header">
+                                <i class="fas fa-check-circle"></i>
+                                <strong>Daily Attendance</strong>
+                            </div>
+                            <div class="permission-options">
+                                <label>
+                                    <input type="checkbox" name="perm-attendance-view" class="perm-checkbox">
+                                    Can View
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="perm-attendance-edit" class="perm-checkbox">
+                                    Can Edit (Mark/Edit)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Reports -->
+                        <div class="permission-item">
+                            <div class="permission-header">
+                                <i class="fas fa-chart-bar"></i>
+                                <strong>Reports</strong>
+                            </div>
+                            <div class="permission-options">
+                                <label>
+                                    <input type="checkbox" name="perm-reports-view" class="perm-checkbox">
+                                    Can View
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="perm-reports-edit" class="perm-checkbox">
+                                    Can Generate & Print
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Teachers Corner -->
+                        <div class="permission-item">
+                            <div class="permission-header">
+                                <i class="fas fa-graduation-cap"></i>
+                                <strong>Teachers Corner</strong>
+                            </div>
+                            <div class="permission-options">
+                                <label>
+                                    <input type="checkbox" name="perm-teachers-corner-view" class="perm-checkbox">
+                                    Can View
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="perm-teachers-corner-edit" class="perm-checkbox">
+                                    Can Edit (Scores/Logs/Progress)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Settings -->
+                        <div class="permission-item">
+                            <div class="permission-header">
+                                <i class="fas fa-cog"></i>
+                                <strong>Settings</strong>
+                            </div>
+                            <div class="permission-options">
+                                <label>
+                                    <input type="checkbox" name="perm-settings-view" class="perm-checkbox">
+                                    Can View
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="perm-settings-edit" class="perm-checkbox">
+                                    Can Edit (Classes/Books/Users)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Messages -->
+                        <div class="permission-item">
+                            <div class="permission-header">
+                                <i class="fas fa-comments"></i>
+                                <strong>Messages</strong>
+                            </div>
+                            <div class="permission-options">
+                                <label>
+                                    <input type="checkbox" name="perm-messages-view" class="perm-checkbox">
+                                    Can View
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="perm-messages-edit" class="perm-checkbox">
+                                    Can Send Messages
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+                <!-- Class Access -->
+                <div class="permission-classes">
+                    <h4>🏫 Class Access Control</h4>
+                    <p class="help-text">Select which classes this user can access:</p>
+                    
+                    <div class="class-access-options">
+                        <label class="class-access-radio">
+                            <input type="radio" name="class-access-type" value="all" checked>
+                            <strong>All Classes</strong> - User can access all classes
+                        </label>
+                        <label class="class-access-radio">
+                            <input type="radio" name="class-access-type" value="specific">
+                            <strong>Specific Classes</strong> - User can only access selected classes
+                        </label>
+                    </div>
+
+                    <div id="specificClassesContainer" style="display: none; margin-top: 15px;">
+                        <div id="classCheckboxes" class="class-checkboxes">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="permission-actions">
+                    <button type="button" onclick="saveUserPermissions()" class="btn btn-primary btn-large">
+                        <i class="fas fa-save"></i> Save Permissions
+                    </button>
+                    <button type="button" onclick="closePermissionEditor()" class="btn btn-secondary btn-large">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module" src="translations.js"></script>
+    <script src="modules/hijri.js" type="module"></script>
+    <!-- Pre-define ALL functions as fallback until modules load -->
+    <script>
+        // Define placeholder functions immediately so HTML onclick handlers don't fail
+        window.switchStudentProfileTab = window.switchStudentProfileTab || function(tabName) {
+            console.warn('⚠️ switchStudentProfileTab not loaded yet, tab:', tabName);
+            setTimeout(() => {
+                if (typeof window.switchStudentProfileTab === 'function' && window.switchStudentProfileTab !== arguments.callee) {
+                    window.switchStudentProfileTab(tabName);
+                }
+            }, 100);
+        };
+        window.toggleStudentProfileFAB = window.toggleStudentProfileFAB || function() {
+            const fabMenu = document.getElementById('student-profile-fab-menu');
+            if (fabMenu) fabMenu.classList.toggle('show');
+        };
+        window.openBookProgressWindow = window.openBookProgressWindow || function() {
+            console.warn('⚠️ openBookProgressWindow not loaded yet');
+            setTimeout(() => {
+                if (typeof window.openBookProgressWindow === 'function' && window.openBookProgressWindow !== arguments.callee) {
+                    window.openBookProgressWindow();
+                }
+            }, 100);
+        };
+        window.showAlertsModal = window.showAlertsModal || function() {
+            console.warn('⚠️ showAlertsModal not loaded yet');
+            setTimeout(() => {
+                if (typeof window.showAlertsModal === 'function' && window.showAlertsModal !== arguments.callee) {
+                    window.showAlertsModal();
+                }
+            }, 100);
+        };
+        window.showAbsenceSummaryModal = window.showAbsenceSummaryModal || function() {
+            console.warn('⚠️ showAbsenceSummaryModal not loaded yet');
+            setTimeout(() => {
+                if (typeof window.showAbsenceSummaryModal === 'function' && window.showAbsenceSummaryModal !== arguments.callee) {
+                    window.showAbsenceSummaryModal();
+                }
+            }, 100);
+        };
+        window.openCommunicationsWindow = window.openCommunicationsWindow || function() {
+            console.warn('⚠️ openCommunicationsWindow not loaded yet');
+            setTimeout(() => {
+                if (typeof window.openCommunicationsWindow === 'function' && window.openCommunicationsWindow !== arguments.callee) {
+                    window.openCommunicationsWindow();
+                }
+            }, 100);
+        };
+        console.log('✅ All placeholder functions defined');
+    </script>
+    <script type="module" src="modules/main.js"></script>
+    <script type="module" src="modules/mobile-ui.js"></script>
+    
+    <script>
+        // Authentication check and logout functionality
+        let currentUser = null;
+        
+        // Check authentication on page load
+        async function checkAuthentication() {
+            try {
+                const response = await fetch('/api/auth/user');
+                if (response.ok) {
+                    currentUser = await response.json();
+                    window.currentUser = currentUser;  // Make it globally accessible
+                    // Use fallback text initially, will be updated by translation system
+                    const welcomeText = window.t ? window.t('welcome') : 'Welcome';
+                    document.getElementById('currentUser').textContent = `${welcomeText}, ${currentUser.username}`;
+                    
+                    // Apply role-based UI restrictions
+                    applyRoleBasedUI(currentUser);
+                } else {
+                    // Not authenticated, redirect to login
+                    // Hide loading screen before redirect
+                    hideLoadingScreen();
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 200);
+                }
+            } catch (error) {
+                // Network error, redirect to login
+                // Hide loading screen before redirect
+                hideLoadingScreen();
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 200);
+            }
+        }
+        
+        // Apply role-based UI restrictions
+        function applyRoleBasedUI(user) {
+            if (user.role === 'user') {
+                // Add user-role class to body for CSS restrictions
+                document.body.classList.add('user-role');
+                
+                // Hide all sections initially
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Show Teachers Corner section
+                const teachersCornerSection = document.getElementById('teachers-corner-section');
+                if (teachersCornerSection) {
+                    teachersCornerSection.classList.add('active');
+                }
+                
+                // For regular users, automatically show Teachers Corner for their assigned class
+                if (user.class_name) {
+                    setTimeout(() => {
+                        openTeachersCornerForClass(user.class_name);
+                    }, 300);
+                }
+            } else if (user.role === 'admin') {
+                // Remove user-role class if it exists (for admin users)
+                document.body.classList.remove('user-role');
+                
+                // Show dashboard for admin users
+                const dashboardSection = document.getElementById('dashboard');
+                if (dashboardSection) {
+                    dashboardSection.classList.add('active');
+                }
+                
+                // Add active class to dashboard nav link
+                const dashboardNavLink = document.querySelector('a[onclick*="dashboard"]');
+                if (dashboardNavLink) {
+                    dashboardNavLink.classList.add('active');
+                }
+            }
+            
+            // Hide loading screen and show main app content
+            hideLoadingScreen();
+        }
+        
+        // Function to hide loading screen and show main app
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const mainAppContent = document.getElementById('mainAppContent');
+            
+            if (loadingScreen && mainAppContent) {
+                // Fade out loading screen
+                loadingScreen.style.transition = 'opacity 0.3s ease-out';
+                loadingScreen.style.opacity = '0';
+                
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    mainAppContent.style.display = 'flex';
+                    
+                    // Fade in main app
+                    mainAppContent.style.opacity = '0';
+                    mainAppContent.style.transition = 'opacity 0.3s ease-in';
+                    setTimeout(() => {
+                        mainAppContent.style.opacity = '1';
+                    }, 50);
+                }, 300);
+            }
+        }
+        
+        // Logout function
+        async function logout() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    // Redirect to login page
+                    window.location.href = '/';
+                } else {
+                    alert('Logout failed. Please try again.');
+                }
+            } catch (error) {
+                alert('Network error during logout. Please try again.');
+            }
+        }
+        
+        // Check authentication when page loads
+        window.addEventListener('load', checkAuthentication);
+        
+        // Load account information when user management tab is opened
+        async function loadAccountInfo() {
+            try {
+                const response = await fetch('/api/auth/user');
+                if (response.ok) {
+                    const user = await response.json();
+                    
+                    document.getElementById('accountUsername').textContent = user.username;
+                    document.getElementById('accountRole').textContent = user.role;
+                    document.getElementById('accountLastLogin').textContent = user.last_login ? new Date(user.last_login).toLocaleString() : 'Never';
+                    document.getElementById('accountCreated').textContent = user.created_at ? new Date(user.created_at).toLocaleString() : 'Unknown';
+                }
+            } catch (error) {
+                console.error('Error loading account info:', error);
+            }
+        }
+        
+        // Change password function
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const messageDiv = document.getElementById('passwordMessage');
+            
+            // Clear previous message
+            messageDiv.style.display = 'none';
+            
+            // Validation
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showPasswordMessage('Please fill in all fields.', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showPasswordMessage('New passwords do not match.', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                showPasswordMessage('New password must be at least 6 characters long.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        currentPassword: currentPassword,
+                        newPassword: newPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showPasswordMessage(data.message, 'success');
+                    // Clear form
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } else {
+                    showPasswordMessage(data.error, 'error');
+                }
+            } catch (error) {
+                showPasswordMessage('Network error. Please try again.', 'error');
+            }
+        }
+        
+        // Show password change message
+        function showPasswordMessage(message, type) {
+            const messageDiv = document.getElementById('passwordMessage');
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                messageDiv.style.background = '#d4edda';
+                messageDiv.style.color = '#155724';
+                messageDiv.style.border = '1px solid #c3e6cb';
+            } else {
+                messageDiv.style.background = '#f8d7da';
+                messageDiv.style.color = '#721c24';
+                messageDiv.style.border = '1px solid #f5c6cb';
+            }
+            
+            messageDiv.style.padding = '10px';
+            messageDiv.style.borderRadius = '5px';
+            messageDiv.style.marginTop = '15px';
+        }
+        
+        // Override the openSettingsTab function to load account info when users tab is opened
+        const originalOpenSettingsTab = window.openSettingsTab;
+        window.openSettingsTab = function(event, tabName) {
+            originalOpenSettingsTab(event, tabName);
+            if (tabName === 'users') {
+                loadAccountInfo();
+            }
+        };
+
+        // Auto-resize textarea function for messaging
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            
+            // Update character counter
+            const counter = document.getElementById('messageCounter');
+            if (counter) {
+                counter.textContent = textarea.value.length + '/1000';
+            }
+        }
+    </script>
+
+    <!-- Book Progress Modal -->
+    <div id="book-progress-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;">
+                <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; color: #1f2937;">
+                    <i class="fas fa-book-open text-teal-500"></i> শিক্ষাপ্রগতি - বিস্তারিত
+                </h2>
+                <button onclick="closeBookProgressModal()" class="text-gray-400 hover:text-gray-600" style="font-size: 1.5rem; background: none; border: none; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Sidebar -->
+                <div id="book-progress-sidebar" class="book-progress-sidebar">
+                    <!-- Class list will be rendered here -->
+                </div>
+                <!-- Main Content -->
+                <div class="book-progress-main">
+                    <div id="book-progress-details">
+                        <!-- Book details will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" style="display: none;">
+        <a href="#dashboard" class="nav-item active" data-nav-id="dashboard">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="#registration" class="nav-item" data-nav-id="registration">
+            <i class="fas fa-user-plus"></i>
+            <span>Students</span>
+        </a>
+        <a href="#attendance" class="nav-item" data-nav-id="attendance">
+            <i class="fas fa-check-circle"></i>
+            <span>Attendance</span>
+        </a>
+        <a href="#" class="nav-item" data-nav-id="teachers-corner" id="mobile-teachers-nav">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <span>Teachers</span>
+        </a>
+        <a href="#reports" class="nav-item" data-nav-id="reports">
+            <i class="fas fa-chart-bar"></i>
+            <span>Reports</span>
+        </a>
+        <a href="#settings" class="nav-item" data-nav-id="settings">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+    <!-- Teachers Corner Bottom Navigation (for normal users) -->
+    <nav class="teachers-corner-bottom-nav" id="teachers-corner-bottom-nav" style="display: none;">
+        <a href="#" class="tc-nav-item active" data-tc-tab="dashboard" id="tc-nav-dashboard" role="button" aria-label="Dashboard">
+            <i class="fas fa-chart-line"></i>
+            <span data-translate="dashboard">Dashboard</span>
+        </a>
+        <a href="#" class="tc-nav-item" data-tc-tab="students" id="tc-nav-students" role="button" aria-label="Students">
+            <i class="fas fa-users"></i>
+            <span data-translate="students">Students</span>
+        </a>
+        <a href="#" class="tc-nav-item" data-tc-tab="progress" id="tc-nav-progress" role="button" aria-label="Progress">
+            <i class="fas fa-book-open"></i>
+            <span data-translate="progress">Progress</span>
+        </a>
+        <a href="#" class="tc-nav-item" data-tc-tab="logbook" id="tc-nav-logbook" role="button" aria-label="Logbook">
+            <i class="fas fa-book"></i>
+            <span data-translate="logbook">Logbook</span>
+        </a>
+        <a href="#" class="tc-nav-item" data-tc-tab="exams" id="tc-nav-exams" role="button" aria-label="Exams">
+            <i class="fas fa-clipboard-check"></i>
+            <span data-translate="exams">Exams</span>
+        </a>
+    </nav>
+
+    <!-- PWA Install Prompt -->
+    <div id="pwa-install-prompt" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 10000; max-width: 90%; animation: slideUp 0.5s ease-out;">
+        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px; direction: ltr;">
+                    📱 Install App
+                </div>
+                <div style="font-size: 14px; opacity: 0.95;">
+                    Install app for better experience
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="pwa-install-btn" style="background: white; color: #4CAF50; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
+                    Install
+                </button>
+                <button id="pwa-dismiss-btn" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                    ✕
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+    </style>
+
+    <script>
+        // PWA Install Prompt Handler
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            
+            // Check if user has dismissed the prompt before
+            const dismissed = localStorage.getItem('pwa-install-dismissed');
+            if (!dismissed) {
+                // Show the install prompt
+                document.getElementById('pwa-install-prompt').style.display = 'block';
+            }
+            
+            console.log('✅ PWA: Install prompt is available');
+        });
+        
+        document.getElementById('pwa-install-btn')?.addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                return;
+            }
+            
+            // Show the install prompt
+            deferredPrompt.prompt();
+            
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`PWA: User ${outcome} the installation`);
+            
+            // Hide the prompt
+            document.getElementById('pwa-install-prompt').style.display = 'none';
+            
+            // Clear the deferredPrompt
+            deferredPrompt = null;
+        });
+        
+        document.getElementById('pwa-dismiss-btn')?.addEventListener('click', () => {
+            // Hide the prompt
+            document.getElementById('pwa-install-prompt').style.display = 'none';
+            
+            // Remember that user dismissed it (for 7 days)
+            localStorage.setItem('pwa-install-dismissed', Date.now());
+            setTimeout(() => {
+                localStorage.removeItem('pwa-install-dismissed');
+            }, 7 * 24 * 60 * 60 * 1000);
+        });
+        
+        // Listen for successful installation
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ PWA: App installed successfully!');
+            document.getElementById('pwa-install-prompt').style.display = 'none';
+            deferredPrompt = null;
+        });
+    </script>
+</body>
+</html>

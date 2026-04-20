@@ -326,6 +326,7 @@ body {
 }
 .att-btn.present { background: var(--green-light); border-color: var(--green2); }
 .att-btn.absent { background: var(--red-light); border-color: var(--red); }
+.att-btn.leave { background: var(--gold-light); border-color: var(--gold); color: var(--ink2); }
 
 /* ── KHULUK SCORE ── */
 .khuluk-bar {

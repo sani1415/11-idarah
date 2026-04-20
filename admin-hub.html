@@ -64,68 +64,185 @@
   /* ── Hub: dashboard shell ── */
   #dashboard {
     min-height: 100vh;
+    min-height: 100dvh;
     background: linear-gradient(180deg, var(--cream2) 0%, var(--cream) 28%, var(--cream) 100%);
-  }
-  .hub-header {
-    background: linear-gradient(180deg, #fffefb 0%, #f3ecdf 55%, #ebe4d4 100%);
-    color: var(--ink);
-    padding: 16px 18px 20px;
-    position: relative;
-    overflow: hidden;
-    border-bottom: 1px solid rgba(26, 18, 8, 0.06);
-    box-shadow: 0 8px 28px rgba(26, 18, 8, 0.05);
-  }
-  .hub-header::after {
-    content: '';
-    position: absolute;
-    top: -50px;
-    right: -40px;
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(232, 184, 75, 0.18) 0%, transparent 68%);
-    pointer-events: none;
-  }
-  .hub-header-top {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    position: relative;
-    z-index: 1;
+    flex-direction: column;
   }
-  .hub-brand-mark {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #fff9ed, #fdf3dc);
-    border: 1px solid rgba(201, 149, 42, 0.22);
-    box-shadow: 0 2px 8px rgba(201, 149, 42, 0.1);
+  .hub-main {
+    flex: 1;
     display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .hub-tab-panels {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 16px;
+    /* Fixed header: title + date lines + padding; fixed bottom nav + safe area */
+    padding-top: calc(58px + max(8px, env(safe-area-inset-top, 0px)));
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+  .hub-tab-panel {
+    display: none;
+    padding-bottom: 8px;
+  }
+  .hub-tab-panel.is-active {
+    display: block;
+  }
+  .hub-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    flex-shrink: 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 4px;
+    padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(180deg, #fffefb 0%, #f3ecdf 100%);
+    border-top: 1px solid rgba(26, 18, 8, 0.1);
+    box-shadow: 0 -6px 24px rgba(26, 18, 8, 0.06);
+    max-width: 520px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .hub-nav-btn {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
-  }
-  .hub-header-text { flex: 1; min-width: 0; padding-left: 12px; }
-  .hub-greet {
-    font-size: 12px;
+    gap: 4px;
+    padding: 6px 6px 8px;
+    border: none;
+    border-radius: 14px;
+    background: transparent;
     color: var(--ink3);
-    margin-bottom: 2px;
+    font-family: 'Noto Sans Bengali', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hub-nav-ico {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    opacity: 0.88;
+    color: inherit;
+  }
+  .hub-nav-ico path,
+  .hub-nav-ico rect,
+  .hub-nav-ico circle {
+    fill: none;
+    stroke: currentColor;
+  }
+  .hub-nav-btn.is-active .hub-nav-ico {
+    opacity: 1;
+  }
+  .hub-nav-label {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hub-nav-btn:hover,
+  .hub-nav-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--ink2);
+    outline: none;
+  }
+  .hub-nav-btn.is-active {
+    background: rgba(232, 184, 75, 0.22);
+    color: var(--ink2);
+  }
+  .hub-nav-badge {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--red);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+    display: none;
+  }
+  .hub-nav-btn.has-badge-wrap {
+    position: relative;
+  }
+  .hub-nav-btn.has-badge-wrap .hub-nav-badge.is-visible {
+    display: inline-block;
+  }
+  .hub-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: linear-gradient(180deg, #fffefb 0%, #f3ecdf 55%, #ebe4d4 100%);
+    color: var(--ink);
+    padding: max(8px, env(safe-area-inset-top, 0px)) 14px 10px;
+    border-bottom: 1px solid rgba(26, 18, 8, 0.06);
+    box-shadow: 0 8px 28px rgba(26, 18, 8, 0.05);
+    box-sizing: border-box;
+  }
+  .hub-header-inner {
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+  }
+  .hub-header-lead {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    line-height: 1.25;
   }
   .hub-title-name {
     font-family: 'Noto Serif Bengali', serif;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--ink2);
-    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
-  .hub-header-actions { display: flex; gap: 8px; align-items: center; }
+  .hub-date-sub {
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--ink3);
+    width: 100%;
+    word-break: break-word;
+  }
   .hub-logout {
+    flex-shrink: 0;
     font-size: 11px;
     color: var(--ink3);
-    padding: 8px 12px;
+    padding: 6px 10px;
     border: 1px solid rgba(26, 18, 8, 0.1);
-    border-radius: 12px;
+    border-radius: 10px;
     background: rgba(255, 255, 255, 0.75);
     cursor: pointer;
     font-family: 'Noto Sans Bengali', sans-serif;
@@ -134,28 +251,12 @@
   .hub-logout:hover { background: #fff; border-color: rgba(201, 149, 42, 0.28); color: var(--ink2); }
   .hub-logout:active { background: var(--cream2); }
 
-  .hub-date-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 14px;
-    padding: 8px 14px;
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(26, 18, 8, 0.08);
-    border-radius: 999px;
-    font-size: 12px;
-    color: var(--ink2);
-    box-shadow: 0 2px 10px rgba(26, 18, 8, 0.05);
-    position: relative;
-    z-index: 1;
-  }
-  .hub-date-pill span { opacity: 0.55; font-size: 11px; color: var(--ink3); }
-
   .hub-body {
-    padding: 0 16px 28px;
     max-width: 520px;
     margin: 0 auto;
     position: relative;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   /* Snapshot strip */
@@ -163,7 +264,7 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    margin-top: -28px;
+    margin-top: 0;
     position: relative;
     z-index: 2;
     margin-bottom: 22px;
@@ -269,18 +370,26 @@
     margin-bottom: 12px;
   }
   .mc-icon-wrap {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
     flex-shrink: 0;
   }
+  .mc-letter {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+  }
   .mc-madrasa .mc-icon-wrap { background: linear-gradient(145deg, #d6eaf8, #eaf4fb); }
+  .mc-madrasa .mc-letter { color: #1a5276; }
   .mc-dept .mc-icon-wrap { background: linear-gradient(145deg, #d8f3dc, #eaf8ee); }
+  .mc-dept .mc-letter { color: #1e8449; }
   .mc-khedmat .mc-icon-wrap { background: linear-gradient(145deg, #fcf3d4, #fdf8e8); }
+  .mc-khedmat .mc-letter { color: #8a6d0a; }
 
   .mc-title { font-family: 'Noto Serif Bengali', serif; font-size: 16px; font-weight: 700; color: var(--ink2); }
   .mc-sub { font-size: 11px; color: var(--ink3); margin-top: 3px; line-height: 1.4; }
@@ -344,47 +453,45 @@
     margin-bottom: 20px;
   }
   .quick-btn {
+    position: relative;
     background: #fff;
     border-radius: var(--radius);
-    padding: 14px 12px;
+    padding: 14px 14px 14px 18px;
     box-shadow: var(--shadow);
     border: 1px solid rgba(26, 18, 8, 0.06);
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: 4px;
     cursor: pointer;
     transition: transform 0.12s, box-shadow 0.2s;
     text-align: left;
   }
+  .quick-btn::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    border-radius: 2px;
+    background: rgba(201, 149, 42, 0.45);
+  }
   .quick-btn:active { transform: scale(0.98); }
   .quick-btn-wide { grid-column: 1 / -1; flex-direction: row; align-items: center; }
-  .quick-btn-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: var(--cream2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-  }
   .quick-btn-text { flex: 1; min-width: 0; }
   .quick-btn-label { font-size: 13px; font-weight: 600; color: var(--ink2); display: block; }
   .quick-btn-hint { font-size: 10px; color: var(--ink3); margin-top: 2px; line-height: 1.35; }
 
   /* Tip */
   .hub-tip {
-    background: linear-gradient(135deg, rgba(26, 82, 118, 0.08), rgba(232, 184, 75, 0.08));
-    border: 1px solid rgba(26, 82, 118, 0.12);
+    background: linear-gradient(135deg, rgba(26, 82, 118, 0.06), rgba(232, 184, 75, 0.06));
+    border: 1px solid rgba(26, 82, 118, 0.1);
+    border-left: 3px solid rgba(26, 82, 118, 0.35);
     border-radius: var(--radius);
     padding: 14px 16px;
     margin-bottom: 22px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
   }
-  .hub-tip-icon { font-size: 22px; flex-shrink: 0; }
   .hub-tip-body { font-size: 12px; color: var(--ink2); line-height: 1.55; }
   .hub-tip-body strong { color: var(--ink); }
 
@@ -426,7 +533,7 @@
 <!-- LOGIN SCREEN -->
 <div class="login-screen hub-login-wrap" id="login-screen">
   <div class="hub-login-card">
-    <div class="login-logo hub-login-logo">مرکز المدینة</div>
+    <div class="login-logo hub-login-logo">مدرسة المدينة</div>
     <div class="hub-login-title">মুহতামিম হাব</div>
     <div class="hub-login-tag">সব মডিউল এক জায়গা থেকে · একটি পিন</div>
     <div class="hub-login-label">পিন দিন</div>
@@ -459,23 +566,19 @@
 <!-- DASHBOARD -->
 <div id="dashboard" style="display:none;">
   <header class="hub-header">
-    <div class="hub-header-top">
-      <div style="display:flex;align-items:flex-start;flex:1;min-width:0;">
-        <div class="hub-brand-mark" aria-hidden="true">📖</div>
-        <div class="hub-header-text">
-          <div class="hub-greet" id="hub-greet">আসসালামু আলাইকুম</div>
-          <div class="hub-title-name">মারকাযুল মদীনা</div>
-        </div>
+    <div class="hub-header-inner">
+      <div class="hub-header-lead">
+        <span class="hub-title-name">মারকাযুল মদীনা</span>
+        <div class="hub-date-sub" id="date-line">—</div>
       </div>
-      <div class="hub-header-actions">
-        <button type="button" class="hub-logout" onclick="logout()">লগআউট</button>
-      </div>
+      <button type="button" class="hub-logout" onclick="logout()">লগআউট</button>
     </div>
-    <div class="hub-date-pill" id="date-line">—</div>
   </header>
 
-  <div class="hub-body">
-    <!-- Snapshot -->
+  <div class="hub-main hub-body">
+    <div class="hub-tab-panels" id="hub-tab-panels">
+    <!-- Tab: নীড় — সংক্ষেপ -->
+    <section class="hub-tab-panel is-active" id="hub-panel-home" role="tabpanel" aria-labelledby="hub-nav-home">
     <div class="hub-snapshot">
       <div class="snap-card">
         <span class="snap-val" id="hub-snap-students">—</span>
@@ -495,6 +598,17 @@
       </div>
     </div>
 
+    <div style="background:#fff;border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);margin-bottom:10px;border:1px solid rgba(26,18,8,0.07);" id="pending-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:700;color:var(--ink2);display:flex;align-items:center;gap:8px;"><span style="width:4px;height:18px;border-radius:3px;background:linear-gradient(180deg,var(--red),#eb7f7f);display:inline-block;"></span>বাকি কাজ</div>
+        <button type="button" onclick="loadDashboard()" style="font-size:11px;color:var(--ink3);background:var(--cream2);border:none;border-radius:20px;padding:4px 10px;cursor:pointer;font-family:'Noto Sans Bengali',sans-serif;">রিফ্রেশ</button>
+      </div>
+      <div id="pending-list"></div>
+    </div>
+    </section>
+
+    <!-- Tab: মডিউল -->
+    <section class="hub-tab-panel" id="hub-panel-modules" role="tabpanel" aria-labelledby="hub-nav-modules">
     <div class="hub-section-title">মডিউলসমূহ</div>
     <p class="hub-section-sub">যেখানে কী আছে — এক নজরে সংখ্যা, ট্যাপ করে বিস্তারিত দেখুন</p>
 
@@ -504,7 +618,7 @@
           <div class="mc-accent"></div>
           <div class="mc-body">
             <div class="mc-top">
-              <div class="mc-icon-wrap"><span class="mc-icon">📚</span></div>
+              <div class="mc-icon-wrap" aria-hidden="true"><span class="mc-letter">ম</span></div>
               <div style="flex:1;min-width:0;padding-right:36px;">
                 <div class="mc-title">মাদ্রাসা মডিউল</div>
                 <div class="mc-sub">কিতাব ও মক্তব · ছাত্র ও বর্ষ</div>
@@ -525,7 +639,7 @@
           <div class="mc-accent"></div>
           <div class="mc-body">
             <div class="mc-top">
-              <div class="mc-icon-wrap"><span class="mc-icon">🏢</span></div>
+              <div class="mc-icon-wrap" aria-hidden="true"><span class="mc-letter">ব</span></div>
               <div style="flex:1;min-width:0;padding-right:36px;">
                 <div class="mc-title">বিভাগ মডিউল</div>
                 <div class="mc-sub">আয়-ব্যয় · মজুদ · অনুরোধ</div>
@@ -546,7 +660,7 @@
           <div class="mc-accent"></div>
           <div class="mc-body">
             <div class="mc-top">
-              <div class="mc-icon-wrap"><span class="mc-icon">🤝</span></div>
+              <div class="mc-icon-wrap" aria-hidden="true"><span class="mc-letter">খ</span></div>
               <div style="flex:1;min-width:0;padding-right:36px;">
                 <div class="mc-title">খেদমতে খালক</div>
                 <div class="mc-sub">উপকারভোগী · তহবিল · কার্যক্রম</div>
@@ -562,9 +676,11 @@
         </div>
       </button>
     </div>
+    </section>
 
+    <!-- Tab: দ্রুত কাজ -->
+    <section class="hub-tab-panel" id="hub-panel-quick" role="tabpanel" aria-labelledby="hub-nav-quick">
     <div class="hub-tip">
-      <span class="hub-tip-icon">💡</span>
       <div class="hub-tip-body">
         <strong>পর্যবেক্ষণ মোড:</strong> মাদ্রাসা/বিভাগ/খেদমত স্ক্রিনে দৈনন্দিন এন্ট্রি স্টাফ অ্যাকাউন্ট দিয়ে। পিন ও নীতি বদলাতে <strong>মাদ্রাসা সেটিং</strong> খুলুন।
       </div>
@@ -574,50 +690,71 @@
     <p class="hub-quick-sub">স্টাফ লগইন, ফলাফল, সেটিং ও বার্তা</p>
     <div class="quick-grid">
       <div class="quick-btn" onclick="location.href='index.html'" title="বর্ষ দায়িত্বশীল, দফতর ইত্যাদি">
-        <span class="quick-btn-icon">📖</span>
         <div class="quick-btn-text">
           <span class="quick-btn-label">মাদ্রাসা লগইন</span>
           <span class="quick-btn-hint">স্টাফ ভূমিকা ও পিন</span>
         </div>
       </div>
       <div class="quick-btn" onclick="location.href='dept/dept-index.html'">
-        <span class="quick-btn-icon">🏢</span>
         <div class="quick-btn-text">
           <span class="quick-btn-label">বিভাগ লগইন</span>
           <span class="quick-btn-hint">বিভাগ দায়িত্বশীল</span>
         </div>
       </div>
       <div class="quick-btn" onclick="location.href='madrasa/madrasa-exams.html'">
-        <span class="quick-btn-icon">📝</span>
         <div class="quick-btn-text">
           <span class="quick-btn-label">পরীক্ষার ফলাফল</span>
           <span class="quick-btn-hint">মার্ক ও ফল দেখা</span>
         </div>
       </div>
       <div class="quick-btn" onclick="location.href='madrasa/madrasa-settings.html'">
-        <span class="quick-btn-icon">⚙️</span>
         <div class="quick-btn-text">
           <span class="quick-btn-label">মাদ্রাসা সেটিং</span>
           <span class="quick-btn-hint">পিন, শিক্ষক, সাধারণ</span>
         </div>
       </div>
       <div class="quick-btn quick-btn-wide" onclick="location.href='chat.html'" title="স্টাফ ↔ মুহতামিম; স্টাফদের মধ্যে বার্তা নেই">
-        <span class="quick-btn-icon">💬</span>
         <div class="quick-btn-text">
           <span class="quick-btn-label">স্টাফ থেকে বার্তা <span id="hub-chat-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:2px 8px;font-size:10px;margin-left:6px;font-weight:700;"></span></span>
           <span class="quick-btn-hint">ইনবক্স — শুধু আপনার কাছে</span>
         </div>
       </div>
     </div>
+    </section>
 
+    <!-- Tab: সাম্প্রতিক -->
+    <section class="hub-tab-panel" id="hub-panel-recent" role="tabpanel" aria-labelledby="hub-nav-recent">
     <div class="hub-section-title" style="margin-top:4px;">সাম্প্রতিক কার্যক্রম</div>
     <p class="hub-section-sub">মাদ্রাসা লগ, বিভাগ লেনদেন ও খেদমত থেকে মিশ্রিত</p>
     <div class="recent-wrap" id="recent-feed"></div>
+    </section>
+    </div>
+
+    <nav class="hub-bottom-nav" role="tablist" aria-label="হাব নেভিগেশন">
+      <button type="button" class="hub-nav-btn is-active" id="hub-nav-home" role="tab" aria-selected="true" aria-controls="hub-panel-home" data-hub-tab="home">
+        <svg class="hub-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg>
+        <span class="hub-nav-label">নীড়</span>
+      </button>
+      <button type="button" class="hub-nav-btn" id="hub-nav-modules" role="tab" aria-selected="false" aria-controls="hub-panel-modules" data-hub-tab="modules">
+        <svg class="hub-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect stroke-width="1.75" x="3" y="3" width="7" height="7" rx="1"/><rect stroke-width="1.75" x="14" y="3" width="7" height="7" rx="1"/><rect stroke-width="1.75" x="14" y="14" width="7" height="7" rx="1"/><rect stroke-width="1.75" x="3" y="14" width="7" height="7" rx="1"/></svg>
+        <span class="hub-nav-label">মডিউল</span>
+      </button>
+      <button type="button" class="hub-nav-btn has-badge-wrap" id="hub-nav-quick" role="tab" aria-selected="false" aria-controls="hub-panel-quick" data-hub-tab="quick">
+        <span class="hub-nav-badge" id="hub-nav-quick-badge" aria-hidden="true"></span>
+        <svg class="hub-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/></svg>
+        <span class="hub-nav-label">দ্রুত</span>
+      </button>
+      <button type="button" class="hub-nav-btn" id="hub-nav-recent" role="tab" aria-selected="false" aria-controls="hub-panel-recent" data-hub-tab="recent">
+        <svg class="hub-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg>
+        <span class="hub-nav-label">কার্যক্রম</span>
+      </button>
+    </nav>
   </div>
 </div>
 
 <script src="js/api.js"></script>
 <script src="js/mm-session.js"></script>
+<script src="js/hijri-utils.js"></script>
 <script src="js/dept-api.js"></script>
 <script src="js/khedmat-api.js"></script>
 <script src="js/chat-api.js"></script>
@@ -657,31 +794,54 @@
 
   function showDashboard() {
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('dashboard').style.display = 'flex';
     loadDashboard();
+    initHubBottomNav();
+  }
+
+  function initHubBottomNav() {
+    const nav = document.querySelector('.hub-bottom-nav');
+    if (!nav || nav.dataset.bound === '1') return;
+    nav.dataset.bound = '1';
+    nav.querySelectorAll('.hub-nav-btn[data-hub-tab]').forEach(btn => {
+      btn.addEventListener('click', () => switchHubTab(btn.dataset.hubTab));
+    });
+  }
+
+  function switchHubTab(tab) {
+    const ids = { home: 'hub-panel-home', modules: 'hub-panel-modules', quick: 'hub-panel-quick', recent: 'hub-panel-recent' };
+    const panelId = ids[tab];
+    if (!panelId) return;
+
+    document.querySelectorAll('.hub-tab-panel').forEach(p => {
+      p.classList.toggle('is-active', p.id === panelId);
+    });
+    document.querySelectorAll('.hub-nav-btn[data-hub-tab]').forEach(btn => {
+      const on = btn.dataset.hubTab === tab;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    const scrollEl = document.getElementById('hub-tab-panels');
+    if (scrollEl) scrollEl.scrollTop = 0;
   }
 
   function logout() {
-    MMSession.clearAppSession();
-    location.reload();
-  }
-
-  function setGreeting() {
-    const h = new Date().getHours();
-    const el = document.getElementById('hub-greet');
-    if (!el) return;
-    if (h < 12) el.textContent = 'সুপ্রভাত';
-    else if (h < 17) el.textContent = 'শুভ অপরাহ্ন';
-    else el.textContent = 'আসসালামু আলাইকুম';
+    MMSession.logoutToIndex('index.html');
   }
 
   function loadDashboard() {
-    setGreeting();
     const today = new Date();
-    const weekdays = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
-    document.getElementById('date-line').innerHTML =
-      '<span>📅</span> ' + weekdays[today.getDay()] + ', ' +
-      toBn(today.getDate()) + '/' + toBn(today.getMonth()+1) + '/' + toBn(today.getFullYear());
+    const wdShort = ['রবি','সোম','মঙ্গল','বুধ','বৃহঃ','শুক্র','শনি'];
+    const iso = today.toISOString().split('T')[0];
+    let dateLine =
+      wdShort[today.getDay()] + ', ' +
+      toBn(today.getDate()) + '/' + toBn(today.getMonth() + 1) + '/' + toBn(today.getFullYear());
+    if (typeof HijriUtils !== 'undefined' && HijriUtils.formatLong) {
+      const h = HijriUtils.formatLong(iso, { bengaliDigits: true });
+      if (h) dateLine += ' · ' + String(h).replace(/\s+/g, ' ').trim();
+    }
+    const dateEl = document.getElementById('date-line');
+    if (dateEl) dateEl.textContent = dateLine;
 
     // Madrasa stats
     const students = API.Students.getAll().filter(s => s.active);
@@ -725,6 +885,28 @@
       inboxEl.classList.remove('snap-alert');
     }
 
+    // Pending panel
+    const pendingItems = [];
+    const todayStr = new Date().toISOString().split('T')[0];
+    const allClasses = API.Classes.getAll();
+    let attPendingCount = 0;
+    allClasses.forEach(cls => {
+      const att = API.Attendance.getByClassDate(cls.id, todayStr);
+      if (att.length === 0) attPendingCount++;
+    });
+    if (attPendingCount > 0) pendingItems.push({ text:`${toBn(attPendingCount)}টি বর্ষের উপস্থিতি বাকি`, color:'var(--red)', link:'madrasa/madrasa-admin.html' });
+    if (unreadChat > 0) pendingItems.push({ text:`${toBn(unreadChat)}টি অপঠিত বার্তা`, color:'var(--blue)', link:'chat.html' });
+    const allLogs = API.Logs.getAll ? API.Logs.getAll() : [];
+    const followupLogs = allLogs.filter(l => l.tag === 'followup');
+    if (followupLogs.length) pendingItems.push({ text:`${toBn(followupLogs.length)}টি লগে ফলোআপ দরকার`, color:'var(--gold)', link:'madrasa/madrasa-admin.html' });
+    document.getElementById('pending-list').innerHTML = pendingItems.length
+      ? pendingItems.map(p => `<div onclick="location.href='${p.link}'" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--cream2);cursor:pointer;">
+          <span style="width:8px;height:8px;border-radius:50%;background:${p.color};flex-shrink:0;margin-top:5px;"></span>
+          <span style="flex:1;font-size:13px;color:var(--ink);">${API.esc(p.text)}</span>
+          <span style="font-size:14px;color:var(--ink3);">›</span>
+        </div>`).join('')
+      : '<div style="font-size:13px;color:var(--green);padding:6px 0;">কোনো বাকি কাজ নেই</div>';
+
     // Recent feed
     const feed = [];
 
@@ -753,6 +935,17 @@
       badge.style.display = 'inline';
     } else {
       badge.style.display = 'none';
+    }
+
+    const navQuickBadge = document.getElementById('hub-nav-quick-badge');
+    if (navQuickBadge) {
+      if (unreadChat > 0) {
+        navQuickBadge.textContent = toBn(unreadChat);
+        navQuickBadge.classList.add('is-visible');
+      } else {
+        navQuickBadge.textContent = '';
+        navQuickBadge.classList.remove('is-visible');
+      }
     }
 
     document.getElementById('recent-feed').innerHTML = feed.slice(0,6).map(f =>
