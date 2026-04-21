@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
@@ -41,7 +41,8 @@
     <div class="topbar-name" id="dept-name">—</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
+    <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../admin-hub.html'">হাব</button>
+    <button type="button" class="topbar-btn" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')">লকআউট</button>
   </div>
 </div>
 
@@ -159,6 +160,7 @@
 
   document.getElementById('dept-name').textContent = (deptEmoji||'') + ' ' + (deptName||'বিভাগ');
   mmInsertMonitorBanner();
+  MMSession.configureTopbarHubAndLockout();
 
   const MONTHS_BN = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
   let curMonth = new Date().toISOString().slice(0,7);

@@ -231,15 +231,65 @@
     white-space: normal;
     text-align: center;
   }
-  /* শিক্ষক মোড — হোম/দফতর/স্টাফ লুকানো; নিচে বর্ষ + ইনবক্স */
+  /* শিক্ষক মোড — সম্পূর্ণ প্রস্থ স্ক্রলযোগ্য নিচের নেভ; ঘন লেআউট */
+  .teacher-only-nav { display: none !important; }
+  body.madrasa-teacher-mode .teacher-only-nav { display: flex !important; }
+  body.madrasa-teacher-mode #nav-class { display: none !important; }
   body.madrasa-teacher-mode .bottom-nav {
-    justify-content: center;
-    gap: 20px;
-    max-width: 340px;
+    left: 8px;
+    right: 8px;
+    max-width: none;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+    padding: 6px 10px;
+    scrollbar-width: none;
   }
+  body.madrasa-teacher-mode .bottom-nav::-webkit-scrollbar { display: none; }
   body.madrasa-teacher-mode .bottom-nav .nav-item {
-    flex: 1;
-    max-width: 160px;
+    flex: 0 0 auto;
+    min-width: 56px;
+    max-width: none;
+    padding: 6px 8px;
+  }
+  body.madrasa-teacher-mode .bottom-nav .nav-label {
+    font-size: 9px;
+    max-width: 64px;
+  }
+  body.madrasa-teacher-mode .panel-class-head {
+    margin-bottom: 6px;
+  }
+  body.madrasa-teacher-mode .teacher-hide-on-class {
+    display: none !important;
+  }
+  /* নিচের নেভেই বর্ষ মেনু — পৃষ্ঠায় ট্যাব বার লুকানো (ডুপ্লিকেট এড়াতে) */
+  body.madrasa-teacher-mode .tab-bar.tab-bar-class {
+    display: none !important;
+  }
+  body.madrasa-teacher-mode .ma-class-summary .ma-sum-row--teacher-compact {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 0;
+  }
+  body.madrasa-teacher-mode .ma-class-summary .ma-sum-row--teacher-compact .ma-sum-card {
+    min-width: 0;
+    padding: 8px 6px;
+  }
+  body.madrasa-teacher-mode .ma-class-summary .ma-sum-row--teacher-compact .ma-sum-label {
+    font-size: 9px;
+  }
+  body.madrasa-teacher-mode .ma-class-summary .ma-sum-row--teacher-compact .ma-sum-val {
+    font-size: 15px;
+  }
+  body.madrasa-teacher-mode .pb-safe { height: 88px; }
+  body.madrasa-teacher-mode .content { padding-top: 12px; }
+  button.nav-item {
+    font: inherit;
+    font-family: inherit;
   }
 </style>
 </head>
@@ -251,8 +301,9 @@
     <div class="topbar-name" id="top-name">মুহতামিম</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
+    <button type="button" class="topbar-btn admin-only" id="topbar-hub" style="display:none" onclick="location.href='../admin-hub.html'">হাব</button>
     <button type="button" class="topbar-btn admin-only" onclick="location.href='madrasa-settings.html'">⚙️ সেটিং</button>
+    <button type="button" class="topbar-btn" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')">লকআউট</button>
   </div>
 </div>
 
@@ -326,7 +377,7 @@
   <div class="panel" id="panel-class">
     <div class="sec-header panel-class-head">
       <span class="sec-title" id="class-detail-title">৩য় বর্ষ</span>
-      <span class="sec-link" onclick="switchPanel('home')">← ফিরুন</span>
+      <span class="sec-link teacher-hide-on-class" onclick="switchPanel('home')">← ফিরুন</span>
     </div>
     <div id="class-panel-meta" class="class-panel-meta" aria-label="বর্ষ সংক্ষিপ্ত"></div>
     <div id="class-panel-summary" class="ma-sum-wrap ma-class-summary"></div>
@@ -337,7 +388,7 @@
       <div class="tab-btn" id="ctab-kitab" role="tab" onclick="switchClassTab('kitab')">কিতাব অগ্রগতি</div>
       <div class="tab-btn" id="ctab-khuluk" role="tab" onclick="switchClassTab('khuluk')">হুসনুল খুলুক</div>
       <div class="tab-btn" id="ctab-log" role="tab" onclick="switchClassTab('log')">লগ</div>
-      <div class="tab-btn admin-only" id="ctab-fees" role="tab" onclick="switchClassTab('fees')">বেতন</div>
+      <div class="tab-btn admin-only" id="ctab-fees" role="tab" onclick="switchClassTab('fees')">বেতন <span style="font-size:9px;opacity:.75;font-weight:500;">(দেখা)</span></div>
     </div>
 
     <!-- students tab -->
@@ -386,9 +437,12 @@
       <div id="log-list"></div>
     </div>
 
-    <!-- fees tab (মুহতামিম) -->
+    <!-- fees tab: সম্পাদনা দফতর দায়িত্বশীল — এখানে শুধু পড়া -->
     <div class="admin-only" id="ctab-content-fees" style="display:none;">
-      <button class="add-btn" style="background:var(--gold);" onclick="openModal('add-fees')">＋ বেতন সারসংক্ষেপ যোগ</button>
+      <div class="card-static" style="margin-bottom:12px;padding:12px 14px;font-size:12px;color:var(--ink2);line-height:1.55;">
+        মাসিক বেতন সারসংক্ষেপ <strong>যোগ ও হালনাগাদ</strong> করেন <strong>দফতর দায়িত্বশীল</strong>। নিচে এই বর্ষের তালিকা (শুধু দেখার জন্য)।
+        <button type="button" class="add-btn" style="margin-top:10px;margin-bottom:0;background:var(--blue);" onclick="location.href='madrasa-daftar.html'">দফতর পোর্টাল → বেতন</button>
+      </div>
       <div id="fees-list"></div>
     </div>
 
@@ -401,7 +455,7 @@
       <span class="sec-title" id="student-detail-name">ছাত্রের বিবরণ</span>
       <span class="sec-link" id="student-back-link" onclick="switchPanel('class')">← ফিরুন</span>
     </div>
-    <div id="student-summary-cards" style="display:flex;gap:8px;margin-bottom:10px;"></div>
+    <div id="student-summary-cards" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;"></div>
     <div id="student-detail-content"></div>
     <div class="pb-safe"></div>
   </div>
@@ -413,9 +467,24 @@
   <div class="nav-item active admin-only" id="nav-home" onclick="switchPanel('home')">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 10.25 12 4l8 6.25V20a1 1 0 01-1 1h-4.5v-7h-3v7H5a1 1 0 01-1-1v-9.75z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span><span class="nav-label">হোম</span>
   </div>
-  <div class="nav-item" id="nav-class" onclick="switchPanel('class');renderClassPanel()">
+  <div class="nav-item" id="nav-class" onclick="goClassPanelStudents()">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">বর্ষ</span>
   </div>
+  <button type="button" class="nav-item teacher-only-nav" data-ttab="students" onclick="teacherNavTab('students')" aria-label="ছাত্র তালিকা">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">ছাত্র</span>
+  </button>
+  <button type="button" class="nav-item teacher-only-nav" data-ttab="attendance" onclick="teacherNavTab('attendance')" aria-label="উপস্থিতি">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">হাজিরা</span>
+  </button>
+  <button type="button" class="nav-item teacher-only-nav" data-ttab="kitab" onclick="teacherNavTab('kitab')" aria-label="কিতাব অগ্রগতি">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">কিতাব</span>
+  </button>
+  <button type="button" class="nav-item teacher-only-nav" data-ttab="khuluk" onclick="teacherNavTab('khuluk')" aria-label="হুসনুল খুলুক">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">খুলুক</span>
+  </button>
+  <button type="button" class="nav-item teacher-only-nav" data-ttab="log" onclick="teacherNavTab('log')" aria-label="লগ">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">লগ</span>
+  </button>
   <div class="nav-item admin-only" onclick="location.href='madrasa-daftar.html'">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">দফতর</span>
   </div>
@@ -514,37 +583,6 @@
   </div>
 </div>
 
-<div class="modal-bg" id="modal-add-fees">
-  <div class="modal">
-    <div class="modal-title">বেতন সারসংক্ষেপ <button class="modal-close" onclick="closeModal('add-fees')">✕</button></div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">মাস (YYYY-MM)</label>
-        <input class="form-input" id="fee-month" type="month">
-      </div>
-      <div class="form-group">
-        <label class="form-label">মোট ছাত্র</label>
-        <input class="form-input" id="fee-total" type="number">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">আদায় করেছে</label>
-        <input class="form-input" id="fee-paid" type="number">
-      </div>
-      <div class="form-group">
-        <label class="form-label">বকেয়া (টাকা)</label>
-        <input class="form-input" id="fee-arrear" type="number">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">মন্তব্য</label>
-      <input class="form-input" id="fee-note" placeholder="বিলম্বকারীদের নাম বা অন্য তথ্য">
-    </div>
-    <button class="submit-btn gold" onclick="saveFees()">সংরক্ষণ করুন</button>
-  </div>
-</div>
-
 <!-- KHULUK MODAL -->
 <div class="modal-bg" id="modal-add-khuluk">
   <div class="modal">
@@ -614,22 +652,48 @@
       document.title = _cls.name + ' — মাদ্রাসা';
     }
   }
+  MMSession.configureTopbarHubAndLockout();
 
   let selectedStudentIdForLog = null;
   let currentDept = 'kitab';
   let currentClassTab = 'students';
+
+  function syncBottomNavForRole(panelName) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (IS_TEACHER) {
+      const ttab = panelName === 'student' ? 'students' : (panelName === 'class' ? currentClassTab : null);
+      if (ttab) {
+        document.querySelectorAll('.teacher-only-nav').forEach(n => {
+          n.classList.toggle('active', n.dataset.ttab === ttab);
+        });
+      }
+      return;
+    }
+    document.getElementById('nav-' + panelName)?.classList.add('active');
+    if (panelName === 'student') document.getElementById('nav-class')?.classList.add('active');
+  }
+
+  function teacherNavTab(tab) {
+    if (!IS_TEACHER) return;
+    if (tab === 'fees') tab = 'students';
+    currentClassTab = tab;
+    switchPanel('class');
+  }
+
+  function goClassPanelStudents() {
+    currentClassTab = 'students';
+    switchPanel('class');
+  }
 
   /* ── PANEL NAV ── */
   function switchPanel(name) {
     if (IS_TEACHER && name === 'home') name = 'class';
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + name).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('nav-' + name)?.classList.add('active');
-    if (name === 'student') document.getElementById('nav-class')?.classList.add('active');
     window.scrollTo(0, 0);
     if (name === 'home') renderHome();
     if (name === 'class') renderClassPanel();
+    syncBottomNavForRole(name);
   }
 
   /* ── DEPT TAB ── */
@@ -651,6 +715,9 @@
       document.getElementById('ctab-content-' + t).style.display = t === tab ? 'block' : 'none';
     });
     renderClassTabContent(tab);
+    if (IS_TEACHER && document.getElementById('panel-class')?.classList.contains('active')) {
+      syncBottomNavForRole('class');
+    }
   }
 
   /* ── HOME ── */
@@ -753,39 +820,66 @@
     let metaHtml = `<span class="class-meta-pill">${API.esc(deptLabel)}</span>`;
     if (teacher) metaHtml += `<span class="class-meta-pill class-meta-pill--teacher">${API.esc(teacher.name)}</span>`;
     if (students.length && !attTaken) metaHtml += `<span class="class-meta-pill class-meta-pill--warn">আজ হাজিরা বাকি</span>`;
-    if (feeDue > 0) metaHtml += `<span class="class-meta-pill class-meta-pill--fee">বেতন বাকি ${toBn(feeDue)}</span>`;
+    if (!IS_TEACHER && feeDue > 0) metaHtml += `<span class="class-meta-pill class-meta-pill--fee">বেতন বাকি ${toBn(feeDue)}</span>`;
+    if (IS_TEACHER) metaHtml += `<span class="class-meta-pill" style="border-color:rgba(26,82,118,0.25);color:var(--blue);">বেতন ও আদায় — দফতর বিভাগ</span>`;
     metaEl.innerHTML = metaHtml;
 
-    sumEl.innerHTML =
-      '<div class="ma-sum-row">' +
-      '<div class="ma-sum-card"><span class="ma-sum-label">মোট ছাত্র</span><span class="ma-sum-val">' +
-      toBn(students.length) +
-      '</span></div>' +
-      '<div class="ma-sum-card"><span class="ma-sum-label">আজ উপস্থিত</span><span class="ma-sum-val ma-v-green">' +
-      toBn(present) +
-      '</span></div>' +
-      '<div class="ma-sum-card"><span class="ma-sum-label">আজ অনুপস্থিত</span><span class="ma-sum-val ma-v-red">' +
-      toBn(absent) +
-      '</span></div></div>' +
-      '<div class="ma-sum-row">' +
-      '<div class="ma-sum-card"><span class="ma-sum-label">আজ ছুটি</span><span class="ma-sum-val ma-v-gold">' +
-      toBn(onLeave) +
-      '</span></div>' +
-      '<div class="ma-sum-card"><span class="ma-sum-label">খুলুক গড়</span><span class="ma-sum-val">' +
-      (avg != null ? toBn(avg) : '—') +
-      '</span></div>' +
-      '<div class="ma-sum-card"><span class="ma-sum-label">আজ হাজিরা রেকর্ড</span><span class="ma-sum-val">' +
-      toBn(att.length) +
-      '</span></div></div>';
+    if (IS_TEACHER) {
+      sumEl.innerHTML =
+        '<div class="ma-sum-row ma-sum-row--teacher-compact">' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">মোট ছাত্র</span><span class="ma-sum-val">' +
+        toBn(students.length) +
+        '</span></div>' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">উপস্থিত</span><span class="ma-sum-val ma-v-green">' +
+        toBn(present) +
+        '</span></div>' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">অনুপস্থিত</span><span class="ma-sum-val ma-v-red">' +
+        toBn(absent) +
+        '</span></div>' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">ছুটি</span><span class="ma-sum-val ma-v-gold">' +
+        toBn(onLeave) +
+        '</span></div>' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">খুলুক গড়</span><span class="ma-sum-val">' +
+        (avg != null ? toBn(avg) : '—') +
+        '</span></div>' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">হাজিরা রেকর্ড</span><span class="ma-sum-val">' +
+        toBn(att.length) +
+        '</span></div></div>';
+    } else {
+      sumEl.innerHTML =
+        '<div class="ma-sum-row">' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">মোট ছাত্র</span><span class="ma-sum-val">' +
+        toBn(students.length) +
+        '</span></div>' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">আজ উপস্থিত</span><span class="ma-sum-val ma-v-green">' +
+        toBn(present) +
+        '</span></div>' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">আজ অনুপস্থিত</span><span class="ma-sum-val ma-v-red">' +
+        toBn(absent) +
+        '</span></div></div>' +
+        '<div class="ma-sum-row">' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">আজ ছুটি</span><span class="ma-sum-val ma-v-gold">' +
+        toBn(onLeave) +
+        '</span></div>' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">খুলুক গড়</span><span class="ma-sum-val">' +
+        (avg != null ? toBn(avg) : '—') +
+        '</span></div>' +
+        '<div class="ma-sum-card"><span class="ma-sum-label">আজ হাজিরা রেকর্ড</span><span class="ma-sum-val">' +
+        toBn(att.length) +
+        '</span></div></div>';
+    }
   }
 
   function renderClassPanel() {
     renderClassSummary();
-    ['students','attendance','kitab','khuluk','log','fees'].forEach((t,i) => {
-      document.getElementById('ctab-' + t).classList.toggle('active', i === 0);
-      document.getElementById('ctab-content-' + t).style.display = i === 0 ? 'block' : 'none';
+    let tab = currentClassTab;
+    if (IS_TEACHER && tab === 'fees') tab = 'students';
+    ['students','attendance','kitab','khuluk','log','fees'].forEach((t) => {
+      document.getElementById('ctab-' + t).classList.toggle('active', t === tab);
+      const c = document.getElementById('ctab-content-' + t);
+      if (c) c.style.display = t === tab ? 'block' : 'none';
     });
-    renderClassTabContent('students');
+    renderClassTabContent(tab);
   }
 
   function renderClassTabContent(tab) {
@@ -897,16 +991,19 @@
     const fees = API.Fees.getByClass(currentClassId);
     const el = document.getElementById('fees-list');
     el.innerHTML = fees.length
-      ? fees.map(f => `<div class="card-static" style="margin-bottom:10px;">
+      ? fees.map(f => {
+          const unpaid = f.unpaid != null ? f.unpaid : (f.total - f.paid);
+          return `<div class="card-static" style="margin-bottom:10px;">
           <div style="font-weight:600;margin-bottom:8px;">${f.month}</div>
-          <div style="display:flex;gap:12px;font-size:13px;">
+          <div style="display:flex;gap:12px;font-size:13px;flex-wrap:wrap;">
             <span>মোট: <strong>${toBn(f.total)}</strong></span>
             <span style="color:var(--green)">আদায়: <strong>${toBn(f.paid)}</strong></span>
-            <span style="color:var(--red)">বাকি: <strong>${toBn(f.total - f.paid)}</strong></span>
+            <span style="color:var(--red)">বাকি: <strong>${toBn(unpaid)}</strong></span>
           </div>
           ${f.arrear ? `<div style="font-size:12px;color:var(--red);margin-top:4px;">বকেয়া: ৳ ${toBn(f.arrear)}</div>` : ''}
           ${f.note ? `<div style="font-size:12px;color:var(--ink3);margin-top:4px;">${API.esc(f.note)}</div>` : ''}
-        </div>`).join('')
+        </div>`;
+        }).join('')
       : '<div class="empty-state"><span class="empty-icon">💰</span><div class="empty-text">কোনো বেতন সারসংক্ষেপ নেই</div></div>';
   }
 
@@ -927,24 +1024,27 @@
     const attSummary = cls ? API.Attendance.getSummary(s.class_id, API.today().slice(0, 7)) : null;
     const attPct = attSummary ? attSummary.pct : null;
     const feeSummary = API.Fees.getByClass(s.class_id).slice(-1)[0];
-    const feeDue = feeSummary ? feeSummary.unpaid > 0 : false;
+    const feeUnpaid = feeSummary ? (feeSummary.unpaid != null ? feeSummary.unpaid : (feeSummary.total - feeSummary.paid)) : 0;
+    const feeDue = feeUnpaid > 0;
     const khScore = k ? k.score : null;
     const khLabel = khScore >= 80 ? 'চমৎকার' : khScore >= 60 ? 'মধ্যম' : khScore ? 'দুর্বল' : '—';
     const khColor = khScore >= 80 ? 'var(--green)' : khScore >= 60 ? 'var(--gold)' : 'var(--red)';
     const feeCard = IS_TEACHER ? '' : `
-      <div style="flex:1;background:#fff;border-radius:var(--radius-sm);padding:10px;box-shadow:var(--shadow);text-align:center;">
+      <div style="flex:1;min-width:90px;background:#fff;border-radius:var(--radius-sm);padding:10px;box-shadow:var(--shadow);text-align:center;">
         <div style="font-size:16px;font-weight:700;color:${feeDue ? 'var(--red)' : 'var(--green)'};">${feeDue ? 'বাকি' : 'ঠিক আছে'}</div>
-        <div style="font-size:10px;color:var(--ink3);">বেতন</div>
+        <div style="font-size:10px;color:var(--ink3);">বেতন (সারসংক্ষেপ)</div>
+        <div style="font-size:9px;color:var(--ink3);margin-top:4px;opacity:.9;">হালনাগাদ দফতর</div>
       </div>`;
     document.getElementById('student-summary-cards').innerHTML = `
-      <div style="flex:1;background:#fff;border-radius:var(--radius-sm);padding:10px;box-shadow:var(--shadow);text-align:center;">
+      <div style="flex:1;min-width:90px;background:#fff;border-radius:var(--radius-sm);padding:10px;box-shadow:var(--shadow);text-align:center;">
         <div style="font-size:16px;font-weight:700;color:var(--blue);">${attPct !== null ? toBn(attPct) + '%' : '—'}</div>
         <div style="font-size:10px;color:var(--ink3);">উপস্থিতি (মাস)</div>
       </div>` + feeCard + `
-      <div style="flex:1;background:#fff;border-radius:var(--radius-sm);padding:10px;box-shadow:var(--shadow);text-align:center;">
+      <div style="flex:1;min-width:90px;background:#fff;border-radius:var(--radius-sm);padding:10px;box-shadow:var(--shadow);text-align:center;">
         <div style="font-size:16px;font-weight:700;color:${khColor};">${khLabel}</div>
         <div style="font-size:10px;color:var(--ink3);">খুলুক</div>
-      </div>`;
+      </div>` +
+      (IS_TEACHER ? `<div style="width:100%;font-size:11px;color:var(--ink3);padding:9px 11px;background:var(--blue-light);border-radius:var(--radius-sm);border:1px solid rgba(26,82,118,0.15);">ছাত্রের বেতন ও মাসিক আদায়ের হালনাগাদ <strong>দফতর দায়িত্বশীল</strong> দেখেন। প্রয়োজনে মুহতামিম বা দফতরের সাথে যোগাযোগ করুন।</div>` : '');
 
     const adminActions = IS_TEACHER ? '' : `
         <div style="margin-top:12px;display:flex;gap:8px;">
@@ -1083,22 +1183,6 @@
     closeModal('add-log');
     showToast('লগ সংরক্ষিত ✓');
     renderLogList();
-  }
-
-  function saveFees() {
-    if (IS_TEACHER) return;
-    if (mmMutationBlocked(showToast)) return;
-    const month = document.getElementById('fee-month').value;
-    const total = parseInt(document.getElementById('fee-total').value) || 0;
-    const paid = parseInt(document.getElementById('fee-paid').value) || 0;
-    const arrear = parseInt(document.getElementById('fee-arrear').value) || 0;
-    const note = document.getElementById('fee-note').value;
-    if (!month) { showToast('মাস আবশ্যক'); return; }
-    API.Fees.add({ month, class_id: currentClassId, total, paid, unpaid: total - paid, arrear, note });
-    closeModal('add-fees');
-    showToast('বেতন সারসংক্ষেপ সংরক্ষিত ✓');
-    renderFeesList();
-    renderClassSummary();
   }
 
   function saveKhuluk() {
@@ -1252,7 +1336,7 @@
   /* ── MODAL ── */
   function openModal(id) {
     if (mmMutationBlocked(showToast)) return;
-    if (IS_TEACHER && (id === 'add-student' || id === 'add-fees')) {
+    if (IS_TEACHER && id === 'add-student') {
       showToast('এই কাজ শুধু মুহতামিম করতে পারেন।');
       return;
     }
@@ -1282,9 +1366,8 @@
   } else {
     document.querySelectorAll('.panel').forEach((p) => p.classList.remove('active'));
     document.getElementById('panel-class').classList.add('active');
-    document.querySelectorAll('.nav-item').forEach((n) => n.classList.remove('active'));
-    document.getElementById('nav-class')?.classList.add('active');
     renderClassPanel();
+    syncBottomNavForRole('class');
   }
 </script>
 </body>

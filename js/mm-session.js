@@ -61,6 +61,23 @@
       this.clearAppSession();
       location.href = href;
     },
+
+    /**
+     * Top bar: #topbar-hub → admin-hub (only if isAdmin). #topbar-lockout → session clear + index (staff).
+     * Hub button should start hidden (style="display:none") so staff never see muhtamim PIN by mistake.
+     */
+    configureTopbarHubAndLockout: function () {
+      var hub = document.getElementById('topbar-hub');
+      var lock = document.getElementById('topbar-lockout');
+      if (!hub && !lock) return;
+      if (this.isAdmin()) {
+        if (hub) hub.style.removeProperty('display');
+        if (lock) lock.style.display = 'none';
+      } else {
+        if (hub) hub.style.display = 'none';
+        if (lock) lock.style.removeProperty('display');
+      }
+    },
   };
 
   global.MMSession = MMSession;

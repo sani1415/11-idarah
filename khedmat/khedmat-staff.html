@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
@@ -41,7 +41,8 @@
     <div class="topbar-name">খেদমতে খালক</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
+    <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../admin-hub.html'">হাব</button>
+    <button type="button" class="topbar-btn" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')">লকআউট</button>
   </div>
 </div>
 
@@ -158,6 +159,7 @@
   const myName = MMSession.getName() || 'খেদমত দায়িত্বশীল';
   if (myRole !== 'khedmat' && myRole !== 'admin') { location.href = '../index.html'; }
   mmInsertMonitorBanner();
+  MMSession.configureTopbarHubAndLockout();
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = n => '৳' + toBn(Number(n).toLocaleString('en'));
