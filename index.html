@@ -78,7 +78,7 @@
     <div class="role-btn" onclick="selectRole('library')">
       <div class="role-icon">📚</div>
       <div>
-        <div class="role-name">লাইব্রেরি দায়িত্বশীল</div>
+        <div class="role-name">মাকতাবা দায়িত্বশীল</div>
         <div class="role-desc">বই ইস্যু ও ব্যবস্থাপনা</div>
       </div>
     </div>
@@ -170,7 +170,7 @@
       admin:   { icon:'🛡️', title:'মুহতামিম লগইন',   sub:'অ্যাডমিন পিন দিন' },
       daftar:  { icon:'📋', title:'দফতর লগইন',        sub:'দফতর পিন দিন' },
       hifz:    { icon:'📿', title:'হিফজ লগইন',        sub:'হিফজ পিন দিন' },
-      library: { icon:'📚', title:'লাইব্রেরি লগইন',   sub:'লাইব্রেরি পিন দিন' },
+      library: { icon:'📚', title:'মাকতাবা লগইন',   sub:'মাকতাবা পিন দিন' },
       alumni:  { icon:'🎓', title:'পুরনো ছাত্র লগইন', sub:'পিন দিন' },
       khedmat: { icon:'🤝', title:'খেদমত লগইন',       sub:'পিন দিন' },
     };
@@ -301,7 +301,7 @@
         MMSession.setRole('teacher');
         MMSession.setTeacherId(selectedTeacher.id);
         MMSession.setName(selectedTeacher.name);
-        redirect = 'madrasa/madrasa-staff.html';
+        redirect = 'madrasa/madrasa-admin.html';
       }
     }
 

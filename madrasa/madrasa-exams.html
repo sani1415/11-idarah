@@ -42,7 +42,7 @@
     <div class="topbar-name" id="top-name">মুহতামিম</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../admin-hub.html'">হাব</button>
+    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
     <button class="topbar-btn" onclick="location.href='madrasa-admin.html'">← অ্যাডমিন</button>
   </div>
 </div>
@@ -127,10 +127,6 @@
   if (!MMSession.getRole()) location.href='../index.html';
   document.getElementById('top-name').textContent = MMSession.getName()||'মুহতামিম';
   mmInsertMonitorBanner();
-  if (MMSession.isAdmin()) {
-    const hb = document.getElementById('topbar-hub');
-    if (hb) hb.style.removeProperty('display');
-  }
 
   function toBn(n) { return String(n).replace(/[0-9]/g, d=>'০১২৩৪৫৬৭৮৯'[d]); }
   function getGrade(pct) {

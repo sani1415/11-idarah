@@ -37,9 +37,12 @@
     return !!(t && t.class_id === classId);
   }
 
-  /** মাদ্রাসা অ্যাডমিন পেজ (মুহতামিম) — প্রোটোটাইপে শুধু অ্যাডমিন */
+  /** মাদ্রাসা বর্ষ ওয়ার্কস্পেস — মুহতামিম বা নিজ বর্ষের শিক্ষক */
   function canOpenMadrasaAdmin() {
-    return isAdmin();
+    if (isAdmin()) return true;
+    if (getRole() !== 'teacher') return false;
+    var t = teacherRecord();
+    return !!(t && t.class_id);
   }
 
   /** দফতর/শিক্ষক — সীমিত মডিউল */

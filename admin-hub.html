@@ -616,14 +616,16 @@
   .mc-madrasa-tab:active { transform: scale(0.98); }
   .mc-madrasa-tab:hover { border-color: rgba(26, 82, 118, 0.35); background: #fff; }
   .mc-madrasa-tab.is-active:hover { background: var(--ink); color: var(--gold2); border-color: var(--ink); }
+  /* হাজিরা লাইন স্ট্যাট কার্ডের ঠিক নিচে; বিস্তারিত বাটন নিচে আলাদা */
   .mc-madrasa .mc-hint {
-    margin-top: auto;
-    padding-top: 20px;
+    margin-top: 12px;
+    padding-top: 10px;
+    flex-shrink: 0;
     cursor: default;
   }
   .mc-madrasa-detail-wrap {
-    margin-top: 0;
-    padding-top: 10px;
+    margin-top: auto;
+    padding-top: 14px;
     padding-bottom: 0;
     text-align: center;
     flex-shrink: 0;
@@ -650,12 +652,18 @@
     background: linear-gradient(180deg, #f8fbfd, #fff);
   }
   .mc-stat.mc-stat--teachers:active { transform: scale(0.98); }
-  .mc-stat.mc-stat--leave {
+  .mc-stat.mc-stat--special-watch {
     cursor: pointer;
-    border: 1px dashed rgba(201, 149, 42, 0.45);
-    background: linear-gradient(180deg, #fffefb, var(--cream));
+    border: 1px dashed rgba(108, 52, 131, 0.35);
+    background: linear-gradient(180deg, #faf7fc, #fff);
   }
-  .mc-stat.mc-stat--leave:active { transform: scale(0.98); }
+  .mc-stat.mc-stat--special-watch:active { transform: scale(0.98); }
+  .mc-stat.mc-stat--absent-list {
+    cursor: pointer;
+    border: 1px dashed rgba(193, 68, 14, 0.35);
+    background: linear-gradient(180deg, #fff9f6, #fff);
+  }
+  .mc-stat.mc-stat--absent-list:active { transform: scale(0.98); }
   a.mc-go { text-decoration: none; color: var(--ink3); }
   .mc-dept .mc-icon-wrap { background: linear-gradient(145deg, #d8f3dc, #eaf8ee); }
   .mc-dept .mc-letter { color: #1e8449; }
@@ -687,7 +695,7 @@
     padding: 10px 6px;
     text-align: center;
   }
-  .mc-madrasa .mc-stat:not(.mc-stat--leave):not(.mc-stat--teachers) {
+  .mc-madrasa .mc-stat:not(.mc-stat--special-watch):not(.mc-stat--teachers):not(.mc-stat--absent-list) {
     cursor: default;
   }
   .mc-stat-val {
@@ -957,11 +965,14 @@
                 <div class="mc-stat"><span class="mc-stat-val" id="mc-present">—</span><span class="mc-stat-label">আজ উপস্থিত</span></div>
               </div>
               <div class="mc-stats-secondary">
-                <div class="mc-stat mc-stat--leave" id="mc-leave-stat-wrap" role="button" tabindex="0" title="ছুটির তালিকা">
-                  <span class="mc-stat-val" id="mc-leave-students">—</span>
-                  <span class="mc-stat-label">ছুটির রেকর্ড (ছাত্র)</span>
+                <div class="mc-stat mc-stat--special-watch" id="mc-special-watch-stat-wrap" role="button" tabindex="0" title="বিশেষ পর্যবেক্ষণ তালিকা">
+                  <span class="mc-stat-val" id="mc-special-watch">—</span>
+                  <span class="mc-stat-label">বিশেষ পর্যবেক্ষণ</span>
                 </div>
-                <div class="mc-stat"><span class="mc-stat-val" id="mc-leave">—</span><span class="mc-stat-label">আজ ছুটি</span></div>
+                <div class="mc-stat mc-stat--absent-list" id="mc-absent-list-stat-wrap" role="button" tabindex="0" title="অনুপস্থিত ছাত্রদের তালিকা">
+                  <span class="mc-stat-val" id="mc-absent-list">—</span>
+                  <span class="mc-stat-label">অনুপস্থিত তালিকা</span>
+                </div>
                 <div class="mc-stat mc-stat--teachers" id="mc-teachers-stat-wrap" role="button" tabindex="0" title="শিক্ষক ও স্টাফ">
                   <span class="mc-stat-val" id="mc-teachers">—</span>
                   <span class="mc-stat-label">শিক্ষক/স্টাফ</span>
@@ -1190,8 +1201,8 @@
     if (el('mc-students')) el('mc-students').textContent = toBn(students);
     if (el('mc-present')) el('mc-present').textContent = toBn(att.present);
     if (el('mc-absent')) el('mc-absent').textContent = toBn(att.absent);
-    if (el('mc-leave')) el('mc-leave').textContent = toBn(att.leave);
-    if (el('mc-leave-students')) el('mc-leave-students').textContent = toBn(API.Attendance.countStudentsWithAnyLeaveByDept(dept));
+    if (el('mc-absent-list')) el('mc-absent-list').textContent = toBn(API.Attendance.countStudentsWithAnyAbsentByDept(dept));
+    if (el('mc-special-watch')) el('mc-special-watch').textContent = toBn(API.Students.countSpecialWatchByDept(dept));
     const tlist = API.Teachers.getByDept(dept);
     if (el('mc-teachers')) el('mc-teachers').textContent = toBn(tlist.length);
     const madrasaBlurb = document.getElementById('mc-madrasa-att-blurb');
@@ -1200,17 +1211,31 @@
         'আজ মোট হাজিরা রেকর্ড ' + toBn(att.total) + ' · উপস্থিত ' + toBn(att.present) +
         ', অনুপস্থিত ' + toBn(att.absent) + ', ছুটি ' + toBn(att.leave) + '।';
     }
-    const leaveWrap = document.getElementById('mc-leave-stat-wrap');
-    if (leaveWrap) {
-      const goLeave = (e) => {
+    const absentListWrap = document.getElementById('mc-absent-list-stat-wrap');
+    if (absentListWrap) {
+      const goAbsentList = (e) => {
         e.stopPropagation();
-        location.href = 'madrasa/madrasa-leave-students.html?dept=' + encodeURIComponent(dept);
+        location.href = 'madrasa/madrasa-absent-students.html?dept=' + encodeURIComponent(dept);
       };
-      leaveWrap.onclick = goLeave;
-      leaveWrap.onkeydown = (e) => {
+      absentListWrap.onclick = goAbsentList;
+      absentListWrap.onkeydown = (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          goLeave(e);
+          goAbsentList(e);
+        }
+      };
+    }
+    const specWrap = document.getElementById('mc-special-watch-stat-wrap');
+    if (specWrap) {
+      const goSpec = (e) => {
+        e.stopPropagation();
+        location.href = 'madrasa/madrasa-special-watch.html?dept=' + encodeURIComponent(dept);
+      };
+      specWrap.onclick = goSpec;
+      specWrap.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          goSpec(e);
         }
       };
     }

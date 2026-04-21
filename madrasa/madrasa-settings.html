@@ -144,7 +144,7 @@
       <select class="form-input form-select" id="st-role">
         <option value="daftar">দফতর দায়িত্বশীল</option>
         <option value="hifz">হিফজ দায়িত্বশীল</option>
-        <option value="library">লাইব্রেরি দায়িত্বশীল</option>
+        <option value="library">মাকতাবা দায়িত্বশীল</option>
         <option value="alumni">পুরনো ছাত্র দায়িত্বশীল</option>
         <option value="khedmat">খেদমত দায়িত্বশীল</option>
       </select>
@@ -220,7 +220,7 @@
   function renderTeachers() {
     const teachers = API.Teachers.getAll();
     const classes  = API.Classes.getAll();
-    const roleLabel = { daftar:'দফতর', hifz:'হিফজ', library:'লাইব্রেরি', alumni:'পুরনো ছাত্র', khedmat:'খেদমত' };
+    const roleLabel = { daftar:'দফতর', hifz:'হিফজ', library:'মাকতাবা', alumni:'পুরনো ছাত্র', khedmat:'খেদমত' };
     document.getElementById('teacher-list').innerHTML = teachers.map(t=>{
       const cls = t.class_id ? classes.find(c=>c.id===t.class_id) : null;
       const meta = cls ? API.esc(cls.name) : (t.role ? roleLabel[t.role]||t.role : '—');

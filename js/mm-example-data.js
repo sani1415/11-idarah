@@ -107,3 +107,52 @@
   );
   localStorage.setItem(LKEY, JSON.stringify(logs));
 })();
+
+/** নমুনা: বিশেষ পর্যবেক্ষণ ফ্ল্যাগ (পুরনো localStorage-এ std_2, std_4) */
+(function patchSpecialWatchExample() {
+  if (typeof window !== 'undefined' && window.MM_USE_EXAMPLE === false) return;
+  if (localStorage.getItem('mm_ex_sw_students') === '1') return;
+  const SKEY = 'mm_students';
+  let list;
+  try {
+    list = JSON.parse(localStorage.getItem(SKEY) || '[]');
+  } catch {
+    return;
+  }
+  if (!list.length) return;
+  let changed = false;
+  list = list.map((s) => {
+    if (s && (s.id === 'std_2' || s.id === 'std_4') && !s.special_watch) {
+      changed = true;
+      return { ...s, special_watch: true };
+    }
+    return s;
+  });
+  if (changed) localStorage.setItem(SKEY, JSON.stringify(list));
+  localStorage.setItem('mm_ex_sw_students', '1');
+})();
+
+/** নমুনা: অনুপস্থিত রেকর্ড (id: mm_ex_ab_*) — হাবের অনুপস্থিত তালিকা ডেমো */
+(function patchExampleAbsentAttendance() {
+  if (typeof window !== 'undefined' && window.MM_USE_EXAMPLE === false) return;
+  const KEY = 'mm_attendance';
+  let list;
+  try {
+    list = JSON.parse(localStorage.getItem(KEY) || '[]');
+  } catch {
+    return;
+  }
+  if (list.some((r) => r && String(r.id).startsWith('mm_ex_ab_'))) return;
+  const t = new Date();
+  const extra = [];
+  let na = 0;
+  for (let i = 1; i <= 21; i++) {
+    const d = new Date(t);
+    d.setDate(d.getDate() - i);
+    const date = d.toISOString().slice(0, 10);
+    if (i % 2 === 0) extra.push({ id: 'mm_ex_ab_' + ++na, student_id: 'std_3', date, status: 'absent' });
+    else if (i % 3 === 0) extra.push({ id: 'mm_ex_ab_' + ++na, student_id: 'std_2', date, status: 'absent' });
+    else if (i % 5 === 0) extra.push({ id: 'mm_ex_ab_' + ++na, student_id: 'std_4', date, status: 'absent' });
+  }
+  localStorage.setItem(KEY, JSON.stringify(list.concat(extra)));
+})();

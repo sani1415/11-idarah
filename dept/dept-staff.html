@@ -41,7 +41,7 @@
     <div class="topbar-name" id="dept-name">—</div>
   </div>
   <div class="topbar-actions">
-    <button class="topbar-btn" onclick="logout()">লগআউট</button>
+    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
   </div>
 </div>
 
@@ -352,11 +352,6 @@
     closeModal('modal-inv');
     renderInv();
     showToast('মজুদ আপডেট হয়েছে');
-  }
-
-  function logout() {
-    MMSession.clearDeptSession();
-    location.href = 'dept-index.html';
   }
 
   renderTxn();

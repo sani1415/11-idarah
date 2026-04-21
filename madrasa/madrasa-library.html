@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>লাইব্রেরি — মাদরাসাতুল মদীনা</title>
+<title>মাকতাবা — মাদরাসাতুল মদীনা</title>
 <link rel="stylesheet" href="../css/style.css">
 <style>
   .book-card {
@@ -60,12 +60,11 @@
 
 <div class="topbar">
   <div class="topbar-left">
-    <div class="topbar-role">লাইব্রেরি বিভাগ</div>
+    <div class="topbar-role">মাকতাবা বিভাগ</div>
     <div class="topbar-name" id="top-name">দায়িত্বশীল</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../admin-hub.html'">হাব</button>
-    <button type="button" class="topbar-btn" onclick="MMSession.logoutToIndex('../index.html')">লগআউট</button>
+    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
   </div>
 </div>
 
@@ -204,10 +203,6 @@
   if (!MMSession.getRole()) location.href = '../index.html';
   document.getElementById('top-name').textContent = MMSession.getName() || 'দায়িত্বশীল';
   mmInsertMonitorBanner();
-  if (MMSession.isAdmin()) {
-    const hb = document.getElementById('topbar-hub');
-    if (hb) hb.style.removeProperty('display');
-  }
 
   const LIB_BOOKS = 'mm_lib_books';
   const LIB_ISSUES = 'mm_lib_issues';

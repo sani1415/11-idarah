@@ -41,7 +41,7 @@
     <div class="topbar-name">খেদমতে খালক</div>
   </div>
   <div class="topbar-actions">
-    <button class="topbar-btn" onclick="logout()">লগআউট</button>
+    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
   </div>
 </div>
 
@@ -164,10 +164,6 @@
   const fmtDate = d => { if (!d) return ''; const p = d.split('-'); return toBn(p[2]+'/'+p[1]+'/'+p[0]); };
 
   let activeBenId = null;
-
-  function logout() {
-    MMSession.logoutToIndex('../index.html');
-  }
 
   function showToast(msg) {
     const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');

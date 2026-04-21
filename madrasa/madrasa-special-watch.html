@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>বিশেষ পর্যবেক্ষণ — মাদ্রাসা</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .sw-page { max-width: 520px; margin: 0 auto; padding: 12px 16px calc(24px + env(safe-area-inset-bottom)); }
+  .sw-head { font-family: 'Noto Serif Bengali', serif; font-size: 18px; font-weight: 700; color: var(--ink2); margin-bottom: 6px; }
+  .sw-sub { font-size: 12px; color: var(--ink3); line-height: 1.5; margin-bottom: 16px; }
+  .sw-row {
+    background: #fff;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid rgba(26, 18, 8, 0.06);
+  }
+  .sw-rank {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 36px;
+    text-align: center;
+  }
+  .sw-info { flex: 1; min-width: 0; }
+  .sw-name { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .sw-meta { font-size: 11px; color: var(--ink3); margin-top: 3px; }
+  .sw-badge {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--gold);
+    border: 1px solid rgba(201, 149, 42, 0.45);
+    border-radius: 6px;
+    padding: 4px 8px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .sw-empty { text-align: center; color: var(--ink3); padding: 40px 16px; font-size: 14px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মাদ্রাসা</div>
+    <div class="topbar-name">বিশেষ পর্যবেক্ষণ</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
+    <button type="button" class="topbar-btn" onclick="location.href='madrasa-admin.html'">অ্যাডমিন</button>
+  </div>
+</div>
+
+<div class="sw-page">
+  <div class="sw-head">বিশেষ পর্যবেক্ষণে ছাত্র</div>
+  <p class="sw-sub">যে ছাত্রদের তাদের শিক্ষক <strong>বিশেষ পর্যবেক্ষণ</strong> হিসেবে চিহ্নিত করেছেন।</p>
+  <div id="sw-list"></div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>window.MM_USE_EXAMPLE = true;</script>
+<script src="../js/mm-example-data.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.isAdmin()) location.href = '../index.html';
+
+  const toBn = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+
+  const params = new URLSearchParams(location.search);
+  const dept = params.get('dept') === 'maktab' ? 'maktab' : 'kitab';
+  const deptLabel = dept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
+  const sub = document.querySelector('.sw-sub');
+  if (sub) sub.textContent = deptLabel + ' — যে ছাত্রদের শিক্ষক বিশেষ পর্যবেক্ষণ হিসেবে চিহ্নিত করেছেন।';
+
+  function render() {
+    const students = API.Students.getSpecialWatchByDeptSorted(dept);
+    const el = document.getElementById('sw-list');
+    if (!students.length) {
+      el.innerHTML = '<div class="sw-empty">এই বিভাগে কোনো ছাত্র বিশেষ পর্যবেক্ষণে নেই। শিক্ষক পর্যয় থেকে চিহ্নিত করলে এখানে দেখা যাবে।</div>';
+      return;
+    }
+    el.innerHTML = students
+      .map((s, i) => {
+        const cls = API.Classes.getById(s.class_id);
+        return `<div class="sw-row">
+          <div class="sw-rank">${toBn(i + 1)}</div>
+          <div class="sw-info">
+            <div class="sw-name">${API.esc(s.name)}</div>
+            <div class="sw-meta">${API.esc(cls ? cls.name : '—')} · রোল ${API.esc(s.roll || '—')}</div>
+          </div>
+          <div class="sw-badge">পর্যবেক্ষণ</div>
+        </div>`;
+      })
+      .join('');
+  }
+  render();
+</script>
+</body>
+</html>

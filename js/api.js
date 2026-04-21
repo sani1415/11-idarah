@@ -85,7 +85,7 @@ const API = (() => {
         { id: 'tch_13',     name: 'উস্তায আবু বকর',          class_id: 'cls_m4', pin: '0000' },
         { id: 'tch_14',     name: 'উস্তায উসমান',            class_id: 'cls_m5', pin: '0000' },
         { id: 'usr_hifz',   name: 'হিফজ দায়িত্বশীল',        class_id: null,     pin: '0000', role: 'hifz' },
-        { id: 'usr_lib',    name: 'লাইব্রেরি দায়িত্বশীল',   class_id: null,     pin: '0000', role: 'library' },
+        { id: 'usr_lib',    name: 'মাকতাবা দায়িত্বশীল',   class_id: null,     pin: '0000', role: 'library' },
         { id: 'usr_alumni', name: 'পুরনো ছাত্র দায়িত্বশীল', class_id: null,     pin: '0000', role: 'alumni' },
       ];
       save(KEYS.teachers, [...existingTeachers, ...migrTeachers]);
@@ -104,11 +104,11 @@ const API = (() => {
       { id: 'cls_k6', dept: 'kitab', year: 6, name: '৬ষ্ঠ বর্ষ', roll_prefix: '600', teacher_id: 'tch_7' },
       { id: 'cls_k7', dept: 'kitab', year: 7, name: '৭ম বর্ষ', roll_prefix: '700', teacher_id: 'tch_8' },
       { id: 'cls_k8', dept: 'kitab', year: 8, name: '৮ম বর্ষ', roll_prefix: '800', teacher_id: 'tch_9' },
-      { id: 'cls_m1', dept: 'maktab', year: 1, name: 'মক্তব ১ম', roll_prefix: 'ম১', teacher_id: 'tch_10' },
-      { id: 'cls_m2', dept: 'maktab', year: 2, name: 'মক্তব ২য়', roll_prefix: 'ম২', teacher_id: 'tch_11' },
-      { id: 'cls_m3', dept: 'maktab', year: 3, name: 'মক্তব ৩য়', roll_prefix: 'ম৩', teacher_id: 'tch_12' },
-      { id: 'cls_m4', dept: 'maktab', year: 4, name: 'মক্তব ৪র্থ', roll_prefix: 'ম৪', teacher_id: 'tch_13' },
-      { id: 'cls_m5', dept: 'maktab', year: 5, name: 'মক্তব ৫ম', roll_prefix: 'ম৫', teacher_id: 'tch_14' },
+      { id: 'cls_m1', dept: 'maktab', year: 1, name: 'প্রথম শ্রেণি', roll_prefix: 'ম১', teacher_id: 'tch_10' },
+      { id: 'cls_m2', dept: 'maktab', year: 2, name: 'দ্বিতীয় শ্রেণি', roll_prefix: 'ম২', teacher_id: 'tch_11' },
+      { id: 'cls_m3', dept: 'maktab', year: 3, name: 'তৃতীয় শ্রেণি', roll_prefix: 'ম৩', teacher_id: 'tch_12' },
+      { id: 'cls_m4', dept: 'maktab', year: 4, name: 'চতুর্থ শ্রেণি', roll_prefix: 'ম৪', teacher_id: 'tch_13' },
+      { id: 'cls_m5', dept: 'maktab', year: 5, name: 'পঞ্চম শ্রেণি', roll_prefix: 'ম৫', teacher_id: 'tch_14' },
     ];
     save(KEYS.classes, classes);
 
@@ -130,7 +130,7 @@ const API = (() => {
       { id: 'tch_14',     name: 'উস্তায উসমান',           class_id: 'cls_m5', pin: '0000' },
       { id: 'daftar',     name: 'দফতর দায়িত্বশীল',       class_id: null,     pin: '0000', role: 'daftar' },
       { id: 'usr_hifz',   name: 'হিফজ দায়িত্বশীল',       class_id: null,     pin: '0000', role: 'hifz' },
-      { id: 'usr_lib',    name: 'লাইব্রেরি দায়িত্বশীল',  class_id: null,     pin: '0000', role: 'library' },
+      { id: 'usr_lib',    name: 'মাকতাবা দায়িত্বশীল',  class_id: null,     pin: '0000', role: 'library' },
       { id: 'usr_alumni',   name: 'পুরনো ছাত্র দায়িত্বশীল', class_id: null,  pin: '0000', role: 'alumni'   },
       { id: 'usr_khedmat', name: 'খেদমত দায়িত্বশীল',       class_id: null,  pin: '0000', role: 'khedmat'  },
     ];
@@ -139,9 +139,9 @@ const API = (() => {
     /* Students */
     const students = [
       { id: 'std_1', permanent_id: '৪৭০০১', name: 'মুহাম্মাদ আলী', class_id: 'cls_k3', roll: '৩০১', guardian: 'আলী হোসেন', guardian_job: 'কৃষক', phone: '০১৭১১-১১১১১১', address: 'উত্তর পাড়া', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_2', permanent_id: '৪৭০০২', name: 'আব্দুল কাদের',  class_id: 'cls_k3', roll: '৩০২', guardian: 'কাদের মিয়া',  guardian_job: 'ব্যবসায়ী', phone: '০১৮২২-২২২২২২', address: 'দক্ষিণ পাড়া', admitted: '১৪৪৭', active: true, hifz: true },
+      { id: 'std_2', permanent_id: '৪৭০০২', name: 'আব্দুল কাদের',  class_id: 'cls_k3', roll: '৩০২', guardian: 'কাদের মিয়া',  guardian_job: 'ব্যবসায়ী', phone: '০১৮২২-২২২২২২', address: 'দক্ষিণ পাড়া', admitted: '১৪৪৭', active: true, hifz: true, special_watch: true },
       { id: 'std_3', permanent_id: '৪৭০০৩', name: 'ইউসুফ আহমাদ',  class_id: 'cls_k3', roll: '৩০৩', guardian: 'আহমাদ উল্লাহ', guardian_job: 'শিক্ষক', phone: '০১৯৩৩-৩৩৩৩৩৩', address: 'পূর্ব পাড়া', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_4', permanent_id: '৪৭০০৪', name: 'উমর ফারুক',    class_id: 'cls_k3', roll: '৩০৪', guardian: 'ফারুক আহমেদ',  guardian_job: 'চাকরিজীবী', phone: '০১৬৪৪-৪৪৪৪৪৪', address: 'পশ্চিম পাড়া', admitted: '১৪৪৭', active: true, hifz: true },
+      { id: 'std_4', permanent_id: '৪৭০০৪', name: 'উমর ফারুক',    class_id: 'cls_k3', roll: '৩০৪', guardian: 'ফারুক আহমেদ',  guardian_job: 'চাকরিজীবী', phone: '০১৬৪৪-৪৪৪৪৪৪', address: 'পশ্চিম পাড়া', admitted: '১৪৪৭', active: true, hifz: true, special_watch: true },
       { id: 'std_5', permanent_id: '৪৬০০১', name: 'আব্দুর রহমান', class_id: 'cls_k2', roll: '২০১', guardian: 'রহমান মিয়া',  guardian_job: 'কৃষক', phone: '০১৫৫৫-৫৫৫৫৫৫', address: 'উত্তর পাড়া', admitted: '১৪৪৬', active: true, hifz: false },
       { id: 'std_6', permanent_id: '৪৬০০২', name: 'হাসান মাহমুদ', class_id: 'cls_k2', roll: '২০২', guardian: 'মাহমুদ আলী',  guardian_job: 'ব্যবসায়ী', phone: '০১৬৬৬-৬৬৬৬৬৬', address: 'দক্ষিণ পাড়া', admitted: '১৪৪৬', active: true, hifz: false },
     ];
@@ -240,7 +240,20 @@ const API = (() => {
         .map(pid => parseInt(pid.slice((prefix + yr).length)) || 0);
       const next = existing.length ? Math.max(...existing) + 1 : 1;
       return prefix + yr + String(next).padStart(3, '0');
-    }
+    },
+    /** শিক্ষক কর্তৃক চিহ্নিত বিশেষ পর্যবেক্ষণ */
+    countSpecialWatchByDept(dept) {
+      const cids = new Set(load(KEYS.classes).filter((c) => c.dept === dept).map((c) => c.id));
+      return load(KEYS.students).filter(
+        (s) => s.active && cids.has(s.class_id) && s.special_watch
+      ).length;
+    },
+    getSpecialWatchByDeptSorted(dept) {
+      const cids = new Set(load(KEYS.classes).filter((c) => c.dept === dept).map((c) => c.id));
+      return load(KEYS.students)
+        .filter((s) => s.active && cids.has(s.class_id) && s.special_watch)
+        .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'bn'));
+    },
   };
 
   /* ══════════════════════════════
@@ -377,6 +390,37 @@ const API = (() => {
     countStudentsWithAnyLeaveByDept(dept) {
       return this.getStudentsWithLeaveSortedByDept(dept).length;
     },
+    /** ছাত্র প্রতি মোট অনুপস্থিত দিন (স্ট্যাটাস absent) */
+    getAbsentStatsByStudent() {
+      const byStudent = {};
+      load(KEYS.attendance).forEach((a) => {
+        if (this.statusOf(a) !== 'absent') return;
+        byStudent[a.student_id] = (byStudent[a.student_id] || 0) + 1;
+      });
+      return byStudent;
+    },
+    /** যে ছাত্রদের কমপক্ষে এক দিন অনুপস্থিত রেকর্ড আছে — অনুপস্থিত দিন বেশি থেকে কম */
+    getStudentsWithAbsentSorted() {
+      const by = this.getAbsentStatsByStudent();
+      return Students.getAll()
+        .filter((s) => s.active)
+        .map((s) => ({ student: s, absentDays: by[s.id] || 0 }))
+        .filter((x) => x.absentDays > 0)
+        .sort((a, b) => b.absentDays - a.absentDays);
+    },
+    getStudentsWithAbsentSortedByDept(dept) {
+      if (dept !== 'kitab' && dept !== 'maktab') return this.getStudentsWithAbsentSorted();
+      const cids = new Set(Classes.getByDept(dept).map((c) => c.id));
+      const by = this.getAbsentStatsByStudent();
+      return Students.getAll()
+        .filter((s) => s.active && cids.has(s.class_id))
+        .map((s) => ({ student: s, absentDays: by[s.id] || 0 }))
+        .filter((x) => x.absentDays > 0)
+        .sort((a, b) => b.absentDays - a.absentDays);
+    },
+    countStudentsWithAnyAbsentByDept(dept) {
+      return this.getStudentsWithAbsentSortedByDept(dept).length;
+    },
   };
 
   /* ══════════════════════════════
@@ -423,7 +467,7 @@ const API = (() => {
     getClassAvg(cid) {
       const sids = Students.getByClass(cid).map(s => s.id);
       const scores = sids.map(sid => { const k = Khuluk.getLatest(sid); return k ? k.score : null; }).filter(s => s !== null);
-      return scores.length ? Math.round(scores.reduce((a,b) => a+b, 0) / scores.length) : 0;
+      return scores.length ? Math.round(scores.reduce((a,b) => a+b, 0) / scores.length) : null;
     }
   };
 
@@ -512,9 +556,40 @@ const API = (() => {
     }));
   }
 
+  /** পুরনো ডেটায় মক্তব বর্ষের নাম: মক্তব ১ম → প্রথম শ্রেণি ইত্যাদি (কাস্টম নাম স্পর্শ করে না) */
+  function migrateMaktabClassNames() {
+    const nextName = {
+      cls_m1: 'প্রথম শ্রেণি',
+      cls_m2: 'দ্বিতীয় শ্রেণি',
+      cls_m3: 'তৃতীয় শ্রেণি',
+      cls_m4: 'চতুর্থ শ্রেণি',
+      cls_m5: 'পঞ্চম শ্রেণি',
+    };
+    const oldName = {
+      cls_m1: 'মক্তব ১ম',
+      cls_m2: 'মক্তব ২য়',
+      cls_m3: 'মক্তব ৩য়',
+      cls_m4: 'মক্তব ৪র্থ',
+      cls_m5: 'মক্তব ৫ম',
+    };
+    const list = load(KEYS.classes);
+    let changed = false;
+    const next = list.map((c) => {
+      const nn = nextName[c.id];
+      const on = oldName[c.id];
+      if (!nn || !on) return c;
+      if (c.name === nn) return c;
+      if (c.name !== on) return c;
+      changed = true;
+      return { ...c, name: nn };
+    });
+    if (changed) save(KEYS.classes, next);
+  }
+
   /* ── INIT ── */
   seedIfEmpty();
   migrateAttendanceStatus();
+  migrateMaktabClassNames();
 
   /* ── PUBLIC API ── */
   return {

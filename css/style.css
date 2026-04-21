@@ -486,14 +486,34 @@ body {
 .empty-icon { font-size: 40px; margin-bottom: 12px; display: block; }
 .empty-text { font-size: 14px; }
 
-/* ── মুহতামিম পর্যবেক্ষণ মোড ব্যানার ── */
-.mm-monitor-banner {
+/* ── মুহতামিম পর্যবেক্ষণ মোড — টপবার মাঝখানে ── */
+.topbar.mm-monitor-topbar {
+  position: relative;
+}
+.mm-monitor-topbar-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+  max-width: 38vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mm-monitor-banner--fallback {
   background: linear-gradient(135deg, #1a5276 0%, #2471a3 100%);
   color: #fff;
-  font-size: 12px;
-  padding: 10px 14px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 6px 10px;
   text-align: center;
-  line-height: 1.45;
+  line-height: 1.3;
   position: relative;
   z-index: 200;
 }

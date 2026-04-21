@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>অনুপস্থিত তালিকা — মাদ্রাসা</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .abs-page { max-width: 520px; margin: 0 auto; padding: 12px 16px calc(24px + env(safe-area-inset-bottom)); }
+  .abs-head { font-family: 'Noto Serif Bengali', serif; font-size: 18px; font-weight: 700; color: var(--ink2); margin-bottom: 6px; }
+  .abs-sub { font-size: 12px; color: var(--ink3); line-height: 1.5; margin-bottom: 16px; }
+  .abs-row {
+    background: #fff;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid rgba(26, 18, 8, 0.06);
+  }
+  .abs-rank {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 36px;
+    text-align: center;
+  }
+  .abs-info { flex: 1; min-width: 0; }
+  .abs-name { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .abs-meta { font-size: 11px; color: var(--ink3); margin-top: 3px; }
+  .abs-days {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--red);
+    flex-shrink: 0;
+  }
+  .abs-empty { text-align: center; color: var(--ink3); padding: 40px 16px; font-size: 14px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মাদ্রাসা</div>
+    <div class="topbar-name">অনুপস্থিত তালিকা</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
+    <button type="button" class="topbar-btn" onclick="location.href='madrasa-admin.html'">অ্যাডমিন</button>
+  </div>
+</div>
+
+<div class="abs-page">
+  <div class="abs-head">অনুপস্থিত রেকর্ডযুক্ত ছাত্র</div>
+  <p class="abs-sub">যাদের কমপক্ষে এক দিন <strong>অনুপস্থিত</strong> রেকর্ড আছে। বেশি অনুপস্থিত দিন থেকে কম — সাজানো।</p>
+  <div id="abs-list"></div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>window.MM_USE_EXAMPLE = true;</script>
+<script src="../js/mm-example-data.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.isAdmin()) location.href = '../index.html';
+
+  const toBn = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+
+  const params = new URLSearchParams(location.search);
+  const dept = params.get('dept') === 'maktab' ? 'maktab' : 'kitab';
+  const deptLabel = dept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
+  const sub = document.querySelector('.abs-sub');
+  if (sub) sub.textContent = deptLabel + ' — যাদের কমপক্ষে এক দিন অনুপস্থিতের রেকর্ড আছে। বেশি দিন থেকে কম — সাজানো।';
+
+  function render() {
+    const rows = API.Attendance.getStudentsWithAbsentSortedByDept(dept);
+    const el = document.getElementById('abs-list');
+    if (!rows.length) {
+      el.innerHTML = '<div class="abs-empty">কোনো ছাত্রের অনুপস্থিত রেকর্ড নেই। উপস্থিতি স্ক্রিনে অনুপস্থিত চিহ্নিত করলে এখানে দেখা যাবে।</div>';
+      return;
+    }
+    el.innerHTML = rows
+      .map((x, i) => {
+        const cls = API.Classes.getById(x.student.class_id);
+        return `<div class="abs-row">
+          <div class="abs-rank">${toBn(i + 1)}</div>
+          <div class="abs-info">
+            <div class="abs-name">${API.esc(x.student.name)}</div>
+            <div class="abs-meta">${API.esc(cls ? cls.name : '—')} · রোল ${API.esc(x.student.roll || '—')}</div>
+          </div>
+          <div class="abs-days">${toBn(x.absentDays)} দিন</div>
+        </div>`;
+      })
+      .join('');
+  }
+  render();
+</script>
+</body>
+</html>
