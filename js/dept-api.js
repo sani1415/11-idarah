@@ -21,7 +21,19 @@ const DeptAPI = (() => {
 
   /* ── SEED ── */
   function seedIfEmpty() {
-    if (load(KEYS.departments).length) return;
+    const existing = load(KEYS.departments);
+    if (existing.length) {
+      /* migration: নতুন বিভাগ যোগ হলে শুধু সেটা ঢুকিয়ে দাও */
+      const newDepts = [
+        { id:'dept_4', name:'সেলাই বিভাগ', emoji:'🧵', pin:'0000', is_active:true },
+      ];
+      let changed = false;
+      newDepts.forEach(nd => {
+        if (!existing.find(d => d.id === nd.id)) { existing.push(nd); changed = true; }
+      });
+      if (changed) save(KEYS.departments, existing);
+      return;
+    }
     const b = globalThis.MMSampleData && globalThis.MMSampleData.buildDeptSample;
     if (!b) { console.warn('[MMSampleData] mm-sample-data.js dept-api.js-এর আগে লোড করুন।'); return; }
     const pack = b();
@@ -64,6 +76,9 @@ const DeptAPI = (() => {
     ],
     dept_3: [
       { key:'batch', label:'ব্যাচ / লট', type:'text', placeholder:'যেমন: ব্যাচ ১২', optional:true },
+    ],
+    dept_4: [
+      { key:'item_type', label:'পণ্যের ধরন', type:'text', placeholder:'যেমন: পাঞ্জাবি, থ্রিপিস', optional:true },
     ],
   };
 

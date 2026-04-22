@@ -142,12 +142,22 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="js/mm-sample-data.js"></script>
 <script src="js/mm-session.js"></script>
 <script src="js/monitor-mode.js"></script>
 <script src="js/dept-api.js"></script>
 <script>
   if (!MMSession.isAdmin()) { location.href = 'admin-hub.html'; }
   mmInsertMonitorBanner();
+
+  const DEPT_DATA_VER = 2;
+  if (Number(localStorage.getItem('mm_dept_data_ver')||0) < DEPT_DATA_VER) {
+    localStorage.removeItem('mm_dept_departments');
+    localStorage.removeItem('mm_dept_transactions');
+    localStorage.removeItem('mm_dept_inventory');
+    localStorage.setItem('mm_dept_data_ver', DEPT_DATA_VER);
+    location.reload();
+  }
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = n => '৳' + toBn(Number(n).toLocaleString('en'));
