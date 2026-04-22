@@ -6,22 +6,262 @@
 <title>দফতর — মাদরাসাতুল মদীনা</title>
 <link rel="stylesheet" href="../css/style.css">
 <style>
-  .att-card { background: #fff; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 10px; }
-  .att-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .att-class-name { font-family: 'Noto Serif Bengali', serif; font-size: 15px; font-weight: 700; color: var(--ink2); }
-  .att-summary { font-size: 12px; color: var(--ink3); }
-  .att-done-badge { font-size: 11px; padding: 3px 8px; border-radius: 10px; }
+/* ── হিরো কার্ড (সঘন) ── */
+.hero {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.hero-date {
+  display: flex;
+  align-items: center;
+  background: var(--ink);
+  padding: 0;
+}
+.hd-nav {
+  flex: 0 0 40px; height: 48px;
+  background: none; border: none;
+  font-size: 22px; color: rgba(255,255,255,.5);
+  display: flex; align-items: center; justify-content: center;
+  transition: color .15s, background .15s;
+}
+.hd-nav:hover  { color: #fff; background: rgba(255,255,255,.07); }
+.hd-nav:active { background: rgba(255,255,255,.12); transform: scale(.94); }
+.hd-center {
+  flex: 1; text-align: center; cursor: pointer;
+  position: relative; padding: 8px 4px; user-select: none;
+}
+.hd-weekday { font-size: 9px; color: rgba(232,184,75,.7); letter-spacing: .5px; margin-bottom: 2px; }
+.hd-main    { font-family: 'Noto Serif Bengali', serif; font-size: 15px; font-weight: 600; color: #fff; line-height: 1.25; }
+.hd-geo     { font-size: 9px; color: rgba(255,255,255,.55); margin-top: 2px; line-height: 1.3; }
+.hd-sub     { font-size: 9px; color: rgba(255,255,255,.45); margin-top: 2px; }
+.hd-today-dot {
+  display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--gold2); margin-right: 5px; vertical-align: middle; margin-top: -1px;
+}
+.hd-input-wrap { position: absolute; inset: 0; opacity: 0; overflow: hidden; }
+.hd-input-wrap input { width: 100%; height: 100%; border: none; outline: none; cursor: pointer; }
 
-  .save-att-btn {
-    background: var(--green); color: #fff; border: none; border-radius: 10px;
-    padding: 10px 18px; font-family: 'Noto Sans Bengali', sans-serif;
-    font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 12px;
-    width: 100%; transition: all .15s;
-  }
-  .save-att-btn:active { transform: scale(.98); }
+.hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); }
+.hs-stat {
+  margin: 0; padding: 10px 6px; text-align: center; border: none; border-right: 1px solid var(--cream2);
+  background: transparent; width: 100%; font: inherit; cursor: pointer;
+  transition: background .15s, box-shadow .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.hs-stat:last-child { border-right: none; }
+.hs-stat:hover { background: rgba(232, 184, 75, 0.07); }
+.hs-stat:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.hs-stat.hs-on {
+  background: linear-gradient(180deg, rgba(255,249,237,0.95) 0%, rgba(253,243,220,0.65) 100%);
+  box-shadow: inset 0 0 0 1.5px rgba(201, 149, 42, 0.35);
+}
+.hs-val {
+  font-family: 'Noto Serif Bengali', serif;
+  font-size: 20px; font-weight: 700; display: block; line-height: 1.1;
+}
+.hs:nth-child(1) .hs-val { color: var(--green); }
+.hs:nth-child(2) .hs-val { color: var(--red); }
+.hs:nth-child(3) .hs-val { color: var(--blue); }
+.hs-lbl { font-size: 9px; color: var(--ink3); margin-top: 3px; display: block; }
+.hs-bar  { height: 2px; background: var(--cream2); margin-top: 5px; border-radius: 1px; overflow: hidden; }
+.hs-fill { height: 100%; border-radius: 1px; transition: width .5s ease; }
+.hs:nth-child(1) .hs-fill { background: var(--green2); }
+.hs:nth-child(2) .hs-fill { background: var(--red); }
+.hs:nth-child(3) .hs-fill { background: var(--blue); }
+
+.hero-notice {
+  padding: 7px 12px;
+  font-size: 11px; color: var(--ink3); line-height: 1.45;
+  border-top: 1px solid var(--cream2); background: var(--cream);
+  display: flex; align-items: flex-start; gap: 6px;
+}
+.hero-notice-ico { font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+.hero-notice strong { color: var(--ink2); }
+.notice-ok { color: var(--green) !important; font-weight: 600; }
+
+/* ── ফিল্টার: [বর্ষ] [খোঁজ] [কপি] [বাল্ক✓] [বাল্ক✗] — সব বিন্দু এক উচ্চতা (--fs-h) ── */
+.daftar-toolbar {
+  margin-bottom: 5px;
+  --fs-h: 36px;
+}
+.filter-strip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.fs-select {
+  box-sizing: border-box;
+  flex: 0 1 30%;
+  min-width: 3.2rem;
+  max-width: 7.5rem;
+  height: var(--fs-h);
+  background: #fff; border: 1px solid var(--cream3);
+  border-radius: var(--radius-sm);
+  padding: 0 1.1rem 0 6px; font-family: 'Noto Sans Bengali', sans-serif;
+  font-size: 11px; line-height: 1.2; color: var(--ink2); outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b5a3e' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 5px center;
+  vertical-align: top;
+}
+.fs-search {
+  box-sizing: border-box;
+  flex: 1 1 0;
+  min-width: 0;
+  height: var(--fs-h);
+  background: #fff; border: 1px solid var(--cream3);
+  border-radius: var(--radius-sm);
+  padding: 0 6px;
+  font-family: 'Noto Sans Bengali', sans-serif; font-size: 11px; line-height: 1.2; color: var(--ink);
+  outline: none; transition: border-color .2s;
+}
+.fs-search::placeholder { color: var(--ink3); opacity: 0.85; }
+.fs-search:focus { border-color: var(--gold); }
+.fs-icon-btn {
+  box-sizing: border-box;
+  flex: 0 0 var(--fs-h);
+  width: var(--fs-h);
+  min-width: var(--fs-h);
+  height: var(--fs-h);
+  padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--cream3); border-radius: var(--radius-sm);
+  background: #fff; color: var(--ink2);
+  cursor: pointer; transition: background .12s, border-color .12s, color .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.fs-icon-btn:hover { background: var(--cream); color: var(--ink); }
+.fs-icon-btn svg { display: block; flex-shrink: 0; width: 17px; height: 17px; }
+.fs-icon-btn.fs-bulk-p svg,
+.fs-icon-btn.fs-bulk-a svg { width: 18px; height: 18px; }
+.fs-icon-btn.fs-bulk-p {
+  border-color: var(--green2); background: var(--green-light); color: var(--green);
+}
+.fs-icon-btn.fs-bulk-p:hover { filter: brightness(0.97); }
+.fs-icon-btn.fs-bulk-a {
+  border-color: var(--red); background: var(--red-light); color: var(--red);
+}
+.fs-icon-btn.fs-bulk-a:hover { filter: brightness(0.97); }
+
+/* ── হাজিরা কার্ড (তালিকা ফিল্টার সারির সাথে সারিবদ্ধ; অতি ভেতরে নয়) ── */
+.att-card {
+  background: #fff; border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden; margin-bottom: 6px; padding: 0;
+}
+#att-list { margin: 0; padding: 0; }
+.att-count-note {
+  padding: 5px 6px; font-size: 10px; color: var(--ink3);
+  background: var(--cream);
+  border-top: 1px solid var(--cream2);
+  border-bottom: 1px solid var(--cream2);
+  line-height: 1.35;
+}
+.class-sep {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 8px 6px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--cream2);
+  border-top: 1px solid var(--cream2);
+}
+#att-list > .class-sep:first-child { border-top: none; }
+.cs-name  { font-family: 'Noto Serif Bengali', serif; font-size: 13px; font-weight: 700; color: var(--ink2); }
+.cs-badge { font-size: 9px; padding: 1px 7px; border-radius: 20px; background: var(--blue-light); color: var(--blue); font-weight: 600; }
+.cs-pct   { font-size: 10px; color: var(--ink3); margin-left: auto; }
+
+.s-row {
+  display: flex; align-items: center; padding: 6px 6px;
+  border-bottom: 1px solid rgba(26,18,8,.04); transition: background .1s;
+}
+.s-row:last-child { border-bottom: none; }
+.s-row.is-absent { background: rgba(193,68,14,.03); }
+.s-roll { width: 22px; font-size: 10px; color: var(--ink3); text-align: center; flex-shrink: 0; }
+.s-toggle { display: flex; gap: 4px; flex-shrink: 0; }
+.tog {
+  width: 32px; height: 32px; border-radius: var(--radius-xs);
+  border: 1.5px solid var(--cream3); background: #fff; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .12s; font-family: inherit;
+}
+.tog:active { transform: scale(.93); }
+.tog.is-p  { background: var(--green-light); border-color: var(--green2); color: var(--green); }
+.tog.is-a  { background: var(--red-light);   border-color: var(--red);    color: var(--red); }
+
+/* ── স্টিকি সেভ বাটন ── */
+.save-footer {
+  position: sticky;
+  bottom: calc(58px + env(safe-area-inset-bottom));
+  z-index: 90; padding: 4px 0 2px;
+  pointer-events: none;
+}
+.save-btn {
+  width: 100%; pointer-events: all;
+  background: var(--green); color: #fff; border: none;
+  border-radius: 12px; padding: 11px 14px;
+  font-family: 'Noto Sans Bengali', sans-serif;
+  font-size: 14px; font-weight: 600;
+  box-shadow: 0 4px 16px rgba(45,106,79,.32);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; transition: all .15s;
+}
+.save-btn:hover   { filter: brightness(1.06); }
+.save-btn:active  { transform: scale(.98); filter: brightness(.96); }
+.save-btn.all-saved { background: var(--ink); box-shadow: 0 3px 14px rgba(26,18,8,.2); }
+.save-btn-count   { font-size: 11px; opacity: .88; font-weight: 400; flex-shrink: 0; }
+
+.s-name-col { flex: 1; min-width: 0; padding: 0 2px; }
+.s-line1 {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 5px;
+  min-width: 0; line-height: 1.3;
+}
+.s-name-btn {
+  display: inline; text-align: left; background: none; border: none;
+  font-size: 13px; font-weight: 500; color: var(--ink);
+  font-family: 'Noto Sans Bengali', sans-serif; padding: 0; margin: 0; cursor: pointer; vertical-align: baseline;
+  max-width: 100%;
+}
+.s-name-btn:hover { text-decoration: underline; color: var(--blue); }
+.s-id-inline {
+  display: inline; font-size: 10px; color: var(--ink3); font-weight: 500; flex-shrink: 0;
+  white-space: nowrap;
+}
+.s-id-inline::before { content: '·'; margin: 0 3px; opacity: .55; }
+.s-abs-reason {
+  display: inline; font-size: 10px; line-height: 1.3;
+  color: var(--red);
+  flex: 1 1 90px; min-width: 0; word-break: break-word;
+}
+.s-abs-reason::before { content: '·'; margin: 0 2px; opacity: .45; color: var(--ink3); }
+.s-abs-reason.s-abs-missing { color: var(--gold); }
+
+/* পেজ-সীমা: টপবার, কন্টেন্ট, ফুটার, নেভ, ফর্ম (শুধু দফতর) */
+body.page-daftar .content { padding: 10px 12px; }
+body.page-daftar .pb-safe { height: 80px; }
+body.page-daftar .topbar { padding: 9px 12px 7px; }
+body.page-daftar .topbar-name { font-size: 16px; }
+body.page-daftar .topbar-btn { padding: 6px 10px; font-size: 11px; }
+body.page-daftar .sec-header { margin: 8px 0 5px; }
+body.page-daftar .sec-title { font-size: 15px; }
+body.page-daftar .form-group { margin-bottom: 8px; }
+body.page-daftar .form-label { font-size: 12px; margin-bottom: 3px; }
+body.page-daftar .form-input { padding: 9px 11px; font-size: 14px; }
+body.page-daftar .form-select { padding: 9px 28px 9px 10px; }
+body.page-daftar .add-btn { padding: 11px 14px; font-size: 14px; margin-bottom: 8px; }
+body.page-daftar .bottom-nav {
+  left: 8px; right: 8px; bottom: max(6px, env(safe-area-inset-bottom));
+  padding: 4px 6px; gap: 2px;
+}
+body.page-daftar .nav-item { min-height: 44px; padding: 5px 4px; gap: 3px; }
+body.page-daftar .nav-icon svg.nav-svg, body.page-daftar .nav-icon .nav-svg { width: 22px; height: 22px; }
+body.page-daftar .nav-label { font-size: 10px; line-height: 1.15; }
+body.page-daftar .card-static { padding: 10px 12px; }
+body.page-daftar .att-card .empty-state { padding: 18px 8px; }
 </style>
 </head>
-<body>
+<body class="page-daftar">
 
 <div class="topbar">
   <div class="topbar-left">
@@ -30,7 +270,7 @@
   </div>
   <div class="topbar-actions">
     <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../admin-hub.html'">হাব</button>
-    <button type="button" class="topbar-btn" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')">লকআউট</button>
+    <button type="button" class="topbar-btn" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')">লগআউট</button>
   </div>
 </div>
 
@@ -39,53 +279,94 @@
   <!-- HOME PANEL -->
   <div class="panel active" id="panel-home">
 
-    <div id="daftar-pending-card" style="background:#fff;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin:8px 0 12px;border-left:4px solid var(--gold);">
-      <div style="font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:8px;">📋 আজকের বাকি</div>
-      <div id="daftar-pending-body" style="font-size:12px;color:var(--ink3);line-height:1.55;"></div>
-    </div>
-
-    <div style="background:linear-gradient(135deg,var(--blue),#2471a3);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
-      <div style="font-size:12px;opacity:.85;margin-bottom:8px;" id="today-date"></div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;text-align:center;">
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-present">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">উপস্থিত</div></div>
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-absent">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">অনুপস্থিত</div></div>
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-leave">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">ছুটি</div></div>
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-students">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">সক্রিয় ছাত্র</div></div>
+    <!-- হিরো কার্ড: তারিখ নেভিগেটর + স্ট্যাটস + নোটিস -->
+    <div class="hero">
+      <div class="hero-date">
+        <button type="button" class="hd-nav" onclick="daftarPrevDay()" aria-label="আগের দিন">‹</button>
+        <div class="hd-center">
+          <div class="hd-weekday" id="hd-weekday"></div>
+          <div class="hd-main">
+            <span class="hd-today-dot" id="hd-dot"></span><span id="hd-date-primary"></span>
+          </div>
+          <div class="hd-geo" id="hd-geo-bn"></div>
+          <div class="hd-sub" id="hd-sub"></div>
+          <div class="hd-input-wrap">
+            <input type="date" id="daftar-att-date" onchange="onDaftarDateInput()" tabindex="-1">
+          </div>
+        </div>
+        <button type="button" class="hd-nav" onclick="daftarNextDay()" aria-label="পরের দিন">›</button>
       </div>
-      <div style="font-size:10px;opacity:.65;margin-top:10px;text-align:center;" id="att-summary-hint">নির্বাচিত তারিখের সারসংক্ষেপ (সারা প্রতিষ্ঠান)</div>
+
+      <div class="hero-stats">
+        <button type="button" class="hs hs-stat" id="hs-filter-present" onclick="setQFilter('present')" title="শুধু উপস্থিত দেখান" aria-label="উপস্থিত ফিল্টার">
+          <span class="hs-val" id="st-present">—</span>
+          <span class="hs-lbl">উপস্থিত</span>
+          <div class="hs-bar"><div class="hs-fill" id="bar-present" style="width:0"></div></div>
+        </button>
+        <button type="button" class="hs hs-stat" id="hs-filter-absent" onclick="setQFilter('absent')" title="শুধু অনুপস্থিত দেখান" aria-label="অনুপস্থিত ফিল্টার">
+          <span class="hs-val" id="st-absent">—</span>
+          <span class="hs-lbl">অনুপস্থিত</span>
+          <div class="hs-bar"><div class="hs-fill" id="bar-absent" style="width:0"></div></div>
+        </button>
+        <button type="button" class="hs hs-stat" id="hs-filter-total" onclick="setQFilter('all')" title="সব ছাত্র দেখান" aria-label="মোট — ফিল্টার সরান">
+          <span class="hs-val" id="st-total">—</span>
+          <span class="hs-lbl">মোট ছাত্র</span>
+          <div class="hs-bar"><div class="hs-fill" id="bar-total" style="width:100%"></div></div>
+        </button>
+      </div>
+
+      <div class="hero-notice">
+        <span class="hero-notice-ico">📋</span>
+        <div id="notice-body"></div>
+      </div>
     </div>
 
-    <div class="sec-header">
-      <span class="sec-title">উপস্থিতি</span>
-      <span class="sec-link" id="today-label"></span>
+    <div class="daftar-toolbar">
+      <div class="filter-strip">
+        <select class="fs-select" id="class-filter-sel" onchange="setAttClassFilter(this.value)">
+          <option value="all">সব বর্ষ</option>
+        </select>
+        <input class="fs-search" id="att-search-box" placeholder="খোঁজ" title="নাম, স্থায়ী আইডি বা রোল" oninput="setAttSearch(this.value)">
+        <button type="button" class="fs-icon-btn" id="btn-copy-prev" title="আগের দিনের মতো করুন" aria-label="আগের দিনের মতো করুন" onclick="copyFromPreviousDay()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <button type="button" class="fs-icon-btn fs-bulk-p" title="দেখানো সবাই উপস্থিত" aria-label="দেখানো সবাই উপস্থিত" onclick="bulkMark('present')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+        </button>
+        <button type="button" class="fs-icon-btn fs-bulk-a" title="দেখানো সবাই অনুপস্থিত" aria-label="দেখানো সবাই অনুপস্থিত" onclick="bulkMark('absent')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="22" y2="13"/><line x1="22" y1="8" x2="17" y2="13"/></svg>
+        </button>
+      </div>
     </div>
 
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-      <button type="button" class="topbar-btn" onclick="daftarPrevDay()" title="আগের দিন">‹</button>
-      <input type="date" class="form-input" id="daftar-att-date" style="flex:1;min-width:140px;padding:10px 12px;font-size:14px;" onchange="onDaftarDateInput()">
-      <button type="button" class="topbar-btn" onclick="daftarNextDay()" title="পরের দিন">›</button>
+    <!-- হাজিরা কার্ড -->
+    <div class="att-card">
+      <div class="att-count-note" id="att-count-note">লোড হচ্ছে…</div>
+      <div id="att-list"></div>
     </div>
 
-    <!-- Class filter tabs -->
-    <div class="tab-bar" id="class-tabs"></div>
-
-    <div id="attendance-area"></div>
+    <!-- স্টিকি সেভ ফুটার -->
+    <div class="save-footer">
+      <button type="button" class="save-btn" id="save-btn" onclick="saveAllAttendance()">
+        <span>✓ সকল বর্ষের উপস্থিতি সংরক্ষণ করুন</span>
+        <span class="save-btn-count" id="save-count"></span>
+      </button>
+    </div>
 
     <div class="pb-safe"></div>
   </div>
 
   <!-- FEES PANEL -->
   <div class="panel" id="panel-fees">
-    <div class="sec-header" style="margin-top:8px;">
-      <span class="sec-title">বেতন ইতিহাস</span>
+    <div class="sec-header" style="margin-top:4px;">
+      <span class="sec-title">ওয়াযিফা ইতিহাস</span>
     </div>
-    <div class="form-group" style="margin-bottom:10px;">
+    <div class="form-group" style="margin-bottom:6px;">
       <label class="form-label">বর্ষ</label>
       <select class="form-input form-select" id="fee-history-class" onchange="renderFeeHistory()"></select>
     </div>
     <div id="fee-history-list"></div>
-
-    <div class="sec-header" style="margin-top:16px;">
+    <div class="sec-header" style="margin-top:10px;">
       <span class="sec-title">নতুন সারসংক্ষেপ</span>
     </div>
     <button class="add-btn" style="background:var(--gold);" onclick="openModal('add-fees')">＋ নতুন মাসের সারসংক্ষেপ</button>
@@ -97,23 +378,23 @@
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav" aria-label="নিচের নেভিগেশন">
   <div class="nav-item active" id="nav-home" onclick="switchPanel('home')">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">উপস্থিতি</span>
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">উপস্থিতি</span>
   </div>
   <div class="nav-item" id="nav-fees" onclick="switchPanel('fees');renderFees()">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">বেতন</span>
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">ওয়াযিফা</span>
   </div>
-  <div class="nav-item" onclick="location.href='../chat.html'" title="শুধু বার্তা">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">বার্তা</span>
-  </div>
-  <div class="nav-item" onclick="location.href='madrasa-admin.html'">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M4 10.25 12 4l8 6.25V20a1 1 0 01-1 1h-4.5v-7h-3v7H5a1 1 0 01-1-1v-9.75z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span><span class="nav-label">অ্যাডমিন</span>
+  <div class="nav-item" onclick="location.href='../chat.html'">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">বার্তা</span>
   </div>
 </nav>
 
 <!-- FEES MODAL -->
 <div class="modal-bg" id="modal-add-fees">
   <div class="modal">
-    <div class="modal-title">বেতন সারসংক্ষেপ <button class="modal-close" onclick="closeModal('add-fees')">✕</button></div>
+    <div class="modal-title">ওয়াযিফা সারসংক্ষেপ <button class="modal-close" onclick="closeModal('add-fees')">✕</button></div>
     <div class="form-group">
       <label class="form-label">বর্ষ</label>
       <select class="form-input form-select" id="fee-class"></select>
@@ -144,9 +425,22 @@
   </div>
 </div>
 
+<!-- অনুপস্থিতির কারণ -->
+<div class="modal-bg" id="modal-absent-reason">
+  <div class="modal" style="max-width: 420px;">
+    <div class="modal-title">অনুপস্থিতির কারণ <button type="button" class="modal-close" onclick="closeModal('absent-reason')">✕</button></div>
+    <p class="form-group" id="abs-reason-hint" style="font-size: 12px; color: var(--ink3); margin-bottom: 8px;">কারণ অবশ্য লিখতে হবে (সেভের আগে)।</p>
+    <textarea class="form-input form-textarea" id="abs-reason-inp" placeholder="উদা: অসুস্থ, পরিবারের দরকার, অনুমতিহীন অনুপস্থিতি…" rows="3"></textarea>
+    <button type="button" class="submit-btn" onclick="confirmAbsentReason()">ঠিক আছে</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
+<script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mm-hijri.js"></script>
+<script src="../js/mm-student-modal.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script>
@@ -155,57 +449,120 @@
   mmInsertMonitorBanner();
   MMSession.configureTopbarHubAndLockout();
 
-  let selectedClassId = null;
-  let daftarAttDate = API.today();
-  let attState = {};
+  /* ── STATE ── */
+  let daftarAttDate   = API.today();
+  let attState        = {};
+  let attReasonState  = {};
+  let attClassFilter  = 'all';
+  let attSearchText   = '';
+  let qFilter         = 'all';
   let feeHistoryClassId = null;
+  let absentModalMode = null;
 
-  const daysBn = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
-
-  function isoToBnWeekday(iso) {
-    const d = new Date(iso + 'T12:00:00');
-    return daysBn[d.getDay()] + ', ' + toBn(d.getDate()) + '/' + toBn(d.getMonth()+1) + '/' + toBn(d.getFullYear());
+  /* ── PENDING CHANGES (তারিখ কনফার্ম) ── */
+  function hasPendingEdits() {
+    return Object.keys(attState).length > 0 || Object.keys(attReasonState).length > 0;
   }
 
-  function updateDateBanner() {
-    document.getElementById('today-date').textContent = isoToBnWeekday(daftarAttDate) + (daftarAttDate === API.today() ? ' · আজ' : '');
-    document.getElementById('today-label').textContent = toBn(daftarAttDate);
-    const inp = document.getElementById('daftar-att-date');
-    if (inp) {
-      inp.max = API.today();
-      inp.value = daftarAttDate;
+  /* ── DATE + হিজরী ── */
+  function updateHero() {
+    const isToday = daftarAttDate === API.today();
+    const du = (window.MMHijri && window.MMHijri.dualLine) ? window.MMHijri.dualLine(daftarAttDate) : null;
+    if (du) {
+      document.getElementById('hd-weekday').textContent = du.weekday;
+      document.getElementById('hd-date-primary').textContent = du.primary;
+      document.getElementById('hd-geo-bn').textContent = du.hijriOk
+        ? du.secondary
+        : (window.MMHijri && window.MMHijri.gregorianLongBn
+          ? 'গ্রিগরিয়ান: ' + window.MMHijri.gregorianLongBn(daftarAttDate)
+          : '');
+    } else {
+      const d0 = new Date(daftarAttDate + 'T12:00:00');
+      const BN_D = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
+      const M_SHORT = ['জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগ', 'সেপ', 'অক্টো', 'নভে', 'ডিসে'];
+      document.getElementById('hd-weekday').textContent = BN_D[d0.getDay()];
+      document.getElementById('hd-date-primary').textContent =
+        toBn(d0.getDate()) + ' ' + M_SHORT[d0.getMonth()] + ' ' + toBn(d0.getFullYear());
+      document.getElementById('hd-geo-bn').textContent = '';
     }
+    document.getElementById('hd-sub').textContent   = isToday ? 'আজ' : '';
+    document.getElementById('hd-dot').style.display = isToday ? 'inline-block' : 'none';
+    const inp = document.getElementById('daftar-att-date');
+    if (inp) { inp.value = daftarAttDate; inp.max = API.today(); }
+
+    const existing = API.Attendance.getByDate(daftarAttDate);
+    const active   = API.Students.getAll().filter(s => s.active);
+    let p = 0, a = 0;
+    active.forEach(s => { currentAttStatus(s.id, existing) === 'absent' ? a++ : p++; });
+    document.getElementById('st-present').textContent = toBn(p);
+    document.getElementById('st-absent').textContent  = toBn(a);
+    document.getElementById('st-total').textContent   = toBn(active.length);
+    const pct = active.length ? Math.round(p / active.length * 100) : 0;
+    document.getElementById('bar-present').style.width = pct + '%';
+    document.getElementById('bar-absent').style.width  = (100 - pct) + '%';
+
+    const todayRecs = isToday ? existing : API.Attendance.getByDate(API.today());
+    const saved     = new Set(todayRecs.map(r => r.student_id));
+    const missing   = active.filter(s => !saved.has(s.id));
+    const nb = document.getElementById('notice-body');
+    if (missing.length === 0) {
+      nb.innerHTML = '<span class="notice-ok">✓ আজ সকল সক্রিয় ছাত্রের উপস্থিতি সেভ হয়েছে</span> · <strong>' + toBn(active.length) + '</strong> জন';
+    } else {
+      const byClass = {};
+      missing.forEach(s => { const cn = API.Classes.getName(s.class_id) || '—'; byClass[cn] = (byClass[cn] || 0) + 1; });
+      const parts = Object.keys(byClass).sort((a, b) => a.localeCompare(b, 'bn'))
+        .map(cn => API.esc(cn) + ' <strong>' + toBn(byClass[cn]) + '</strong> জন');
+      nb.innerHTML = 'আজ <strong>' + toBn(missing.length) + '</strong> জনের হাজিরা সেভ বাকি · ' + parts.join(' · ');
+    }
+
+    const unsaved  = hasPendingEdits();
+    const allSaved = active.length > 0 && missing.length === 0 && !unsaved;
+    document.getElementById('save-btn').classList.toggle('all-saved', allSaved && isToday);
+    document.getElementById('save-count').textContent =
+      unsaved ? 'সংরক্ষণ না হওয়া এডিট আছে' : (allSaved && isToday ? 'পুনরায় সংরক্ষণও করা যাবে' : '');
+    updateHeroFilterClasses();
   }
 
-  function setDaftarAttDate(iso) {
+  function updateHeroFilterClasses() {
+    const p = document.getElementById('hs-filter-present');
+    const a = document.getElementById('hs-filter-absent');
+    const t = document.getElementById('hs-filter-total');
+    if (!p || !a || !t) return;
+    p.classList.toggle('hs-on', qFilter === 'present');
+    a.classList.toggle('hs-on', qFilter === 'absent');
+    t.classList.toggle('hs-on', qFilter === 'all');
+    p.setAttribute('aria-pressed', qFilter === 'present' ? 'true' : 'false');
+    a.setAttribute('aria-pressed', qFilter === 'absent' ? 'true' : 'false');
+    t.setAttribute('aria-pressed', qFilter === 'all' ? 'true' : 'false');
+  }
+
+  function trySetDaftarAttDate(iso) {
+    if (iso === daftarAttDate) return;
+    if (hasPendingEdits() && !confirm('সংরক্ষণ না করেই তারিখ বদলাতে চান? এখনকার হাজিরা বদল মুছে যাবে।')) {
+      const inp = document.getElementById('daftar-att-date');
+      if (inp) inp.value = daftarAttDate;
+      return;
+    }
     daftarAttDate = iso;
     attState = {};
-    updateDateBanner();
+    attReasonState = {};
+    updateHero();
     renderAttendance();
-    updateSummary();
   }
 
   function daftarPrevDay() {
     const d = new Date(daftarAttDate + 'T12:00:00');
     d.setDate(d.getDate() - 1);
-    setDaftarAttDate(d.toISOString().split('T')[0]);
+    trySetDaftarAttDate(d.toISOString().split('T')[0]);
   }
-
   function daftarNextDay() {
-    if (daftarAttDate >= API.today()) {
-      showToast('ভবিষ্যতের তারিখ নির্বাচন যাবে না');
-      return;
-    }
+    if (daftarAttDate >= API.today()) { showToast('ভবিষ্যতের তারিখ নির্বাচন যাবে না'); return; }
     const d = new Date(daftarAttDate + 'T12:00:00');
     d.setDate(d.getDate() + 1);
     const next = d.toISOString().split('T')[0];
-    if (next > API.today()) {
-      showToast('ভবিষ্যতের তারিখ নির্বাচন যাবে না');
-      return;
-    }
-    setDaftarAttDate(next);
+    if (next > API.today()) { showToast('ভবিষ্যতের তারিখ নির্বাচন যাবে না'); return; }
+    trySetDaftarAttDate(next);
   }
-
   function onDaftarDateInput() {
     const v = document.getElementById('daftar-att-date').value;
     if (!v) return;
@@ -214,162 +571,275 @@
       document.getElementById('daftar-att-date').value = daftarAttDate;
       return;
     }
-    setDaftarAttDate(v);
+    trySetDaftarAttDate(v);
   }
 
-  function renderPendingCard() {
-    const todayStr = API.today();
-    const classes = API.Classes.getAll();
-    const pendingNames = [];
-    let complete = 0;
-    classes.forEach(cls => {
-      const att = API.Attendance.getByClassDate(cls.id, todayStr);
-      if (att.length === 0) pendingNames.push(cls.name);
-      else complete++;
-    });
-    const el = document.getElementById('daftar-pending-body');
-    if (!el) return;
-    if (pendingNames.length === 0) {
-      el.innerHTML = '<span style="color:var(--green);font-weight:600;">✓ সব বর্ষে আজকের উপস্থিতি নেওয়া হয়েছে</span> · <strong>' + toBn(complete) + '</strong> / ' + toBn(classes.length) + ' বর্ষ';
+  function copyFromPreviousDay() {
+    if (mmMutationBlocked(showToast)) return;
+    const d = new Date(daftarAttDate + 'T12:00:00');
+    d.setDate(d.getDate() - 1);
+    const prevIso = d.toISOString().split('T')[0];
+    const recs = API.Attendance.getByDate(prevIso);
+    if (!recs.length) {
+      showToast('আগের দিনে কোনো হাজিরা রেকর্ড নেই');
       return;
     }
-    el.innerHTML =
-      '<div style="margin-bottom:6px;"><strong>' + toBn(pendingNames.length) + '</strong> বর্ষে আজ উপস্থিতি এখনো সেভ হয়নি · <strong>' + toBn(complete) + '</strong> বর্ষ সম্পূর্ণ (মোট ' + toBn(classes.length) + ')</div>' +
-      '<div style="font-size:11px;color:var(--ink2);">বাকি: ' + pendingNames.map(n => API.esc(n)).join(' · ') + '</div>';
-  }
-
-  function switchPanel(name) {
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + name).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('nav-' + name)?.classList.add('active');
-    window.scrollTo(0, 0);
-    if (name === 'home') renderPendingCard();
-  }
-
-  /* ── CLASS TABS ── */
-  function renderClassTabs() {
-    const classes = API.Classes.getAll();
-    if (!selectedClassId) selectedClassId = classes[0]?.id;
-    const el = document.getElementById('class-tabs');
-    el.innerHTML = classes.map(c => `
-      <div class="tab-btn ${c.id === selectedClassId ? 'active' : ''}" onclick="selectClass('${c.id}')">${API.esc(c.name)}</div>
-    `).join('');
-  }
-
-  function selectClass(cid) {
-    selectedClassId = cid;
-    attState = {};
-    renderClassTabs();
+    const bySid = new Map(recs.map(r => [r.student_id, r]));
+    const active = API.Students.getAll().filter(s => s.active);
+    active.forEach(s => {
+      const r = bySid.get(s.id);
+      if (!r) return;
+      const st = API.Attendance.statusOf(r);
+      if (st === 'absent') {
+        attState[s.id] = 'absent';
+        attReasonState[s.id] = (r.absent_reason || '').trim() || 'আগের দিন থেকে (কারণ সেভ হয়নি)';
+      } else {
+        attState[s.id] = 'present';
+        delete attReasonState[s.id];
+      }
+    });
+    showToast('আগের দিনের মতো এডিট করা হয়েছে — «সংরক্ষণ» করুন');
+    updateHero();
     renderAttendance();
   }
 
-  /* ── ATTENDANCE ── */
-  function renderAttendance() {
-    const students = API.Students.getByClass(selectedClassId);
-    const existing = API.Attendance.getByClassDate(selectedClassId, daftarAttDate);
-    const el = document.getElementById('attendance-area');
+  /* ── FILTER HELPERS ── */
+  function setAttClassFilter(v) {
+    attClassFilter = v || 'all';
+    renderAttendance();
+  }
+  function setAttSearch(v) {
+    attSearchText = v || '';
+    renderAttendance();
+  }
+  function setQFilter(type) {
+    if (type === 'all') {
+      qFilter = 'all';
+    } else if (qFilter === type) {
+      qFilter = 'all';
+    } else {
+      qFilter = type;
+    }
+    updateHeroFilterClasses();
+    renderAttendance();
+  }
 
-    if (!students.length) {
-      el.innerHTML = '<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">এই বর্ষে কোনো ছাত্র নেই</div></div>';
+  function getStudentsInScope() {
+    if (attClassFilter === 'all') {
+      const out = [];
+      API.Classes.getAll().forEach(c => API.Students.getByClass(c.id).forEach(s => out.push(s)));
+      return out;
+    }
+    return API.Students.getByClass(attClassFilter);
+  }
+
+  function currentAttStatus(sid, existing) {
+    if (attState[sid] !== undefined) return attState[sid] === 'absent' ? 'absent' : 'present';
+    const rec = existing.find ? existing.find(a => a.student_id === sid) : null;
+    const raw = rec ? API.Attendance.statusOf(rec) : 'present';
+    return raw === 'absent' ? 'absent' : 'present';
+  }
+
+  function getAbsentReason(sid, existing) {
+    if (attReasonState[sid] !== undefined) return String(attReasonState[sid] || '').trim();
+    const rec = existing.find(a => a.student_id === sid);
+    if (rec && API.Attendance.statusOf(rec) === 'absent') return String(rec.absent_reason || '').trim();
+    return '';
+  }
+
+  function getFiltered(students, existing) {
+    const q = (attSearchText || '').trim().toLowerCase();
+    return students.filter(s => {
+      const st = currentAttStatus(s.id, existing);
+      if (qFilter === 'present' && st !== 'present') return false;
+      if (qFilter === 'absent'  && st !== 'absent')  return false;
+      if (q) {
+        const hay = (String(s.name||'') + ' ' + String(s.permanent_id||'') + ' ' + String(s.roll||'')).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }
+
+  /* ── RENDER ATTENDANCE ── */
+  function renderAttendance() {
+    const existing  = API.Attendance.getByDate(daftarAttDate);
+    const allActive = API.Students.getAll().filter(s => s.active);
+    const el        = document.getElementById('att-list');
+
+    if (!allActive.length) {
+      el.innerHTML = '<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো সক্রিয় ছাত্র নেই</div></div>';
+      document.getElementById('att-count-note').textContent = '';
       return;
     }
 
-    const isDone = existing.length > 0;
-    el.innerHTML = `<div class="att-card">
-      <div class="att-header">
-        <div class="att-class-name">${API.esc(API.Classes.getName(selectedClassId))}</div>
-        <span class="att-done-badge ${isDone ? 'badge-green list-badge' : 'badge-gold list-badge'}">${isDone ? '✓ নেওয়া হয়েছে' : 'বাকি আছে'}</span>
-      </div>
-      ${students.map(s => {
-        const rec = existing.find(a => a.student_id === s.id);
-        const st = attState[s.id] !== undefined ? attState[s.id] : (rec ? API.Attendance.statusOf(rec) : 'present');
-        return `<div class="att-row" id="att-${s.id}">
-          <span class="att-id">${API.esc(s.permanent_id)}</span>
-          <span class="att-name">${API.esc(s.name)}</span>
-          <div class="att-toggle">
-            <button type="button" class="att-btn ${st === 'present' ? 'present' : ''}" onclick="markAtt('${s.id}','present',this.closest('.att-row'))" title="উপস্থিত">✓</button>
-            <button type="button" class="att-btn ${st === 'absent' ? 'absent' : ''}" onclick="markAtt('${s.id}','absent',this.closest('.att-row'))" title="অনুপস্থিত">✗</button>
-            <button type="button" class="att-btn ${st === 'leave' ? 'leave' : ''}" onclick="markAtt('${s.id}','leave',this.closest('.att-row'))" title="ছুটি">ছ</button>
+    const classes = API.Classes.getAll();
+    if (attClassFilter !== 'all' && !classes.some(c => c.id === attClassFilter)) attClassFilter = 'all';
+
+    const inScope  = getStudentsInScope();
+    const filtered = getFiltered(inScope, existing);
+
+    document.getElementById('att-count-note').textContent =
+      'দেখাচ্ছে ' + toBn(filtered.length) + ' / ' + toBn(inScope.length) + ' জন';
+
+    if (!filtered.length) {
+      el.innerHTML = '<div class="empty-state"><span class="empty-icon">🔎</span><div class="empty-text">এই ফিল্টারে কোনো ছাত্র নেই</div></div>';
+      updateHero();
+      return;
+    }
+
+    /* group by class */
+    const groupMap = new Map();
+    filtered.forEach(s => {
+      if (!groupMap.has(s.class_id)) groupMap.set(s.class_id, []);
+      groupMap.get(s.class_id).push(s);
+    });
+
+    let html = '';
+    classes.forEach(cls => {
+      if (!groupMap.has(cls.id)) return;
+      const arr  = groupMap.get(cls.id);
+      const pres = arr.filter(s => currentAttStatus(s.id, existing) === 'present').length;
+      html += `<div class="class-sep">
+        <span class="cs-name">${API.esc(cls.name)}</span>
+        <span class="cs-badge">${toBn(arr.length)} জন</span>
+        <span class="cs-pct">${toBn(pres)} উপস্থিত</span>
+      </div>`;
+      arr.forEach(s => {
+        const st = currentAttStatus(s.id, existing);
+        const rsn = st === 'absent' ? getAbsentReason(s.id, existing) : '';
+        const idPart = s.permanent_id
+          ? '<span class="s-id-inline">' + API.esc(s.permanent_id) + '</span>'
+          : '';
+        const reasonBlock = (st === 'absent' && rsn)
+          ? '<span class="s-abs-reason">' + API.esc(rsn) + '</span>'
+          : (st === 'absent' && !rsn
+            ? '<span class="s-abs-reason s-abs-missing" title="সংরক্ষণের আগে কারণ লিখতে হবে">কারণ সেভের আগে</span>'
+            : '');
+        html += `<div class="s-row${st === 'absent' ? ' is-absent' : ''}" id="att-${s.id}">
+          <span class="s-roll">${API.esc(s.roll || '')}</span>
+          <div class="s-name-col">
+            <div class="s-line1">
+              <button type="button" class="s-name-btn" onclick="MMStudentModal.open('${s.id}')">${API.esc(s.name)}</button>
+              ${idPart}
+              ${reasonBlock}
+            </div>
+          </div>
+          <div class="s-toggle">
+            <button type="button" class="tog${st === 'present' ? ' is-p' : ''}" data-st="present" onclick="markAtt('${s.id}','present')" title="উপস্থিত">✓</button>
+            <button type="button" class="tog${st === 'absent'  ? ' is-a' : ''}" data-st="absent"  onclick="markAtt('${s.id}','absent')"  title="অনুপস্থিত">✗</button>
           </div>
         </div>`;
-      }).join('')}
-      <button class="save-att-btn" onclick="saveAllAttendance()">✓ উপস্থিতি সংরক্ষণ করুন</button>
-    </div>`;
-    updateSummary();
+      });
+    });
+    el.innerHTML = html;
+    updateHero();
   }
 
-  function markAtt(sid, status, row) {
+  function markAtt(sid, status) {
     if (mmMutationBlocked(showToast)) return;
-    attState[sid] = status;
-    const btns = row.querySelectorAll('.att-btn');
-    btns.forEach(b => b.classList.remove('present', 'absent', 'leave'));
-    if (status === 'present') btns[0].classList.add('present');
-    else if (status === 'absent') btns[1].classList.add('absent');
-    else btns[2].classList.add('leave');
+    if (status === 'present') {
+      attState[sid] = 'present';
+      delete attReasonState[sid];
+      renderAttendance();
+      return;
+    }
+    const existing = API.Attendance.getByDate(daftarAttDate);
+    const prev = (attReasonState[sid] !== undefined)
+      ? attReasonState[sid]
+      : (() => { const r = existing.find(a => a.student_id === sid); return (r && r.absent_reason) || ''; })();
+    absentModalMode = { type: 'single', sid: sid };
+    document.getElementById('abs-reason-inp').value = prev;
+    openModal('absent-reason');
+  }
+
+  function confirmAbsentReason() {
+    if (mmMutationBlocked(showToast)) return;
+    const t = document.getElementById('abs-reason-inp').value.trim();
+    if (!t) { showToast('অনুপস্থিতির কারণ লিখতে হবে'); return; }
+    if (absentModalMode && absentModalMode.type === 'single') {
+      attState[absentModalMode.sid] = 'absent';
+      attReasonState[absentModalMode.sid] = t;
+    } else if (absentModalMode && absentModalMode.type === 'bulk') {
+      const ex = API.Attendance.getByDate(daftarAttDate);
+      getFiltered(getStudentsInScope(), ex).forEach(s => { attState[s.id] = 'absent'; attReasonState[s.id] = t; });
+    }
+    closeModal('absent-reason');
+    absentModalMode = null;
+    renderAttendance();
+  }
+
+  function bulkMark(status) {
+    if (mmMutationBlocked(showToast)) return;
+    if (status === 'absent') {
+      const ex = API.Attendance.getByDate(daftarAttDate);
+      if (getFiltered(getStudentsInScope(), ex).length === 0) { showToast('কোনো ছাত্র নেই'); return; }
+      absentModalMode = { type: 'bulk' };
+      document.getElementById('abs-reason-inp').value = '';
+      openModal('absent-reason');
+      return;
+    }
+    const ex = API.Attendance.getByDate(daftarAttDate);
+    getFiltered(getStudentsInScope(), ex).forEach(s => {
+      attState[s.id] = 'present';
+      delete attReasonState[s.id];
+    });
+    renderAttendance();
   }
 
   function saveAllAttendance() {
     if (mmMutationBlocked(showToast)) return;
-    const students = API.Students.getByClass(selectedClassId);
-    const existing = API.Attendance.getByClassDate(selectedClassId, daftarAttDate);
+    const students = API.Students.getAll().filter(s => s.active);
+    const existing = API.Attendance.getByDate(daftarAttDate);
+    const needReason = students.filter(s => currentAttStatus(s.id, existing) === 'absent' && !getAbsentReason(s.id, existing));
+    if (needReason.length) {
+      showToast('অনুপস্থিত কিন্তু কারণ বাকি: ' + needReason.slice(0, 2).map(s => s.name).join('، ') + (needReason.length > 2 ? '…' : ''));
+      return;
+    }
     students.forEach(s => {
-      let st = attState[s.id];
-      if (st === undefined) {
-        const rec = existing.find(a => a.student_id === s.id);
-        st = rec ? API.Attendance.statusOf(rec) : 'present';
-      }
-      API.Attendance.save(s.id, daftarAttDate, st);
+      const st = currentAttStatus(s.id, existing);
+      if (st === 'absent') API.Attendance.save(s.id, daftarAttDate, 'absent', getAbsentReason(s.id, existing));
+      else API.Attendance.save(s.id, daftarAttDate, st);
     });
-    showToast('উপস্থিতি সংরক্ষিত হয়েছে ✓');
+    showToast('সকল বর্ষের উপস্থিতি সংরক্ষিত হয়েছে ✓');
     attState = {};
-    updateSummary();
+    attReasonState = {};
     renderAttendance();
-    renderPendingCard();
-  }
-
-  function updateSummary() {
-    const sum = API.Attendance.getDateSummary(daftarAttDate);
-    document.getElementById('total-present').textContent = toBn(sum.present);
-    document.getElementById('total-absent').textContent = toBn(sum.absent);
-    document.getElementById('total-leave').textContent = toBn(sum.leave || 0);
-    document.getElementById('total-students').textContent = toBn(API.Students.getAll().filter(s => s.active).length);
   }
 
   /* ── FEES ── */
   function renderFees() {
     const classes = API.Classes.getAll();
-    const sel = document.getElementById('fee-history-class');
-    const prev = feeHistoryClassId || sel.value;
+    const sel     = document.getElementById('fee-history-class');
+    const prev    = feeHistoryClassId || sel.value;
     sel.innerHTML = classes.map(c => `<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
     if (prev && classes.some(c => c.id === prev)) sel.value = prev;
-    else if (selectedClassId && classes.some(c => c.id === selectedClassId)) sel.value = selectedClassId;
+    else { const p = classes.find(c => API.Students.getByClass(c.id).length) || classes[0]; if (p) sel.value = p.id; }
     feeHistoryClassId = sel.value;
     renderFeeHistory();
     document.getElementById('fee-class').innerHTML = classes.map(c => `<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
   }
 
   function renderFeeHistory() {
-    const sel = document.getElementById('fee-history-class');
-    const cid = sel.value;
+    const cid  = document.getElementById('fee-history-class').value;
     feeHistoryClassId = cid;
     const rows = API.Fees.getByClass(cid);
-    const el = document.getElementById('fee-history-list');
+    const el   = document.getElementById('fee-history-list');
     if (!rows.length) {
-      el.innerHTML = '<div class="empty-state"><span class="empty-icon">💰</span><div class="empty-text">এই বর্ষে কোনো বেতন সারসংক্ষেপ নেই</div></div>';
+      el.innerHTML = '<div class="empty-state"><span class="empty-icon">💰</span><div class="empty-text">এই বর্ষে কোনো ওয়াযিফা সারসংক্ষেপ নেই</div></div>';
       return;
     }
     el.innerHTML = rows.map(f => {
       const unpaid = f.unpaid != null ? f.unpaid : (f.total - f.paid);
-      return `<div class="card-static" style="margin-bottom:10px;">
-        <div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;margin-bottom:8px;">${API.esc(f.month)}</div>
-        <div style="display:flex;gap:14px;font-size:13px;flex-wrap:wrap;">
+      return `<div class="card-static" style="margin-bottom:6px;">
+        <div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;margin-bottom:6px;">${API.esc(f.month)}</div>
+        <div style="display:flex;gap:12px;font-size:13px;flex-wrap:wrap;">
           <span>মোট: <strong>${toBn(f.total)}</strong></span>
           <span style="color:var(--green)">আদায়: <strong>${toBn(f.paid)}</strong></span>
           <span style="color:var(--red)">বাকি: <strong>${toBn(unpaid)}</strong></span>
           ${f.arrear ? `<span style="color:var(--red)">বকেয়া: ৳ ${toBn(f.arrear)}</span>` : ''}
         </div>
-        ${f.note ? `<div style="font-size:12px;color:var(--ink3);margin-top:6px;">${API.esc(f.note)}</div>` : ''}
+        ${f.note ? `<div style="font-size:12px;color:var(--ink3);margin-top:5px;">${API.esc(f.note)}</div>` : ''}
       </div>`;
     }).join('');
   }
@@ -377,11 +847,11 @@
   function saveFees() {
     if (mmMutationBlocked(showToast)) return;
     const class_id = document.getElementById('fee-class').value;
-    const month = document.getElementById('fee-month').value;
-    const total = parseInt(document.getElementById('fee-total').value) || 0;
-    const paid = parseInt(document.getElementById('fee-paid').value) || 0;
-    const arrear = parseInt(document.getElementById('fee-arrear').value) || 0;
-    const note = document.getElementById('fee-note').value;
+    const month    = document.getElementById('fee-month').value;
+    const total    = parseInt(document.getElementById('fee-total').value) || 0;
+    const paid     = parseInt(document.getElementById('fee-paid').value) || 0;
+    const arrear   = parseInt(document.getElementById('fee-arrear').value) || 0;
+    const note     = document.getElementById('fee-note').value;
     if (!month) { showToast('মাস আবশ্যক'); return; }
     API.Fees.add({ month, class_id, total, paid, unpaid: total - paid, arrear, note });
     closeModal('add-fees');
@@ -390,20 +860,55 @@
     renderFees();
   }
 
-  function openModal(id) {
-    if (mmMutationBlocked(showToast)) return;
-    document.getElementById('modal-' + id).classList.add('open');
+  /* ── PANEL ── */
+  function switchPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('nav-' + name)?.classList.add('active');
+    window.scrollTo(0, 0);
   }
+
+  /* ── UTILS ── */
+  function openModal(id)  { if (mmMutationBlocked(showToast)) return; document.getElementById('modal-' + id).classList.add('open'); }
   function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
-  function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
   function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
 
-  /* init */
-  updateDateBanner();
-  renderClassTabs();
+  /* ── SAMPLE DATA ── */
+  function ensureDaftarSampleData() {
+    const classes = API.Classes.getAll(); if (!classes.length) return;
+    if (API.Students.getAll().filter(s => s.active).length) return;
+    const classId = classes[0].id;
+    [
+      { permanent_id:'ডেমো-০০১', name:'ডেমো ছাত্র ১', roll:'১', guardian:'ডেমো অভিভাবক', guardian_job:'চাষাবাদ', phone:'০১০০০-০০০০০০', address:'ডেমো পাড়া' },
+      { permanent_id:'ডেমো-০০২', name:'ডেমো ছাত্র ২', roll:'২', guardian:'ডেমো অভিভাবক', guardian_job:'ব্যবসা',   phone:'০১১১১-১১১১১১', address:'ডেমো পাড়া' },
+      { permanent_id:'ডেমো-০০৩', name:'ডেমো ছাত্র ৩', roll:'৩', guardian:'ডেমো অভিভাবক', guardian_job:'দোকান',   phone:'০১২২২-২২২২২২', address:'ডেমো পাড়া' },
+      { permanent_id:'ডেমো-০০৪', name:'ডেমো ছাত্র ৪', roll:'৪', guardian:'ডেমো অভিভাবক', guardian_job:'কর্মচারী',phone:'০১৩৩৩-৩৩৩৩৩৩', address:'ডেমো পাড়া' },
+    ].forEach(d => API.Students.add({ ...d, class_id: classId, admitted:'১৪৪৭', dept:'kitab' }));
+    API.Students.getByClass(classId).slice(0,4).forEach((s, i) =>
+      API.Attendance.save(s.id, daftarAttDate, i === 2 ? 'absent' : 'present', i === 2 ? 'ডেমো: বাড়িতে' : undefined));
+    showToast('ডেমো হাজিরা তথ্য যোগ করা হয়েছে');
+  }
+
+  /* ── POPULATE CLASS FILTER ── */
+  function populateClassFilter() {
+    const sel = document.getElementById('class-filter-sel');
+    API.Classes.getAll().forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.id; o.textContent = c.name; sel.appendChild(o);
+    });
+  }
+
+  /* ── INIT ── */
+  ensureDaftarSampleData();
+  populateClassFilter();
+  updateHero();
   renderAttendance();
-  updateSummary();
-  renderPendingCard();
 </script>
 </body>
 </html>

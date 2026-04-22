@@ -22,30 +22,13 @@ const DeptAPI = (() => {
   /* ── SEED ── */
   function seedIfEmpty() {
     if (load(KEYS.departments).length) return;
-
-    save(KEYS.departments, [
-      { id:'dept_1', name:'কৃষি বিভাগ',   emoji:'🌾', pin:'0000', is_active:true },
-      { id:'dept_2', name:'মধু বিভাগ',    emoji:'🍯', pin:'0000', is_active:true },
-      { id:'dept_3', name:'বেকারি বিভাগ', emoji:'🍞', pin:'0000', is_active:true },
-      { id:'dept_4', name:'স্টোর',        emoji:'📦', pin:'0000', is_active:true },
-      { id:'dept_5', name:'রান্নাঘর',     emoji:'🍽️', pin:'0000', is_active:true },
-      { id:'dept_6', name:'বই বিতরণ',     emoji:'📚', pin:'0000', is_active:true },
-    ]);
-
-    save(KEYS.transactions, [
-      { id:'txn_1', dept_id:'dept_1', type:'income',  amount:5000, description:'ধান বিক্রয়',    date:'2026-04-01', proof_note:'', locked:true,  metadata:{ plot:'প্লট-ক' } },
-      { id:'txn_2', dept_id:'dept_1', type:'expense', amount:800,  description:'সার ক্রয়',       date:'2026-04-05', proof_note:'', locked:false, metadata:{} },
-      { id:'txn_3', dept_id:'dept_2', type:'income',  amount:3200, description:'মধু বিক্রয়',   date:'2026-04-03', proof_note:'', locked:true,  metadata:{ hives:12 } },
-      { id:'txn_4', dept_id:'dept_3', type:'income',  amount:2500, description:'রুটি বিক্রয়',  date:'2026-04-10', proof_note:'', locked:false, metadata:{ batch:'ব্যাচ ৩' } },
-      { id:'txn_5', dept_id:'dept_3', type:'expense', amount:1200, description:'আটা ও মসলা',   date:'2026-04-10', proof_note:'', locked:false, metadata:{} },
-    ]);
-
-    save(KEYS.inventory, [
-      { id:'inv_1', dept_id:'dept_1', product:'ধান',  quantity:250, unit:'কেজি',  date_updated:'2026-04-01' },
-      { id:'inv_2', dept_id:'dept_2', product:'মধু',  quantity:15,  unit:'কেজি',  date_updated:'2026-04-03' },
-      { id:'inv_3', dept_id:'dept_3', product:'আটা',  quantity:50,  unit:'কেজি',  date_updated:'2026-04-10' },
-      { id:'inv_4', dept_id:'dept_3', product:'চিনি', quantity:20,  unit:'কেজি',  date_updated:'2026-04-10' },
-    ]);
+    const b = globalThis.MMSampleData && globalThis.MMSampleData.buildDeptSample;
+    if (!b) { console.warn('[MMSampleData] mm-sample-data.js dept-api.js-এর আগে লোড করুন।'); return; }
+    const pack = b();
+    if (!pack || !Object.keys(pack).length) return;
+    Object.keys(pack).forEach((k) => {
+      try { localStorage.setItem(k, JSON.stringify(pack[k])); } catch (e) { console.warn('dept seed ' + k, e); }
+    });
   }
 
   /* ── DEPARTMENTS ── */

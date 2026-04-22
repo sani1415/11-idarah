@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>দফতর — প্রোটোটাইপ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --ink:#1a1208;--ink2:#3d2e14;--ink3:#6b5a3e;
+  --cream:#faf6ef;--cream2:#f2ead8;--cream3:#e8dcc4;
+  --gold:#c9952a;--gold2:#e8b84b;--gold-bg:rgba(253,243,220,0.7);
+  --green:#2d6a4f;--green2:#40916c;--green-bg:#d8f3dc;
+  --red:#c1440e;--red-bg:#fde8df;
+  --blue:#1a5276;--blue-bg:#d6eaf8;
+  --r:14px;--rsm:8px;--rxs:6px;
+  --sh:0 2px 12px rgba(26,18,8,.09);
+  --sh2:0 4px 20px rgba(26,18,8,.12);
+}
+body{font-family:'Noto Sans Bengali',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:linear-gradient(180deg,#fffefb 0%,#f7f1e6 100%);
+  border-bottom:1px solid rgba(26,18,8,.06);
+  box-shadow:0 2px 12px rgba(26,18,8,.04);
+  padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.topbar-role{font-size:10px;color:var(--ink3);letter-spacing:.4px}
+.topbar-name{font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:600;color:var(--ink2)}
+.tb-btn{
+  font-size:11px;color:var(--ink3);padding:6px 11px;
+  border:1px solid rgba(26,18,8,.1);border-radius:20px;
+  background:rgba(255,255,255,.8);transition:all .15s;
+}
+.tb-btn:hover{border-color:rgba(201,149,42,.3);color:var(--ink2);background:#fff}
+
+/* ── CONTENT ── */
+.content{padding:14px 14px 0;max-width:480px;margin:0 auto}
+
+/* ── HERO CARD ── */
+.hero{
+  background:#fff;border-radius:var(--r);box-shadow:var(--sh);
+  overflow:hidden;margin-bottom:10px;
+}
+
+/* date strip */
+.hero-date{
+  display:flex;align-items:center;gap:0;
+  background:var(--ink);
+  padding:0;
+}
+.hd-nav{
+  flex:0 0 44px;height:52px;
+  background:none;border:none;
+  font-size:22px;color:rgba(255,255,255,.55);
+  display:flex;align-items:center;justify-content:center;
+  transition:color .15s,background .15s;
+}
+.hd-nav:hover{color:#fff;background:rgba(255,255,255,.07)}
+.hd-nav:active{background:rgba(255,255,255,.12);transform:scale(.94)}
+.hd-center{
+  flex:1;text-align:center;cursor:pointer;position:relative;
+  padding:10px 4px;user-select:none;
+}
+.hd-weekday{font-size:9px;color:rgba(232,184,75,.7);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.hd-main{font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:600;color:#fff;line-height:1.25}
+.hd-sub{font-size:9px;color:rgba(255,255,255,.45);margin-top:1px}
+.hd-today-dot{
+  display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--gold2);margin-right:5px;vertical-align:middle;margin-top:-1px;
+}
+/* hidden native date input overlay */
+.hd-input-wrap{position:absolute;inset:0;opacity:0;overflow:hidden}
+.hd-input-wrap input{width:100%;height:100%;border:none;outline:none;cursor:pointer}
+
+/* stats strip */
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr)}
+.hs{
+  padding:12px 8px;text-align:center;
+  border-right:1px solid var(--cream2);
+  position:relative;
+}
+.hs:last-child{border-right:none}
+.hs-val{
+  font-family:'Noto Serif Bengali',serif;font-size:20px;font-weight:700;
+  display:block;line-height:1.1;
+}
+.hs:nth-child(1) .hs-val{color:var(--green)}
+.hs:nth-child(2) .hs-val{color:var(--red)}
+.hs:nth-child(3) .hs-val{color:var(--blue)}
+.hs-lbl{font-size:9px;color:var(--ink3);margin-top:3px;display:block}
+/* progress bar under each stat */
+.hs-bar{height:2px;background:var(--cream2);margin-top:6px;border-radius:1px;overflow:hidden}
+.hs-fill{height:100%;border-radius:1px;transition:width .5s ease}
+.hs:nth-child(1) .hs-fill{background:var(--green2)}
+.hs:nth-child(2) .hs-fill{background:var(--red)}
+.hs:nth-child(3) .hs-fill{background:var(--blue)}
+
+/* pending notice */
+.hero-notice{
+  padding:9px 14px;
+  font-size:11px;color:var(--ink3);line-height:1.5;
+  border-top:1px solid var(--cream2);
+  background:var(--cream);
+  display:flex;align-items:flex-start;gap:7px;
+}
+.hero-notice-ico{font-size:13px;flex-shrink:0;margin-top:1px}
+.hero-notice strong{color:var(--ink2)}
+.notice-ok{color:var(--green)!important;font-weight:600}
+
+/* ── FILTER STRIP ── */
+.filter-strip{
+  display:flex;align-items:center;gap:6px;
+  margin-bottom:8px;
+}
+.fs-select{
+  flex:1;background:#fff;border:1px solid var(--cream3);border-radius:var(--rsm);
+  padding:9px 10px;font-family:inherit;font-size:12px;color:var(--ink2);
+  outline:none;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b5a3e' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;
+}
+.fs-search{
+  flex:1 1 120px;background:#fff;border:1px solid var(--cream3);border-radius:var(--rsm);
+  padding:9px 10px;font-family:inherit;font-size:12px;color:var(--ink);
+  outline:none;transition:border-color .2s;
+}
+.fs-search:focus{border-color:var(--gold)}
+.fs-chip{
+  flex:0 0 auto;padding:8px 10px;font-size:11px;font-weight:600;
+  border:1px solid var(--cream3);border-radius:var(--rsm);background:#fff;
+  color:var(--ink3);transition:all .15s;white-space:nowrap;
+}
+.fs-chip.active-p{border-color:var(--green2);background:var(--green-bg);color:var(--green)}
+.fs-chip.active-a{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+
+/* ── ATTENDANCE LIST CARD ── */
+.att-card{
+  background:#fff;border-radius:var(--r);
+  box-shadow:var(--sh);overflow:hidden;
+}
+
+/* bulk row */
+.bulk-row{
+  display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:1px solid var(--cream2);
+}
+.bulk-btn{
+  padding:11px 8px;font-size:12px;font-weight:600;
+  border:none;border-right:1px solid var(--cream2);background:#fff;
+  transition:background .15s;
+}
+.bulk-btn:last-child{border-right:none}
+.bulk-btn:hover{background:var(--cream)}
+.bulk-btn.bp{color:var(--green)}
+.bulk-btn.ba{color:var(--red)}
+
+/* count note */
+.att-note{
+  padding:6px 14px;font-size:10px;color:var(--ink3);
+  background:var(--cream);border-bottom:1px solid var(--cream2);
+}
+
+/* class heading inside list */
+.class-sep{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px 8px;
+  background:var(--cream);
+  border-bottom:1px solid var(--cream2);
+  border-top:1px solid var(--cream2);
+}
+.class-sep:first-child{border-top:none}
+.cs-name{font-family:'Noto Serif Bengali',serif;font-size:13px;font-weight:700;color:var(--ink2)}
+.cs-badge{
+  font-size:9px;padding:2px 8px;border-radius:20px;
+  background:var(--blue-bg);color:var(--blue);
+  font-weight:600;
+}
+.cs-pct{font-size:10px;color:var(--ink3);margin-left:auto}
+
+/* student row */
+.s-row{
+  display:flex;align-items:center;padding:10px 14px;
+  border-bottom:1px solid rgba(26,18,8,.04);
+  transition:background .1s;
+}
+.s-row:last-child{border-bottom:none}
+.s-row:active{background:var(--cream)}
+.s-roll{
+  width:22px;font-size:10px;color:var(--ink3);
+  font-variant-numeric:tabular-nums;flex-shrink:0;
+  text-align:center;
+}
+.s-name{flex:1;font-size:13px;font-weight:500;color:var(--ink);padding:0 8px;line-height:1.3}
+.s-id{font-size:10px;color:var(--ink3);display:block;margin-top:1px}
+/* toggle */
+.s-toggle{display:flex;gap:5px;flex-shrink:0}
+.tog{
+  width:34px;height:34px;border-radius:var(--rxs);
+  border:1.5px solid var(--cream3);background:#fff;
+  font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .12s;
+}
+.tog:hover{border-color:var(--cream3);filter:brightness(.97)}
+.tog.is-p{background:var(--green-bg);border-color:var(--green2);color:var(--green)}
+.tog.is-a{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+
+/* absent highlight row */
+.s-row.is-absent{background:rgba(193,68,14,.03)}
+
+/* ── STICKY SAVE FOOTER ── */
+.save-footer{
+  position:sticky;bottom:calc(70px + env(safe-area-inset-bottom));
+  z-index:90;
+  padding:8px 14px;
+  pointer-events:none;
+}
+.save-btn{
+  width:100%;pointer-events:all;
+  background:var(--green);color:#fff;border:none;
+  border-radius:12px;padding:13px 16px;
+  font-size:14px;font-weight:600;
+  box-shadow:0 4px 18px rgba(45,106,79,.35);
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all .15s;
+}
+.save-btn:hover{filter:brightness(1.06)}
+.save-btn:active{transform:scale(.98);filter:brightness(.96)}
+.save-btn-count{
+  font-size:11px;opacity:.8;font-weight:400;
+}
+.save-btn.all-saved{background:var(--ink)}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  position:fixed;bottom:max(10px,env(safe-area-inset-bottom));
+  left:12px;right:12px;max-width:456px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-around;gap:2px;
+  padding:5px 6px;
+  background:linear-gradient(180deg,#fff 0%,#faf6ef 100%);
+  border:1px solid rgba(26,18,8,.07);border-radius:999px;
+  box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1);
+  z-index:100;
+}
+.nav-i{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:7px 4px;border-radius:999px;color:var(--ink3);
+  background:none;border:none;transition:all .2s;gap:3px;
+}
+.nav-i.active{
+  color:var(--gold);
+  background:linear-gradient(180deg,#fff9ed,#fdf3dc);
+  box-shadow:0 2px 10px rgba(201,149,42,.15),inset 0 1px 0 rgba(255,255,255,.8);
+  border:1px solid rgba(201,149,42,.2);
+  transform:translateY(-1px);
+}
+.nav-svg{width:20px;height:20px}
+.nav-lbl{font-size:9px;font-weight:500;line-height:1.1}
+.nav-i.active .nav-lbl{font-weight:600}
+
+/* pb */
+.pb{height:120px}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(8px);
+  background:var(--ink);color:#fff;padding:9px 18px;
+  border-radius:20px;font-size:12px;opacity:0;
+  transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;
+  white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── PANEL ── */
+.panel{display:none}.panel.active{display:block}
+
+/* ── FEES PANEL ── */
+.fee-card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:14px;margin-bottom:8px}
+.fee-month{font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:8px}
+.fee-nums{display:flex;gap:14px;font-size:13px;flex-wrap:wrap}
+.fee-note-txt{font-size:11px;color:var(--ink3);margin-top:6px}
+.sec-h{font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;color:var(--ink2);margin:14px 0 8px}
+.add-btn{
+  width:100%;background:var(--gold);color:#fff;border:none;
+  border-radius:12px;padding:13px;font-size:14px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-bottom:12px;transition:all .15s;
+}
+.add-btn:active{transform:scale(.98)}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div>
+    <div class="topbar-role">দফতর বিভাগ</div>
+    <div class="topbar-name">মাওলানা রফিকুল ইসলাম</div>
+  </div>
+  <button class="tb-btn" onclick="showToast('লগআউট হচ্ছে…')">লগআউট</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- HOME PANEL -->
+  <div class="panel active" id="p-home">
+
+    <!-- HERO CARD -->
+    <div class="hero">
+
+      <!-- date navigator -->
+      <div class="hero-date">
+        <button class="hd-nav" onclick="prevDay()" aria-label="আগের দিন">‹</button>
+        <div class="hd-center">
+          <div class="hd-weekday" id="hd-weekday">বৃহস্পতিবার</div>
+          <div class="hd-main" id="hd-main">
+            <span class="hd-today-dot" id="hd-dot"></span><span id="hd-date-bn">২২ এপ্রিল ২০২৫</span>
+          </div>
+          <div class="hd-sub" id="hd-sub">আজ</div>
+          <div class="hd-input-wrap">
+            <input type="date" id="date-input" onchange="onDateChange()" tabindex="-1">
+          </div>
+        </div>
+        <button class="hd-nav" onclick="nextDay()" aria-label="পরের দিন">›</button>
+      </div>
+
+      <!-- stats -->
+      <div class="hero-stats">
+        <div class="hs">
+          <span class="hs-val" id="st-present">—</span>
+          <span class="hs-lbl">উপস্থিত</span>
+          <div class="hs-bar"><div class="hs-fill" id="bar-present" style="width:0"></div></div>
+        </div>
+        <div class="hs">
+          <span class="hs-val" id="st-absent">—</span>
+          <span class="hs-lbl">অনুপস্থিত</span>
+          <div class="hs-bar"><div class="hs-fill" id="bar-absent" style="width:0"></div></div>
+        </div>
+        <div class="hs">
+          <span class="hs-val" id="st-total">—</span>
+          <span class="hs-lbl">মোট ছাত্র</span>
+          <div class="hs-bar"><div class="hs-fill" id="bar-total" style="width:100%"></div></div>
+        </div>
+      </div>
+
+      <!-- pending notice -->
+      <div class="hero-notice">
+        <span class="hero-notice-ico">📋</span>
+        <div id="notice-body">হিসাব নিচ্ছি…</div>
+      </div>
+    </div>
+
+    <!-- FILTER STRIP -->
+    <div class="filter-strip">
+      <select class="fs-select" id="class-filter" onchange="applyFilters()">
+        <option value="all">সব বর্ষ (একত্রে)</option>
+      </select>
+      <input class="fs-search" id="search-box" placeholder="নাম / আইডি..." oninput="applyFilters()">
+      <button class="fs-chip" id="chip-p" onclick="toggleChip('p')" title="শুধু উপস্থিত">✓ উপস্থিত</button>
+      <button class="fs-chip" id="chip-a" onclick="toggleChip('a')" title="শুধু অনুপস্থিত">✗ অনুপস্থিত</button>
+    </div>
+
+    <!-- ATTENDANCE CARD -->
+    <div class="att-card" id="att-card">
+
+      <div class="bulk-row">
+        <button class="bulk-btn bp" onclick="bulkMark('present')">✓ দেখানো সবাই উপস্থিত</button>
+        <button class="bulk-btn ba" onclick="bulkMark('absent')">✗ দেখানো সবাই অনুপস্থিত</button>
+      </div>
+
+      <div class="att-note" id="att-note">লোড হচ্ছে…</div>
+      <div id="att-list"></div>
+    </div>
+
+    <!-- STICKY SAVE FOOTER -->
+    <div class="save-footer">
+      <button class="save-btn" id="save-btn" onclick="saveAll()">
+        <span>✓ সকল বর্ষের উপস্থিতি সংরক্ষণ করুন</span>
+        <span class="save-btn-count" id="save-count"></span>
+      </button>
+    </div>
+
+    <div class="pb"></div>
+  </div>
+
+  <!-- FEES PANEL -->
+  <div class="panel" id="p-fees">
+    <div class="sec-h">ওয়াযিফা ইতিহাস</div>
+    <div id="fee-list"></div>
+    <button class="add-btn">＋ নতুন মাসের সারসংক্ষেপ</button>
+    <div style="height:100px"></div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-i active" id="nav-att" onclick="switchPanel('home','att')">
+    <svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="nav-lbl">উপস্থিতি</span>
+  </button>
+  <button class="nav-i" id="nav-fees" onclick="switchPanel('fees','fees')">
+    <svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="nav-lbl">ওয়াযিফা</span>
+  </button>
+  <button class="nav-i" onclick="showToast('বার্তা পেজে যাচ্ছে…')">
+    <svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="nav-lbl">বার্তা</span>
+  </button>
+  <button class="nav-i" onclick="showToast('অ্যাডমিন পেজে যাচ্ছে…')">
+    <svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1V9.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    <span class="nav-lbl">অ্যাডমিন</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══ DEMO DATA ══ */
+const CLASSES = [
+  { id:'c1', name:'প্রথম বর্ষ' },
+  { id:'c2', name:'দ্বিতীয় বর্ষ' },
+  { id:'c3', name:'তৃতীয় বর্ষ' },
+  { id:'c4', name:'চতুর্থ বর্ষ' },
+];
+
+const STUDENTS = [
+  /* প্রথম বর্ষ */
+  {id:'s101',cid:'c1',name:'মুহাম্মাদ আব্দুল্লাহ',pid:'ক-০০১',roll:'১'},
+  {id:'s102',cid:'c1',name:'মুহাম্মাদ ইব্রাহীম',pid:'ক-০০২',roll:'২'},
+  {id:'s103',cid:'c1',name:'আবু বকর সিদ্দিকী',pid:'ক-০০৩',roll:'৩'},
+  {id:'s104',cid:'c1',name:'উমার ফারুক',pid:'ক-০০৪',roll:'৪'},
+  {id:'s105',cid:'c1',name:'উসমান গনি',pid:'ক-০০৫',roll:'৫'},
+  /* দ্বিতীয় বর্ষ */
+  {id:'s201',cid:'c2',name:'আলী হায়দার',pid:'খ-০০১',roll:'১'},
+  {id:'s202',cid:'c2',name:'হাসান বসরি',pid:'খ-০০২',roll:'২'},
+  {id:'s203',cid:'c2',name:'হুসাইন আহমাদ',pid:'খ-০০৩',roll:'৩'},
+  {id:'s204',cid:'c2',name:'মুহাম্মাদ ইউসুফ',pid:'খ-০০৪',roll:'৪'},
+  /* তৃতীয় বর্ষ */
+  {id:'s301',cid:'c3',name:'সুলায়মান আহমাদ',pid:'গ-০০১',roll:'১'},
+  {id:'s302',cid:'c3',name:'দাউদ মাহমুদ',pid:'গ-০০২',roll:'২'},
+  {id:'s303',cid:'c3',name:'ইসহাক রহমানী',pid:'গ-০০৩',roll:'৩'},
+  {id:'s304',cid:'c3',name:'ইয়াকুব আনসারী',pid:'গ-০০৪',roll:'৪'},
+  {id:'s305',cid:'c3',name:'মুসা কালিম',pid:'গ-০০৫',roll:'৫'},
+  /* চতুর্থ বর্ষ */
+  {id:'s401',cid:'c4',name:'ঈসা মাদানী',pid:'ঘ-০০১',roll:'১'},
+  {id:'s402',cid:'c4',name:'ইলিয়াস খান',pid:'ঘ-০০২',roll:'২'},
+  {id:'s403',cid:'c4',name:'আইউব সরকার',pid:'ঘ-০০৩',roll:'৩'},
+];
+
+const FEE_DATA = [
+  {month:'২০২৫ — মার্চ',cls:'প্রথম বর্ষ',total:5,paid:4,note:'আব্দুল্লাহ ১ মাস বাকি'},
+  {month:'২০২৫ — ফেব্রুয়ারি',cls:'প্রথম বর্ষ',total:5,paid:5,note:''},
+  {month:'২০২৫ — মার্চ',cls:'দ্বিতীয় বর্ষ',total:4,paid:3,note:'হাসান বসরি বাকি'},
+];
+
+/* ══ STATE ══ */
+let curDate   = todayIso();
+let attState  = {};          // sid → 'present'|'absent'  (unsaved overrides)
+let savedAtt  = {};          // sid → 'present'|'absent'  (last saved per date)
+let qFilter   = 'all';       // 'all'|'present'|'absent'
+let classFilter = 'all';
+let searchQ   = '';
+
+/* seed some default saved state for today */
+(function seedToday(){
+  STUDENTS.forEach((s,i)=>{
+    const st = (i%5 === 3) ? 'absent' : 'present';
+    if(!savedAtt[curDate]) savedAtt[curDate] = {};
+    savedAtt[curDate][s.id] = st;
+  });
+})();
+
+/* ══ HELPERS ══ */
+function todayIso(){
+  return new Date().toISOString().split('T')[0];
+}
+const BN_DIGITS = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+const BN_MONTHS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const BN_DAYS   = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+function bn(n){ return String(n).replace(/[0-9]/g,d=>BN_DIGITS[d]); }
+function isoToBn(iso){
+  const d = new Date(iso+'T12:00:00');
+  return bn(d.getDate()) + ' ' + BN_MONTHS[d.getMonth()] + ' ' + bn(d.getFullYear());
+}
+function isoToWeekday(iso){
+  return BN_DAYS[new Date(iso+'T12:00:00').getDay()];
+}
+function statusOf(sid){
+  if(attState[sid] !== undefined) return attState[sid];
+  const ds = savedAtt[curDate];
+  if(ds && ds[sid] !== undefined) return ds[sid];
+  return 'present';
+}
+function savedStudents(){
+  const ds = savedAtt[curDate];
+  if(!ds) return 0;
+  return STUDENTS.filter(s => ds[s.id] !== undefined).length;
+}
+
+/* ══ DATE NAV ══ */
+function prevDay(){
+  const d = new Date(curDate+'T12:00:00'); d.setDate(d.getDate()-1);
+  setDate(d.toISOString().split('T')[0]);
+}
+function nextDay(){
+  const d = new Date(curDate+'T12:00:00'); d.setDate(d.getDate()+1);
+  const next = d.toISOString().split('T')[0];
+  if(next > todayIso()){ showToast('ভবিষ্যতের তারিখ নির্বাচন যাবে না'); return; }
+  setDate(next);
+}
+function onDateChange(){
+  const v = document.getElementById('date-input').value;
+  if(!v) return;
+  if(v > todayIso()){ showToast('ভবিষ্যতের তারিখ নির্বাচন যাবে না'); document.getElementById('date-input').value = curDate; return; }
+  setDate(v);
+}
+function setDate(iso){
+  curDate = iso; attState = {};
+  updateHero(); render();
+}
+
+/* ══ HERO UPDATE ══ */
+function updateHero(){
+  const isToday = curDate === todayIso();
+  document.getElementById('hd-weekday').textContent = isoToWeekday(curDate);
+  document.getElementById('hd-date-bn').textContent = isoToBn(curDate);
+  document.getElementById('hd-sub').textContent = isToday ? 'আজ' : '';
+  document.getElementById('hd-dot').style.display = isToday ? 'inline-block' : 'none';
+  document.getElementById('date-input').value = curDate;
+  document.getElementById('date-input').max  = todayIso();
+
+  const all = STUDENTS;
+  let p=0, a=0;
+  all.forEach(s=>{ statusOf(s.id)==='absent' ? a++ : p++; });
+  document.getElementById('st-present').textContent = bn(p);
+  document.getElementById('st-absent').textContent  = bn(a);
+  document.getElementById('st-total').textContent   = bn(all.length);
+  const pct = all.length ? Math.round(p/all.length*100) : 0;
+  document.getElementById('bar-present').style.width = pct+'%';
+  document.getElementById('bar-absent').style.width  = (100-pct)+'%';
+
+  /* pending notice */
+  const nb = document.getElementById('notice-body');
+  const sv = savedStudents();
+  const tot = all.length;
+  if(sv >= tot){
+    nb.innerHTML = '<span class="notice-ok">✓ আজ সকল সক্রিয় ছাত্রের উপস্থিতি সেভ হয়েছে</span> · <strong>'+bn(tot)+'</strong> জন';
+  } else {
+    const missing = tot - sv;
+    nb.innerHTML = '<strong>'+bn(missing)+'</strong> জনের হাজিরা এখনো সেভ হয়নি · মোট <strong>'+bn(tot)+'</strong> জন — নিচের তালিকা থেকে চিহ্নিত করে <em>সংরক্ষণ</em> করুন।';
+  }
+
+  /* save button */
+  const saveBtn = document.getElementById('save-btn');
+  const unsaved = STUDENTS.filter(s => attState[s.id] !== undefined).length;
+  if(sv >= tot && unsaved === 0){
+    saveBtn.classList.add('all-saved');
+    document.getElementById('save-count').textContent = 'পুনরায় সংরক্ষণও করা যাবে';
+  } else {
+    saveBtn.classList.remove('all-saved');
+    document.getElementById('save-count').textContent = unsaved ? bn(unsaved)+' পরিবর্তন অপেক্ষমাণ' : '';
+  }
+}
+
+/* ══ FILTERS ══ */
+function toggleChip(type){
+  if(type==='p'){
+    qFilter = qFilter==='present' ? 'all' : 'present';
+    if(qFilter==='present') { /* deactivate absent chip */ document.getElementById('chip-a').classList.remove('active-a'); }
+    document.getElementById('chip-p').classList.toggle('active-p', qFilter==='present');
+  } else {
+    qFilter = qFilter==='absent' ? 'all' : 'absent';
+    if(qFilter==='absent') { document.getElementById('chip-p').classList.remove('active-p'); }
+    document.getElementById('chip-a').classList.toggle('active-a', qFilter==='absent');
+  }
+  render();
+}
+function applyFilters(){
+  classFilter = document.getElementById('class-filter').value;
+  searchQ     = document.getElementById('search-box').value.trim().toLowerCase();
+  render();
+}
+function filteredStudents(){
+  return STUDENTS.filter(s=>{
+    if(classFilter !== 'all' && s.cid !== classFilter) return false;
+    const st = statusOf(s.id);
+    if(qFilter === 'present' && st !== 'present') return false;
+    if(qFilter === 'absent'  && st !== 'absent')  return false;
+    if(searchQ){
+      const h = (s.name+' '+s.pid).toLowerCase();
+      if(!h.includes(searchQ)) return false;
+    }
+    return true;
+  });
+}
+
+/* ══ RENDER LIST ══ */
+function render(){
+  updateHero();
+  const list = filteredStudents();
+  const all  = classFilter==='all' ? STUDENTS : STUDENTS.filter(s=>s.cid===classFilter);
+  document.getElementById('att-note').textContent =
+    'দেখাচ্ছে '+bn(list.length)+' / '+bn(all.length)+' জন';
+
+  if(!list.length){
+    document.getElementById('att-list').innerHTML =
+      '<div style="text-align:center;padding:28px 16px;color:var(--ink3);font-size:13px">🔎 এই ফিল্টারে কোনো ছাত্র নেই</div>';
+    return;
+  }
+
+  /* group by class */
+  const groups = new Map();
+  const classOrder = CLASSES.map(c=>c.id);
+  list.forEach(s=>{
+    if(!groups.has(s.cid)) groups.set(s.cid,[]);
+    groups.get(s.cid).push(s);
+  });
+
+  let html = '';
+  classOrder.forEach(cid=>{
+    if(!groups.has(cid)) return;
+    const cls  = CLASSES.find(c=>c.id===cid);
+    const arr  = groups.get(cid);
+    const pres = arr.filter(s=>statusOf(s.id)==='present').length;
+    html += `<div class="class-sep">
+      <span class="cs-name">${cls.name}</span>
+      <span class="cs-badge">${bn(arr.length)} জন</span>
+      <span class="cs-pct">${bn(pres)} উপস্থিত</span>
+    </div>`;
+    arr.forEach(s=>{
+      const st = statusOf(s.id);
+      html += `<div class="s-row ${st==='absent'?'is-absent':''}" id="row-${s.id}">
+        <span class="s-roll">${s.roll}</span>
+        <div class="s-name">${s.name}<span class="s-id">${s.pid}</span></div>
+        <div class="s-toggle">
+          <button class="tog ${st==='present'?'is-p':''}" onclick="mark('${s.id}','present')" title="উপস্থিত">✓</button>
+          <button class="tog ${st==='absent'?'is-a':''}" onclick="mark('${s.id}','absent')"  title="অনুপস্থিত">✗</button>
+        </div>
+      </div>`;
+    });
+  });
+  document.getElementById('att-list').innerHTML = html;
+}
+
+function mark(sid, st){
+  attState[sid] = st;
+  /* fast DOM update — avoid full re-render */
+  const row = document.getElementById('row-'+sid);
+  if(!row) return;
+  row.className = 's-row '+(st==='absent'?'is-absent':'');
+  row.querySelectorAll('.tog').forEach(b=>{
+    const isp = b.title === 'উপস্থিত';
+    b.className = 'tog '+(isp && st==='present'?'is-p': !isp && st==='absent'?'is-a':'');
+  });
+  updateHero();
+}
+
+function bulkMark(st){
+  filteredStudents().forEach(s=>{ attState[s.id]=st; });
+  render();
+}
+
+function saveAll(){
+  if(!savedAtt[curDate]) savedAtt[curDate] = {};
+  STUDENTS.forEach(s=>{
+    savedAtt[curDate][s.id] = statusOf(s.id);
+  });
+  attState = {};
+  showToast('সকল বর্ষের উপস্থিতি সংরক্ষিত হয়েছে ✓');
+  render();
+}
+
+/* ══ FEES RENDER ══ */
+function renderFees(){
+  document.getElementById('fee-list').innerHTML = FEE_DATA.map(f=>`
+    <div class="fee-card">
+      <div class="fee-month">${f.month} — ${f.cls}</div>
+      <div class="fee-nums">
+        <span>মোট: <strong>${bn(f.total)}</strong></span>
+        <span style="color:var(--green)">আদায়: <strong>${bn(f.paid)}</strong></span>
+        <span style="color:var(--red)">বাকি: <strong>${bn(f.total-f.paid)}</strong></span>
+      </div>
+      ${f.note?`<div class="fee-note-txt">${f.note}</div>`:''}
+    </div>
+  `).join('');
+}
+
+/* ══ PANEL ══ */
+function switchPanel(panel, nav){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('p-'+panel).classList.add('active');
+  document.querySelectorAll('.nav-i').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+nav).classList.add('active');
+  window.scrollTo(0,0);
+  if(panel==='fees') renderFees();
+}
+
+/* ══ TOAST ══ */
+let _tmo;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(_tmo);
+  _tmo = setTimeout(()=>t.classList.remove('show'), 2300);
+}
+
+/* ══ CLASS FILTER OPTIONS ══ */
+(function populateClassFilter(){
+  const sel = document.getElementById('class-filter');
+  CLASSES.forEach(c=>{
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = c.name; sel.appendChild(o);
+  });
+})();
+
+/* ══ INIT ══ */
+updateHero();
+render();
+</script>
+</body>
+</html>

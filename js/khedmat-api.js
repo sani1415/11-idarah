@@ -23,33 +23,13 @@ const KhAPI = (() => {
   /* ── SEED ── */
   function seedIfEmpty() {
     if (load(KEYS.beneficiaries).length) return;
-
-    save(KEYS.activity_types, [
-      { id:'at_1', name:'চিকিৎসা সহায়তা', emoji:'🏥', is_active:true },
-      { id:'at_2', name:'খাদ্য সহায়তা',   emoji:'🍚', is_active:true },
-      { id:'at_3', name:'আর্থিক সহায়তা',  emoji:'💵', is_active:true },
-      { id:'at_4', name:'অন্যান্য সেবা',   emoji:'🤝', is_active:true },
-    ]);
-
-    save(KEYS.beneficiaries, [
-      { id:'bn_1', name:'আব্দুর রহিম',  address:'পশ্চিম পাড়া', phone:'০১৭১১-০০০০০০', family_info:'স্ত্রী ও ৩ সন্তান', first_contact:'2026-01-15', notes:'নিয়মিত সেবাগ্রহীতা' },
-      { id:'bn_2', name:'ফাতেমা বেগম', address:'উত্তর পাড়া',  phone:'',              family_info:'বিধবা, ২ সন্তান',   first_contact:'2026-02-01', notes:'চিকিৎসার জন্য এসেছেন' },
-    ]);
-
-    save(KEYS.activities, [
-      { id:'act_1', beneficiary_id:'bn_1', type_id:'at_2', title:'মাসিক খাদ্য সহায়তা', description:'মার্চ মাসের জন্য চাল, ডাল ও তেল প্রদান করা হয়েছে।', amount:1500, date:'2026-03-15' },
-      { id:'act_2', beneficiary_id:'bn_2', type_id:'at_1', title:'চিকিৎসা সহায়তা',   description:'ডাক্তার ফি ও ওষুধের জন্য অর্থ প্রদান।',               amount:2000, date:'2026-03-20' },
-    ]);
-
-    save(KEYS.daily_logs, [
-      { id:'lg_1', content:'আজ ২ জন উপকারভোগীর সাথে কথা হয়েছে। আব্দুর রহিমের পরিবারের অবস্থা কিছুটা ভালো হয়েছে।', date:today(), by:'খেদমত দায়িত্বশীল' },
-    ]);
-
-    save(KEYS.finance, [
-      { id:'fn_1', type:'income',  amount:5000, source:'মাদ্রাসা তহবিল', description:'মাসিক বরাদ্দ', activity_id:null, date:'2026-04-01' },
-      { id:'fn_2', type:'expense', amount:1500, source:null,              description:'আব্দুর রহিম — খাদ্য সহায়তা', activity_id:'act_1', date:'2026-03-15' },
-      { id:'fn_3', type:'expense', amount:2000, source:null,              description:'ফাতেমা বেগম — চিকিৎসা',      activity_id:'act_2', date:'2026-03-20' },
-    ]);
+    const b = globalThis.MMSampleData && globalThis.MMSampleData.buildKhedmatSample;
+    if (!b) { console.warn('[MMSampleData] mm-sample-data.js khedmat-api.js-এর আগে লোড করুন।'); return; }
+    const pack = b();
+    if (!pack || !Object.keys(pack).length) return;
+    Object.keys(pack).forEach((k) => {
+      try { localStorage.setItem(k, JSON.stringify(pack[k])); } catch (e) { console.warn('kh seed ' + k, e); }
+    });
   }
 
   /* ── BENEFICIARIES ── */

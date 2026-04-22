@@ -58,145 +58,42 @@ const API = (() => {
       save(KEYS.teachers, [...allT2, { id:'usr_khedmat', name:'খেদমত দায়িত্বশীল', class_id:null, pin:'0000', role:'khedmat' }]);
     }
 
-    /* ── MIGRATION: seed exams if empty ── */
+    /* ── MIGRATION: exam — ডেটা: js/mm-sample-data.js ── */
     if (!load(KEYS.exams).length && load(KEYS.students).length) {
-      save(KEYS.exams, [{ id:'exam_1', class_id:'cls_k3', name:'ষান্মাসিক পরীক্ষা ১৪৪৭', type:'half_yearly',
-        subjects:[{name:'নাহু',max:100},{name:'ফিকহ',max:100},{name:'উসুল',max:100}], created:'2026-01-15' }]);
-      save(KEYS.results, [
-        { id:'r1', exam_id:'exam_1', student_id:'std_1', subjects:[{name:'নাহু',max:100,marks:82},{name:'ফিকহ',max:100,marks:75},{name:'উসুল',max:100,marks:68}], total:225, max_total:300, percentage:75, grade:'جيد', date:'2026-01-20' },
-        { id:'r2', exam_id:'exam_1', student_id:'std_2', subjects:[{name:'নাহু',max:100,marks:92},{name:'ফিকহ',max:100,marks:88},{name:'উসুল',max:100,marks:85}], total:265, max_total:300, percentage:88.3, grade:'جيد جداً', date:'2026-01-20' },
-        { id:'r3', exam_id:'exam_1', student_id:'std_3', subjects:[{name:'নাহু',max:100,marks:95},{name:'ফিকহ',max:100,marks:91},{name:'উসুল',max:100,marks:93}], total:279, max_total:300, percentage:93, grade:'ممتاز', date:'2026-01-20' },
-        { id:'r4', exam_id:'exam_1', student_id:'std_4', subjects:[{name:'নাহু',max:100,marks:55},{name:'ফিকহ',max:100,marks:62},{name:'উসুল',max:100,marks:48}], total:165, max_total:300, percentage:55, grade:'راسب', date:'2026-01-20' },
-      ]);
+      const M = globalThis.MMSampleData && globalThis.MMSampleData.getLegacyExamsForMigration
+        ? globalThis.MMSampleData.getLegacyExamsForMigration()
+        : null;
+      if (M) {
+        save(KEYS.exams, M.exams);
+        save(KEYS.results, M.results);
+      }
     }
 
-    /* ── MIGRATION: add teachers missing from initial seed ── */
+    /* ── MIGRATION: পুরনো সিডে অতিরিক্ত শিক্ষক — ডেটা: js/mm-sample-data.js ── */
     const existingTeachers = load(KEYS.teachers);
     if (existingTeachers.length && !existingTeachers.find(t => t.id === 'tch_5')) {
-      const migrTeachers = [
-        { id: 'tch_5',      name: 'উস্তায উমর',             class_id: 'cls_k4', pin: '0000' },
-        { id: 'tch_6',      name: 'উস্তায হাসান',            class_id: 'cls_k5', pin: '0000' },
-        { id: 'tch_7',      name: 'উস্তায হুসাইন',           class_id: 'cls_k6', pin: '0000' },
-        { id: 'tch_8',      name: 'উস্তায খালিদ',            class_id: 'cls_k7', pin: '0000' },
-        { id: 'tch_9',      name: 'উস্তায বিলাল',            class_id: 'cls_k8', pin: '0000' },
-        { id: 'tch_10',     name: 'উস্তায আনাস',             class_id: 'cls_m1', pin: '0000' },
-        { id: 'tch_11',     name: 'উস্তায মুআয',             class_id: 'cls_m2', pin: '0000' },
-        { id: 'tch_12',     name: 'উস্তায সালমান',           class_id: 'cls_m3', pin: '0000' },
-        { id: 'tch_13',     name: 'উস্তায আবু বকর',          class_id: 'cls_m4', pin: '0000' },
-        { id: 'tch_14',     name: 'উস্তায উসমান',            class_id: 'cls_m5', pin: '0000' },
-        { id: 'usr_hifz',   name: 'হিফজ দায়িত্বশীল',        class_id: null,     pin: '0000', role: 'hifz' },
-        { id: 'usr_lib',    name: 'মাকতাবা দায়িত্বশীল',   class_id: null,     pin: '0000', role: 'library' },
-        { id: 'usr_alumni', name: 'পুরনো ছাত্র দায়িত্বশীল', class_id: null,     pin: '0000', role: 'alumni' },
-      ];
-      save(KEYS.teachers, [...existingTeachers, ...migrTeachers]);
+      const extraT = globalThis.MMSampleData && globalThis.MMSampleData.getLegacyExtraTeachers
+        ? globalThis.MMSampleData.getLegacyExtraTeachers()
+        : [];
+      if (extraT.length) save(KEYS.teachers, [...existingTeachers, ...extraT]);
     }
 
-    if (load(KEYS.classes).length) return; // already seeded
+    if (load(KEYS.classes).length) return;
 
-    /* Classes */
-    const classes = [
-      { id: 'cls_k1', dept: 'kitab', year: 1, name: '১ম বর্ষ', roll_prefix: '100', teacher_id: 'tch_1' },
-      { id: 'cls_ky', dept: 'kitab', year: 'iyada', name: 'ইয়াদা বর্ষ', roll_prefix: 'ই', teacher_id: 'tch_2' },
-      { id: 'cls_k2', dept: 'kitab', year: 2, name: '২য় বর্ষ', roll_prefix: '200', teacher_id: 'tch_3' },
-      { id: 'cls_k3', dept: 'kitab', year: 3, name: '৩য় বর্ষ', roll_prefix: '300', teacher_id: 'tch_4' },
-      { id: 'cls_k4', dept: 'kitab', year: 4, name: '৪র্থ বর্ষ', roll_prefix: '400', teacher_id: 'tch_5' },
-      { id: 'cls_k5', dept: 'kitab', year: 5, name: '৫ম বর্ষ', roll_prefix: '500', teacher_id: 'tch_6' },
-      { id: 'cls_k6', dept: 'kitab', year: 6, name: '৬ষ্ঠ বর্ষ', roll_prefix: '600', teacher_id: 'tch_7' },
-      { id: 'cls_k7', dept: 'kitab', year: 7, name: '৭ম বর্ষ', roll_prefix: '700', teacher_id: 'tch_8' },
-      { id: 'cls_k8', dept: 'kitab', year: 8, name: '৮ম বর্ষ', roll_prefix: '800', teacher_id: 'tch_9' },
-      { id: 'cls_m1', dept: 'maktab', year: 1, name: 'প্রথম শ্রেণি', roll_prefix: 'ম১', teacher_id: 'tch_10' },
-      { id: 'cls_m2', dept: 'maktab', year: 2, name: 'দ্বিতীয় শ্রেণি', roll_prefix: 'ম২', teacher_id: 'tch_11' },
-      { id: 'cls_m3', dept: 'maktab', year: 3, name: 'তৃতীয় শ্রেণি', roll_prefix: 'ম৩', teacher_id: 'tch_12' },
-      { id: 'cls_m4', dept: 'maktab', year: 4, name: 'চতুর্থ শ্রেণি', roll_prefix: 'ম৪', teacher_id: 'tch_13' },
-      { id: 'cls_m5', dept: 'maktab', year: 5, name: 'পঞ্চম শ্রেণি', roll_prefix: 'ম৫', teacher_id: 'tch_14' },
-    ];
-    save(KEYS.classes, classes);
-
-    /* Teachers */
-    const teachers = [
-      { id: 'tch_1',      name: 'উস্তায মুহাম্মাদ',       class_id: 'cls_k1', pin: '0000' },
-      { id: 'tch_2',      name: 'উস্তায ইবরাহীম',         class_id: 'cls_ky', pin: '0000' },
-      { id: 'tch_3',      name: 'উস্তায আব্দুল্লাহ',      class_id: 'cls_k2', pin: '0000' },
-      { id: 'tch_4',      name: 'উস্তায ইউসুফ',           class_id: 'cls_k3', pin: '0000' },
-      { id: 'tch_5',      name: 'উস্তায উমর',             class_id: 'cls_k4', pin: '0000' },
-      { id: 'tch_6',      name: 'উস্তায হাসান',           class_id: 'cls_k5', pin: '0000' },
-      { id: 'tch_7',      name: 'উস্তায হুসাইন',          class_id: 'cls_k6', pin: '0000' },
-      { id: 'tch_8',      name: 'উস্তায খালিদ',           class_id: 'cls_k7', pin: '0000' },
-      { id: 'tch_9',      name: 'উস্তায বিলাল',           class_id: 'cls_k8', pin: '0000' },
-      { id: 'tch_10',     name: 'উস্তায আনাস',            class_id: 'cls_m1', pin: '0000' },
-      { id: 'tch_11',     name: 'উস্তায মুআয',            class_id: 'cls_m2', pin: '0000' },
-      { id: 'tch_12',     name: 'উস্তায সালমান',          class_id: 'cls_m3', pin: '0000' },
-      { id: 'tch_13',     name: 'উস্তায আবু বকর',         class_id: 'cls_m4', pin: '0000' },
-      { id: 'tch_14',     name: 'উস্তায উসমান',           class_id: 'cls_m5', pin: '0000' },
-      { id: 'daftar',     name: 'দফতর দায়িত্বশীল',       class_id: null,     pin: '0000', role: 'daftar' },
-      { id: 'usr_hifz',   name: 'হিফজ দায়িত্বশীল',       class_id: null,     pin: '0000', role: 'hifz' },
-      { id: 'usr_lib',    name: 'মাকতাবা দায়িত্বশীল',  class_id: null,     pin: '0000', role: 'library' },
-      { id: 'usr_alumni',   name: 'পুরনো ছাত্র দায়িত্বশীল', class_id: null,  pin: '0000', role: 'alumni'   },
-      { id: 'usr_khedmat', name: 'খেদমত দায়িত্বশীল',       class_id: null,  pin: '0000', role: 'khedmat'  },
-    ];
-    save(KEYS.teachers, teachers);
-
-    /* Students */
-    const students = [
-      { id: 'std_1', permanent_id: '৪৭০০১', name: 'মুহাম্মাদ আলী', class_id: 'cls_k3', roll: '৩০১', guardian: 'আলী হোসেন', guardian_job: 'কৃষক', phone: '০১৭১১-১১১১১১', address: 'উত্তর পাড়া', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_2', permanent_id: '৪৭০০২', name: 'আব্দুল কাদের',  class_id: 'cls_k3', roll: '৩০২', guardian: 'কাদের মিয়া',  guardian_job: 'ব্যবসায়ী', phone: '০১৮২২-২২২২২২', address: 'দক্ষিণ পাড়া', admitted: '১৪৪৭', active: true, hifz: true, special_watch: true },
-      { id: 'std_3', permanent_id: '৪৭০০৩', name: 'ইউসুফ আহমাদ',  class_id: 'cls_k3', roll: '৩০৩', guardian: 'আহমাদ উল্লাহ', guardian_job: 'শিক্ষক', phone: '০১৯৩৩-৩৩৩৩৩৩', address: 'পূর্ব পাড়া', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_4', permanent_id: '৪৭০০৪', name: 'উমর ফারুক',    class_id: 'cls_k3', roll: '৩০৪', guardian: 'ফারুক আহমেদ',  guardian_job: 'চাকরিজীবী', phone: '০১৬৪৪-৪৪৪৪৪৪', address: 'পশ্চিম পাড়া', admitted: '১৪৪৭', active: true, hifz: true, special_watch: true },
-      { id: 'std_5', permanent_id: '৪৬০০১', name: 'আব্দুর রহমান', class_id: 'cls_k2', roll: '২০১', guardian: 'রহমান মিয়া',  guardian_job: 'কৃষক', phone: '০১৫৫৫-৫৫৫৫৫৫', address: 'উত্তর পাড়া', admitted: '১৪৪৬', active: true, hifz: false },
-      { id: 'std_6', permanent_id: '৪৬০০২', name: 'হাসান মাহমুদ', class_id: 'cls_k2', roll: '২০২', guardian: 'মাহমুদ আলী',  guardian_job: 'ব্যবসায়ী', phone: '০১৬৬৬-৬৬৬৬৬৬', address: 'দক্ষিণ পাড়া', admitted: '১৪৪৬', active: true, hifz: false },
-    ];
-    save(KEYS.students, students);
-
-    /* Kitabs */
-    const kitabs = [
-      { id: 'ktb_1', name: 'হেদায়াতুন নাহু', class_id: 'cls_k3', total_pages: 120 },
-      { id: 'ktb_2', name: 'নূরুল ইযাহ',     class_id: 'cls_k3', total_pages: 200 },
-      { id: 'ktb_3', name: 'মিশকাতুল মাসাবিহ', class_id: 'cls_k3', total_pages: 600 },
-      { id: 'ktb_4', name: 'আল-হেদায়া',      class_id: 'cls_k2', total_pages: 400 },
-    ];
-    save(KEYS.kitabs, kitabs);
-
-    /* Kitab Progress */
-    const kprog = [
-      { id: uid(), kitab_id: 'ktb_1', class_id: 'cls_k3', date: today(), pages_done: 45, note: '' },
-      { id: uid(), kitab_id: 'ktb_2', class_id: 'cls_k3', date: today(), pages_done: 32, note: '' },
-      { id: uid(), kitab_id: 'ktb_3', class_id: 'cls_k3', date: today(), pages_done: 180, note: '' },
-    ];
-    save(KEYS.kitab_prog, kprog);
-
-    /* Khuluk scores */
-    const khuluk = [
-      { id: uid(), student_id: 'std_1', score: 75, reason: 'সাধারণভাবে ভালো আচরণ', date: '2025-01-15', by: 'উস্তায ইউসুফ' },
-      { id: uid(), student_id: 'std_1', score: 80, reason: 'উল্লেখযোগ্য উন্নতি দেখা গেছে', date: '2025-03-01', by: 'উস্তায ইউসুফ' },
-      { id: uid(), student_id: 'std_2', score: 65, reason: 'নামাজে মাঝেমধ্যে অমনোযোগী', date: '2025-01-15', by: 'উস্তায ইউসুফ' },
-      { id: uid(), student_id: 'std_3', score: 90, reason: 'অত্যন্ত আদবের সাথে চলে', date: '2025-01-15', by: 'উস্তায ইউসুফ' },
-      { id: uid(), student_id: 'std_4', score: 55, reason: 'সাথীদের সাথে বিবাদে জড়িয়েছে', date: '2025-03-10', by: 'উস্তায ইউসুফ' },
-    ];
-    save(KEYS.khuluk, khuluk);
-
-    /* Attendance — today */
-    const att = [
-      { id: uid(), student_id: 'std_1', date: today(), status: 'present' },
-      { id: uid(), student_id: 'std_2', date: today(), status: 'present' },
-      { id: uid(), student_id: 'std_3', date: today(), status: 'absent' },
-      { id: uid(), student_id: 'std_4', date: today(), status: 'present' },
-      { id: uid(), student_id: 'std_5', date: today(), status: 'present' },
-      { id: uid(), student_id: 'std_6', date: today(), status: 'present' },
-    ];
-    save(KEYS.attendance, att);
-
-    /* Logs */
-    const logs = [
-      { id: uid(), type: 'class', ref_id: 'cls_k3', text: 'আজ হেদায়াতুন নাহুর ৪৫ পৃষ্ঠা পর্যন্ত পড়ানো হয়েছে। ছাত্রদের মনোযোগ ভালো ছিল।', date: today(), by: 'উস্তায ইউসুফ' },
-      { id: uid(), type: 'student', ref_id: 'std_1', text: 'আজ মুহাম্মাদ আলী বিশেষ মনোযোগ দিয়ে পড়েছে। উন্নতি লক্ষ্যণীয়।', date: today(), by: 'উস্তায ইউসুফ' },
-    ];
-    save(KEYS.logs, logs);
-
-    /* Fees summary */
-    const fees = [
-      { id: uid(), month: '2025-04', class_id: 'cls_k3', total: 4, paid: 3, unpaid: 1, arrear: 500, late_payers: ['std_4'], note: '', date: today() },
-    ];
-    save(KEYS.fees, fees);
+    const buildM = globalThis.MMSampleData && globalThis.MMSampleData.buildMadrasaSample;
+    if (!buildM) {
+      console.warn('[MMSampleData] mm-sample-data.js api.js-এর আগে লোড করুন।');
+      return;
+    }
+    const pack = buildM(today());
+    if (!pack || !pack.mm_classes || !pack.mm_classes.length) return;
+    Object.keys(pack).forEach((k) => {
+      try {
+        localStorage.setItem(k, JSON.stringify(pack[k]));
+      } catch (e) {
+        console.warn('seed ' + k, e);
+      }
+    });
   }
 
   /* ══════════════════════════════
@@ -309,12 +206,21 @@ const API = (() => {
       return a.present ? 'present' : 'absent';
     },
     getByDate: date => load(KEYS.attendance).filter(a => a.date === date),
+    /** ছাত্রের সকল হাজিরা রেকর্ড — নতুন থেকে পুরনো */
+    getByStudent: sid =>
+      load(KEYS.attendance)
+        .filter(a => a.student_id === sid)
+        .sort((a, b) => b.date.localeCompare(a.date)),
     getByStudentDate: (sid, date) => load(KEYS.attendance).find(a => a.student_id === sid && a.date === date),
     getByClassDate(cid, date) {
       const sids = Students.getByClass(cid).map(s => s.id);
       return load(KEYS.attendance).filter(a => a.date === date && sids.includes(a.student_id));
     },
-    save(student_id, date, statusIn) {
+    /**
+     * @param statusIn 'present' | 'absent' | 'leave' | boolean (legacy)
+     * @param absentReason শুধু status absent হলে — অনুপস্থিতির কারণ
+     */
+    save(student_id, date, statusIn, absentReason) {
       let status;
       if (statusIn === true || statusIn === 'present') status = 'present';
       else if (statusIn === false || statusIn === 'absent') status = 'absent';
@@ -322,7 +228,12 @@ const API = (() => {
       else status = 'absent';
       const list = load(KEYS.attendance);
       const idx = list.findIndex(a => a.student_id === student_id && a.date === date);
-      const row = { id: idx >= 0 ? list[idx].id : uid(), student_id, date, status };
+      const prev = idx >= 0 ? list[idx] : null;
+      const id = prev ? prev.id : uid();
+      const reasonIn =
+        typeof absentReason === 'string' ? absentReason.trim() : (prev && prev.absent_reason) ? String(prev.absent_reason).trim() : '';
+      const row = { id, student_id, date, status };
+      if (status === 'absent') row.absent_reason = reasonIn;
       if (idx >= 0) list[idx] = row;
       else list.push(row);
       save(KEYS.attendance, list);
@@ -476,7 +387,20 @@ const API = (() => {
       const sids = Students.getByClass(cid).map(s => s.id);
       const scores = sids.map(sid => { const k = Khuluk.getLatest(sid); return k ? k.score : null; }).filter(s => s !== null);
       return scores.length ? Math.round(scores.reduce((a,b) => a+b, 0) / scores.length) : null;
-    }
+    },
+    /** সর্বশেষ স্কোর: ৮০+ মুজতাহিদ, ৬০–৮০ মুতাওয়াস্সিত, ৬০-এর নিচে মুসতায়িদ, রেকর্ড ছাড়া আলাদা */
+    getClassKhulukBands(cid) {
+      const sids = Students.getByClass(cid).map(s => s.id);
+      const out = { high: 0, mid: 0, low: 0, none: 0, total: sids.length };
+      sids.forEach((sid) => {
+        const k = Khuluk.getLatest(sid);
+        if (!k) { out.none++; return; }
+        if (k.score > 80) out.high++;
+        else if (k.score >= 60) out.mid++;
+        else out.low++;
+      });
+      return out;
+    },
   };
 
   /* ══════════════════════════════
@@ -541,7 +465,12 @@ const API = (() => {
      SETTINGS
      ══════════════════════════════ */
   const Settings = {
-    get: () => loadObj(KEYS.settings, { institution: 'মাদরাসাতুল মদীনা', hijri_year: '১৪৪৭', admin_pin: '0000' }),
+    get: () => loadObj(
+      KEYS.settings,
+      (globalThis.MMSampleData && globalThis.MMSampleData.defaultSettings)
+        ? { ...globalThis.MMSampleData.defaultSettings }
+        : { institution: '—', hijri_year: '—', admin_pin: '0000' }
+    ),
     save: data => save(KEYS.settings, data),
   };
 
@@ -607,3 +536,7 @@ const API = (() => {
   };
 
 })();
+
+if (typeof globalThis !== 'undefined' && typeof API !== 'undefined') {
+  globalThis.API = API;
+}

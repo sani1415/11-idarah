@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
@@ -35,10 +35,6 @@
   .month-nav { display:flex; align-items:center; justify-content:space-between; background:#fff; border-radius:var(--radius-sm); padding:10px 14px; box-shadow:var(--shadow); margin-bottom:12px; }
   .month-nav-btn { background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3); padding:4px; }
   .month-label { font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:600; color:var(--ink2); }
-
-  .tab-bar { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:14px; }
-  .tab-btn { background:#fff; border:1px solid var(--cream3); border-radius:20px; padding:7px 14px; font-size:12px; white-space:nowrap; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; color:var(--ink3); }
-  .tab-btn.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
 </style>
 </head>
 <body>
@@ -136,6 +132,7 @@
 
 <script src="../js/mm-session.js"></script>
 <script src="../js/monitor-mode.js"></script>
+<script src="../js/mm-sample-data.js"></script>
 <script src="../js/dept-api.js"></script>
 <script>
   if (!MMSession.isAdmin()) { location.href = 'dept-index.html'; }
