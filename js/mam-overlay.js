@@ -1,5 +1,12 @@
-/* mam-overlay.js — বর্ষের বিস্তারিত overlay (main-admin-madrasa) */
+/* mam-overlay.js — বর্ষের বিস্তারিত overlay (সব admin পেজে shared) */
 'use strict';
+
+/* overlay-কে compositor layer-এ রাখতে will-change inject করা */
+(function() {
+  const s = document.createElement('style');
+  s.textContent = '.cls-overlay{will-change:transform;}.kh-overlay{will-change:transform;}';
+  document.head.appendChild(s);
+})();
 
 let _ovClassId = null;
 
@@ -20,13 +27,27 @@ function openClassOverlay(classId) {
     btn.classList.toggle('active', btn.dataset.tab === 'students')
   );
 
-  document.getElementById('cls-overlay').classList.add('is-open');
-  document.body.style.overflow = 'hidden';
   _renderOvTab('students');
+
+  /* kh-overlay যদি open থাকে বন্ধ করো */
+  const khOv = document.getElementById('kh-overlay');
+  if (khOv) { khOv.classList.remove('is-open'); khOv.style.willChange = ''; }
+
+  const overlay = document.getElementById('cls-overlay');
+  overlay.style.willChange = 'transform';
+  /* double rAF: ensures initial translateX(100%) is painted before transition fires */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      overlay.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    });
+  });
 }
 
 function closeClassOverlay() {
-  document.getElementById('cls-overlay').classList.remove('is-open');
+  const overlay = document.getElementById('cls-overlay');
+  overlay.classList.remove('is-open');
+  overlay.style.willChange = '';
   document.body.style.overflow = '';
 }
 

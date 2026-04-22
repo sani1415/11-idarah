@@ -17,16 +17,50 @@
   .ma-sum-val.v-red { color:var(--red); }
   .ma-sum-val.v-gold { color:var(--gold); }
 
-  /* অনুপস্থিত / বিশেষ পর্যবেক্ষণ কার্ড */
+  /* অনুপস্থিত / বিশেষ পর্যবেক্ষণ / হুসনুল খুলুক কার্ড */
   .watch-row { display:flex; gap:8px; margin-bottom:14px; }
-  .watch-card { flex:1; background:#fff; border-radius:var(--radius-sm); padding:12px 10px; box-shadow:var(--shadow); text-align:center; cursor:pointer; transition:transform .12s; border:1px dashed rgba(26,18,8,.12); }
+  .watch-card { flex:1; background:#fff; border-radius:var(--radius-sm); padding:10px 8px; box-shadow:var(--shadow); text-align:center; cursor:pointer; transition:transform .12s; border:1px dashed rgba(26,18,8,.12); }
   .watch-card:active { transform:scale(.97); }
   .watch-card--absent { border-color:rgba(193,68,14,.35); background:linear-gradient(180deg,#fff9f6,#fff); }
   .watch-card--special { border-color:rgba(108,52,131,.35); background:linear-gradient(180deg,#faf7fc,#fff); }
-  .watch-val { font-family:'Noto Serif Bengali',serif; font-size:22px; font-weight:700; line-height:1.1; }
+  .watch-card--khuluk { border-color:rgba(20,122,80,.35); background:linear-gradient(180deg,#f3fbf7,#fff); }
+  .watch-val { font-family:'Noto Serif Bengali',serif; font-size:20px; font-weight:700; line-height:1.1; }
   .watch-val--absent { color:var(--red); }
   .watch-val--special { color:#7c3aed; }
-  .watch-lbl { font-size:10px; color:var(--ink3); margin-top:4px; }
+  .watch-val--khuluk { color:var(--green); }
+  .watch-lbl { font-size:9px; color:var(--ink3); margin-top:4px; line-height:1.3; }
+
+  /* হুসনুল খুলুক tier overlay */
+  .kh-overlay { position:fixed; inset:0; z-index:200; background:var(--bg,#faf6ef); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .25s ease; }
+  .kh-overlay.is-open { transform:translateX(0); }
+  .kh-ov-header { display:flex; align-items:center; gap:10px; padding:14px 16px 10px; background:var(--ink); color:var(--gold2); flex-shrink:0; }
+  .kh-ov-back { background:none; border:none; color:inherit; font-size:22px; cursor:pointer; padding:4px 10px 4px 0; line-height:1; }
+  .kh-ov-title { font-family:'Noto Serif Bengali',serif; font-size:16px; font-weight:700; }
+  .kh-ov-sub { font-size:11px; color:rgba(255,255,255,.65); margin-top:2px; }
+  .kh-ov-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px; padding-bottom:32px; }
+  .kh-tier-card { background:#fff; border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow); margin-bottom:10px; cursor:pointer; transition:background .12s; border-left:4px solid transparent; }
+  .kh-tier-card:active { background:rgba(0,0,0,.04); }
+  .kh-tier-card--high { border-left-color:var(--green); }
+  .kh-tier-card--mid  { border-left-color:var(--gold); }
+  .kh-tier-card--low  { border-left-color:var(--red); }
+  .kh-tier-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .kh-tier-name { font-size:14px; font-weight:700; font-family:'Noto Serif Bengali',serif; }
+  .kh-tier-count { font-size:18px; font-weight:700; font-family:'Noto Serif Bengali',serif; }
+  .kh-tier-count--high { color:var(--green); }
+  .kh-tier-count--mid  { color:var(--gold); }
+  .kh-tier-count--low  { color:var(--red); }
+  .kh-tier-desc { font-size:11px; color:var(--ink3); }
+  .kh-tier-list { margin-top:8px; display:none; }
+  .kh-tier-list.open { display:block; }
+  .kh-tier-student { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--cream); border-radius:8px; margin-bottom:6px; }
+  .kh-ts-name { flex:1; font-size:13px; font-family:'Noto Serif Bengali',serif; color:var(--ink); }
+  .kh-ts-score { font-size:13px; font-weight:700; font-family:'Noto Serif Bengali',serif; }
+  .kh-ts-class { font-size:10px; color:var(--ink3); }
+  .kh-avg-banner { background:#fff; border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow); margin-bottom:14px; display:flex; align-items:center; gap:12px; }
+  .kh-avg-num { font-family:'Noto Serif Bengali',serif; font-size:32px; font-weight:700; color:var(--green); min-width:60px; text-align:center; }
+  .kh-avg-info { flex:1; }
+  .kh-avg-label { font-size:11px; color:var(--ink3); }
+  .kh-avg-note { font-size:12px; color:var(--ink2); margin-top:2px; }
 
   /* shortcuts */
   .shortcut-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
@@ -122,10 +156,13 @@
       <div class="ma-sum-card"><span class="ma-sum-label">মোট ছাত্র</span><span class="ma-sum-val" id="s-total">—</span></div>
       <div class="ma-sum-card"><span class="ma-sum-label">উপস্থিত</span><span class="ma-sum-val v-green" id="s-present">—</span></div>
       <div class="ma-sum-card"><span class="ma-sum-label">অনুপস্থিত</span><span class="ma-sum-val v-red" id="s-absent">—</span></div>
+      <div class="ma-sum-card" style="cursor:pointer" onclick="location.href='madrasa/mdr-admin-withdrawn.html'">
+        <span class="ma-sum-label">বিদায় ছাত্র</span><span class="ma-sum-val v-gold" id="s-withdrawn">—</span>
+      </div>
     </div>
   </div>
 
-  <!-- অনুপস্থিত তালিকা ও বিশেষ পর্যবেক্ষণ -->
+  <!-- অনুপস্থিত তালিকা, বিশেষ পর্যবেক্ষণ ও হুসনুল খুলুক -->
   <div class="watch-row">
     <div class="watch-card watch-card--absent" id="card-absent-list" onclick="goAbsentList()">
       <div class="watch-val watch-val--absent" id="w-absent">—</div>
@@ -134,6 +171,10 @@
     <div class="watch-card watch-card--special" id="card-special-watch" onclick="goSpecialWatch()">
       <div class="watch-val watch-val--special" id="w-special">—</div>
       <div class="watch-lbl">বিশেষ পর্যবেক্ষণ</div>
+    </div>
+    <div class="watch-card watch-card--khuluk" onclick="openKhulukPanel()">
+      <div class="watch-val watch-val--khuluk" id="w-khuluk-avg">—</div>
+      <div class="watch-lbl">হুসনুল খুলুক গড়</div>
     </div>
   </div>
 
@@ -156,9 +197,6 @@
     </div>
     <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-alumni.html'">
       <div class="shortcut-icon">🎓</div><div class="shortcut-label">পুরনো ছাত্র</div>
-    </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-withdrawn.html'">
-      <div class="shortcut-icon">🚪</div><div class="shortcut-label">বিদায় ছাত্র</div>
     </div>
     <div class="shortcut-card" onclick="openAddStudent()">
       <div class="shortcut-icon">➕</div><div class="shortcut-label">নতুন ছাত্র</div>
@@ -192,6 +230,18 @@
     </div>
   </div>
 
+</div>
+
+<!-- KHULUK PANEL OVERLAY -->
+<div class="kh-overlay" id="kh-overlay">
+  <div class="kh-ov-header">
+    <button class="kh-ov-back" onclick="closeKhulukPanel()" aria-label="ফিরে যাও">←</button>
+    <div>
+      <div class="kh-ov-title">হুসনুল খুলুক</div>
+      <div class="kh-ov-sub">পুরো মাদ্রাসার সারসংক্ষেপ</div>
+    </div>
+  </div>
+  <div class="kh-ov-body" id="kh-ov-body"></div>
 </div>
 
 <!-- CLASS DETAIL OVERLAY -->
@@ -301,11 +351,114 @@
     document.getElementById('s-total').textContent = toBn(total);
     document.getElementById('s-present').textContent = toBn(kAtt.present + mAtt.present);
     document.getElementById('s-absent').textContent = toBn(kAtt.absent + mAtt.absent);
+    const withdrawals = API.persistLoadArr('mm_withdrawals');
+    document.getElementById('s-withdrawn').textContent = toBn(withdrawals.length);
   }
 
   function updateWatchCounts() {
     document.getElementById('w-absent').textContent = toBn(API.Attendance.countStudentsWithAnyAbsentByDept(currentDept));
     document.getElementById('w-special').textContent = toBn(API.Students.countSpecialWatchByDept(currentDept));
+    const avg = getMadrasaKhulukAvg();
+    document.getElementById('w-khuluk-avg').textContent = avg !== null ? toBn(avg) : '—';
+  }
+
+  function getMadrasaKhulukAvg() {
+    const classes = [...API.Classes.getByDept('kitab'), ...API.Classes.getByDept('maktab')];
+    const scores = [];
+    classes.forEach(cls => {
+      API.Students.getByClass(cls.id).forEach(s => {
+        const k = API.Khuluk.getLatest(s.id);
+        if (k) scores.push(k.score);
+      });
+    });
+    return scores.length ? Math.round(scores.reduce((a,b) => a+b,0) / scores.length) : null;
+  }
+
+  function getMadrasaKhulukBands() {
+    const classes = [...API.Classes.getByDept('kitab'), ...API.Classes.getByDept('maktab')];
+    const classMap = {};
+    classes.forEach(c => { classMap[c.id] = c.name; });
+    const bands = { high: [], mid: [], low: [], none: [] };
+    classes.forEach(cls => {
+      API.Students.getByClass(cls.id).forEach(s => {
+        const k = API.Khuluk.getLatest(s.id);
+        const entry = { id: s.id, name: s.name, score: k ? k.score : null, className: classMap[cls.id] || '' };
+        if (!k) { bands.none.push(entry); return; }
+        if (k.score > 80) bands.high.push(entry);
+        else if (k.score >= 60) bands.mid.push(entry);
+        else bands.low.push(entry);
+      });
+    });
+    return bands;
+  }
+
+  function openKhulukPanel() {
+    const bands = getMadrasaKhulukBands();
+    const avg = getMadrasaKhulukAvg();
+    const total = bands.high.length + bands.mid.length + bands.low.length + bands.none.length;
+    const renderList = (arr, colorClass) => arr.length ? arr.map(s =>
+      `<div class="kh-tier-student">
+        <div class="kh-ts-name">${API.esc(s.name)}</div>
+        <div class="kh-ts-class">${API.esc(s.className)}</div>
+        ${s.score !== null ? `<div class="kh-ts-score ${colorClass}">${toBn(s.score)}</div>` : ''}
+      </div>`).join('') : `<div style="color:var(--ink3);font-size:12px;padding:8px 0;">কেউ নেই</div>`;
+
+    document.getElementById('kh-ov-body').innerHTML = `
+      <div class="kh-avg-banner">
+        <div class="kh-avg-num">${avg !== null ? toBn(avg) : '—'}</div>
+        <div class="kh-avg-info">
+          <div class="kh-avg-label">মাদ্রাসার গড় স্কোর</div>
+          <div class="kh-avg-note">${toBn(total)} জন ছাত্রের মধ্যে ${toBn(bands.none.length)} জনের রেকর্ড নেই</div>
+        </div>
+      </div>
+      <div class="kh-tier-card kh-tier-card--high" onclick="toggleKhTier(this)">
+        <div class="kh-tier-header">
+          <div class="kh-tier-name">মুজতাহিদ (৮১+)</div>
+          <div class="kh-tier-count kh-tier-count--high">${toBn(bands.high.length)}</div>
+        </div>
+        <div class="kh-tier-desc">সর্বোচ্চ আচরণগত স্তর — স্কোর ৮১ বা তার বেশি</div>
+        <div class="kh-tier-list">${renderList(bands.high,'kh-ts-score')}</div>
+      </div>
+      <div class="kh-tier-card kh-tier-card--mid" onclick="toggleKhTier(this)">
+        <div class="kh-tier-header">
+          <div class="kh-tier-name">মুতাওয়াস্সিত (৬০–৮০)</div>
+          <div class="kh-tier-count kh-tier-count--mid">${toBn(bands.mid.length)}</div>
+        </div>
+        <div class="kh-tier-desc">মধ্যম আচরণগত স্তর — স্কোর ৬০ থেকে ৮০</div>
+        <div class="kh-tier-list">${renderList(bands.mid,'kh-ts-score')}</div>
+      </div>
+      <div class="kh-tier-card kh-tier-card--low" onclick="toggleKhTier(this)">
+        <div class="kh-tier-header">
+          <div class="kh-tier-name">মুসতায়িদ (৬০-এর নিচে)</div>
+          <div class="kh-tier-count kh-tier-count--low">${toBn(bands.low.length)}</div>
+        </div>
+        <div class="kh-tier-desc">উন্নতি প্রয়োজন — স্কোর ৬০-এর নিচে</div>
+        <div class="kh-tier-list">${renderList(bands.low,'kh-ts-score')}</div>
+      </div>`;
+    /* cls-overlay যদি open থাকে বন্ধ করো */
+    const clsOv = document.getElementById('cls-overlay');
+    if (clsOv) { clsOv.classList.remove('is-open'); }
+
+    const khOverlay = document.getElementById('kh-overlay');
+    khOverlay.style.willChange = 'transform';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        khOverlay.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+      });
+    });
+  }
+
+  function closeKhulukPanel() {
+    const khOverlay = document.getElementById('kh-overlay');
+    khOverlay.classList.remove('is-open');
+    khOverlay.style.willChange = '';
+    document.body.style.overflow = '';
+  }
+
+  function toggleKhTier(card) {
+    const list = card.querySelector('.kh-tier-list');
+    list.classList.toggle('open');
   }
 
   function goAbsentList() {
