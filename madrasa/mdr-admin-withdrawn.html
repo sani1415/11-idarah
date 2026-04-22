@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>বিদায় ছাত্র — মেইন এডমিন</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .withdrawn-card { background:#fff; border-radius:var(--radius-sm); padding:13px 14px; box-shadow:var(--shadow); margin-bottom:8px; border-left:3px solid var(--red); }
+  .wd-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px; }
+  .wd-name { font-size:14px; font-weight:700; color:var(--ink); }
+  .wd-id { font-size:11px; color:var(--ink3); margin-top:2px; }
+  .wd-meta { display:flex; flex-wrap:wrap; gap:8px; font-size:11px; color:var(--ink3); }
+  .wd-meta span { background:var(--cream2); border-radius:6px; padding:2px 8px; }
+  .filter-row { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px; }
+  .filter-btn { background:#fff; border:1px solid var(--cream3); border-radius:20px; padding:6px 12px; font-size:11px; white-space:nowrap; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; color:var(--ink3); }
+  .filter-btn.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
+  .main-nav { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom,12px)); z-index:100; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:6px 8px; background:linear-gradient(180deg,#ffffff 0%,#faf6ef 100%); border:1px solid rgba(26,18,8,.08); border-radius:999px; box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1); max-width:456px; margin:0 auto; box-sizing:border-box; }
+  .main-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; text-decoration:none; transition:background .15s,color .15s; }
+  .main-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
+  .main-nav-ico path, .main-nav-ico circle { fill:none; stroke:currentColor; }
+  .main-nav-btn.is-active { background:rgba(232,184,75,.22); color:var(--ink2); }
+  .main-nav-btn.is-active .main-nav-ico { opacity:1; }
+  .main-nav-lbl { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মুহতামিম</div>
+    <div class="topbar-name">বিদায় ছাত্র</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='../main-admin-madrasa.html'">← এডমিন</button>
+  </div>
+</div>
+
+<div class="content" style="padding-bottom:90px;">
+
+  <div style="background:linear-gradient(135deg,#c0392b,#e74c3c);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+      <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="s-total">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">মোট বিদায়</div></div>
+      <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="s-this-year">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">এই বছর</div></div>
+      <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="s-this-month">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">এই মাসে</div></div>
+    </div>
+  </div>
+
+  <button class="add-btn" style="background:var(--red);" onclick="openModal('add-wd')">＋ ছাত্র বিদায় রেকর্ড করুন</button>
+
+  <div class="filter-row">
+    <div class="filter-btn active" onclick="setFilter('সব',this)">সব</div>
+    <div class="filter-btn" onclick="setFilter('মাঝপথে',this)">মাঝপথে</div>
+    <div class="filter-btn" onclick="setFilter('বদলি',this)">বদলি</div>
+    <div class="filter-btn" onclick="setFilter('স্বেচ্ছায়',this)">স্বেচ্ছায়</div>
+    <div class="filter-btn" onclick="setFilter('অন্যান্য',this)">অন্যান্য</div>
+  </div>
+
+  <div id="wd-list"></div>
+  <div class="pb-safe"></div>
+</div>
+
+<nav class="main-nav" role="navigation" aria-label="মেইন এডমিন নেভিগেশন">
+  <a class="main-nav-btn is-active" href="../main-admin-madrasa.html" aria-label="মাদ্রাসা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span class="main-nav-lbl">মাদ্রাসা</span></a>
+  <a class="main-nav-btn" href="../main-admin-dept.html" aria-label="বিভাগ"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg><span class="main-nav-lbl">বিভাগ</span></a>
+  <a class="main-nav-btn" href="../main-admin-khedmat.html" aria-label="খেদমত"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span class="main-nav-lbl">খেদমত</span></a>
+  <a class="main-nav-btn" href="../admin-hub.html?tab=inbox" aria-label="বার্তা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg><span class="main-nav-lbl">বার্তা</span></a>
+  <a class="main-nav-btn" href="../admin-hub.html?tab=recent" aria-label="কার্যক্রম"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg><span class="main-nav-lbl">কার্যক্রম</span></a>
+</nav>
+
+<!-- ADD WITHDRAWAL MODAL -->
+<div class="modal-bg" id="modal-add-wd">
+  <div class="modal">
+    <div class="modal-title">ছাত্র বিদায় রেকর্ড <button class="modal-close" onclick="closeModal('add-wd')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">ছাত্র নির্বাচন করুন</label>
+      <select class="form-input form-select" id="wd-student"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">বিদায়ের তারিখ</label>
+        <input class="form-input" id="wd-date" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">কারণ</label>
+        <select class="form-input form-select" id="wd-reason">
+          <option>মাঝপথে</option>
+          <option>বদলি</option>
+          <option>স্বেচ্ছায়</option>
+          <option>অসুস্থতা</option>
+          <option>আর্থিক সমস্যা</option>
+          <option>অন্যান্য</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">বিস্তারিত মন্তব্য</label>
+      <textarea class="form-input form-textarea" id="wd-note" placeholder="কোথায় গেছেন, কেন গেছেন..."></textarea>
+    </div>
+    <button class="submit-btn" style="background:var(--red);" onclick="saveWithdrawal()">রেকর্ড সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="../js/mm-sample-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.isAdmin()) location.href = '../index.html';
+  const WD_KEY = 'mm_withdrawals';
+  const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  let currentFilter = 'সব';
+
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); render();
+  }
+
+  function render() {
+    const list = API.persistLoadArr(WD_KEY);
+    const today = API.today();
+    const thisYear = today.slice(0, 4);
+    const thisMonth = today.slice(0, 7);
+
+    document.getElementById('s-total').textContent = toBn(list.length);
+    document.getElementById('s-this-year').textContent = toBn(list.filter(w => w.date.startsWith(thisYear)).length);
+    document.getElementById('s-this-month').textContent = toBn(list.filter(w => w.date.startsWith(thisMonth)).length);
+
+    let filtered = list;
+    if (currentFilter !== 'সব') filtered = list.filter(w => w.reason === currentFilter);
+    filtered = [...filtered].sort((a, b) => b.date.localeCompare(a.date));
+
+    const el = document.getElementById('wd-list');
+    el.innerHTML = filtered.map(w => {
+      const s = API.Students.getById(w.student_id);
+      const cls = s ? API.Classes.getById(s.class_id) : null;
+      return `<div class="withdrawn-card">
+        <div class="wd-top">
+          <div>
+            <div class="wd-name">${s ? API.esc(s.name) : API.esc(w.student_name || '—')}</div>
+            <div class="wd-id">${s ? API.esc(s.permanent_id) : '—'}</div>
+          </div>
+          <span class="list-badge badge-red">${API.esc(w.date)}</span>
+        </div>
+        <div class="wd-meta">
+          ${cls ? `<span>📚 ${API.esc(cls.name)}</span>` : ''}
+          <span>🚪 ${API.esc(w.reason)}</span>
+          ${w.note ? `<span>💬 ${API.esc(w.note.slice(0, 30))}${w.note.length > 30 ? '...' : ''}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('') || '<div class="empty-state"><span class="empty-icon">🚪</span><div class="empty-text">এখনো কোনো বিদায় রেকর্ড নেই</div></div>';
+
+    /* populate student select */
+    const activeStudents = API.Students.getAll().filter(s => s.active);
+    const wdStudentIds = new Set(list.map(w => w.student_id));
+    document.getElementById('wd-student').innerHTML = activeStudents
+      .filter(s => !wdStudentIds.has(s.id))
+      .map(s => {
+        const cls = API.Classes.getById(s.class_id);
+        return `<option value="${s.id}">${API.esc(s.name)} — ${cls ? API.esc(cls.name) : ''} (${API.esc(s.permanent_id)})</option>`;
+      }).join('') || '<option value="">কোনো ছাত্র নেই</option>';
+    document.getElementById('wd-date').value = today;
+  }
+
+  function saveWithdrawal() {
+    const sid = document.getElementById('wd-student').value;
+    const date = document.getElementById('wd-date').value;
+    const reason = document.getElementById('wd-reason').value;
+    const note = document.getElementById('wd-note').value.trim();
+    if (!sid || !date) { showToast('ছাত্র ও তারিখ আবশ্যক'); return; }
+
+    const s = API.Students.getById(sid);
+    const list = API.persistLoadArr(WD_KEY);
+    list.push({ id: API.uid(), student_id: sid, student_name: s ? s.name : '', date, reason, note });
+    API.persistSaveArr(WD_KEY, list);
+
+    /* mark student as inactive in students list */
+    const students = API.persistLoadArr('mm_students');
+    const updated = students.map(st => st.id === sid ? { ...st, active: false, left_date: date, left_reason: reason } : st);
+    API.persistSaveArr('mm_students', updated);
+
+    closeModal('add-wd'); showToast('বিদায় রেকর্ড সংরক্ষিত ✓');
+    document.getElementById('wd-note').value = '';
+    render();
+  }
+
+  function openModal(id) { document.getElementById('modal-' + id).classList.add('open'); }
+  function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
+  function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+
+  render();
+</script>
+</body>
+</html>
