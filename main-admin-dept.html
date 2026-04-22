@@ -46,6 +46,22 @@
   .main-nav-btn.is-active .main-nav-ico { opacity:1; }
   .main-nav-btn:hover, .main-nav-btn:focus-visible { background:rgba(255,255,255,.7); color:var(--ink2); outline:none; }
   .main-nav-lbl { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
+  .ds-overlay { position:fixed; inset:0; background:rgba(26,18,8,.42); z-index:200; display:flex; align-items:flex-end; justify-content:center; }
+  .ds-sheet { width:100%; max-width:520px; background:#fff; border-radius:20px 20px 0 0; padding:22px 18px calc(28px + env(safe-area-inset-bottom,0px)); max-height:80vh; overflow-y:auto; box-sizing:border-box; }
+  .ds-title { font-family:'Noto Serif Bengali',serif; font-size:17px; font-weight:700; color:var(--ink2); }
+  .ds-dept-row { display:flex; align-items:center; gap:10px; padding:11px 13px; background:#fff; border-radius:var(--radius-sm); border:1px solid rgba(26,18,8,.06); box-shadow:var(--shadow); margin-bottom:8px; }
+  .ds-dept-ico { font-size:22px; width:36px; text-align:center; flex-shrink:0; }
+  .ds-dept-name { flex:1; font-size:14px; font-weight:600; color:var(--ink); }
+  .ds-btn { font-size:11px; padding:5px 10px; border-radius:8px; border:1px solid rgba(26,18,8,.12); background:#fff; color:var(--ink2); cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; }
+  .ds-field-item { display:flex; align-items:center; gap:8px; padding:9px 12px; background:#fff; border-radius:var(--radius-sm); border:1px solid rgba(26,18,8,.06); box-shadow:var(--shadow); margin-bottom:7px; }
+  .ds-field-label { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
+  .ds-field-meta { font-size:10px; color:var(--ink3); margin-top:2px; }
+  .ds-inp { width:100%; box-sizing:border-box; border:1px solid rgba(26,18,8,.14); border-radius:10px; padding:9px 11px; font-size:13px; font-family:'Noto Sans Bengali',sans-serif; color:var(--ink); background:#fafafa; }
+  .ds-inp:focus { outline:none; border-color:var(--gold2); background:#fff; }
+  .ds-row { display:flex; gap:8px; }
+  .ds-row .ds-grp { flex:1; }
+  .ds-lbl { font-size:11px; color:var(--ink3); display:block; margin-bottom:4px; letter-spacing:.03em; }
+  .ds-add-form { background:var(--cream); border-radius:var(--radius-sm); padding:12px; margin-top:4px; }
 </style>
 </head>
 <body>
@@ -54,6 +70,10 @@
   <div class="topbar-left">
     <div class="topbar-role">মুহতামিম</div>
     <div class="topbar-name">বিভাগ মডিউল</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="topbar-btn" onclick="openDeptSettings()">⚙ সেটিং</button>
+    <button class="topbar-btn" onclick="MMSession.logoutToIndex('index.html')">লগআউট</button>
   </div>
 </div>
 
@@ -84,6 +104,42 @@
 <div class="content" id="panel-all-txn" style="display:none;padding-bottom:90px;">
   <div class="sec-header" style="margin-top:14px;"><div class="sec-title">সব লেনদেন</div></div>
   <div id="all-txn-list"></div>
+</div>
+
+<!-- Dept Settings Sheet -->
+<div class="ds-overlay" id="dept-settings-overlay" style="display:none;" onclick="if(event.target===this)closeDeptSettings()">
+  <div class="ds-sheet">
+
+    <!-- স্তর ১: বিভাগ তালিকা -->
+    <div id="ds-view-list">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="ds-title">বিভাগ সেটিং</div>
+        <button onclick="closeDeptSettings()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);padding:4px 8px;">✕</button>
+      </div>
+      <div id="dept-settings-list" style="margin-bottom:12px;max-height:50vh;overflow-y:auto;"></div>
+      <button class="add-btn" onclick="closeDeptSettings();openAddDept()">+ নতুন বিভাগ যোগ করুন</button>
+    </div>
+
+    <!-- স্তর ২: নির্দিষ্ট বিভাগের কনফিগারেশন -->
+    <div id="ds-view-config" style="display:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <button onclick="showDeptList()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3);padding:4px 8px 4px 0;line-height:1;">←</button>
+        <div class="ds-title" id="ds-config-title" style="flex:1;"></div>
+      </div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:10px;">লেনদেনের ফর্মে অতিরিক্ত ইনপুট ক্ষেত্র</div>
+      <div id="ds-field-list" style="margin-bottom:10px;"></div>
+      <div class="ds-add-form">
+        <div style="font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px;">+ নতুন ক্ষেত্র</div>
+        <div style="margin-bottom:10px;"><label class="ds-lbl">ক্ষেত্রের নাম (বাংলায়)</label><input type="text" class="ds-inp" id="nf-label" placeholder="যেমন: জমি / প্লট রেফারেন্স"></div>
+        <div class="ds-row" style="margin-bottom:10px;">
+          <div class="ds-grp"><label class="ds-lbl">ধরন</label><select class="ds-inp" id="nf-type"><option value="text">টেক্সট</option><option value="number">সংখ্যা</option></select></div>
+          <div class="ds-grp"><label class="ds-lbl">ঐচ্ছিক?</label><select class="ds-inp" id="nf-optional"><option value="true">হ্যাঁ</option><option value="false">না</option></select></div>
+        </div>
+        <button class="add-btn" style="margin-top:0;" onclick="addDeptField()">ক্ষেত্র যোগ করুন</button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -300,6 +356,86 @@
           </div>`).join('')
         : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো মজুদ নেই</div>';
     }
+  }
+
+  let _activeDeptId = null;
+
+  function showDeptList() {
+    document.getElementById('ds-view-list').style.display = '';
+    document.getElementById('ds-view-config').style.display = 'none';
+  }
+
+  function openDeptSettings() {
+    const list = document.getElementById('dept-settings-list');
+    const depts = DeptAPI.Departments.getAll_();
+    list.innerHTML = depts.length ? depts.map(d => {
+      const inactive = d.is_active === false;
+      return `<div class="ds-dept-row">
+        <span class="ds-dept-ico">${d.emoji||'🏢'}</span>
+        <span class="ds-dept-name" style="${inactive?'opacity:.5;':''}">
+          ${DeptAPI.esc(d.name)}${inactive?' <small style="color:var(--red);font-size:10px;">(নিষ্ক্রিয়)</small>':''}
+        </span>
+        <div style="display:flex;gap:5px;flex-shrink:0;">
+          <button class="ds-btn" onclick="openDeptConfig('${d.id}')">⚙</button>
+          <button class="ds-btn" style="${inactive?'color:var(--green)':'color:var(--red)'}"
+            onclick="DeptAPI.Departments.update('${d.id}',{is_active:${inactive}});openDeptSettings();renderOverview();">
+            ${inactive?'সক্রিয়':'নিষ্ক্রিয়'}
+          </button>
+        </div>
+      </div>`;
+    }).join('') : '<div style="text-align:center;color:var(--ink3);padding:24px;font-size:13px;">কোনো বিভাগ নেই।</div>';
+    showDeptList();
+    document.getElementById('dept-settings-overlay').style.display = 'flex';
+  }
+
+  function closeDeptSettings() {
+    document.getElementById('dept-settings-overlay').style.display = 'none';
+  }
+
+  function openDeptConfig(deptId) {
+    _activeDeptId = deptId;
+    const dept = DeptAPI.Departments.getById(deptId);
+    if (!dept) return;
+    document.getElementById('ds-config-title').textContent = (dept.emoji||'🏢') + ' ' + dept.name;
+    document.getElementById('nf-label').value = '';
+    document.getElementById('nf-type').value = 'text';
+    document.getElementById('nf-optional').value = 'true';
+    document.getElementById('ds-view-list').style.display = 'none';
+    document.getElementById('ds-view-config').style.display = '';
+    renderDeptFields(deptId);
+  }
+
+  function renderDeptFields(deptId) {
+    const el = document.getElementById('ds-field-list');
+    if (!el) return;
+    const fields = DeptAPI.ExtraFields.get(deptId);
+    el.innerHTML = fields.length ? fields.map(f =>
+      `<div class="ds-field-item">
+        <div style="flex:1;">
+          <div class="ds-field-label">${DeptAPI.esc(f.label)}</div>
+          <div class="ds-field-meta">${f.type==='number'?'সংখ্যা':'টেক্সট'}${f.optional?' · ঐচ্ছিক':''}</div>
+        </div>
+        <button class="ds-btn" style="color:var(--red)" onclick="removeDeptField('${deptId}','${f.key}')">✕</button>
+      </div>`
+    ).join('') : '<div style="text-align:center;color:var(--ink3);padding:12px;font-size:12px;">কোনো অতিরিক্ত ক্ষেত্র নেই।</div>';
+  }
+
+  function addDeptField() {
+    const label = document.getElementById('nf-label').value.trim();
+    const type = document.getElementById('nf-type').value;
+    const optional = document.getElementById('nf-optional').value === 'true';
+    if (!label) { showToast('ক্ষেত্রের নাম লিখুন।'); return; }
+    const key = 'f_' + Date.now().toString(36);
+    const ok = DeptAPI.ExtraFields.add(_activeDeptId, { key, label, type, optional });
+    if (!ok) { showToast('এই ক্ষেত্র ইতিমধ্যে আছে।'); return; }
+    document.getElementById('nf-label').value = '';
+    renderDeptFields(_activeDeptId);
+    showToast('ক্ষেত্র যোগ হয়েছে।');
+  }
+
+  function removeDeptField(deptId, key) {
+    DeptAPI.ExtraFields.remove(deptId, key);
+    renderDeptFields(deptId);
   }
 
   renderOverview();

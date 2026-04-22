@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>বর্ষ উন্নীতকরণ — মাদরাসাতুল মদীনা</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .wiz-wrap { max-width:520px; margin:0 auto; padding:0 16px 100px; }
+  .step-bar { display:flex; align-items:center; gap:0; margin:16px 0 20px; }
+  .step-dot { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; border:2px solid var(--cream3); color:var(--ink3); background:#fff; transition:all .2s; }
+  .step-dot.done { background:var(--gold); border-color:var(--gold); color:#fff; }
+  .step-dot.active { background:var(--ink2); border-color:var(--ink2); color:#fff; }
+  .step-line { flex:1; height:2px; background:var(--cream3); }
+  .step-line.done { background:var(--gold); }
+  .wiz-title { font-family:'Noto Serif Bengali',serif; font-size:18px; font-weight:700; color:var(--ink2); margin-bottom:4px; }
+  .wiz-sub { font-size:12px; color:var(--ink3); margin-bottom:20px; }
+  .radio-group { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
+  .radio-opt { display:flex; align-items:center; gap:10px; padding:12px 14px; background:#fff; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); cursor:pointer; transition:border-color .15s; }
+  .radio-opt.selected { border-color:var(--gold); background:var(--gold-light); }
+  .radio-opt input[type=radio] { accent-color:var(--gold); width:16px; height:16px; flex-shrink:0; }
+  .radio-label { font-size:13px; font-weight:600; color:var(--ink2); }
+  .radio-desc { font-size:11px; color:var(--ink3); margin-top:1px; }
+  .info-box { background:var(--gold-light); border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:14px; font-size:12px; color:var(--ink2); line-height:1.6; }
+  .info-box strong { color:var(--ink); }
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; background:#fff; border-radius:var(--radius-sm); padding:13px 14px; box-shadow:var(--shadow); margin-bottom:10px; }
+  .toggle-lbl { font-size:13px; font-weight:600; color:var(--ink); }
+  .toggle-sub { font-size:11px; color:var(--ink3); margin-top:2px; }
+  .toggle-sw { position:relative; width:40px; height:22px; flex-shrink:0; }
+  .toggle-sw input { opacity:0; width:0; height:0; position:absolute; }
+  .toggle-sw .slider { position:absolute; inset:0; background:var(--cream3); border-radius:99px; cursor:pointer; transition:.2s; }
+  .toggle-sw input:checked+.slider { background:var(--gold); }
+  .toggle-sw .slider::before { content:''; position:absolute; width:16px; height:16px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.2s; }
+  .toggle-sw input:checked+.slider::before { transform:translateX(18px); }
+  .teacher-grid { display:none; margin-top:8px; }
+  .teacher-grid.open { display:block; }
+  .teacher-row { display:flex; align-items:center; gap:10px; background:#fff; border-radius:var(--radius-xs); padding:10px 12px; box-shadow:var(--shadow); margin-bottom:6px; }
+  .teacher-cls-name { flex:1; font-size:12px; font-weight:600; color:var(--ink2); }
+  .teacher-sel { font-family:'Noto Sans Bengali',sans-serif; font-size:12px; border:1px solid var(--cream3); border-radius:6px; padding:5px 8px; background:#fff; color:var(--ink); outline:none; max-width:160px; }
+  .cls-progress { text-align:center; font-size:12px; color:var(--ink3); margin-bottom:16px; font-weight:600; }
+  .cls-head { background:var(--ink2); color:var(--gold2); border-radius:var(--radius-sm); padding:14px 16px; margin-bottom:12px; }
+  .cls-head-name { font-family:'Noto Serif Bengali',serif; font-size:16px; font-weight:700; }
+  .cls-head-sub { font-size:11px; opacity:.75; margin-top:4px; }
+  .bulk-btn { width:100%; padding:10px; background:var(--gold-light); border:1px solid var(--gold); border-radius:var(--radius-xs); font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:700; color:var(--ink2); cursor:pointer; margin-bottom:12px; }
+  .std-row { background:#fff; border-radius:var(--radius-xs); padding:11px 12px; box-shadow:var(--shadow); margin-bottom:7px; }
+  .std-top { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .std-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
+  .std-roll-old { font-size:11px; color:var(--ink3); background:var(--cream2); padding:2px 7px; border-radius:99px; }
+  .std-bottom { display:flex; gap:8px; align-items:center; }
+  .next-cls-sel { flex:1; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; border:1.5px solid var(--cream3); border-radius:6px; padding:7px 8px; background:#fff; color:var(--ink); outline:none; }
+  .next-cls-sel.action-repeat { border-color:#f59e0b; background:#fffbeb; }
+  .next-cls-sel.action-alumni { border-color:#10b981; background:#f0fdf4; }
+  .next-cls-sel.action-dropout { border-color:var(--red); background:var(--red-light); }
+  .roll-input { width:72px; border:1.5px solid var(--cream3); border-radius:6px; padding:7px 8px; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink); outline:none; text-align:center; }
+  .roll-input:disabled { background:var(--cream2); color:var(--ink3); }
+  .sum-row { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--cream2); }
+  .sum-label { font-size:13px; color:var(--ink3); }
+  .sum-val { font-family:'Noto Serif Bengali',serif; font-size:15px; font-weight:700; }
+  .wiz-nav { display:flex; gap:10px; margin-top:20px; }
+  .wiz-btn-back { flex:1; padding:13px; background:#fff; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Noto Sans Bengali',sans-serif; font-size:13px; font-weight:700; color:var(--ink3); cursor:pointer; }
+  .wiz-btn-next { flex:2; padding:13px; background:var(--ink2); border:none; border-radius:var(--radius-sm); font-family:'Noto Sans Bengali',sans-serif; font-size:13px; font-weight:700; color:var(--gold2); cursor:pointer; }
+  .wiz-btn-next.danger { background:#dc2626; color:#fff; }
+  .wiz-btn-next.success { background:#059669; color:#fff; }
+  .success-icon { font-size:56px; text-align:center; margin:24px 0 12px; }
+  .undo-box { margin-top:20px; padding:14px; background:var(--red-light); border:1px solid #fca5a5; border-radius:var(--radius-sm); text-align:center; }
+  .undo-btn { margin-top:10px; padding:10px 20px; background:#dc2626; border:none; border-radius:var(--radius-xs); font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:700; color:#fff; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button type="button" class="topbar-btn" onclick="history.back()">← ফিরুন</button>
+  <div class="topbar-left">
+    <div class="topbar-role" id="top-name">দফতর</div>
+    <div class="topbar-name">বর্ষ উন্নীতকরণ</div>
+  </div>
+</div>
+
+<div class="wiz-wrap">
+  <!-- STEP BAR -->
+  <div class="step-bar" id="step-bar">
+    <div class="step-dot active" id="sd1">১</div>
+    <div class="step-line" id="sl1"></div>
+    <div class="step-dot" id="sd2">২</div>
+    <div class="step-line" id="sl2"></div>
+    <div class="step-dot" id="sd3">৩</div>
+    <div class="step-line" id="sl3"></div>
+    <div class="step-dot" id="sd4">৪</div>
+    <div class="step-line" id="sl4"></div>
+    <div class="step-dot" id="sd5">✓</div>
+  </div>
+
+  <!-- STEP 1: শুরু -->
+  <div id="step1">
+    <div class="wiz-title">নতুন শিক্ষাবর্ষ শুরু করুন</div>
+    <div class="wiz-sub">নতুন হিজরী বর্ষ ও বিভাগ নির্বাচন করুন</div>
+    <div class="form-group">
+      <label class="form-label">নতুন হিজরী শিক্ষাবর্ষ</label>
+      <input class="form-input" id="inp-year" placeholder="যেমন: ১৪৪৮" maxlength="4">
+    </div>
+    <div class="form-group" style="margin-top:16px;">
+      <label class="form-label">কোন বিভাগের উন্নীতকরণ করবেন?</label>
+      <div class="radio-group" id="dept-radio">
+        <label class="radio-opt selected" onclick="selectDept('both',this)">
+          <input type="radio" name="dept" value="both" checked><div><div class="radio-label">উভয় বিভাগ</div><div class="radio-desc">কিতাব ও মক্তব বিভাগ একসাথে</div></div>
+        </label>
+        <label class="radio-opt" onclick="selectDept('kitab',this)">
+          <input type="radio" name="dept" value="kitab"><div><div class="radio-label">কিতাব বিভাগ</div><div class="radio-desc">১ম বর্ষ থেকে ৮ম বর্ষ</div></div>
+        </label>
+        <label class="radio-opt" onclick="selectDept('maktab',this)">
+          <input type="radio" name="dept" value="maktab"><div><div class="radio-label">মক্তব বিভাগ</div><div class="radio-desc">প্রথম থেকে পঞ্চম শ্রেণি</div></div>
+        </label>
+      </div>
+    </div>
+    <button class="wiz-btn-next" style="width:100%;padding:14px;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans Bengali',sans-serif;font-size:14px;font-weight:700;color:var(--gold2);cursor:pointer;" onclick="step1Next()">পরবর্তী →</button>
+  </div>
+
+  <!-- STEP 2: সেটিং পর্যালোচনা -->
+  <div id="step2" style="display:none;">
+    <div class="wiz-title">বর্ষ-সেটিং পর্যালোচনা</div>
+    <div class="wiz-sub">নতুন বর্ষে কী কী পরিবর্তন হবে নিশ্চিত করুন</div>
+    <div class="info-box">
+      📖 <strong>কিতাবের অগ্রগতি রিসেট হবে।</strong> নতুন ছাত্র, নতুন শুরু — সব বর্ষের পঠিত পৃষ্ঠা শূন্য থেকে গণনা শুরু হবে।
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-lbl">শিক্ষক পুনর্নিয়োগ</div><div class="toggle-sub">কোনো বর্ষের শিক্ষক বদলাতে চাইলে এখনই করুন</div></div>
+      <label class="toggle-sw"><input type="checkbox" id="toggle-teacher" onchange="toggleTeachers(this.checked)"><span class="slider"></span></label>
+    </div>
+    <div class="teacher-grid" id="teacher-grid"></div>
+    <div class="wiz-nav">
+      <button class="wiz-btn-back" onclick="goStep(1)">← আগে</button>
+      <button class="wiz-btn-next" onclick="step2Next()">পরবর্তী →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: ছাত্র প্রমোশন -->
+  <div id="step3" style="display:none;">
+    <div class="cls-progress" id="cls-progress">বর্ষ ১ / ৯</div>
+    <div class="cls-head">
+      <div class="cls-head-name" id="cls-head-name">—</div>
+      <div class="cls-head-sub" id="cls-head-sub">—</div>
+    </div>
+    <button class="bulk-btn" id="bulk-btn" onclick="bulkDefault()">সবাইকে ডিফল্ট বর্ষে পাঠান</button>
+    <div id="std-list"></div>
+    <div class="wiz-nav">
+      <button class="wiz-btn-back" id="btn-prev" onclick="tourPrev()">← আগে</button>
+      <button class="wiz-btn-next" id="btn-next" onclick="tourNext()">পরবর্তী বর্ষ →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: সারসংক্ষেপ -->
+  <div id="step4" style="display:none;">
+    <div class="wiz-title">চূড়ান্ত সারসংক্ষেপ</div>
+    <div class="wiz-sub" id="sum-year-label">—</div>
+    <div class="card" style="padding:16px;margin-bottom:16px;">
+      <div class="sum-row"><span class="sum-label">⬆️ পরবর্তী বর্ষে উন্নীত</span><span class="sum-val" id="sum-promote" style="color:var(--green);">০</span></div>
+      <div class="sum-row"><span class="sum-label">🔁 পুনরাবৃত্তি</span><span class="sum-val" id="sum-repeat" style="color:#f59e0b;">০</span></div>
+      <div class="sum-row"><span class="sum-label">🎓 বিদায় — পাস করেছেন</span><span class="sum-val" id="sum-alumni" style="color:#10b981;">০</span></div>
+      <div class="sum-row" style="border:none;"><span class="sum-label">❌ বিদায় — মাঝপথে</span><span class="sum-val" id="sum-dropout" style="color:var(--red);">০</span></div>
+    </div>
+    <div class="info-box" style="background:var(--red-light);border-color:#fca5a5;">
+      ⚠️ সম্পন্ন করার আগে স্বয়ংক্রিয় ব্যাকআপ নেওয়া হবে। ভুল হলে পূর্বাবস্থায় ফেরানো যাবে।
+    </div>
+    <div class="wiz-nav">
+      <button class="wiz-btn-back" onclick="goStep(3);renderCurrentClass()">← আগে</button>
+      <button class="wiz-btn-next danger" onclick="executeYearEnd()">✓ চূড়ান্তভাবে সম্পন্ন করুন</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: সম্পন্ন -->
+  <div id="step5" style="display:none;">
+    <div class="success-icon">🎉</div>
+    <div class="wiz-title" style="text-align:center;">সফলভাবে সম্পন্ন হয়েছে!</div>
+    <div class="wiz-sub" style="text-align:center;" id="success-sub">নতুন শিক্ষাবর্ষ শুরু হয়েছে।</div>
+    <div class="card" style="padding:16px;margin:20px 0;text-align:center;">
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:4px;">ব্যাকআপ তারিখ</div>
+      <div style="font-size:14px;font-weight:700;color:var(--ink2);" id="backup-date">—</div>
+    </div>
+    <button class="wiz-btn-next success" style="width:100%;padding:14px;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans Bengali',sans-serif;font-size:14px;font-weight:700;cursor:pointer;" onclick="location.href='madrasa-daftar.html'">দফতরে ফিরুন</button>
+    <div class="undo-box" id="undo-box">
+      <div style="font-size:12px;color:#dc2626;font-weight:600;">ভুল হয়েছে?</div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:4px;">সম্পন্ন হওয়ার আগের অবস্থায় সম্পূর্ণ ফিরে যাবেন।</div>
+      <button class="undo-btn" onclick="undoYearEnd()">↩ সম্পূর্ণ পূর্বাবস্থায় ফেরান</button>
+    </div>
+  </div>
+
+</div><!-- /.wiz-wrap -->
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/mm-sample-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.getRole()) location.href = '../index.html';
+  document.getElementById('top-name').textContent = MMSession.getName() || 'দফতর';
+
+  /* ── default next class mapping ── */
+  const NEXT_CLS = {
+    cls_k1:'cls_ky', cls_ky:'cls_k2', cls_k2:'cls_k3', cls_k3:'cls_k4',
+    cls_k4:'cls_k5', cls_k5:'cls_k6', cls_k6:'cls_k7', cls_k7:'cls_k8',
+    cls_k8:'alumni_pass',
+    cls_m1:'cls_m2', cls_m2:'cls_m3', cls_m3:'cls_m4', cls_m4:'cls_m5',
+    cls_m5:'cls_k1',
+  };
+
+  /* ── state ── */
+  let deptChoice = 'both';
+  let newYear = '';
+  let tourClasses = [];
+  let tourIdx = 0;
+  let decisions = {};     /* sid → {next_class_id, new_roll, action} */
+  let rollCounters = {};  /* class_id → next number */
+
+  /* ── helpers ── */
+  const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  function showToast(msg) {
+    const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  /* ── step navigation ── */
+  function goStep(n) {
+    [1,2,3,4,5].forEach(i => document.getElementById('step'+i).style.display = i===n ? '' : 'none');
+    [1,2,3,4,5].forEach(i => {
+      document.getElementById('sd'+i).className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
+      if (i < 5) document.getElementById('sl'+i).className = 'step-line' + (i < n ? ' done' : '');
+    });
+  }
+
+  /* ── step 1 ── */
+  function selectDept(val, el) {
+    deptChoice = val;
+    document.querySelectorAll('.radio-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  function step1Next() {
+    const y = document.getElementById('inp-year').value.trim();
+    if (!y) { showToast('হিজরী বর্ষ দিন'); return; }
+    newYear = y;
+    /* build teacher grid for step 2 */
+    buildTeacherGrid();
+    goStep(2);
+  }
+
+  /* ── step 2 ── */
+  function buildTeacherGrid() {
+    const classes = API.Classes.getAll().filter(c =>
+      deptChoice === 'both' || c.dept === deptChoice
+    );
+    const allTeachers = API.Teachers.getAll();
+    const grid = document.getElementById('teacher-grid');
+    grid.innerHTML = classes.map(c => {
+      const cur = allTeachers.find(t => t.class_id === c.id);
+      const opts = allTeachers.map(t => `<option value="${t.id}" ${cur && cur.id===t.id?'selected':''}>${API.esc(t.name)}</option>`).join('');
+      return `<div class="teacher-row">
+        <div class="teacher-cls-name">${API.esc(c.name)}</div>
+        <select class="teacher-sel" id="tsel-${c.id}" onchange="teacherChanged('${c.id}',this.value)">
+          <option value="">— নির্বাচন করুন —</option>${opts}
+        </select>
+      </div>`;
+    }).join('');
+  }
+  function toggleTeachers(on) {
+    document.getElementById('teacher-grid').classList.toggle('open', on);
+  }
+  const teacherDraft = {};
+  function teacherChanged(cls_id, tid) { teacherDraft[cls_id] = tid; }
+
+  function step2Next() {
+    /* apply teacher changes */
+    Object.entries(teacherDraft).forEach(([cls_id, tid]) => {
+      if (!tid) return;
+      /* clear old assignment for this teacher */
+      API.Teachers.getAll().forEach(t => {
+        if (t.id === tid && t.class_id !== cls_id) API.Teachers.update(t.id, { class_id: cls_id });
+      });
+    });
+    /* reset kitab progress */
+    API.KitabProgress.resetAllProgress();
+    /* build tour */
+    const allCls = API.Classes.getAll();
+    const order = ['cls_k1','cls_ky','cls_k2','cls_k3','cls_k4','cls_k5','cls_k6','cls_k7','cls_k8',
+                   'cls_m1','cls_m2','cls_m3','cls_m4','cls_m5'];
+    tourClasses = order
+      .map(id => allCls.find(c => c.id === id))
+      .filter(c => c && (deptChoice === 'both' || c.dept === deptChoice));
+    tourIdx = 0;
+    decisions = {};
+    rollCounters = {};
+    goStep(3);
+    renderCurrentClass();
+  }
+
+  /* ── step 3: tour ── */
+  function autoRoll(targetCls) {
+    if (!targetCls || targetCls === 'alumni_pass' || targetCls === 'dropout') return '';
+    const cls = API.Classes.getById(targetCls);
+    if (!cls) return '';
+    const prefix = cls.roll_prefix || '';
+    if (!rollCounters[targetCls]) {
+      /* find current max roll in existing students of that class */
+      const existing = API.Students.getAll().filter(s => s.active && s.class_id === targetCls)
+        .map(s => parseInt(String(s.roll||'').replace(/[^\d]/g,''))||0);
+      rollCounters[targetCls] = (existing.length ? Math.max(...existing) : 0);
+    }
+    rollCounters[targetCls]++;
+    const num = rollCounters[targetCls];
+    const padded = num < 10 ? '০' + toBn(num) : toBn(num);
+    return String(prefix).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]) + padded;
+  }
+
+  function renderCurrentClass() {
+    const cls = tourClasses[tourIdx];
+    const students = API.Students.getAll().filter(s => s.active && s.class_id === cls.id);
+    const defNext = NEXT_CLS[cls.id] || 'alumni_pass';
+    const defCls = API.Classes.getById(defNext);
+    const defName = defCls ? defCls.name : (defNext === 'alumni_pass' ? 'বিদায় — পাস' : '—');
+    document.getElementById('cls-progress').textContent = `বর্ষ ${toBn(tourIdx+1)} / ${toBn(tourClasses.length)}`;
+    document.getElementById('cls-head-name').textContent = cls.name;
+    document.getElementById('cls-head-sub').textContent = `${toBn(students.length)} জন ছাত্র · ডিফল্ট: ${defName}`;
+    document.getElementById('bulk-btn').textContent = `সবাইকে ${defName}-এ পাঠান`;
+    document.getElementById('btn-prev').style.display = tourIdx === 0 ? 'none' : '';
+    document.getElementById('btn-next').textContent = tourIdx === tourClasses.length-1 ? 'সারসংক্ষেপ →' : 'পরবর্তী বর্ষ →';
+    const allCls = API.Classes.getAll();
+    const clsOpts = allCls.map(c => `<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
+    document.getElementById('std-list').innerHTML = students.length
+      ? students.map(s => {
+          const d = decisions[s.id] || { next_class_id: defNext, action: defNext==='alumni_pass'?'alumni_pass':'promote' };
+          const isLeave = d.action === 'alumni_pass' || d.action === 'dropout';
+          const roll = d.new_roll || (!isLeave ? autoRoll(d.next_class_id) : '');
+          if (!decisions[s.id]) decisions[s.id] = { next_class_id: d.next_class_id, action: d.action, new_roll: roll };
+          return `<div class="std-row" id="sr-${s.id}">
+            <div class="std-top">
+              <span class="std-name">${API.esc(s.name)}</span>
+              <span class="std-roll-old">রোল ${API.esc(s.roll||'—')}</span>
+            </div>
+            <div class="std-bottom">
+              <select class="next-cls-sel" id="sel-${s.id}" onchange="onSelChange('${s.id}',this)">
+                ${clsOpts.replace(`value="${d.next_class_id}"`,`value="${d.next_class_id}" selected`)}
+                <option value="repeat" ${d.action==='repeat'?'selected':''}>🔁 পুনরাবৃত্তি (একই বর্ষে)</option>
+                <option value="alumni_pass" ${d.action==='alumni_pass'?'selected':''}>🎓 বিদায় — পাস করেছেন</option>
+                <option value="dropout" ${d.action==='dropout'?'selected':''}>❌ বিদায় — মাঝপথে</option>
+              </select>
+              <input class="roll-input" id="roll-${s.id}" value="${roll}" ${isLeave||d.action==='repeat'?'disabled':''} oninput="decisions['${s.id}'].new_roll=this.value" placeholder="রোল">
+            </div>
+          </div>`;
+        }).join('')
+      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">এই বর্ষে কোনো ছাত্র নেই</div>';
+  }
+
+  function onSelChange(sid, sel) {
+    const val = sel.value;
+    const isSpecial = ['repeat','alumni_pass','dropout'].includes(val);
+    const action = isSpecial ? val : 'promote';
+    const nextCls = isSpecial ? (decisions[sid]?.next_class_id || '') : val;
+    if (!isSpecial) {
+      const roll = autoRoll(val);
+      decisions[sid] = { next_class_id: val, action, new_roll: roll };
+      document.getElementById('roll-'+sid).value = roll;
+      document.getElementById('roll-'+sid).disabled = false;
+    } else {
+      decisions[sid] = { next_class_id: nextCls, action, new_roll: '' };
+      document.getElementById('roll-'+sid).value = '';
+      document.getElementById('roll-'+sid).disabled = true;
+    }
+    sel.className = 'next-cls-sel' + (action==='repeat'?' action-repeat':action==='alumni_pass'?' action-alumni':action==='dropout'?' action-dropout':'');
+  }
+
+  function bulkDefault() {
+    const cls = tourClasses[tourIdx];
+    const defNext = NEXT_CLS[cls.id] || 'alumni_pass';
+    const students = API.Students.getAll().filter(s => s.active && s.class_id === cls.id);
+    students.forEach(s => {
+      const action = defNext === 'alumni_pass' ? 'alumni_pass' : 'promote';
+      const roll = action === 'promote' ? autoRoll(defNext) : '';
+      decisions[s.id] = { next_class_id: defNext, action, new_roll: roll };
+    });
+    renderCurrentClass();
+  }
+
+  function tourNext() {
+    if (tourIdx === tourClasses.length - 1) { buildSummary(); goStep(4); return; }
+    tourIdx++;
+    renderCurrentClass();
+  }
+  function tourPrev() {
+    if (tourIdx === 0) { goStep(2); return; }
+    tourIdx--;
+    renderCurrentClass();
+  }
+
+  /* ── step 4: summary ── */
+  function buildSummary() {
+    const counts = { promote:0, repeat:0, alumni_pass:0, dropout:0 };
+    Object.values(decisions).forEach(d => counts[d.action] = (counts[d.action]||0) + 1);
+    document.getElementById('sum-year-label').textContent = newYear + ' হিজরী শিক্ষাবর্ষ';
+    document.getElementById('sum-promote').textContent = toBn(counts.promote||0) + ' জন';
+    document.getElementById('sum-repeat').textContent = toBn(counts.repeat||0) + ' জন';
+    document.getElementById('sum-alumni').textContent = toBn(counts.alumni_pass||0) + ' জন';
+    document.getElementById('sum-dropout').textContent = toBn(counts.dropout||0) + ' জন';
+  }
+
+  /* ── step 5: execute ── */
+  function executeYearEnd() {
+    /* backup */
+    const backup = { students: localStorage.getItem('mm_students'), withdrawals: localStorage.getItem('mm_withdrawals'), date: new Date().toLocaleDateString('bn-BD') };
+    localStorage.setItem('mm_yearend_backup', JSON.stringify(backup));
+    /* build changes array */
+    const changes = Object.entries(decisions).map(([id, d]) => ({ id, new_class_id: d.next_class_id, new_roll: d.new_roll, action: d.action }));
+    API.Students.bulkYearEnd(changes, newYear);
+    /* update settings hijri year */
+    const s = API.Settings.get(); API.Settings.save({ ...s, hijri_year: newYear });
+    document.getElementById('success-sub').textContent = newYear + ' হিজরী শিক্ষাবর্ষ শুরু হয়েছে।';
+    document.getElementById('backup-date').textContent = backup.date;
+    goStep(5);
+  }
+
+  function undoYearEnd() {
+    const raw = localStorage.getItem('mm_yearend_backup');
+    if (!raw) { showToast('ব্যাকআপ পাওয়া যায়নি'); return; }
+    if (!confirm('সত্যিই পূর্বাবস্থায় ফিরে যাবেন? বর্তমান সব পরিবর্তন বাতিল হবে।')) return;
+    const bk = JSON.parse(raw);
+    if (bk.students) localStorage.setItem('mm_students', bk.students);
+    if (bk.withdrawals) localStorage.setItem('mm_withdrawals', bk.withdrawals);
+    localStorage.removeItem('mm_yearend_backup');
+    showToast('পূর্বাবস্থায় ফেরানো হয়েছে');
+    setTimeout(() => location.href = 'madrasa-daftar.html', 1500);
+  }
+
+  /* show undo if backup exists */
+  if (!localStorage.getItem('mm_yearend_backup')) {
+    document.getElementById('undo-box').style.display = 'none';
+  }
+
+  goStep(1);
+</script>
+</body>
+</html>

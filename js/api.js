@@ -128,6 +128,33 @@ const API = (() => {
       });
       save(KEYS.students, list);
     },
+    /**
+     * বর্ষ উন্নীতকরণ — bulk year-end promotion
+     * changes: [{id, new_class_id, new_roll, action: 'promote'|'repeat'|'alumni_pass'|'dropout'}]
+     */
+    bulkYearEnd(changes, newHijriYear) {
+      const list = load(KEYS.students);
+      const withdrawals = JSON.parse(localStorage.getItem('mm_withdrawals') || '[]');
+      const updated = list.map(s => {
+        const c = changes.find(ch => ch.id === s.id);
+        if (!c) return s;
+        if (c.action === 'alumni_pass' || c.action === 'dropout') {
+          withdrawals.push({
+            id: 'wd_' + uid(), student_id: s.id, name: s.name,
+            permanent_id: s.permanent_id, last_class_id: s.class_id,
+            last_roll: s.roll,
+            reason: c.action === 'alumni_pass' ? 'পাস করেছেন' : 'মাঝপথে বিদায়',
+            date: today(), hijri_year: newHijriYear,
+          });
+          return { ...s, active: false };
+        }
+        const history = s.class_history || [];
+        history.push({ from: s.class_id, to: c.new_class_id, roll_from: s.roll, roll_to: c.new_roll, date: today(), hijri: newHijriYear });
+        return { ...s, class_id: c.new_class_id, roll: c.new_roll, class_history: history };
+      });
+      save(KEYS.students, updated);
+      localStorage.setItem('mm_withdrawals', JSON.stringify(withdrawals));
+    },
     getNextPermanentId(dept, hijriYear) {
       const prefix = dept === 'maktab' ? 'ম' : '';
       const yr = String(hijriYear).slice(-2);
@@ -368,6 +395,8 @@ const API = (() => {
       return k;
     },
     getKitabsByClass: cid => load(KEYS.kitabs).filter(k => k.class_id === cid),
+    /** নতুন শিক্ষাবর্ষে সব progress রিসেট */
+    resetAllProgress() { save(KEYS.kitab_prog, []); },
   };
 
   /* ══════════════════════════════

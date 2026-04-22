@@ -153,7 +153,10 @@
         <span class="hub-title-name">মেইন এডমিন</span>
         <div class="hub-date-sub" id="date-line">—</div>
       </div>
-      <button type="button" class="hub-logout" onclick="logout()">লগআউট</button>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button type="button" class="hub-logout" onclick="openHubSettings()" aria-label="সেটিং" title="সেটিং">⚙</button>
+        <button type="button" class="hub-logout" onclick="logout()">লগআউট</button>
+      </div>
     </div>
   </header>
 
@@ -172,14 +175,6 @@
         <div class="hub-section-title" style="margin-top:4px;">সাম্প্রতিক কার্যক্রম</div>
         <p class="hub-section-sub">মাদ্রাসা লগ, বিভাগ লেনদেন ও খেদমত থেকে মিশ্রিত</p>
         <div class="recent-wrap" id="recent-feed"></div>
-      </section>
-
-      <!-- Tab: ব্যবহারকারী -->
-      <section class="hub-tab-panel" id="hub-panel-users" role="tabpanel" style="position:relative;padding-bottom:80px;">
-        <div class="hub-section-title" style="margin-top:4px;">ব্যবহারকারী ব্যবস্থাপনা</div>
-        <p class="hub-section-sub">দায়িত্বশীলদের লগইন তথ্য ও ভূমিকা পরিচালনা করুন</p>
-        <div id="hub-user-list"></div>
-        <button type="button" class="hub-inbox-fab" onclick="openUserModal(null)" title="নতুন ব্যবহারকারী" style="font-size:26px;font-weight:300;">＋</button>
       </section>
 
     </div>
@@ -207,11 +202,28 @@
         <svg class="hub-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg>
         <span class="hub-nav-label">কার্যক্রম</span>
       </button>
-      <button type="button" class="hub-nav-btn" id="hub-nav-users" data-hub-tab="users" aria-label="ব্যবহারকারী">
-        <svg class="hub-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle stroke-width="1.75" cx="9" cy="7" r="4"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M16 3.13a4 4 0 010 7.75"/></svg>
-        <span class="hub-nav-label">ব্যবহারকারী</span>
-      </button>
     </nav>
+  </div>
+</div>
+
+<!-- Settings Sheet -->
+<div class="hub-overlay" id="hub-settings-overlay" style="display:none;" onclick="if(event.target===this)closeHubSettings()">
+  <div class="hub-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="hub-sheet-title" style="margin:0;">এডমিন সেটিং</div>
+      <button type="button" onclick="closeHubSettings()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);padding:4px 8px;line-height:1;">✕</button>
+    </div>
+    <div style="font-family:'Noto Serif Bengali',serif;font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+      <span>ব্যবহারকারী</span>
+      <button type="button" class="hub-u-btn" onclick="openUserModal(null)">＋ নতুন যোগ</button>
+    </div>
+    <div id="hub-settings-user-list" style="margin-bottom:16px;max-height:40vh;overflow-y:auto;"></div>
+    <div style="font-family:'Noto Serif Bengali',serif;font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:10px;">Admin পিন পরিবর্তন</div>
+    <div class="hub-row">
+      <div class="hub-field"><label>নতুন পিন</label><input type="tel" id="new-admin-pin" maxlength="4" placeholder="0000" inputmode="numeric" pattern="[0-9]{4}"></div>
+      <div class="hub-field"><label>নিশ্চিত করুন</label><input type="tel" id="confirm-admin-pin" maxlength="4" placeholder="0000" inputmode="numeric" pattern="[0-9]{4}"></div>
+    </div>
+    <button type="button" class="hub-btn-save" style="width:100%;padding:11px;border-radius:12px;border:none;font-size:14px;font-weight:600;font-family:'Noto Sans Bengali',sans-serif;cursor:pointer;" onclick="saveAdminPin()">পিন সংরক্ষণ করুন</button>
   </div>
 </div>
 
@@ -292,7 +304,7 @@
   function applyHubUrlTab() {
     try {
       const t = new URLSearchParams(location.search).get('tab');
-      if (t && ['inbox','recent','users'].includes(t)) {
+      if (t && ['inbox','recent'].includes(t)) {
         switchHubTab(t);
         history.replaceState({}, '', 'admin-hub.html');
       }
@@ -309,7 +321,7 @@
   }
 
   function switchHubTab(tab) {
-    const ids = { inbox: 'hub-panel-inbox', recent: 'hub-panel-recent', users: 'hub-panel-users' };
+    const ids = { inbox: 'hub-panel-inbox', recent: 'hub-panel-recent' };
     const panelId = ids[tab];
     if (!panelId) return;
     document.querySelectorAll('.hub-tab-panel').forEach(p => p.classList.toggle('is-active', p.id === panelId));
@@ -321,7 +333,6 @@
     const scrollEl = document.getElementById('hub-tab-panels');
     if (scrollEl) scrollEl.scrollTop = 0;
     if (tab === 'inbox') renderHubInbox();
-    if (tab === 'users') renderHubUsers();
   }
 
   function fmtTimeHub(ts) {
@@ -414,8 +425,31 @@
 
   let _editingUserId = null;
 
+  function openHubSettings() {
+    renderHubUsers();
+    document.getElementById('new-admin-pin').value = '';
+    document.getElementById('confirm-admin-pin').value = '';
+    document.getElementById('hub-settings-overlay').style.display = 'flex';
+  }
+
+  function closeHubSettings() {
+    document.getElementById('hub-settings-overlay').style.display = 'none';
+  }
+
+  function saveAdminPin() {
+    const p1 = document.getElementById('new-admin-pin').value.trim();
+    const p2 = document.getElementById('confirm-admin-pin').value.trim();
+    if (!p1 || p1.length !== 4 || !/^\d{4}$/.test(p1)) { showHubToast('৪ সংখ্যার পিন দিন।'); return; }
+    if (p1 !== p2) { showHubToast('পিন মিলছে না।'); return; }
+    const s = API.Settings.get();
+    API.Settings.save({ ...s, admin_pin: p1 });
+    document.getElementById('new-admin-pin').value = '';
+    document.getElementById('confirm-admin-pin').value = '';
+    showHubToast('Admin পিন পরিবর্তন হয়েছে।');
+  }
+
   function renderHubUsers() {
-    const el = document.getElementById('hub-user-list');
+    const el = document.getElementById('hub-settings-user-list');
     if (!el) return;
     const users = API.Teachers.getAll();
     if (!users.length) {
@@ -480,7 +514,7 @@
 
   function toggleUserActive(id, makeActive) {
     API.Teachers.update(id, { is_active: makeActive });
-    renderHubUsers();
+    if (document.getElementById('hub-settings-overlay').style.display !== 'none') renderHubUsers();
     showHubToast(makeActive ? 'ব্যবহারকারী সক্রিয় করা হয়েছে।' : 'ব্যবহারকারী নিষ্ক্রিয় করা হয়েছে।');
   }
 
@@ -501,7 +535,7 @@
       showHubToast('নতুন ব্যবহারকারী যোগ হয়েছে।');
     }
     closeUserModal();
-    renderHubUsers();
+    if (document.getElementById('hub-settings-overlay').style.display !== 'none') renderHubUsers();
   }
 
   function showHubToast(msg) {

@@ -10,6 +10,7 @@ const DeptAPI = (() => {
     transactions:  'mm_dept_transactions',
     inventory:     'mm_dept_inventory',
     edit_requests: 'mm_dept_edit_requests',
+    extra_fields:  'mm_dept_extra_fields',
   };
 
   const uid  = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
@@ -45,7 +46,7 @@ const DeptAPI = (() => {
 
   /* ── DEPARTMENTS ── */
   const Departments = {
-    getAll:   () => load(KEYS.departments).filter(d => d.is_active),
+    getAll:   () => load(KEYS.departments).filter(d => d.is_active !== false),
     getAll_:  () => load(KEYS.departments),
     getById:  id => load(KEYS.departments).find(d => d.id === id),
     verifyPin(id, pin) {
@@ -64,27 +65,43 @@ const DeptAPI = (() => {
     },
   };
 
-  /* ── Per–sub-department extra fields (keyed by department id)
-      Add rows here when a বিভাগ needs ১–২ extra inputs on top of shared amount/description/date.
-      UI reads this to build the form; values live on each transaction under `metadata`. */
-  const SUBDEPT_EXTRA_FIELDS = {
-    dept_1: [
-      { key:'plot', label:'জমি / প্লট রেফারেন্স', type:'text', placeholder:'যেমন: প্লট-ক', optional:true },
-    ],
-    dept_2: [
-      { key:'hives', label:'মৌচাক সংখ্যা (ঐন)', type:'number', placeholder:'১২', optional:true },
-    ],
-    dept_3: [
-      { key:'batch', label:'ব্যাচ / লট', type:'text', placeholder:'যেমন: ব্যাচ ১২', optional:true },
-    ],
-    dept_4: [
-      { key:'item_type', label:'পণ্যের ধরন', type:'text', placeholder:'যেমন: পাঞ্জাবি, থ্রিপিস', optional:true },
-    ],
+  /* ── Per-dept extra fields — hardcoded fallback (overridden by localStorage) ── */
+  const SUBDEPT_EXTRA_FIELDS_DEFAULT = {
+    dept_1: [{ key:'plot',      label:'জমি / প্লট রেফারেন্স',  type:'text',   optional:true }],
+    dept_2: [{ key:'hives',     label:'মৌচাক সংখ্যা (ঐন)',     type:'number', optional:true }],
+    dept_3: [{ key:'batch',     label:'ব্যাচ / লট',             type:'text',   optional:true }],
+    dept_4: [{ key:'item_type', label:'পণ্যের ধরন',             type:'text',   optional:true }],
   };
 
-  function getSubdeptFields(dept_id) {
-    return SUBDEPT_EXTRA_FIELDS[dept_id] ? SUBDEPT_EXTRA_FIELDS[dept_id].slice() : [];
+  function _loadExtraFields() {
+    try { return JSON.parse(localStorage.getItem(KEYS.extra_fields)) || {}; } catch { return {}; }
   }
+
+  /* ── ExtraFields — প্রতিটি বিভাগের অতিরিক্ত ইনপুট ক্ষেত্র ── */
+  const ExtraFields = {
+    get(dept_id) {
+      const stored = _loadExtraFields();
+      return stored[dept_id] !== undefined
+        ? stored[dept_id]
+        : (SUBDEPT_EXTRA_FIELDS_DEFAULT[dept_id] || []).slice();
+    },
+    set(dept_id, fields) {
+      const all = _loadExtraFields();
+      all[dept_id] = fields;
+      localStorage.setItem(KEYS.extra_fields, JSON.stringify(all));
+    },
+    add(dept_id, field) {
+      const fields = this.get(dept_id);
+      if (!field.key || fields.find(f => f.key === field.key)) return false;
+      this.set(dept_id, [...fields, field]);
+      return true;
+    },
+    remove(dept_id, key) {
+      this.set(dept_id, this.get(dept_id).filter(f => f.key !== key));
+    },
+  };
+
+  function getSubdeptFields(dept_id) { return ExtraFields.get(dept_id); }
 
   /* ── TRANSACTIONS ── */
   const Transactions = {
@@ -171,6 +188,6 @@ const DeptAPI = (() => {
   };
 
   seedIfEmpty();
-  return { Departments, Transactions, Inventory, EditRequests, getSubdeptFields, uid, today, esc };
+  return { Departments, Transactions, Inventory, EditRequests, ExtraFields, getSubdeptFields, uid, today, esc };
 
 })();
