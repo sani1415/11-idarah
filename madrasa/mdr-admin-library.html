@@ -26,9 +26,11 @@
   .search-bar { display:flex; gap:8px; margin-bottom:12px; }
   .search-input { flex:1; background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:11px 14px; font-family:'Noto Sans Bengali',sans-serif; font-size:14px; color:var(--ink); outline:none; }
   .search-input:focus { border-color:var(--gold); }
-  .cat-filter { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px; }
-  .cat-btn { background:#fff; border:1px solid var(--cream3); border-radius:20px; padding:6px 12px; font-size:11px; white-space:nowrap; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; color:var(--ink3); transition:all .15s; }
-  .cat-btn.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
+  .cat-select { width:100%; background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:10px 14px; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; color:var(--ink); outline:none; margin-bottom:12px; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:36px; cursor:pointer; }
+  .cat-select:focus { border-color:var(--gold); }
+  .lib-top-tabs { display:flex; border-bottom:2px solid var(--cream2); background:#fff; position:sticky; top:0; z-index:10; }
+  .lib-top-tab { flex:1; padding:12px 4px; border:none; background:none; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; font-weight:600; color:var(--ink3); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; transition:color .15s; }
+  .lib-top-tab.active { color:var(--ink); border-bottom-color:var(--gold); }
   .main-nav { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom,12px)); z-index:100; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:6px 8px; background:linear-gradient(180deg,#ffffff 0%,#faf6ef 100%); border:1px solid rgba(26,18,8,.08); border-radius:999px; box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1); max-width:456px; margin:0 auto; box-sizing:border-box; }
   .main-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; text-decoration:none; transition:background .15s,color .15s; }
   .main-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
@@ -75,6 +77,11 @@
   </div>
 </div>
 
+<div class="lib-top-tabs">
+  <button class="lib-top-tab active" id="ptab-books" onclick="switchMainPanel('home')">📚 বই</button>
+  <button class="lib-top-tab" id="ptab-issues" onclick="switchMainPanel('issued')">📋 ইস্যু</button>
+</div>
+
 <div class="content">
   <div class="panel active" id="panel-home">
     <div style="background:linear-gradient(135deg,#1a5276,#2980b9);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
@@ -85,31 +92,22 @@
       </div>
     </div>
     <div class="search-bar"><input class="search-input" id="search-input" placeholder="বইয়ের নাম বা লেখক খুঁজুন..." oninput="renderBooks()"></div>
-    <div class="cat-filter" id="cat-filter"></div>
-    <div class="sec-header"><span class="sec-title">বই তালিকা</span><span class="sec-link" onclick="openModal('add-book')">＋ নতুন বই</span></div>
+    <select class="cat-select" id="cat-select" onchange="filterCat(this.value)"></select>
+    <div class="sec-header"><span class="sec-title">বই তালিকা</span></div>
     <div id="book-list"></div>
     <div class="pb-safe"></div>
   </div>
 
   <div class="panel" id="panel-issued">
-    <div class="sec-header" style="margin-top:8px;">
-      <span class="sec-title">ইস্যু তালিকা</span>
-      <span class="sec-link" onclick="openModal('issue-book')">＋ বই ইস্যু</span>
-    </div>
-    <div class="tab-bar">
-      <div class="tab-btn active" id="itab-all"      onclick="switchIssueTab('all')">সব</div>
-      <div class="tab-btn" id="itab-active"          onclick="switchIssueTab('active')">চলমান</div>
-      <div class="tab-btn" id="itab-overdue"         onclick="switchIssueTab('overdue')">মেয়াদ শেষ</div>
-      <div class="tab-btn" id="itab-returned"        onclick="switchIssueTab('returned')">ফেরত দেওয়া</div>
+    <div class="tab-bar" style="margin-top:8px;">
+      <div class="tab-btn active" id="itab-all"     onclick="switchIssueTab('all')">সব</div>
+      <div class="tab-btn" id="itab-active"         onclick="switchIssueTab('active')">চলমান</div>
+      <div class="tab-btn" id="itab-overdue"        onclick="switchIssueTab('overdue')">মেয়াদ শেষ</div>
+      <div class="tab-btn" id="itab-returned"       onclick="switchIssueTab('returned')">ফেরত দেওয়া</div>
     </div>
     <div id="issue-list"></div>
     <div class="pb-safe"></div>
   </div>
-</div>
-
-<div class="tab-bar" style="position:fixed;bottom:90px;left:0;right:0;background:#fff;border-top:1px solid var(--cream2);z-index:50;">
-  <div class="tab-btn active" id="ptab-books" onclick="switchMainPanel('home');this.classList.add('active');document.getElementById('ptab-issues').classList.remove('active');">📚 বই</div>
-  <div class="tab-btn" id="ptab-issues" onclick="switchPanel('issued');renderIssues('all');this.classList.add('active');document.getElementById('ptab-books').classList.remove('active');">📋 ইস্যু</div>
 </div>
 
 <nav class="main-nav" role="navigation" aria-label="মেইন এডমিন নেভিগেশন" style="bottom:max(12px,env(safe-area-inset-bottom,12px));">
@@ -120,38 +118,6 @@
   <a class="main-nav-btn" href="../admin-hub.html?tab=recent" aria-label="কার্যক্রম"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg><span class="main-nav-lbl">কার্যক্রম</span></a>
 </nav>
 
-<div class="modal-bg" id="modal-add-book">
-  <div class="modal">
-    <div class="modal-title">নতুন বই যোগ <button class="modal-close" onclick="closeModal('add-book')">✕</button></div>
-    <div class="form-group"><label class="form-label">বইয়ের নাম</label><input class="form-input" id="bk-title" placeholder="বইয়ের পূর্ণ নাম"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">লেখক / সংকলক</label><input class="form-input" id="bk-author" placeholder="লেখকের নাম"></div>
-      <div class="form-group"><label class="form-label">বিভাগ</label>
-        <select class="form-input form-select" id="bk-cat">
-          <option>ফিকহ</option><option>হাদীস</option><option>তাফসীর</option>
-          <option>আকীদা</option><option>সীরাত</option><option>আরবী সাহিত্য</option><option>বাংলা</option><option>অন্যান্য</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">মোট কপি</label><input class="form-input" id="bk-copies" type="number" min="1" value="1"></div>
-      <div class="form-group"><label class="form-label">র‍্যাক নম্বর</label><input class="form-input" id="bk-rack" placeholder="যেমন: A-3"></div>
-    </div>
-    <button class="submit-btn blue" onclick="addBook()">বই যোগ করুন</button>
-  </div>
-</div>
-<div class="modal-bg" id="modal-issue-book">
-  <div class="modal">
-    <div class="modal-title">বই ইস্যু করুন <button class="modal-close" onclick="closeModal('issue-book')">✕</button></div>
-    <div class="form-group"><label class="form-label">বই নির্বাচন করুন</label><select class="form-input form-select" id="iss-book"></select></div>
-    <div class="form-group"><label class="form-label">ছাত্র নির্বাচন করুন</label><select class="form-input form-select" id="iss-student"></select></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">ইস্যুর তারিখ</label><input class="form-input" id="iss-date" type="date"></div>
-      <div class="form-group"><label class="form-label">ফেরতের তারিখ</label><input class="form-input" id="iss-due" type="date"></div>
-    </div>
-    <button class="submit-btn blue" onclick="issueBook()">ইস্যু করুন</button>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 <script src="../js/mm-sample-data.js"></script>
@@ -168,7 +134,12 @@
   }
   let currentCat='সব', currentIssueTab='all';
   function switchPanel(name) { document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active')); document.getElementById('panel-'+name).classList.add('active'); window.scrollTo(0,0); }
-  function switchMainPanel(name) { switchPanel(name); }
+  function switchMainPanel(name) {
+    switchPanel(name);
+    document.getElementById('ptab-books').classList.toggle('active', name==='home');
+    document.getElementById('ptab-issues').classList.toggle('active', name==='issued');
+    if(name==='issued') renderIssues(currentIssueTab);
+  }
   function switchIssueTab(tab) {
     currentIssueTab=tab;
     ['all','active','overdue','returned'].forEach(t=>document.getElementById('itab-'+t).classList.toggle('active',t===tab));
@@ -177,7 +148,8 @@
   function renderBooks() {
     const books=API.persistLoadArr(LIB_BOOKS), issues=API.persistLoadArr(LIB_ISSUES), query=document.getElementById('search-input').value.toLowerCase();
     const cats=['সব',...new Set(books.map(b=>b.category))];
-    document.getElementById('cat-filter').innerHTML=cats.map(c=>`<div class="cat-btn ${c===currentCat?'active':''}" onclick="filterCat('${c}')">${c}</div>`).join('');
+    const sel=document.getElementById('cat-select');
+    sel.innerHTML=cats.map(c=>`<option value="${c}" ${c===currentCat?'selected':''}>${c}</option>`).join('');
     const activeIssues=issues.filter(i=>!i.returned), today=API.today(), overdue=activeIssues.filter(i=>i.due<today);
     document.getElementById('total-books').textContent=toBn(books.length)+' শিরোনাম';
     document.getElementById('issued-books').textContent=toBn(activeIssues.length);
@@ -189,10 +161,6 @@
       const issuedCount=issues.filter(i=>i.book_id===b.id&&!i.returned).length, available=(b.copies||1)-issuedCount;
       return `<div class="book-card" onclick="showBookDetail('${b.id}')"><div class="book-cover">📖</div><div class="book-info"><div class="book-title">${API.esc(b.title)}</div><div class="book-author">${API.esc(b.author||'—')}</div><div class="book-meta"><span class="list-badge badge-ink">${API.esc(b.category)}</span>${b.rack?`<span style="margin-left:4px;font-size:11px;color:var(--ink3);">র‍্যাক ${API.esc(b.rack)}</span>`:''}</div></div><div class="book-right"><div class="book-copies" style="color:${available>0?'var(--green)':'var(--red)'}">${toBn(available)}</div><div class="book-available">পাওয়া যাচ্ছে</div><div style="font-size:10px;color:var(--ink3);margin-top:2px;">মোট ${toBn(b.copies||1)}</div></div></div>`;
     }).join('')||'<div class="empty-state"><span class="empty-icon">📚</span><div class="empty-text">কোনো বই নেই</div></div>';
-    document.getElementById('iss-book').innerHTML=books.map(b=>`<option value="${b.id}">${API.esc(b.title)}</option>`).join('');
-    document.getElementById('iss-student').innerHTML=API.Students.getAll().filter(s=>s.active).map(s=>`<option value="${s.id}">${API.esc(s.name)} (${API.esc(s.permanent_id)})</option>`).join('');
-    document.getElementById('iss-date').value=today;
-    const dueD=new Date(); dueD.setDate(dueD.getDate()+14); document.getElementById('iss-due').value=dueD.toISOString().split('T')[0];
   }
   function filterCat(cat) { currentCat=cat; renderBooks(); }
   function showBookDetail(bid) {
@@ -209,23 +177,8 @@
     filtered.sort((a,b)=>(b.issued||'').localeCompare(a.issued||''));
     document.getElementById('issue-list').innerHTML=filtered.map(i=>{
       const book=books.find(b=>b.id===i.book_id), student=API.Students.getById(i.student_id), isOverdue=!i.returned&&i.due<today;
-      return `<div class="issue-row ${isOverdue?'overdue':''}"><div class="issue-top"><div><div class="issue-book">${book?API.esc(book.title):'—'}</div><div class="issue-student">${student?API.esc(student.name)+' · '+API.esc(student.permanent_id):'—'}</div></div>${!i.returned?`<button onclick="returnBook('${i.id}')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:'Noto Sans Bengali',sans-serif;font-size:12px;cursor:pointer;">ফেরত</button>`:'<span class="list-badge badge-green">ফেরত দেওয়া</span>'}</div><div class="issue-dates">ইস্যু: ${API.esc(i.issued||'—')} · ফেরতের তারিখ: <span style="color:${isOverdue?'var(--red)':'inherit'}">${API.esc(i.due||'—')}</span>${i.returned?' · ফেরত: '+API.esc(i.returned):''}${isOverdue?' <strong style="color:var(--red)">· মেয়াদ শেষ!</strong>':''}</div></div>`;
+      return `<div class="issue-row ${isOverdue?'overdue':''}"><div class="issue-top"><div><div class="issue-book">${book?API.esc(book.title):'—'}</div><div class="issue-student">${student?API.esc(student.name)+' · '+API.esc(student.permanent_id):'—'}</div></div>${i.returned?'<span class="list-badge badge-green">ফেরত দেওয়া</span>':'<span class="list-badge badge-gold">চলমান</span>'}</div><div class="issue-dates">ইস্যু: ${API.esc(i.issued||'—')} · ফেরতের তারিখ: <span style="color:${isOverdue?'var(--red)':'inherit'}">${API.esc(i.due||'—')}</span>${i.returned?' · ফেরত: '+API.esc(i.returned):''}${isOverdue?' <strong style="color:var(--red)">· মেয়াদ শেষ!</strong>':''}</div></div>`;
     }).join('')||'<div class="empty-state"><span class="empty-icon">📖</span><div class="empty-text">কোনো রেকর্ড নেই</div></div>';
-  }
-  function returnBook(iid) {
-    const list=API.persistLoadArr(LIB_ISSUES).map(i=>i.id===iid?{...i,returned:API.today()}:i);
-    API.persistSaveArr(LIB_ISSUES,list); showToast('বই ফেরত নেওয়া হয়েছে ✓'); renderIssues(currentIssueTab); renderBooks();
-  }
-  function addBook() {
-    const title=document.getElementById('bk-title').value.trim(); if(!title){showToast('বইয়ের নাম দিন');return;}
-    const list=API.persistLoadArr(LIB_BOOKS); list.push({id:'bk_'+API.uid(),title,author:document.getElementById('bk-author').value.trim(),category:document.getElementById('bk-cat').value,copies:parseInt(document.getElementById('bk-copies').value)||1,rack:document.getElementById('bk-rack').value.trim()});
-    API.persistSaveArr(LIB_BOOKS,list); closeModal('add-book'); showToast('বই যোগ করা হয়েছে ✓'); renderBooks();
-  }
-  function issueBook() {
-    const book_id=document.getElementById('iss-book').value, student_id=document.getElementById('iss-student').value, issued=document.getElementById('iss-date').value, due=document.getElementById('iss-due').value;
-    if(!book_id||!student_id||!issued||!due){showToast('সব তথ্য দিন');return;}
-    const list=API.persistLoadArr(LIB_ISSUES); list.push({id:API.uid(),book_id,student_id,issued,due,returned:null});
-    API.persistSaveArr(LIB_ISSUES,list); closeModal('issue-book'); showToast('বই ইস্যু করা হয়েছে ✓'); renderBooks();
   }
   function openModal(id) { document.getElementById('modal-'+id).classList.add('open'); }
   function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }

@@ -83,7 +83,6 @@
         <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="avg-para">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">গড় পারা</div></div>
       </div>
     </div>
-    <button class="add-btn" style="background:var(--purple);" onclick="openModal('add-group')">＋ নতুন গ্রুপ তৈরি করুন</button>
     <div class="sec-header"><span class="sec-title">সক্রিয় গ্রুপসমূহ</span></div>
     <div id="group-list"></div>
     <div class="pb-safe"></div>
@@ -124,14 +123,11 @@
         <div class="legend-item"><div class="legend-dot" style="background:var(--cream3)"></div>বাকি</div>
       </div>
       <div class="para-grid" id="para-grid"></div>
-      <button class="add-btn" style="background:var(--purple);margin-top:12px;" onclick="openModal('update-progress')">＋ অগ্রগতি আপডেট করুন</button>
     </div>
     <div id="gtab-content-members" style="display:none;">
-      <button class="add-btn" style="background:var(--purple);" onclick="openModal('add-member')">＋ সদস্য যোগ করুন</button>
       <div class="card-static" id="member-list"></div>
     </div>
     <div id="gtab-content-activity" style="display:none;">
-      <button class="add-btn" style="background:var(--ink);" onclick="openModal('add-activity')">＋ কার্যক্রম লগ যোগ করুন</button>
       <div id="activity-list"></div>
     </div>
     <div class="pb-safe"></div>
@@ -146,51 +142,6 @@
   <a class="main-nav-btn" href="../admin-hub.html?tab=recent" aria-label="কার্যক্রম"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg><span class="main-nav-lbl">কার্যক্রম</span></a>
 </nav>
 
-<div class="modal-bg" id="modal-add-group">
-  <div class="modal">
-    <div class="modal-title">নতুন গ্রুপ <button class="modal-close" onclick="closeModal('add-group')">✕</button></div>
-    <div class="form-group"><label class="form-label">গ্রুপের নাম</label><input class="form-input" id="grp-name" placeholder="যেমন: গ্রুপ আলিফ"></div>
-    <div class="form-group"><label class="form-label">শুরুর তারিখ</label><input class="form-input" id="grp-start" type="date"></div>
-    <div class="form-group"><label class="form-label">মন্তব্য</label><input class="form-input" id="grp-note" placeholder="যেকোনো তথ্য"></div>
-    <button class="submit-btn" style="background:var(--purple);" onclick="addGroup()">গ্রুপ তৈরি করুন</button>
-  </div>
-</div>
-<div class="modal-bg" id="modal-update-progress">
-  <div class="modal">
-    <div class="modal-title">অগ্রগতি আপডেট <button class="modal-close" onclick="closeModal('update-progress')">✕</button></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">সম্পন্ন পারা (মোট)</label><input class="form-input" id="upd-para" type="number" min="0" max="30" placeholder="০–৩০"></div>
-      <div class="form-group"><label class="form-label">মুরাজাআ পারা</label><input class="form-input" id="upd-revision" type="number" min="0" max="30" placeholder="০–৩০"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">সম্পন্ন সূরা</label><input class="form-input" id="upd-surah" type="number" min="0" max="114" placeholder="০–১১৪"></div>
-      <div class="form-group"><label class="form-label">চলমান পারা নম্বর</label><input class="form-input" id="upd-current" type="number" min="1" max="30" placeholder="১–৩০"></div>
-    </div>
-    <div class="form-group"><label class="form-label">আজকের পর্যবেক্ষণ</label><textarea class="form-input form-textarea" id="upd-note" placeholder="আজ কী পড়ানো হলো..."></textarea></div>
-    <button class="submit-btn" style="background:var(--purple);" onclick="saveProgress()">সংরক্ষণ করুন</button>
-  </div>
-</div>
-<div class="modal-bg" id="modal-add-member">
-  <div class="modal">
-    <div class="modal-title">সদস্য যোগ করুন <button class="modal-close" onclick="closeModal('add-member')">✕</button></div>
-    <div class="form-group"><label class="form-label">ছাত্র নির্বাচন করুন</label><select class="form-input form-select" id="member-student"></select></div>
-    <div class="form-group"><label class="form-label">যোগদানের তারিখ</label><input class="form-input" id="member-date" type="date"></div>
-    <button class="submit-btn" style="background:var(--purple);" onclick="addMember()">যোগ করুন</button>
-  </div>
-</div>
-<div class="modal-bg" id="modal-add-activity">
-  <div class="modal">
-    <div class="modal-title">কার্যক্রম লগ <button class="modal-close" onclick="closeModal('add-activity')">✕</button></div>
-    <div class="form-group"><label class="form-label">কার্যক্রমের ধরন</label>
-      <select class="form-input form-select" id="act-type">
-        <option value="পাঠ">নিয়মিত পাঠ</option><option value="মুরাজাআ">মুরাজাআ সেশন</option>
-        <option value="পরীক্ষা">হিফজ পরীক্ষা</option><option value="বিশেষ">বিশেষ কার্যক্রম</option>
-      </select>
-    </div>
-    <div class="form-group"><label class="form-label">বিবরণ</label><textarea class="form-input form-textarea" id="act-text" placeholder="আজকের কার্যক্রম..."></textarea></div>
-    <button class="submit-btn" style="background:var(--purple);" onclick="saveActivity()">সংরক্ষণ করুন</button>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 <script src="../js/mm-sample-data.js"></script>
@@ -246,41 +197,14 @@
     const pct=Math.round(paraDone/30*100), r=28, circ=2*Math.PI*r;
     document.getElementById('progress-ring-container').innerHTML=`<svg width="70" height="70" class="progress-ring" viewBox="0 0 70 70"><circle class="ring-bg" cx="35" cy="35" r="${r}"/><circle class="ring-fill" cx="35" cy="35" r="${r}" stroke-dasharray="${circ}" stroke-dashoffset="${circ-circ*pct/100}"/></svg><div style="text-align:center;margin-top:-60px;height:60px;display:flex;align-items:center;justify-content:center;position:relative;"><span class="ring-label">${toBn(pct)}%</span></div>`;
     document.getElementById('para-grid').innerHTML=Array.from({length:30},(_,i)=>{const n=i+1;let cls='';if(n<=paraDone&&n!==currentPara)cls='done';else if(n===currentPara)cls='current';else if(n<=revisionPara)cls='revision';return `<div class="para-cell ${cls}">${toBn(n)}</div>`;}).join('');
-    if(latest){document.getElementById('upd-para').value=latest.para_done;document.getElementById('upd-revision').value=latest.revision_para;document.getElementById('upd-surah').value=latest.surah_done;document.getElementById('upd-current').value=latest.current_para;}
-  }
-  function saveProgress() {
-    const para=parseInt(document.getElementById('upd-para').value)||0, revision=parseInt(document.getElementById('upd-revision').value)||0, surah=parseInt(document.getElementById('upd-surah').value)||0, current=parseInt(document.getElementById('upd-current').value)||1, note=document.getElementById('upd-note').value;
-    const list=API.persistLoadArr(HIFZ_PROG_KEY);
-    list.push({id:API.uid(),group_id:currentGroupId,para_done:para,surah_done:surah,revision_para:revision,current_para:current,note,date:API.today()});
-    API.persistSaveArr(HIFZ_PROG_KEY,list); closeModal('update-progress'); showToast('অগ্রগতি সংরক্ষিত ✓'); renderGroupProgress();
   }
   function renderGroupMembers() {
     const members=API.persistLoadArr(HIFZ_MEMBERS_KEY).filter(m=>m.group_id===currentGroupId);
     document.getElementById('member-list').innerHTML=members.map(m=>{const s=API.Students.getById(m.student_id);const cls=s?API.Classes.getById(s.class_id):null;return s?`<div class="member-row"><div class="list-avatar">📿</div><div style="flex:1;"><div class="member-name">${API.esc(s.name)}</div><div class="member-class">${cls?API.esc(cls.name):''} · যোগদান: ${API.esc(m.joined||'')}</div></div><span class="list-badge badge-ink">${API.esc(s.permanent_id)}</span></div>`:''}).join('')||'<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো সদস্য নেই</div></div>';
-    const existing=members.map(m=>m.student_id); const available=API.Students.getAll().filter(s=>s.hifz&&!existing.includes(s.id));
-    document.getElementById('member-student').innerHTML=available.map(s=>`<option value="${s.id}">${API.esc(s.name)}</option>`).join('')||'<option>কোনো ছাত্র নেই</option>';
-  }
-  function addMember() {
-    const sid=document.getElementById('member-student').value, date=document.getElementById('member-date').value||API.today();
-    if(!sid){showToast('ছাত্র নির্বাচন করুন');return;}
-    const list=API.persistLoadArr(HIFZ_MEMBERS_KEY); list.push({id:API.uid(),group_id:currentGroupId,student_id:sid,joined:date});
-    API.persistSaveArr(HIFZ_MEMBERS_KEY,list); closeModal('add-member'); showToast('সদস্য যোগ করা হয়েছে ✓'); renderGroupMembers();
   }
   function renderGroupActivity() {
     const acts=API.persistLoadArr(HIFZ_ACTIVITY_KEY).filter(a=>a.group_id===currentGroupId).sort((a,b)=>b.date.localeCompare(a.date));
     document.getElementById('activity-list').innerHTML=acts.map(a=>`<div class="activity-log-item"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span class="list-badge badge-ink">${API.esc(a.type)}</span><span style="font-size:11px;color:var(--ink3);">${API.esc(a.date)}</span></div><div style="font-size:13px;color:var(--ink);line-height:1.6;">${API.esc(a.text)}</div><div style="font-size:11px;color:var(--ink3);margin-top:4px;">${API.esc(a.by||'')}</div></div>`).join('')||'<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-text">কোনো লগ নেই</div></div>';
-  }
-  function saveActivity() {
-    const type=document.getElementById('act-type').value, text=document.getElementById('act-text').value.trim();
-    if(!text){showToast('বিবরণ দিন');return;}
-    const list=API.persistLoadArr(HIFZ_ACTIVITY_KEY); list.push({id:API.uid(),group_id:currentGroupId,type,text,date:API.today(),by:'মুহতামিম'});
-    API.persistSaveArr(HIFZ_ACTIVITY_KEY,list); closeModal('add-activity'); showToast('লগ সংরক্ষিত ✓'); renderGroupActivity();
-  }
-  function addGroup() {
-    const name=document.getElementById('grp-name').value.trim();
-    if(!name){showToast('গ্রুপের নাম দিন');return;}
-    const list=API.persistLoadArr(HIFZ_KEY); list.push({id:'grp_'+API.uid(),name,start:document.getElementById('grp-start').value||API.today(),note:document.getElementById('grp-note').value,active:true});
-    API.persistSaveArr(HIFZ_KEY,list); closeModal('add-group'); showToast('গ্রুপ তৈরি হয়েছে ✓'); renderHome();
   }
   function openModal(id) { document.getElementById('modal-'+id).classList.add('open'); }
   function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }

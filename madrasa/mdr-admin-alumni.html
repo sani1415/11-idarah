@@ -79,7 +79,6 @@
         <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="this-month">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">এ মাসে যোগাযোগ</div></div>
       </div>
     </div>
-    <button class="add-btn" style="background:var(--ink2);" onclick="openModal('add-alumni')">＋ পুরনো ছাত্র যোগ করুন</button>
     <div class="filter-row" id="filter-row">
       <div class="filter-btn active" onclick="filterAlumni('সব',this)">সব</div>
       <div class="filter-btn" onclick="filterAlumni('সম্পন্ন',this)">সম্পন্ন</div>
@@ -96,10 +95,6 @@
       <span class="sec-link" onclick="switchPanel('home');renderHome()">← ফিরুন</span>
     </div>
     <div class="alumni-detail-header" id="detail-header"></div>
-    <div style="display:flex;gap:8px;margin-bottom:14px;">
-      <button class="add-btn" style="margin-bottom:0;flex:1;background:var(--gold);" onclick="openContactModal()">📞 যোগাযোগ লগ করুন</button>
-      <button class="add-btn" style="margin-bottom:0;flex:1;background:var(--ink2);" onclick="openStatusModal()">✏️ স্ট্যাটাস আপডেট</button>
-    </div>
     <div class="sec-header"><span class="sec-title">যোগাযোগের ইতিহাস</span></div>
     <div id="contact-history"></div>
     <div class="pb-safe"></div>
@@ -114,52 +109,6 @@
   <a class="main-nav-btn" href="../admin-hub.html?tab=recent" aria-label="কার্যক্রম"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg><span class="main-nav-lbl">কার্যক্রম</span></a>
 </nav>
 
-<div class="modal-bg" id="modal-add-alumni">
-  <div class="modal">
-    <div class="modal-title">পুরনো ছাত্র যোগ <button class="modal-close" onclick="closeModal('add-alumni')">✕</button></div>
-    <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="al-name" placeholder="পূর্ণ নাম"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">স্থায়ী আইডি</label><input class="form-input" id="al-id" placeholder="যেমন: ৪৫০০১"></div>
-      <div class="form-group"><label class="form-label">ফোন নম্বর</label><input class="form-input" id="al-phone" placeholder="০১৭XX-XXXXXX"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">বিদায়ের বছর</label><input class="form-input" id="al-year" placeholder="যেমন: ২০২২"></div>
-      <div class="form-group"><label class="form-label">বিদায়ের কারণ</label>
-        <select class="form-input form-select" id="al-reason">
-          <option>সম্পন্ন করে</option><option>মাঝপথে বিদায়</option>
-          <option>অন্য মাদ্রাসায় গেছেন</option><option>বিবাহ</option><option>অন্যান্য</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group"><label class="form-label">বর্তমান অবস্থান / পেশা</label><input class="form-input" id="al-location" placeholder="কোথায় আছেন, কী করছেন"></div>
-    <button class="submit-btn" style="background:var(--ink2);" onclick="addAlumni()">যোগ করুন</button>
-  </div>
-</div>
-
-<div class="modal-bg" id="modal-contact">
-  <div class="modal">
-    <div class="modal-title">যোগাযোগ লগ <button class="modal-close" onclick="closeModal('contact')">✕</button></div>
-    <div style="margin-bottom:12px;padding:10px;background:var(--cream2);border-radius:var(--radius-sm);"><div style="font-size:14px;font-weight:700;" id="contact-alumni-name">—</div></div>
-    <div class="form-group"><label class="form-label">যোগাযোগের ধরন</label>
-      <select class="form-input form-select" id="ct-type">
-        <option>ফোনে কথা</option><option>সরাসরি সাক্ষাৎ</option>
-        <option>বার্তা পাঠিয়েছেন</option><option>মাদ্রাসায় এসেছেন</option>
-      </select>
-    </div>
-    <div class="form-group"><label class="form-label">বর্তমান অবস্থা</label><input class="form-input" id="ct-status" placeholder="কোথায় আছেন, কী করছেন..."></div>
-    <div class="form-group"><label class="form-label">বিস্তারিত বিবরণ</label><textarea class="form-input form-textarea" id="ct-text" style="min-height:100px;" placeholder="কথোপকথনের বিবরণ..."></textarea></div>
-    <button class="submit-btn" style="background:var(--gold);" onclick="saveContact()">লগ সংরক্ষণ করুন</button>
-  </div>
-</div>
-
-<div class="modal-bg" id="modal-status">
-  <div class="modal">
-    <div class="modal-title">স্ট্যাটাস আপডেট <button class="modal-close" onclick="closeModal('status')">✕</button></div>
-    <div class="form-group"><label class="form-label">বর্তমান অবস্থান / পেশা</label><input class="form-input" id="st-location" placeholder="কোথায় আছেন, কী করছেন"></div>
-    <div class="form-group"><label class="form-label">ফোন নম্বর (আপডেট)</label><input class="form-input" id="st-phone" placeholder="০১৭XX-XXXXXX"></div>
-    <button class="submit-btn" style="background:var(--ink2);" onclick="saveStatus()">আপডেট করুন</button>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 <script src="../js/mm-sample-data.js"></script>
@@ -235,9 +184,6 @@
         <div><div style="font-size:10px;opacity:.5;">ফোন</div><div style="font-weight:600;">${API.esc(a.phone||'—')}</div></div>
         <div style="grid-column:1/-1;"><div style="font-size:10px;opacity:.5;">বর্তমান অবস্থান</div><div style="font-weight:600;">${API.esc(a.location||'অজানা')}</div></div>
       </div>`;
-    document.getElementById('st-location').value = a.location||'';
-    document.getElementById('st-phone').value = a.phone||'';
-    document.getElementById('contact-alumni-name').textContent = a.name;
     renderContactHistory(); switchPanel('detail');
   }
   function renderContactHistory() {
@@ -249,29 +195,6 @@
         <div class="contact-text" style="margin-top:8px;">${API.esc(c.text)}</div>
         <div style="font-size:11px;color:var(--ink3);margin-top:5px;">${API.esc(c.by||'')}</div>
       </div>`).join('')||'<div class="empty-state"><span class="empty-icon">📞</span><div class="empty-text">কোনো যোগাযোগের রেকর্ড নেই</div></div>';
-  }
-  function openContactModal() { openModal('contact'); }
-  function openStatusModal() { openModal('status'); }
-  function saveContact() {
-    const type=document.getElementById('ct-type').value, status=document.getElementById('ct-status').value.trim(), text=document.getElementById('ct-text').value.trim();
-    if (!text) { showToast('বিবরণ দিন'); return; }
-    const list = API.persistLoadArr(AL_CONTACT_KEY);
-    list.push({ id:API.uid(), alumni_id:currentAlumniId, type, status, text, date:API.today(), by:'মুহতামিম' });
-    API.persistSaveArr(AL_CONTACT_KEY, list);
-    if (status) { const alumni = API.persistLoadArr(AL_KEY).map(a=>a.id===currentAlumniId?{...a,location:status}:a); API.persistSaveArr(AL_KEY,alumni); }
-    closeModal('contact'); showToast('যোগাযোগ লগ সংরক্ষিত ✓'); renderContactHistory(); openAlumni(currentAlumniId);
-  }
-  function saveStatus() {
-    const location=document.getElementById('st-location').value.trim(), phone=document.getElementById('st-phone').value.trim();
-    const alumni = API.persistLoadArr(AL_KEY).map(a=>a.id===currentAlumniId?{...a,location,phone}:a);
-    API.persistSaveArr(AL_KEY,alumni); closeModal('status'); showToast('স্ট্যাটাস আপডেট হয়েছে ✓'); openAlumni(currentAlumniId);
-  }
-  function addAlumni() {
-    const name=document.getElementById('al-name').value.trim();
-    if (!name) { showToast('নাম দিন'); return; }
-    const list = API.persistLoadArr(AL_KEY);
-    list.push({ id:'al_'+API.uid(), name, permanent_id:document.getElementById('al-id').value.trim(), phone:document.getElementById('al-phone').value.trim(), year:document.getElementById('al-year').value.trim(), reason:document.getElementById('al-reason').value, location:document.getElementById('al-location').value.trim(), status:document.getElementById('al-reason').value==='সম্পন্ন করে'?'সম্পন্ন':'মাঝপথে' });
-    API.persistSaveArr(AL_KEY,list); closeModal('add-alumni'); showToast('পুরনো ছাত্র যোগ করা হয়েছে ✓'); renderHome();
   }
   function openModal(id) { document.getElementById('modal-'+id).classList.add('open'); }
   function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
