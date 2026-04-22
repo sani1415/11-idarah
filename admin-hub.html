@@ -138,8 +138,7 @@
 
       <!-- Tab: বার্তা -->
       <section class="hub-tab-panel is-active" id="hub-panel-inbox" role="tabpanel">
-        <p class="hub-inbox-lead">শিক্ষক ও স্টাফের বার্তা এখানে আসে। থ্রেড বেছে চ্যাট খুলুন। ✏️ চেপে নতুন বার্তা লিখুন।</p>
-        <p class="hub-inbox-subline" id="hub-inbox-subline">—</p>
+        <p class="hub-inbox-subline" id="hub-inbox-subline"></p>
         <div id="hub-thread-list" class="hub-thread-list"></div>
         <button type="button" class="hub-inbox-fab" onclick="location.href='chat.html?compose=1'" title="নতুন বার্তা">✏️</button>
       </section>
@@ -272,7 +271,7 @@
     if (!el) return;
     const threads = ChatAPI.getThreads();
     const totalUnread = threads.reduce((s,t) => s+t.unread, 0);
-    if (sub) sub.textContent = totalUnread > 0 ? toBn(totalUnread)+' টি অপঠিত বার্তা · স্টাফ → মুহতামিম' : 'সব পঠিত বা এখনো কোনো থ্রেড নেই';
+    if (sub) sub.textContent = totalUnread > 0 ? toBn(totalUnread)+' টি অপঠিত বার্তা · স্টাফ → মুহতামিম' : '';
     if (!threads.length) {
       el.innerHTML = '<div class="hub-thread-empty">কোনো থ্রেড নেই।<br>✏️ বাটনে চেপে কোনো স্টাফকে প্রথম বার্তা লিখুন।</div>';
       return;
