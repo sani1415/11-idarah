@@ -257,6 +257,8 @@
     const class_id = document.getElementById('t-class').value;
     const pin      = document.getElementById('t-pin').value||'0000';
     if (!name) { showToast('নাম দিন'); return; }
+    const existing = API.Teachers.getByClassId(class_id);
+    if (existing) { showToast('এই বর্ষে আগে থেকেই একজন শিক্ষক নির্ধারিত আছে'); return; }
     API.Teachers.add({name, class_id, pin, role:'teacher'});
     document.getElementById('t-name').value='';
     closeModal('add-teacher');

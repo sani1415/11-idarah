@@ -276,7 +276,15 @@ const API = (() => {
     /** ওই বিভাগের ক্লাসে নিয়োজিত শিক্ষক (ক্লাসবিহীন স্টাফ বাদ) */
     getByDept(dept) {
       const cids = new Set(Classes.getByDept(dept).map(c => c.id));
-      return load(KEYS.teachers).filter(t => t.class_id && cids.has(t.class_id));
+      return load(KEYS.teachers)
+        .filter(t => t.class_id && cids.has(t.class_id))
+        .sort((a, b) => {
+          const classA = Classes.getById(a.class_id)?.name || '';
+          const classB = Classes.getById(b.class_id)?.name || '';
+          const byClass = classA.localeCompare(classB, 'bn');
+          if (byClass !== 0) return byClass;
+          return String(a.name || '').localeCompare(String(b.name || ''), 'bn');
+        });
     },
     verifyPin(id, pin) { const t = load(KEYS.teachers).find(t => t.id === id); return t && t.pin === pin; },
     update(id, data) {

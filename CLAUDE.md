@@ -16,6 +16,16 @@
 - **ফাইল বিন্যাস (হাইব্রিড):** যৌথ `css/`, `js/`; মডিউলভিত্তিক HTML — `madrasa/`, `dept/`, `khedmat/`; মূল এন্ট্রি রুটে — `index.html`, `admin-hub.html`, `chat.html`, `staff-portal.html`। CSS: `css/style.css` (রুট) বা `../css/style.css` (সাবফোল্ডার); JS: `js/...` বা `../js/...`।
 - **`backup/`** — পুনর্বিন্যাসের আগের সম্পূর্ণ কপি রাখা যেতে পারে; সমস্যা হলে রুট পুনরুদ্ধারের রেফারেন্স।
 
+### সাম্প্রতিক আপডেট (2026-04-22)
+
+- `madrasa/madrasa-admin.html`-এ teacher/class flow-এর layout refine করা হয়েছে: বড় স্ক্রিনে content width বৃদ্ধি, teacher bottom-nav space-fill, ছোট স্ক্রিনে scroll fallback।
+- শিক্ষক-সংক্রান্ত label/data consistency ঠিক করা হয়েছে: “শিক্ষক/স্টাফ” থেকে “শ্রেণি শিক্ষক” (যেখানে ডেটা আসলে `API.Teachers.getByDept(...)` ক্লাস-শিক্ষক নির্ভর)।
+- `js/api.js`-এ `Teachers.getByDept(dept)` এখন class-name তারপর teacher-name অনুযায়ী sorted return করে (বাংলা locale)।
+- `madrasa/madrasa-settings.html`-এ duplicate class-teacher assignment ব্লক করা হয়েছে (একই বর্ষে একাধিক শিক্ষক যোগ প্রতিরোধ)।
+- `madrasa/madrasa-admin.html`-এ inline style cleanup করা হয়েছে: reusable CSS class-এ refactor; file থেকে inline `style="..."` অপসারণ সম্পন্ন।
+- Dynamic progress width (`prog-fill`, `khuluk-fill`) এখন `data-pct` + `applyPercentWidths()` দিয়ে সেট হয়; inline width style আর ব্যবহার হচ্ছে না।
+- Tab/Nav interaction consistency উন্নত: div→button conversion (যেখানে প্রযোজ্য), এবং tab-এ `aria-selected` sync রাখা হয়েছে।
+
 ---
 
 ## UI Reference ফাইল (হুবহু copy করবে না)
