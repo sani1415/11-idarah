@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>দফতর — মেইন এডমিন</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .att-summary-row { display:flex; gap:8px; margin-bottom:14px; }
+  .att-sum-card { flex:1; background:#fff; border-radius:var(--radius-sm); padding:10px 8px; text-align:center; box-shadow:var(--shadow); border:1px solid rgba(26,18,8,.05); }
+  .att-sum-val { font-family:'Noto Serif Bengali',serif; font-size:18px; font-weight:700; display:block; line-height:1.15; }
+  .att-sum-lbl { font-size:9px; color:var(--ink3); margin-top:3px; display:block; }
+  .att-table { width:100%; border-collapse:collapse; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; }
+  .att-table thead th { background:var(--ink); color:var(--gold2); padding:7px 8px; text-align:left; font-size:10px; font-weight:600; white-space:nowrap; }
+  .att-table thead th:not(:first-child) { text-align:center; }
+  .att-table tbody td { padding:8px; border-bottom:1px solid var(--cream2); color:var(--ink2); vertical-align:middle; }
+  .att-table tbody tr:last-child td { border-bottom:none; }
+  .att-table .cls-name { font-family:'Noto Serif Bengali',serif; font-size:13px; font-weight:700; color:var(--ink); }
+  .att-table .num-cell { text-align:center; font-family:'Noto Serif Bengali',serif; font-size:13px; font-weight:700; }
+  .att-table .pct-cell { text-align:center; }
+  .pct-bar { height:5px; background:var(--cream2); border-radius:3px; overflow:hidden; margin-top:3px; }
+  .pct-fill { height:100%; border-radius:3px; }
+  .date-nav { display:flex; align-items:center; gap:8px; margin-bottom:12px; background:#fff; border-radius:var(--radius-sm); padding:10px 12px; box-shadow:var(--shadow); }
+  .date-nav-btn { background:none; border:1px solid var(--cream3); border-radius:8px; padding:6px 12px; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink2); }
+  .date-nav-btn:hover { background:var(--cream2); }
+  .date-label { flex:1; text-align:center; font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; color:var(--ink); }
+  .dept-tab { display:flex; gap:6px; margin-bottom:14px; }
+  .dept-tab-btn { flex:1; padding:10px; border:1px solid var(--cream3); border-radius:var(--radius-sm); text-align:center; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:600; cursor:pointer; background:#fff; color:var(--ink3); transition:all .15s; }
+  .dept-tab-btn.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
+  .main-nav { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom,12px)); z-index:100; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:6px 8px; background:linear-gradient(180deg,#ffffff 0%,#faf6ef 100%); border:1px solid rgba(26,18,8,.08); border-radius:999px; box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1); max-width:456px; margin:0 auto; box-sizing:border-box; }
+  .main-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; text-decoration:none; transition:background .15s,color .15s; }
+  .main-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
+  .main-nav-ico path, .main-nav-ico circle { fill:none; stroke:currentColor; }
+  .main-nav-btn.is-active { background:rgba(232,184,75,.22); color:var(--ink2); }
+  .main-nav-btn.is-active .main-nav-ico { opacity:1; }
+  .main-nav-lbl { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মুহতামিম</div>
+    <div class="topbar-name">দফতর — উপস্থিতি</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='../main-admin-madrasa.html'">← এডমিন</button>
+  </div>
+</div>
+
+<div class="content" style="padding-bottom:90px;">
+
+  <div class="date-nav">
+    <button class="date-nav-btn" onclick="changeDate(-1)">‹ আগে</button>
+    <div class="date-label" id="date-label">—</div>
+    <button class="date-nav-btn" id="btn-next" onclick="changeDate(1)">পরে ›</button>
+  </div>
+
+  <div class="att-summary-row">
+    <div class="att-sum-card"><span class="att-sum-val" id="s-total" style="color:var(--ink);">—</span><span class="att-sum-lbl">মোট ছাত্র</span></div>
+    <div class="att-sum-card"><span class="att-sum-val" id="s-present" style="color:var(--green);">—</span><span class="att-sum-lbl">উপস্থিত</span></div>
+    <div class="att-sum-card"><span class="att-sum-val" id="s-absent" style="color:var(--red);">—</span><span class="att-sum-lbl">অনুপস্থিত</span></div>
+    <div class="att-sum-card"><span class="att-sum-val" id="s-pct" style="color:var(--gold);">—</span><span class="att-sum-lbl">উপস্থিতির হার</span></div>
+  </div>
+
+  <div class="dept-tab">
+    <div class="dept-tab-btn active" id="dtab-kitab" onclick="switchDept('kitab')">কিতাব বিভাগ</div>
+    <div class="dept-tab-btn" id="dtab-maktab" onclick="switchDept('maktab')">মক্তব বিভাগ</div>
+  </div>
+
+  <div style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;">
+    <div style="overflow-x:auto;">
+      <table class="att-table">
+        <thead><tr><th>বর্ষ</th><th>মোট</th><th>উপস্থিত</th><th>অনুপস্থিত</th><th>হার</th></tr></thead>
+        <tbody id="att-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<nav class="main-nav" role="navigation" aria-label="মেইন এডমিন নেভিগেশন">
+  <a class="main-nav-btn is-active" href="../main-admin-madrasa.html" aria-label="মাদ্রাসা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span class="main-nav-lbl">মাদ্রাসা</span></a>
+  <a class="main-nav-btn" href="../main-admin-dept.html" aria-label="বিভাগ"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg><span class="main-nav-lbl">বিভাগ</span></a>
+  <a class="main-nav-btn" href="../main-admin-khedmat.html" aria-label="খেদমত"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span class="main-nav-lbl">খেদমত</span></a>
+  <a class="main-nav-btn" href="../admin-hub.html?tab=inbox" aria-label="বার্তা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg><span class="main-nav-lbl">বার্তা</span></a>
+  <a class="main-nav-btn" href="../admin-hub.html?tab=recent" aria-label="কার্যক্রম"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg><span class="main-nav-lbl">কার্যক্রম</span></a>
+</nav>
+
+<script src="../js/mm-sample-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.isAdmin()) location.href = '../index.html';
+  const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  let currentDate = new Date().toISOString().split('T')[0];
+  let currentDept = 'kitab';
+
+  function changeDate(dir) {
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() + dir);
+    currentDate = d.toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('btn-next').disabled = currentDate >= today;
+    render();
+  }
+
+  function switchDept(dept) {
+    currentDept = dept;
+    document.getElementById('dtab-kitab').classList.toggle('active', dept === 'kitab');
+    document.getElementById('dtab-maktab').classList.toggle('active', dept === 'maktab');
+    render();
+  }
+
+  function render() {
+    const d = new Date(currentDate);
+    document.getElementById('date-label').textContent = toBn(d.getFullYear()) + '–' + toBn(String(d.getMonth()+1).padStart(2,'0')) + '–' + toBn(String(d.getDate()).padStart(2,'0'));
+
+    const allClasses = API.Classes.getByDept(currentDept);
+    let totalStudents = 0, totalPresent = 0, totalAbsent = 0;
+    const rows = allClasses.map(cls => {
+      const students = API.Students.getByClass(cls.id);
+      const attRecs  = API.Attendance.getByClassDate(cls.id, currentDate);
+      const present  = attRecs.filter(a => API.Attendance.statusOf(a) === 'present').length;
+      const absent   = attRecs.filter(a => API.Attendance.statusOf(a) === 'absent').length;
+      const pct      = students.length ? Math.round(present / students.length * 100) : 0;
+      const pctColor = pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--gold)' : 'var(--red)';
+      totalStudents += students.length; totalPresent += present; totalAbsent += absent;
+      return `<tr>
+        <td class="cls-name">${API.esc(cls.name)}</td>
+        <td class="num-cell">${toBn(students.length)}</td>
+        <td class="num-cell" style="color:var(--green);">${attRecs.length ? toBn(present) : '—'}</td>
+        <td class="num-cell" style="color:var(--red);">${attRecs.length ? toBn(absent) : '—'}</td>
+        <td class="pct-cell">
+          ${attRecs.length ? `<div style="font-family:'Noto Serif Bengali',serif;font-size:12px;font-weight:700;color:${pctColor};">${toBn(pct)}%</div><div class="pct-bar"><div class="pct-fill" style="width:${pct}%;background:${pctColor};"></div></div>` : '<span style="color:var(--ink3);font-size:11px;">এন্ট্রি নেই</span>'}
+        </td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('att-table-body').innerHTML = rows || `<tr><td colspan="5" style="text-align:center;color:var(--ink3);padding:20px;">কোনো বর্ষ নেই</td></tr>`;
+    document.getElementById('s-total').textContent    = toBn(totalStudents);
+    document.getElementById('s-present').textContent  = toBn(totalPresent);
+    document.getElementById('s-absent').textContent   = toBn(totalAbsent);
+    const overallPct = totalStudents ? Math.round(totalPresent / totalStudents * 100) : 0;
+    document.getElementById('s-pct').textContent = toBn(overallPct) + '%';
+  }
+
+  render();
+</script>
+</body>
+</html>

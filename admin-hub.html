@@ -29,7 +29,7 @@
   .hub-tab-panel.is-active { display:block; }
 
   /* ── Bottom nav ── */
-  .hub-bottom-nav { position:fixed; left:0; right:0; bottom:0; z-index:50; flex-shrink:0; display:flex; align-items:stretch; justify-content:space-around; gap:4px; padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px)); background:linear-gradient(180deg,#fffefb 0%,#f3ecdf 100%); border-top:1px solid rgba(26,18,8,.1); box-shadow:0 -6px 24px rgba(26,18,8,.06); max-width:520px; margin:0 auto; width:100%; box-sizing:border-box; }
+  .hub-bottom-nav { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom,12px)); z-index:100; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:6px 8px; background:linear-gradient(180deg,#ffffff 0%,#faf6ef 100%); border:1px solid rgba(26,18,8,.08); border-radius:999px; box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1); max-width:456px; margin:0 auto; box-sizing:border-box; }
   .hub-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; line-height:1.2; cursor:pointer; transition:background .15s,color .15s; -webkit-tap-highlight-color:transparent; text-decoration:none; }
   .hub-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
   .hub-nav-ico path, .hub-nav-ico rect, .hub-nav-ico circle { fill:none; stroke:currentColor; }

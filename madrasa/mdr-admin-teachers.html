@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>শ্রেণি শিক্ষক — মেইন এডমিন</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .mmt-page { max-width:520px; margin:0 auto; padding:12px 16px calc(90px + env(safe-area-inset-bottom)); }
+  .mmt-head { font-family:'Noto Serif Bengali',serif; font-size:18px; font-weight:700; color:var(--ink2); margin-bottom:4px; }
+  .mmt-sub { font-size:12px; color:var(--ink3); margin-bottom:14px; line-height:1.45; }
+  .mmt-row { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:8px; box-shadow:var(--shadow); border:1px solid rgba(26,18,8,.06); cursor:pointer; transition:background .12s; }
+  .mmt-row:active { background:rgba(0,0,0,.04); }
+  .mmt-name { font-size:14px; font-weight:600; color:var(--ink); }
+  .mmt-meta { font-size:11px; color:var(--ink3); margin-top:4px; }
+  .dept-tab { display:flex; gap:6px; margin-bottom:14px; }
+  .dept-tab-btn { flex:1; padding:10px; border:1px solid var(--cream3); border-radius:var(--radius-sm); text-align:center; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:600; cursor:pointer; background:#fff; color:var(--ink3); transition:all .15s; }
+  .dept-tab-btn.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
+  .main-nav { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom,12px)); z-index:100; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:6px 8px; background:linear-gradient(180deg,#ffffff 0%,#faf6ef 100%); border:1px solid rgba(26,18,8,.08); border-radius:999px; box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1); max-width:456px; margin:0 auto; box-sizing:border-box; }
+  .main-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; text-decoration:none; transition:background .15s,color .15s; }
+  .main-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
+  .main-nav-ico path, .main-nav-ico circle { fill:none; stroke:currentColor; }
+  .main-nav-btn.is-active { background:rgba(232,184,75,.22); color:var(--ink2); }
+  .main-nav-btn.is-active .main-nav-ico { opacity:1; }
+  .main-nav-lbl { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মুহতামিম</div>
+    <div class="topbar-name">শ্রেণি শিক্ষক</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='../main-admin-madrasa.html'">← এডমিন</button>
+  </div>
+</div>
+
+<div class="mmt-page">
+  <div class="dept-tab">
+    <div class="dept-tab-btn active" id="dtab-kitab" onclick="switchDept('kitab')">কিতাব বিভাগ</div>
+    <div class="dept-tab-btn" id="dtab-maktab" onclick="switchDept('maktab')">মক্তব বিভাগ</div>
+  </div>
+  <div class="mmt-sub" id="mmt-sub">—</div>
+  <div id="mmt-list"></div>
+</div>
+
+<nav class="main-nav" role="navigation" aria-label="মেইন এডমিন নেভিগেশন">
+  <a class="main-nav-btn is-active" href="../main-admin-madrasa.html" aria-label="মাদ্রাসা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span class="main-nav-lbl">মাদ্রাসা</span></a>
+  <a class="main-nav-btn" href="../main-admin-dept.html" aria-label="বিভাগ"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg><span class="main-nav-lbl">বিভাগ</span></a>
+  <a class="main-nav-btn" href="../main-admin-khedmat.html" aria-label="খেদমত"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span class="main-nav-lbl">খেদমত</span></a>
+  <a class="main-nav-btn" href="../admin-hub.html?tab=inbox" aria-label="বার্তা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg><span class="main-nav-lbl">বার্তা</span></a>
+  <a class="main-nav-btn" href="../admin-hub.html?tab=recent" aria-label="কার্যক্রম"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg><span class="main-nav-lbl">কার্যক্রম</span></a>
+</nav>
+
+<script src="../js/mm-sample-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.isAdmin()) location.href = '../index.html';
+  let currentDept = 'kitab';
+
+  function switchDept(dept) {
+    currentDept = dept;
+    document.getElementById('dtab-kitab').classList.toggle('active', dept === 'kitab');
+    document.getElementById('dtab-maktab').classList.toggle('active', dept === 'maktab');
+    render();
+  }
+
+  function render() {
+    const deptLabel = currentDept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
+    document.getElementById('mmt-sub').textContent = deptLabel + ' · শিক্ষকের নামে ট্যাপ করলে বিস্তারিত দেখুন';
+    const list = API.Teachers.getByDept(currentDept);
+    const el = document.getElementById('mmt-list');
+    if (!list.length) {
+      el.innerHTML = '<div style="text-align:center;color:var(--ink3);padding:36px 12px;font-size:14px;">এই বিভাগে কোনো শ্রেণি শিক্ষক নিবন্ধিত নেই।</div>';
+      return;
+    }
+    el.innerHTML = list.map(t => {
+      const cls = t.class_id ? API.Classes.getById(t.class_id) : null;
+      const students = cls ? API.Students.getByClass(cls.id) : [];
+      return `<div class="mmt-row" role="button" tabindex="0" data-id="${API.esc(t.id)}">
+        <div class="mmt-name">${API.esc(t.name)}</div>
+        <div class="mmt-meta">${cls ? API.esc(cls.name) + ' · ' + students.length + ' ছাত্র' : '—'}</div>
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.mmt-row').forEach(row => {
+      const go = () => location.href = 'madrasa-teacher-detail.html?id=' + encodeURIComponent(row.dataset.id) + '&dept=' + encodeURIComponent(currentDept) + '&from=admin';
+      row.addEventListener('click', go);
+      row.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+    });
+  }
+  render();
+</script>
+</body>
+</html>

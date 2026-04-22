@@ -356,7 +356,7 @@
         '</div>';
     }
     if (!more) {
-      more = '<div class="st-empty">খুলুক রেকর্ড, পরীক্ষার ফল বা পৃথক লগ পাওয়া যায়নি।</div>';
+      more = '<div class="st-empty">হুসনুল খুলুক রেকর্ড, পরীক্ষার ফল বা পৃথক লগ পাওয়া যায়নি।</div>';
     }
 
     var titleEl = document.getElementById('st-modal-title');

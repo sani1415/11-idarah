@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>পুরনো ছাত্র — মেইন এডমিন</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .alumni-card { background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:10px; cursor:pointer; transition:transform .12s; }
+  .alumni-card:active { transform:scale(.98); }
+  .alumni-top { display:flex; align-items:flex-start; gap:12px; margin-bottom:10px; }
+  .alumni-avatar { width:44px; height:44px; border-radius:50%; background:var(--cream2); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+  .alumni-info { flex:1; }
+  .alumni-name { font-size:15px; font-weight:700; color:var(--ink); }
+  .alumni-id { font-size:11px; color:var(--ink3); margin-top:2px; }
+  .alumni-status { text-align:right; }
+  .contact-log { background:#fff; border-radius:var(--radius-sm); padding:14px; box-shadow:var(--shadow); border-left:3px solid var(--gold); margin-bottom:8px; }
+  .contact-top { display:flex; justify-content:space-between; margin-bottom:5px; }
+  .contact-type { font-size:11px; font-weight:600; padding:2px 7px; border-radius:8px; }
+  .contact-date { font-size:11px; color:var(--ink3); }
+  .contact-text { font-size:13px; color:var(--ink); line-height:1.6; }
+  .contact-status { font-size:12px; margin-top:6px; padding:5px 10px; background:var(--cream2); border-radius:6px; color:var(--ink3); }
+  .filter-row { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px; }
+  .filter-btn { background:#fff; border:1px solid var(--cream3); border-radius:20px; padding:6px 12px; font-size:11px; white-space:nowrap; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; color:var(--ink3); }
+  .filter-btn.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
+  .alumni-detail-header { background:linear-gradient(135deg,var(--ink2),var(--ink)); border-radius:var(--radius); padding:18px; color:#fff; margin-bottom:12px; }
+  .main-nav { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom,12px)); z-index:100; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:6px 8px; background:linear-gradient(180deg,#ffffff 0%,#faf6ef 100%); border:1px solid rgba(26,18,8,.08); border-radius:999px; box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1); max-width:456px; margin:0 auto; box-sizing:border-box; }
+  .main-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; text-decoration:none; transition:background .15s,color .15s; }
+  .main-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
+  .main-nav-ico path, .main-nav-ico circle { fill:none; stroke:currentColor; }
+  .main-nav-btn.is-active { background:rgba(232,184,75,.22); color:var(--ink2); }
+  .main-nav-btn.is-active .main-nav-ico { opacity:1; }
+  .main-nav-lbl { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মুহতামিম</div>
+    <div class="topbar-name">পুরনো ছাত্র</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='../main-admin-madrasa.html'">← এডমিন</button>
+  </div>
+</div>
+
+<div class="content">
+  <div class="panel active" id="panel-home">
+    <div style="background:linear-gradient(135deg,#3d2e14,#6b5a3e);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-alumni">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">মোট পুরনো ছাত্র</div></div>
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="completed">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">সম্পন্ন</div></div>
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="this-month">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">এ মাসে যোগাযোগ</div></div>
+      </div>
+    </div>
+    <button class="add-btn" style="background:var(--ink2);" onclick="openModal('add-alumni')">＋ পুরনো ছাত্র যোগ করুন</button>
+    <div class="filter-row" id="filter-row">
+      <div class="filter-btn active" onclick="filterAlumni('সব',this)">সব</div>
+      <div class="filter-btn" onclick="filterAlumni('সম্পন্ন',this)">সম্পন্ন</div>
+      <div class="filter-btn" onclick="filterAlumni('মাঝপথে',this)">মাঝপথে</div>
+      <div class="filter-btn" onclick="filterAlumni('যোগাযোগ নেই',this)">যোগাযোগ নেই</div>
+    </div>
+    <div id="alumni-list"></div>
+    <div class="pb-safe"></div>
+  </div>
+
+  <div class="panel" id="panel-detail">
+    <div class="sec-header" style="margin-top:8px;">
+      <span class="sec-title" id="detail-name">ছাত্রের বিবরণ</span>
+      <span class="sec-link" onclick="switchPanel('home');renderHome()">← ফিরুন</span>
+    </div>
+    <div class="alumni-detail-header" id="detail-header"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button class="add-btn" style="margin-bottom:0;flex:1;background:var(--gold);" onclick="openContactModal()">📞 যোগাযোগ লগ করুন</button>
+      <button class="add-btn" style="margin-bottom:0;flex:1;background:var(--ink2);" onclick="openStatusModal()">✏️ স্ট্যাটাস আপডেট</button>
+    </div>
+    <div class="sec-header"><span class="sec-title">যোগাযোগের ইতিহাস</span></div>
+    <div id="contact-history"></div>
+    <div class="pb-safe"></div>
+  </div>
+</div>
+
+<nav class="main-nav" role="navigation" aria-label="মেইন এডমিন নেভিগেশন">
+  <a class="main-nav-btn is-active" href="../main-admin-madrasa.html" aria-label="মাদ্রাসা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span class="main-nav-lbl">মাদ্রাসা</span></a>
+  <a class="main-nav-btn" href="../main-admin-dept.html" aria-label="বিভাগ"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg><span class="main-nav-lbl">বিভাগ</span></a>
+  <a class="main-nav-btn" href="../main-admin-khedmat.html" aria-label="খেদমত"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span class="main-nav-lbl">খেদমত</span></a>
+  <a class="main-nav-btn" href="../admin-hub.html?tab=inbox" aria-label="বার্তা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg><span class="main-nav-lbl">বার্তা</span></a>
+  <a class="main-nav-btn" href="../admin-hub.html?tab=recent" aria-label="কার্যক্রম"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg><span class="main-nav-lbl">কার্যক্রম</span></a>
+</nav>
+
+<div class="modal-bg" id="modal-add-alumni">
+  <div class="modal">
+    <div class="modal-title">পুরনো ছাত্র যোগ <button class="modal-close" onclick="closeModal('add-alumni')">✕</button></div>
+    <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="al-name" placeholder="পূর্ণ নাম"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">স্থায়ী আইডি</label><input class="form-input" id="al-id" placeholder="যেমন: ৪৫০০১"></div>
+      <div class="form-group"><label class="form-label">ফোন নম্বর</label><input class="form-input" id="al-phone" placeholder="০১৭XX-XXXXXX"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">বিদায়ের বছর</label><input class="form-input" id="al-year" placeholder="যেমন: ২০২২"></div>
+      <div class="form-group"><label class="form-label">বিদায়ের কারণ</label>
+        <select class="form-input form-select" id="al-reason">
+          <option>সম্পন্ন করে</option><option>মাঝপথে বিদায়</option>
+          <option>অন্য মাদ্রাসায় গেছেন</option><option>বিবাহ</option><option>অন্যান্য</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">বর্তমান অবস্থান / পেশা</label><input class="form-input" id="al-location" placeholder="কোথায় আছেন, কী করছেন"></div>
+    <button class="submit-btn" style="background:var(--ink2);" onclick="addAlumni()">যোগ করুন</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-contact">
+  <div class="modal">
+    <div class="modal-title">যোগাযোগ লগ <button class="modal-close" onclick="closeModal('contact')">✕</button></div>
+    <div style="margin-bottom:12px;padding:10px;background:var(--cream2);border-radius:var(--radius-sm);"><div style="font-size:14px;font-weight:700;" id="contact-alumni-name">—</div></div>
+    <div class="form-group"><label class="form-label">যোগাযোগের ধরন</label>
+      <select class="form-input form-select" id="ct-type">
+        <option>ফোনে কথা</option><option>সরাসরি সাক্ষাৎ</option>
+        <option>বার্তা পাঠিয়েছেন</option><option>মাদ্রাসায় এসেছেন</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">বর্তমান অবস্থা</label><input class="form-input" id="ct-status" placeholder="কোথায় আছেন, কী করছেন..."></div>
+    <div class="form-group"><label class="form-label">বিস্তারিত বিবরণ</label><textarea class="form-input form-textarea" id="ct-text" style="min-height:100px;" placeholder="কথোপকথনের বিবরণ..."></textarea></div>
+    <button class="submit-btn" style="background:var(--gold);" onclick="saveContact()">লগ সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-status">
+  <div class="modal">
+    <div class="modal-title">স্ট্যাটাস আপডেট <button class="modal-close" onclick="closeModal('status')">✕</button></div>
+    <div class="form-group"><label class="form-label">বর্তমান অবস্থান / পেশা</label><input class="form-input" id="st-location" placeholder="কোথায় আছেন, কী করছেন"></div>
+    <div class="form-group"><label class="form-label">ফোন নম্বর (আপডেট)</label><input class="form-input" id="st-phone" placeholder="০১৭XX-XXXXXX"></div>
+    <button class="submit-btn" style="background:var(--ink2);" onclick="saveStatus()">আপডেট করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="../js/mm-sample-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.isAdmin()) location.href = '../index.html';
+  const AL_KEY = 'mm_alumni', AL_CONTACT_KEY = 'mm_alumni_contacts';
+  function toBn(n) { return String(n).replace(/[0-9]/g, d=>'০১২৩৪৫৬৭৮৯'[d]); }
+
+  if (!API.persistLoadArr(AL_KEY).length) {
+    API.persistSaveArr(AL_KEY, [
+      { id:'al_1', name:'মাওলানা আব্দুল বাসিত', permanent_id:'৪৫০০১', phone:'০১৭১১-০০০০০১', year:'২০২০', reason:'সম্পন্ন করে', location:'স্থানীয় মসজিদে ইমামতি করছেন', status:'সম্পন্ন' },
+      { id:'al_2', name:'মুহাম্মাদ রাশেদ', permanent_id:'৪৬০০৩', phone:'০১৮২২-০০০০০২', year:'২০২১', reason:'মাঝপথে বিদায়', location:'ব্যবসা করছেন', status:'মাঝপথে' },
+    ]);
+    API.persistSaveArr(AL_CONTACT_KEY, [
+      { id:API.uid(), alumni_id:'al_1', type:'ফোনে কথা', status:'ভালো আছেন', text:'মসজিদে ইমামতি করছেন।', date:API.today(), by:'মুহতামিম' },
+    ]);
+  }
+
+  let currentAlumniId = null, currentFilter = 'সব';
+
+  function switchPanel(name) {
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-'+name).classList.add('active');
+    window.scrollTo(0,0);
+  }
+  function filterAlumni(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); renderHome();
+  }
+  function renderHome() {
+    const alumni = API.persistLoadArr(AL_KEY), contacts = API.persistLoadArr(AL_CONTACT_KEY);
+    const thisMonth = new Date().toISOString().slice(0,7);
+    document.getElementById('total-alumni').textContent = toBn(alumni.length);
+    document.getElementById('completed').textContent = toBn(alumni.filter(a=>a.status==='সম্পন্ন').length);
+    document.getElementById('this-month').textContent = toBn(contacts.filter(c=>c.date.startsWith(thisMonth)).length);
+    let filtered = alumni;
+    if (currentFilter !== 'সব') filtered = alumni.filter(a=>a.status===currentFilter||a.reason===currentFilter);
+    const el = document.getElementById('alumni-list');
+    el.innerHTML = filtered.map(a=>{
+      const lastContact = contacts.filter(c=>c.alumni_id===a.id).sort((x,y)=>y.date.localeCompare(x.date))[0];
+      const daysSince = lastContact ? Math.floor((new Date()-new Date(lastContact.date))/86400000) : null;
+      const needsContact = daysSince===null||daysSince>30;
+      return `<div class="alumni-card" onclick="openAlumni('${a.id}')">
+        <div class="alumni-top">
+          <div class="alumni-avatar">${a.status==='সম্পন্ন'?'🎓':'👤'}</div>
+          <div class="alumni-info">
+            <div class="alumni-name">${API.esc(a.name)}</div>
+            <div class="alumni-id">${API.esc(a.permanent_id)} · বিদায়: ${API.esc(a.year||'—')}</div>
+            <div style="font-size:12px;color:var(--ink3);margin-top:3px;">📍 ${API.esc(a.location||'অজানা')}</div>
+          </div>
+          <div class="alumni-status">
+            <span class="list-badge ${a.status==='সম্পন্ন'?'badge-green':'badge-gold'}">${API.esc(a.status||'—')}</span>
+            ${needsContact?'<div style="font-size:10px;color:var(--red);margin-top:4px;">যোগাযোগ দরকার</div>':`<div style="font-size:10px;color:var(--ink3);margin-top:4px;">${toBn(daysSince)} দিন আগে</div>`}
+          </div>
+        </div>
+        ${lastContact?`<div style="font-size:12px;color:var(--ink3);padding-top:8px;border-top:1px solid var(--cream2);">সর্বশেষ: ${API.esc(lastContact.type)} · ${API.esc(lastContact.date)}</div>`:'<div style="font-size:12px;color:var(--red);padding-top:8px;border-top:1px solid var(--cream2);">এখনো কোনো যোগাযোগ নেই</div>'}
+      </div>`;
+    }).join('')||'<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো রেকর্ড নেই</div></div>';
+  }
+  function openAlumni(aid) {
+    currentAlumniId = aid;
+    const a = API.persistLoadArr(AL_KEY).find(a=>a.id===aid);
+    if (!a) return;
+    document.getElementById('detail-name').textContent = a.name;
+    document.getElementById('detail-header').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">
+        <div><div style="font-size:10px;opacity:.5;">আইডি</div><div style="font-weight:700;">${API.esc(a.permanent_id||'—')}</div></div>
+        <div><div style="font-size:10px;opacity:.5;">বিদায়ের বছর</div><div style="font-weight:700;">${API.esc(a.year||'—')}</div></div>
+        <div><div style="font-size:10px;opacity:.5;">কারণ</div><div style="font-weight:600;">${API.esc(a.reason||'—')}</div></div>
+        <div><div style="font-size:10px;opacity:.5;">ফোন</div><div style="font-weight:600;">${API.esc(a.phone||'—')}</div></div>
+        <div style="grid-column:1/-1;"><div style="font-size:10px;opacity:.5;">বর্তমান অবস্থান</div><div style="font-weight:600;">${API.esc(a.location||'অজানা')}</div></div>
+      </div>`;
+    document.getElementById('st-location').value = a.location||'';
+    document.getElementById('st-phone').value = a.phone||'';
+    document.getElementById('contact-alumni-name').textContent = a.name;
+    renderContactHistory(); switchPanel('detail');
+  }
+  function renderContactHistory() {
+    const contacts = API.persistLoadArr(AL_CONTACT_KEY).filter(c=>c.alumni_id===currentAlumniId).sort((a,b)=>b.date.localeCompare(a.date));
+    document.getElementById('contact-history').innerHTML = contacts.map(c=>`
+      <div class="contact-log">
+        <div class="contact-top"><span class="contact-type list-badge badge-gold">${API.esc(c.type)}</span><span class="contact-date">${API.esc(c.date)}</span></div>
+        ${c.status?`<div class="contact-status">📍 ${API.esc(c.status)}</div>`:''}
+        <div class="contact-text" style="margin-top:8px;">${API.esc(c.text)}</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:5px;">${API.esc(c.by||'')}</div>
+      </div>`).join('')||'<div class="empty-state"><span class="empty-icon">📞</span><div class="empty-text">কোনো যোগাযোগের রেকর্ড নেই</div></div>';
+  }
+  function openContactModal() { openModal('contact'); }
+  function openStatusModal() { openModal('status'); }
+  function saveContact() {
+    const type=document.getElementById('ct-type').value, status=document.getElementById('ct-status').value.trim(), text=document.getElementById('ct-text').value.trim();
+    if (!text) { showToast('বিবরণ দিন'); return; }
+    const list = API.persistLoadArr(AL_CONTACT_KEY);
+    list.push({ id:API.uid(), alumni_id:currentAlumniId, type, status, text, date:API.today(), by:'মুহতামিম' });
+    API.persistSaveArr(AL_CONTACT_KEY, list);
+    if (status) { const alumni = API.persistLoadArr(AL_KEY).map(a=>a.id===currentAlumniId?{...a,location:status}:a); API.persistSaveArr(AL_KEY,alumni); }
+    closeModal('contact'); showToast('যোগাযোগ লগ সংরক্ষিত ✓'); renderContactHistory(); openAlumni(currentAlumniId);
+  }
+  function saveStatus() {
+    const location=document.getElementById('st-location').value.trim(), phone=document.getElementById('st-phone').value.trim();
+    const alumni = API.persistLoadArr(AL_KEY).map(a=>a.id===currentAlumniId?{...a,location,phone}:a);
+    API.persistSaveArr(AL_KEY,alumni); closeModal('status'); showToast('স্ট্যাটাস আপডেট হয়েছে ✓'); openAlumni(currentAlumniId);
+  }
+  function addAlumni() {
+    const name=document.getElementById('al-name').value.trim();
+    if (!name) { showToast('নাম দিন'); return; }
+    const list = API.persistLoadArr(AL_KEY);
+    list.push({ id:'al_'+API.uid(), name, permanent_id:document.getElementById('al-id').value.trim(), phone:document.getElementById('al-phone').value.trim(), year:document.getElementById('al-year').value.trim(), reason:document.getElementById('al-reason').value, location:document.getElementById('al-location').value.trim(), status:document.getElementById('al-reason').value==='সম্পন্ন করে'?'সম্পন্ন':'মাঝপথে' });
+    API.persistSaveArr(AL_KEY,list); closeModal('add-alumni'); showToast('পুরনো ছাত্র যোগ করা হয়েছে ✓'); renderHome();
+  }
+  function openModal(id) { document.getElementById('modal-'+id).classList.add('open'); }
+  function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
+  function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+  renderHome();
+</script>
+</body>
+</html>

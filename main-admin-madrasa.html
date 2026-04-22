@@ -49,6 +49,7 @@
   .class-table thead th:nth-child(2), .class-table tbody td.td-teacher { width:22%; }
   .class-table thead th.col-num, .class-table tbody td.col-num { width:12%; }
   .class-table thead th.col-num { text-align:center; font-size:9px; padding-left:2px; padding-right:2px; }
+  .class-table thead th.col-hk { white-space:normal; line-height:1.2; font-size:8px; }
   .class-table tbody td { padding:7px 4px; border-bottom:1px solid var(--cream2); vertical-align:middle; color:var(--ink2); }
   .class-table tbody tr:last-child td { border-bottom:none; }
   .class-table tbody tr.class-row { cursor:pointer; transition:background .12s; }
@@ -60,10 +61,37 @@
   .class-table .td-num.n-in { color:var(--ink); }
   .class-table .td-num.n-pr { color:var(--green); }
   .class-table .td-num.n-ab { color:var(--red); }
-  .class-table .td-num.n-lv { color:var(--gold); }
+  .class-table .td-num.n-kh { color:#7c3aed; }
+
+  /* class detail overlay */
+  .cls-overlay { position:fixed; inset:0; z-index:200; background:var(--bg,#faf6ef); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .25s ease; }
+  .cls-overlay.is-open { transform:translateX(0); }
+  .cls-ov-header { display:flex; align-items:center; gap:10px; padding:14px 16px 10px; background:var(--ink); color:var(--gold2); flex-shrink:0; }
+  .cls-ov-back { background:none; border:none; color:inherit; font-size:22px; cursor:pointer; padding:4px 10px 4px 0; line-height:1; }
+  .cls-ov-info { flex:1; min-width:0; }
+  .cls-ov-title { font-family:'Noto Serif Bengali',serif; font-size:16px; font-weight:700; }
+  .cls-ov-teacher { font-size:11px; color:rgba(255,255,255,.65); margin-top:2px; }
+  .cls-ov-tabs { display:flex; border-bottom:2px solid var(--cream2); background:#fff; flex-shrink:0; }
+  .cls-ov-tab { flex:1; padding:10px 4px; border:none; background:none; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink3); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; transition:color .15s; }
+  .cls-ov-tab.active { color:var(--ink); font-weight:700; border-bottom-color:var(--gold); }
+  .cls-ov-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px; padding-bottom:32px; }
+  .ov-list { display:flex; flex-direction:column; gap:8px; }
+  .ov-student-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .ov-s-id { font-size:10px; color:var(--ink3); min-width:30px; }
+  .ov-s-name { flex:1; font-size:13px; font-family:'Noto Serif Bengali',serif; color:var(--ink); }
+  .ov-s-status { font-size:11px; font-weight:700; min-width:60px; text-align:right; }
+  .ov-kitab-row { padding:12px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .ov-k-name { font-size:13px; font-family:'Noto Serif Bengali',serif; color:var(--ink); margin-bottom:4px; }
+  .ov-k-pct { font-size:12px; font-weight:700; color:var(--green); margin-bottom:6px; }
+  .ov-k-bar { height:6px; background:var(--cream2); border-radius:3px; overflow:hidden; }
+  .ov-k-fill { height:100%; background:var(--green); border-radius:3px; }
+  .ov-log-row { padding:10px 12px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .ov-log-date { font-size:10px; color:var(--ink3); margin-bottom:4px; }
+  .ov-log-text { font-size:13px; color:var(--ink2); line-height:1.5; white-space:pre-wrap; }
+  .ov-empty { text-align:center; color:var(--ink3); padding:40px 0; font-size:13px; }
 
   /* bottom nav — shared main-admin style */
-  .main-nav { position:fixed; left:0; right:0; bottom:0; z-index:50; display:flex; align-items:stretch; justify-content:space-around; gap:4px; padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px)); background:linear-gradient(180deg,#fffefb 0%,#f3ecdf 100%); border-top:1px solid rgba(26,18,8,.1); box-shadow:0 -6px 24px rgba(26,18,8,.06); max-width:520px; margin:0 auto; width:100%; box-sizing:border-box; }
+  .main-nav { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom,12px)); z-index:100; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:6px 8px; background:linear-gradient(180deg,#ffffff 0%,#faf6ef 100%); border:1px solid rgba(26,18,8,.08); border-radius:999px; box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1); max-width:456px; margin:0 auto; box-sizing:border-box; }
   .main-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; text-decoration:none; transition:background .15s,color .15s; }
   .main-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
   .main-nav-ico path, .main-nav-ico circle { fill:none; stroke:currentColor; }
@@ -110,22 +138,22 @@
 
   <!-- shortcuts -->
   <div class="shortcut-grid">
-    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-daftar.html'">
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-daftar.html'">
       <div class="shortcut-icon">📋</div><div class="shortcut-label">দফতর</div>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-teachers.html?dept=kitab'">
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-teachers.html'">
       <div class="shortcut-icon">👨‍🏫</div><div class="shortcut-label">শিক্ষক</div>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-exams.html'">
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-exams.html'">
       <div class="shortcut-icon">📝</div><div class="shortcut-label">পরীক্ষা</div>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-hifz.html'">
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-hifz.html'">
       <div class="shortcut-icon">📿</div><div class="shortcut-label">হিফজ</div>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-library.html'">
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-library.html'">
       <div class="shortcut-icon">📚</div><div class="shortcut-label">মাকতাবা</div>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-alumni.html'">
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-alumni.html'">
       <div class="shortcut-icon">🎓</div><div class="shortcut-label">পুরনো ছাত্র</div>
     </div>
     <div class="shortcut-card" onclick="openAddStudent()">
@@ -152,7 +180,7 @@
             <th class="col-num">মোট</th>
             <th class="col-num">উপস্থিত</th>
             <th class="col-num">অনুপস্থিত</th>
-            <th class="col-num">ছুটি</th>
+            <th class="col-num col-hk">হুসনুল খুলুক</th>
           </tr>
         </thead>
         <tbody id="class-list-body"></tbody>
@@ -160,6 +188,24 @@
     </div>
   </div>
 
+</div>
+
+<!-- CLASS DETAIL OVERLAY -->
+<div class="cls-overlay" id="cls-overlay">
+  <div class="cls-ov-header">
+    <button class="cls-ov-back" onclick="closeClassOverlay()" aria-label="ফিরে যাও">←</button>
+    <div class="cls-ov-info">
+      <div class="cls-ov-title" id="cls-ov-title">—</div>
+      <div class="cls-ov-teacher" id="cls-ov-teacher">—</div>
+    </div>
+  </div>
+  <div class="cls-ov-tabs">
+    <button class="cls-ov-tab active" data-tab="students" onclick="switchOvTab('students')">ছাত্র তালিকা</button>
+    <button class="cls-ov-tab" data-tab="kitab" onclick="switchOvTab('kitab')">বই</button>
+    <button class="cls-ov-tab" data-tab="khuluk" onclick="switchOvTab('khuluk')">হুসনুল খুলুক</button>
+    <button class="cls-ov-tab" data-tab="logs" onclick="switchOvTab('logs')">লগ</button>
+  </div>
+  <div class="cls-ov-body" id="cls-ov-body"></div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -220,6 +266,7 @@
 <script src="js/mm-sample-data.js"></script>
 <script src="js/mm-session.js"></script>
 <script src="js/hijri-utils.js"></script>
+<script src="js/mam-overlay.js"></script>
 <script>
   if (!MMSession.isAdmin()) { location.href = 'index.html'; }
 
@@ -269,28 +316,27 @@
     const classes = API.Classes.getByDept(currentDept);
     const teachers = API.Teachers.getByDept(currentDept);
     const teacherMap = {};
-    teachers.forEach(t => { teacherMap[t.class_id] = t.teacher_name; });
+    teachers.forEach(t => { teacherMap[t.class_id] = t.name; });
 
     const rows = classes.map(cls => {
       const students = API.Students.getByClass(cls.id);
-      const att = API.Attendance.getDateSummaryForClass(iso, cls.id);
+      const attRecs = API.Attendance.getByClassDate(cls.id, iso);
+      const present = attRecs.filter(a => API.Attendance.statusOf(a) === 'present').length;
+      const absent  = attRecs.filter(a => API.Attendance.statusOf(a) === 'absent').length;
+      const khAvg   = API.Khuluk.getClassAvg(cls.id);
       const teacherName = teacherMap[cls.id] || '—';
-      return `<tr class="class-row" onclick="openClass('${cls.id}')">
+      return `<tr class="class-row" onclick="openClassOverlay('${cls.id}')">
         <td class="td-name">${API.esc(cls.name)}</td>
         <td class="td-teacher">${API.esc(teacherName)}</td>
         <td class="td-num n-in">${toBn(students.length)}</td>
-        <td class="td-num n-pr">${toBn(att.present)}</td>
-        <td class="td-num n-ab">${toBn(att.absent)}</td>
-        <td class="td-num n-lv">${toBn(att.leave)}</td>
+        <td class="td-num n-pr">${toBn(present)}</td>
+        <td class="td-num n-ab">${toBn(absent)}</td>
+        <td class="td-num n-kh">${khAvg !== null ? toBn(khAvg) : '—'}</td>
       </tr>`;
     }).join('');
 
     document.getElementById('class-list-body').innerHTML = rows ||
       `<tr><td colspan="6" style="text-align:center;color:var(--ink3);padding:24px;">কোনো বর্ষ নেই</td></tr>`;
-  }
-
-  function openClass(classId) {
-    location.href = 'madrasa/madrasa-admin.html?dept=' + encodeURIComponent(currentDept) + '&class_id=' + encodeURIComponent(classId);
   }
 
   function updateNsClasses() {
