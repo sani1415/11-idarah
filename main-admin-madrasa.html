@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>মাদ্রাসা — মেইন এডমিন</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .content { max-width:760px; }
+  .ma-sum-wrap { margin-bottom:12px; }
+  .ma-sum-row { display:flex; gap:8px; margin-bottom:8px; }
+  .ma-sum-row:last-child { margin-bottom:0; }
+  .ma-sum-card { flex:1; min-width:0; background:var(--cream); border-radius:var(--radius-sm); padding:8px 6px 10px; text-align:center; border:1px solid rgba(26,18,8,.06); }
+  .ma-sum-label { display:block; font-size:8px; color:var(--ink3); line-height:1.25; margin-bottom:4px; }
+  .ma-sum-val { font-family:'Noto Serif Bengali',serif; font-size:15px; font-weight:700; color:var(--ink2); line-height:1.15; display:block; }
+  .ma-sum-val.v-green { color:var(--green); }
+  .ma-sum-val.v-red { color:var(--red); }
+  .ma-sum-val.v-gold { color:var(--gold); }
+
+  /* অনুপস্থিত / বিশেষ পর্যবেক্ষণ কার্ড */
+  .watch-row { display:flex; gap:8px; margin-bottom:14px; }
+  .watch-card { flex:1; background:#fff; border-radius:var(--radius-sm); padding:12px 10px; box-shadow:var(--shadow); text-align:center; cursor:pointer; transition:transform .12s; border:1px dashed rgba(26,18,8,.12); }
+  .watch-card:active { transform:scale(.97); }
+  .watch-card--absent { border-color:rgba(193,68,14,.35); background:linear-gradient(180deg,#fff9f6,#fff); }
+  .watch-card--special { border-color:rgba(108,52,131,.35); background:linear-gradient(180deg,#faf7fc,#fff); }
+  .watch-val { font-family:'Noto Serif Bengali',serif; font-size:22px; font-weight:700; line-height:1.1; }
+  .watch-val--absent { color:var(--red); }
+  .watch-val--special { color:#7c3aed; }
+  .watch-lbl { font-size:10px; color:var(--ink3); margin-top:4px; }
+
+  /* shortcuts */
+  .shortcut-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
+  .shortcut-card { background:#fff; border-radius:var(--radius-sm); padding:12px 8px; box-shadow:var(--shadow); text-align:center; cursor:pointer; transition:transform .12s; }
+  .shortcut-card:active { transform:scale(.97); }
+  .shortcut-icon { font-size:22px; }
+  .shortcut-label { font-size:10px; color:var(--ink3); margin-top:4px; line-height:1.25; }
+
+  /* dept tab */
+  .dept-tab { display:flex; gap:8px; margin-bottom:12px; }
+  .dept-tab-btn { flex:1; padding:10px 6px; background:#fff; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink3); transition:all .15s; }
+  .dept-tab-btn.active { border-color:var(--ink); background:var(--ink); color:var(--gold2); }
+
+  /* class table */
+  .class-table-wrap { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:12px; overflow:hidden; }
+  .class-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .class-table { width:100%; table-layout:fixed; border-collapse:collapse; font-family:'Noto Sans Bengali',sans-serif; font-size:11px; }
+  .class-table thead th { background:var(--ink); color:var(--gold2); font-weight:600; padding:7px 4px; text-align:left; white-space:nowrap; font-size:10px; }
+  .class-table thead th:nth-child(1), .class-table tbody td.td-name { width:18%; }
+  .class-table thead th:nth-child(2), .class-table tbody td.td-teacher { width:22%; }
+  .class-table thead th.col-num, .class-table tbody td.col-num { width:12%; }
+  .class-table thead th.col-num { text-align:center; font-size:9px; padding-left:2px; padding-right:2px; }
+  .class-table tbody td { padding:7px 4px; border-bottom:1px solid var(--cream2); vertical-align:middle; color:var(--ink2); }
+  .class-table tbody tr:last-child td { border-bottom:none; }
+  .class-table tbody tr.class-row { cursor:pointer; transition:background .12s; }
+  .class-table tbody tr.class-row:hover { background:rgba(0,0,0,.03); }
+  .class-table tbody tr.class-row:active { background:rgba(0,0,0,.06); }
+  .class-table .td-name { font-family:'Noto Serif Bengali',serif; font-size:12px; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .class-table .td-teacher { font-size:10px; color:var(--ink3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .class-table .td-num { font-family:'Noto Serif Bengali',serif; font-size:12px; font-weight:700; text-align:center; white-space:nowrap; }
+  .class-table .td-num.n-in { color:var(--ink); }
+  .class-table .td-num.n-pr { color:var(--green); }
+  .class-table .td-num.n-ab { color:var(--red); }
+  .class-table .td-num.n-lv { color:var(--gold); }
+
+  /* bottom nav — shared main-admin style */
+  .main-nav { position:fixed; left:0; right:0; bottom:0; z-index:50; display:flex; align-items:stretch; justify-content:space-around; gap:4px; padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px)); background:linear-gradient(180deg,#fffefb 0%,#f3ecdf 100%); border-top:1px solid rgba(26,18,8,.1); box-shadow:0 -6px 24px rgba(26,18,8,.06); max-width:520px; margin:0 auto; width:100%; box-sizing:border-box; }
+  .main-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; text-decoration:none; transition:background .15s,color .15s; }
+  .main-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
+  .main-nav-ico path, .main-nav-ico circle { fill:none; stroke:currentColor; }
+  .main-nav-btn.is-active { background:rgba(232,184,75,.22); color:var(--ink2); }
+  .main-nav-btn.is-active .main-nav-ico { opacity:1; }
+  .main-nav-btn:hover, .main-nav-btn:focus-visible { background:rgba(255,255,255,.7); color:var(--ink2); outline:none; }
+  .main-nav-lbl { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মুহতামিম</div>
+    <div class="topbar-name">মাদ্রাসা মডিউল</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="topbar-btn" onclick="location.href='madrasa/madrasa-settings.html'">⚙ সেটিং</button>
+  </div>
+</div>
+
+<div class="content" style="padding-bottom:90px;">
+
+  <!-- stats summary -->
+  <div class="ma-sum-wrap ma-sum-wrap--top" id="stats-wrap">
+    <div class="ma-sum-row">
+      <div class="ma-sum-card"><span class="ma-sum-label">মোট ছাত্র</span><span class="ma-sum-val" id="s-total">—</span></div>
+      <div class="ma-sum-card"><span class="ma-sum-label">উপস্থিত</span><span class="ma-sum-val v-green" id="s-present">—</span></div>
+      <div class="ma-sum-card"><span class="ma-sum-label">অনুপস্থিত</span><span class="ma-sum-val v-red" id="s-absent">—</span></div>
+    </div>
+  </div>
+
+  <!-- অনুপস্থিত তালিকা ও বিশেষ পর্যবেক্ষণ -->
+  <div class="watch-row">
+    <div class="watch-card watch-card--absent" id="card-absent-list" onclick="goAbsentList()">
+      <div class="watch-val watch-val--absent" id="w-absent">—</div>
+      <div class="watch-lbl">অনুপস্থিত তালিকা</div>
+    </div>
+    <div class="watch-card watch-card--special" id="card-special-watch" onclick="goSpecialWatch()">
+      <div class="watch-val watch-val--special" id="w-special">—</div>
+      <div class="watch-lbl">বিশেষ পর্যবেক্ষণ</div>
+    </div>
+  </div>
+
+  <!-- shortcuts -->
+  <div class="shortcut-grid">
+    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-daftar.html'">
+      <div class="shortcut-icon">📋</div><div class="shortcut-label">দফতর</div>
+    </div>
+    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-teachers.html?dept=kitab'">
+      <div class="shortcut-icon">👨‍🏫</div><div class="shortcut-label">শিক্ষক</div>
+    </div>
+    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-exams.html'">
+      <div class="shortcut-icon">📝</div><div class="shortcut-label">পরীক্ষা</div>
+    </div>
+    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-hifz.html'">
+      <div class="shortcut-icon">📿</div><div class="shortcut-label">হিফজ</div>
+    </div>
+    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-library.html'">
+      <div class="shortcut-icon">📚</div><div class="shortcut-label">মাকতাবা</div>
+    </div>
+    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-alumni.html'">
+      <div class="shortcut-icon">🎓</div><div class="shortcut-label">পুরনো ছাত্র</div>
+    </div>
+    <div class="shortcut-card" onclick="openAddStudent()">
+      <div class="shortcut-icon">➕</div><div class="shortcut-label">নতুন ছাত্র</div>
+    </div>
+    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-settings.html'">
+      <div class="shortcut-icon">⚙️</div><div class="shortcut-label">সেটিং</div>
+    </div>
+  </div>
+
+  <!-- dept tabs + class list -->
+  <div class="dept-tab">
+    <div class="dept-tab-btn active" id="dtab-kitab" onclick="switchDept('kitab')">কিতাব বিভাগ</div>
+    <div class="dept-tab-btn" id="dtab-maktab" onclick="switchDept('maktab')">মক্তব বিভাগ</div>
+  </div>
+
+  <div class="class-table-wrap">
+    <div class="class-table-scroll">
+      <table class="class-table">
+        <thead>
+          <tr>
+            <th>বর্ষ</th>
+            <th>শ্রেণি শিক্ষক</th>
+            <th class="col-num">মোট</th>
+            <th class="col-num">উপস্থিত</th>
+            <th class="col-num">অনুপস্থিত</th>
+            <th class="col-num">ছুটি</th>
+          </tr>
+        </thead>
+        <tbody id="class-list-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="main-nav" role="navigation" aria-label="মেইন এডমিন নেভিগেশন">
+  <a class="main-nav-btn is-active" href="main-admin-madrasa.html" aria-label="মাদ্রাসা">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    <span class="main-nav-lbl">মাদ্রাসা</span>
+  </a>
+  <a class="main-nav-btn" href="main-admin-dept.html" aria-label="বিভাগ">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg>
+    <span class="main-nav-lbl">বিভাগ</span>
+  </a>
+  <a class="main-nav-btn" href="main-admin-khedmat.html" aria-label="খেদমত">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    <span class="main-nav-lbl">খেদমত</span>
+  </a>
+  <a class="main-nav-btn" href="admin-hub.html?tab=inbox" aria-label="বার্তা">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg>
+    <span class="main-nav-lbl">বার্তা</span>
+  </a>
+  <a class="main-nav-btn" href="admin-hub.html?tab=recent" aria-label="কার্যক্রম">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg>
+    <span class="main-nav-lbl">কার্যক্রম</span>
+  </a>
+</nav>
+
+<!-- ADD STUDENT MODAL -->
+<div class="modal-bg" id="modal-add-student">
+  <div class="modal">
+    <div class="modal-title">নতুন ছাত্র ভর্তি <button class="modal-close" onclick="closeModal('modal-add-student')">✕</button></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">বিভাগ</label>
+        <select class="form-input form-select" id="ns-dept" onchange="updateNsClasses()">
+          <option value="kitab">কিতাব বিভাগ</option>
+          <option value="maktab">মক্তব বিভাগ</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">বর্ষ</label>
+        <select class="form-input form-select" id="ns-class"></select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="ns-name" placeholder="ছাত্রের পূর্ণ নাম"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">অভিভাবকের নাম</label><input class="form-input" id="ns-guardian" placeholder="অভিভাবকের নাম"></div>
+      <div class="form-group"><label class="form-label">ফোন</label><input class="form-input" id="ns-phone" placeholder="ফোন নম্বর" type="tel"></div>
+    </div>
+    <div class="form-group"><label class="form-label">ঠিকানা</label><input class="form-input" id="ns-address" placeholder="গ্রাম / ইউনিয়ন"></div>
+    <div class="form-group"><label class="form-label">ভর্তির হিজরী সন</label><input class="form-input" id="ns-year" placeholder="১৪৪৭"></div>
+    <button class="submit-btn" onclick="addStudent()">ভর্তি করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/api.js"></script>
+<script src="js/mm-sample-data.js"></script>
+<script src="js/mm-session.js"></script>
+<script src="js/hijri-utils.js"></script>
+<script>
+  if (!MMSession.isAdmin()) { location.href = 'index.html'; }
+
+  const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  let currentDept = 'kitab';
+
+  function showToast(msg) {
+    const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  function openAddStudent() { updateNsClasses(); openModal('modal-add-student'); }
+
+  function switchDept(dept) {
+    currentDept = dept;
+    document.getElementById('dtab-kitab').classList.toggle('active', dept==='kitab');
+    document.getElementById('dtab-maktab').classList.toggle('active', dept==='maktab');
+    renderClassList();
+    updateWatchCounts();
+  }
+
+  function renderStats() {
+    const iso = new Date().toISOString().split('T')[0];
+    const kAtt = API.Attendance.getDateSummaryForDept(iso,'kitab');
+    const mAtt = API.Attendance.getDateSummaryForDept(iso,'maktab');
+    const total = API.Students.countActiveByDept('kitab') + API.Students.countActiveByDept('maktab');
+    document.getElementById('s-total').textContent = toBn(total);
+    document.getElementById('s-present').textContent = toBn(kAtt.present + mAtt.present);
+    document.getElementById('s-absent').textContent = toBn(kAtt.absent + mAtt.absent);
+  }
+
+  function updateWatchCounts() {
+    document.getElementById('w-absent').textContent = toBn(API.Attendance.countStudentsWithAnyAbsentByDept(currentDept));
+    document.getElementById('w-special').textContent = toBn(API.Students.countSpecialWatchByDept(currentDept));
+  }
+
+  function goAbsentList() {
+    location.href = 'madrasa/madrasa-absent-students.html?dept=' + encodeURIComponent(currentDept);
+  }
+  function goSpecialWatch() {
+    location.href = 'madrasa/madrasa-special-watch.html?dept=' + encodeURIComponent(currentDept);
+  }
+
+  function renderClassList() {
+    const iso = new Date().toISOString().split('T')[0];
+    const classes = API.Classes.getByDept(currentDept);
+    const teachers = API.Teachers.getByDept(currentDept);
+    const teacherMap = {};
+    teachers.forEach(t => { teacherMap[t.class_id] = t.teacher_name; });
+
+    const rows = classes.map(cls => {
+      const students = API.Students.getByClass(cls.id);
+      const att = API.Attendance.getDateSummaryForClass(iso, cls.id);
+      const teacherName = teacherMap[cls.id] || '—';
+      return `<tr class="class-row" onclick="openClass('${cls.id}')">
+        <td class="td-name">${API.esc(cls.name)}</td>
+        <td class="td-teacher">${API.esc(teacherName)}</td>
+        <td class="td-num n-in">${toBn(students.length)}</td>
+        <td class="td-num n-pr">${toBn(att.present)}</td>
+        <td class="td-num n-ab">${toBn(att.absent)}</td>
+        <td class="td-num n-lv">${toBn(att.leave)}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('class-list-body').innerHTML = rows ||
+      `<tr><td colspan="6" style="text-align:center;color:var(--ink3);padding:24px;">কোনো বর্ষ নেই</td></tr>`;
+  }
+
+  function openClass(classId) {
+    location.href = 'madrasa/madrasa-admin.html?dept=' + encodeURIComponent(currentDept) + '&class_id=' + encodeURIComponent(classId);
+  }
+
+  function updateNsClasses() {
+    const dept = document.getElementById('ns-dept').value;
+    const classes = API.Classes.getByDept(dept);
+    document.getElementById('ns-class').innerHTML = classes.map(c => `<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
+  }
+
+  function addStudent() {
+    const dept = document.getElementById('ns-dept').value;
+    const class_id = document.getElementById('ns-class').value;
+    const name = document.getElementById('ns-name').value.trim();
+    const guardian = document.getElementById('ns-guardian').value.trim();
+    const phone = document.getElementById('ns-phone').value.trim();
+    const address = document.getElementById('ns-address').value.trim();
+    const hijriYear = document.getElementById('ns-year').value.trim() || '১৪৪৭';
+    if (!name || !class_id) { showToast('নাম ও বর্ষ আবশ্যক'); return; }
+    const permanent_id = API.Students.getNextPermanentId(dept, hijriYear);
+    API.Students.add({ name, class_id, guardian, phone, address, admitted:hijriYear, permanent_id, dept });
+    closeModal('modal-add-student');
+    showToast('ছাত্র ভর্তি সম্পন্ন ✓');
+    renderStats();
+    renderClassList();
+  }
+
+  // init
+  updateNsClasses();
+  renderStats();
+  updateWatchCounts();
+  renderClassList();
+</script>
+</body>
+</html>

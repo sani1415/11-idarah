@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>খেদমত — মেইন এডমিন</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .type-card { background:#fff; border-radius:var(--radius-sm); padding:14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+  .type-emoji { font-size:24px; width:42px; height:42px; background:var(--teal-light); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .type-name { flex:1; font-size:14px; font-weight:600; color:var(--ink); }
+  .type-stats { text-align:right; }
+  .type-count { font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; color:var(--ink2); }
+  .type-total { font-size:11px; color:var(--ink3); }
+  .ben-row { display:flex; align-items:center; padding:11px 0; border-bottom:1px solid var(--cream2); gap:10px; }
+  .ben-row:last-child { border-bottom:none; }
+  .ben-row-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
+  .ben-row-sub { font-size:11px; color:var(--ink3); margin-top:2px; }
+  .month-sel { background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:10px 14px; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; color:var(--ink); width:100%; margin-bottom:14px; outline:none; }
+
+  /* bottom nav */
+  .main-nav { position:fixed; left:0; right:0; bottom:0; z-index:50; display:flex; align-items:stretch; justify-content:space-around; gap:4px; padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px)); background:linear-gradient(180deg,#fffefb 0%,#f3ecdf 100%); border-top:1px solid rgba(26,18,8,.1); box-shadow:0 -6px 24px rgba(26,18,8,.06); max-width:520px; margin:0 auto; width:100%; box-sizing:border-box; }
+  .main-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; text-decoration:none; transition:background .15s,color .15s; }
+  .main-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
+  .main-nav-ico path, .main-nav-ico circle { fill:none; stroke:currentColor; }
+  .main-nav-btn.is-active { background:rgba(232,184,75,.22); color:var(--ink2); }
+  .main-nav-btn.is-active .main-nav-ico { opacity:1; }
+  .main-nav-btn:hover, .main-nav-btn:focus-visible { background:rgba(255,255,255,.7); color:var(--ink2); outline:none; }
+  .main-nav-lbl { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মুহতামিম</div>
+    <div class="topbar-name">খেদমতে খালক</div>
+  </div>
+</div>
+
+<div style="max-width:520px;margin:0 auto;padding:8px 16px 0;">
+  <div class="tab-bar" style="padding-bottom:0;margin-bottom:0;">
+    <button class="tab-btn active" id="nav-overview" onclick="switchPanel('overview')">সারসংক্ষেপ</button>
+    <button class="tab-btn" id="nav-bens" onclick="switchPanel('bens')">উপকারভোগী</button>
+    <button class="tab-btn" id="nav-finance" onclick="switchPanel('finance')">তহবিল</button>
+    <button class="tab-btn" id="nav-settings" onclick="switchPanel('settings')">সেটিং</button>
+  </div>
+</div>
+
+<!-- PANEL: OVERVIEW -->
+<div class="content" id="panel-overview" style="padding-bottom:90px;">
+  <select class="month-sel" id="month-sel" onchange="onMonthChange()"></select>
+  <div class="stat-row" id="stats-row"></div>
+  <div class="sec-header"><div class="sec-title">কার্যক্রমের ধরন অনুযায়ী</div></div>
+  <div id="type-breakdown"></div>
+  <div class="sec-header"><div class="sec-title">সর্বশেষ দৈনিক লগ</div></div>
+  <div id="latest-log"></div>
+</div>
+
+<!-- PANEL: BENEFICIARIES -->
+<div class="content" id="panel-bens" style="display:none;padding-bottom:90px;">
+  <div class="sec-header" style="margin-top:10px;"><div class="sec-title">উপকারভোগী তালিকা</div></div>
+  <div class="card-static" id="ben-table"></div>
+</div>
+
+<!-- PANEL: FINANCE -->
+<div class="content" id="panel-finance" style="display:none;padding-bottom:90px;">
+  <div class="stat-row-2" style="margin-top:10px;" id="fin-stats"></div>
+  <button class="add-btn" onclick="openModal('modal-fin')">+ তহবিল লেনদেন যোগ করুন</button>
+  <div id="fin-list"></div>
+</div>
+
+<!-- PANEL: SETTINGS -->
+<div class="content" id="panel-settings" style="display:none;padding-bottom:90px;">
+  <div class="sec-header" style="margin-top:10px;"><div class="sec-title">কার্যক্রমের ধরন</div></div>
+  <button class="add-btn" onclick="openModal('modal-type')">+ নতুন ধরন যোগ করুন</button>
+  <div id="type-list"></div>
+</div>
+
+<!-- BOTTOM NAV (main admin) -->
+<nav class="main-nav" role="navigation" aria-label="মেইন এডমিন নেভিগেশন">
+  <a class="main-nav-btn" href="main-admin-madrasa.html" aria-label="মাদ্রাসা">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    <span class="main-nav-lbl">মাদ্রাসা</span>
+  </a>
+  <a class="main-nav-btn" href="main-admin-dept.html" aria-label="বিভাগ">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg>
+    <span class="main-nav-lbl">বিভাগ</span>
+  </a>
+  <a class="main-nav-btn is-active" href="main-admin-khedmat.html" aria-label="খেদমত">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    <span class="main-nav-lbl">খেদমত</span>
+  </a>
+  <a class="main-nav-btn" href="admin-hub.html?tab=inbox" aria-label="বার্তা">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg>
+    <span class="main-nav-lbl">বার্তা</span>
+  </a>
+  <a class="main-nav-btn" href="admin-hub.html?tab=recent" aria-label="কার্যক্রম">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg>
+    <span class="main-nav-lbl">কার্যক্রম</span>
+  </a>
+</nav>
+
+<!-- ADD FINANCE MODAL -->
+<div class="modal-bg" id="modal-fin">
+  <div class="modal">
+    <div class="modal-title">তহবিল লেনদেন <button class="modal-close" onclick="closeModal('modal-fin')">✕</button></div>
+    <div class="form-group"><label class="form-label">ধরন</label><select class="form-input form-select" id="fn-type"><option value="income">আয়</option><option value="expense">ব্যয়</option></select></div>
+    <div class="form-group"><label class="form-label">পরিমাণ</label><input class="form-input" type="number" id="fn-amount" placeholder="০"></div>
+    <div class="form-group"><label class="form-label">বিবরণ</label><input class="form-input" id="fn-desc" placeholder="লেনদেনের বিবরণ"></div>
+    <div class="form-group"><label class="form-label">উৎস (ঐচ্ছিক)</label><input class="form-input" id="fn-source" placeholder="মাদ্রাসা তহবিল / দান"></div>
+    <button class="submit-btn" onclick="saveFin()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<!-- ADD TYPE MODAL -->
+<div class="modal-bg" id="modal-type">
+  <div class="modal">
+    <div class="modal-title">নতুন ধরন <button class="modal-close" onclick="closeModal('modal-type')">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ইমোজি</label><input class="form-input" id="tp-emoji" placeholder="🤝" maxlength="2"></div>
+      <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="tp-name" placeholder="ধরনের নাম"></div>
+    </div>
+    <button class="submit-btn" onclick="saveType()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/mm-session.js"></script>
+<script src="js/monitor-mode.js"></script>
+<script src="js/khedmat-api.js"></script>
+<script>
+  if (!MMSession.isAdmin()) { location.href = 'admin-hub.html'; }
+  mmInsertMonitorBanner();
+
+  const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  const fmtAmt = n => '৳' + toBn(Number(n).toLocaleString('en'));
+  const fmtDate = d => { if (!d) return ''; const p = d.split('-'); return toBn(p[2]+'/'+p[1]); };
+
+  let selectedMonth = new Date().toISOString().slice(0,7);
+
+  function showToast(msg) {
+    const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+  function openModal(id) {
+    if (mmMutationBlocked(showToast)) return;
+    document.getElementById(id).classList.add('open');
+  }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  function buildMonthOptions() {
+    const sel = document.getElementById('month-sel');
+    const months = [];
+    const now = new Date();
+    for (let i=0; i<12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      months.push(d.toISOString().slice(0,7));
+    }
+    sel.innerHTML = months.map(m => {
+      const p = m.split('-');
+      return `<option value="${m}" ${m===selectedMonth?'selected':''}>${toBn(p[1])} — ${toBn(p[0])}</option>`;
+    }).join('');
+  }
+
+  function onMonthChange() { selectedMonth = document.getElementById('month-sel').value; renderOverview(); }
+
+  function switchPanel(name) {
+    ['overview','bens','finance','settings'].forEach(p => {
+      document.getElementById('panel-'+p).style.display = p===name ? '' : 'none';
+      document.getElementById('nav-'+p).classList.toggle('active', p===name);
+    });
+    if (name==='overview')  renderOverview();
+    if (name==='bens')      renderBens();
+    if (name==='finance')   renderFinance();
+    if (name==='settings')  renderSettings();
+  }
+
+  function renderOverview() {
+    const allActs = KhAPI.Activities.getAll();
+    const monthActs = allActs.filter(a => a.date?.startsWith(selectedMonth));
+    const bens = KhAPI.Beneficiaries.getAll();
+    const totalSpent = monthActs.reduce((s,a) => s+(a.amount||0), 0);
+    document.getElementById('stats-row').innerHTML =
+      `<div class="stat-card"><span class="stat-num">${toBn(bens.length)}</span><span class="stat-label">উপকারভোগী</span></div>
+       <div class="stat-card"><span class="stat-num">${toBn(monthActs.length)}</span><span class="stat-label">এই মাসে কার্যক্রম</span></div>
+       <div class="stat-card"><span class="stat-num" style="font-size:14px;color:var(--red);">${fmtAmt(totalSpent)}</span><span class="stat-label">ব্যয়</span></div>`;
+    const breakdown = KhAPI.Activities.getSummaryByType();
+    document.getElementById('type-breakdown').innerHTML = breakdown.filter(t=>t.count>0).map(t =>
+      `<div class="type-card"><div class="type-emoji">${t.emoji}</div><div class="type-name">${KhAPI.esc(t.name)}</div><div class="type-stats"><div class="type-count">${toBn(t.count)} বার</div><div class="type-total">${fmtAmt(t.total)}</div></div></div>`
+    ).join('') || '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:13px;">কোনো কার্যক্রম নেই</div>';
+    const latest = KhAPI.DailyLogs.getLatest();
+    document.getElementById('latest-log').innerHTML = latest
+      ? `<div class="log-item"><div class="log-meta"><span>${KhAPI.esc(latest.by||'—')}</span><span>${fmtDate(latest.date)}</span></div><div class="log-text">${KhAPI.esc(latest.content)}</div></div>`
+      : '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:13px;">কোনো লগ নেই</div>';
+  }
+
+  function renderBens() {
+    const bens = KhAPI.Beneficiaries.getAll();
+    document.getElementById('ben-table').innerHTML = bens.length
+      ? bens.map(b => {
+          const acts = KhAPI.Activities.getByBeneficiary(b.id);
+          return `<div class="ben-row"><div style="flex:1;"><div class="ben-row-name">${KhAPI.esc(b.name)}</div><div class="ben-row-sub">${KhAPI.esc(b.address||'—')} · ${KhAPI.esc(b.phone||'')}</div></div><div style="text-align:right;"><div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;">${toBn(acts.length)} বার</div><div style="font-size:11px;color:var(--ink3);">${fmtAmt(acts.reduce((s,a)=>s+(a.amount||0),0))}</div></div></div>`;
+        }).join('')
+      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো উপকারভোগী নেই</div>';
+  }
+
+  function renderFinance() {
+    const sum = KhAPI.Finance.getSummary(null);
+    document.getElementById('fin-stats').innerHTML =
+      `<div class="stat-card"><span class="stat-num" style="color:var(--green)">${fmtAmt(sum.income)}</span><span class="stat-label">মোট আয়</span></div>
+       <div class="stat-card"><span class="stat-num" style="color:${sum.balance<0?'var(--red)':'var(--ink2)'}">${fmtAmt(sum.balance)}</span><span class="stat-label">ব্যালেন্স</span></div>`;
+    const fins = KhAPI.Finance.getAll();
+    document.getElementById('fin-list').innerHTML = fins.length
+      ? fins.map(f => `<div style="background:#fff;border-radius:var(--radius-sm);padding:13px;box-shadow:var(--shadow);margin-bottom:8px;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">${f.type==='income'?'↑':'↓'}</span><div style="flex:1;"><div style="font-size:13px;font-weight:600;">${KhAPI.esc(f.description)}</div><div style="font-size:11px;color:var(--ink3);">${KhAPI.esc(f.source||'—')} · ${fmtDate(f.date)}</div></div><span style="font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:700;color:${f.type==='income'?'var(--green)':'var(--red)'};">${fmtAmt(f.amount)}</span></div>`).join('')
+      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো লেনদেন নেই</div>';
+  }
+
+  function renderSettings() {
+    const types = KhAPI.ActivityTypes.getAll();
+    document.getElementById('type-list').innerHTML = types.map(t =>
+      `<div class="type-card"><div class="type-emoji">${t.emoji}</div><div class="type-name">${KhAPI.esc(t.name)}</div></div>`
+    ).join('');
+  }
+
+  function saveFin() {
+    if (mmMutationBlocked(showToast)) return;
+    const type = document.getElementById('fn-type').value;
+    const amount = parseFloat(document.getElementById('fn-amount').value);
+    const desc = document.getElementById('fn-desc').value.trim();
+    const source = document.getElementById('fn-source').value.trim();
+    if (!amount||amount<=0) { showToast('সঠিক পরিমাণ দিন'); return; }
+    if (!desc) { showToast('বিবরণ দিন'); return; }
+    KhAPI.Finance.add({ type, amount, description:desc, source:source||null });
+    closeModal('modal-fin'); renderFinance(); showToast('লেনদেন সংরক্ষিত হয়েছে');
+  }
+
+  function saveType() {
+    if (mmMutationBlocked(showToast)) return;
+    const emoji = document.getElementById('tp-emoji').value.trim() || '🤝';
+    const name = document.getElementById('tp-name').value.trim();
+    if (!name) { showToast('নাম দিন'); return; }
+    KhAPI.ActivityTypes.add({ name, emoji });
+    closeModal('modal-type'); renderSettings(); showToast('ধরন যোগ হয়েছে');
+  }
+
+  buildMonthOptions();
+  renderOverview();
+</script>
+</body>
+</html>
