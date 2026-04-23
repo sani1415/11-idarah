@@ -50,7 +50,7 @@
     <div class="role-btn role-btn-admin" onclick="selectRole('admin')">
       <div class="role-icon">🛡️</div>
       <div>
-        <div class="role-name">মুহতামিম / অ্যাডমিন</div>
+        <div class="role-name">জিম্মাদার / অ্যাডমিন</div>
         <div class="role-desc">সম্পূর্ণ নিয়ন্ত্রণ ও সব মডিউল</div>
       </div>
     </div>
@@ -110,7 +110,7 @@
 <div class="login-screen" id="pin-screen" style="display:none;">
   <div style="text-align:center;margin-bottom:32px;position:relative;">
     <span style="font-size:40px;display:block;margin-bottom:8px;" id="pin-icon">🛡️</span>
-    <div style="font-family:'Noto Serif Bengali',serif;font-size:19px;font-weight:700;color:var(--ink2);" id="pin-title">মুহতামিম লগইন</div>
+    <div style="font-family:'Noto Serif Bengali',serif;font-size:19px;font-weight:700;color:var(--ink2);" id="pin-title">জিম্মাদার লগইন</div>
     <div style="font-size:12px;color:var(--ink3);margin-top:4px;" id="pin-sub">অ্যাডমিন পিন দিন</div>
   </div>
 
@@ -168,7 +168,7 @@
       return;
     }
     const info = {
-      admin:   { icon:'🛡️', title:'মুহতামিম লগইন',   sub:'অ্যাডমিন পিন দিন' },
+      admin:   { icon:'🛡️', title:'জিম্মাদার লগইন',   sub:'অ্যাডমিন পিন দিন' },
       daftar:  { icon:'📋', title:'দফতর লগইন',        sub:'দফতর পিন দিন' },
       hifz:    { icon:'📿', title:'হিফজ লগইন',        sub:'হিফজ পিন দিন' },
       library: { icon:'📚', title:'মাকতাবা লগইন',   sub:'মাকতাবা পিন দিন' },
@@ -254,7 +254,7 @@
     if (currentRole === 'admin' && pinVal === settings.admin_pin) {
       ok = true;
       MMSession.setRole('admin');
-      MMSession.setName('মুহতামিম');
+      MMSession.setName('জিম্মাদার');
       redirect = 'admin-hub.html';
     } else if (currentRole === 'daftar') {
       const daftar = API.Teachers.getAll().find(t => t.role === 'daftar');

@@ -178,6 +178,21 @@ const API = (() => {
         .filter((s) => s.active && cids.has(s.class_id) && s.special_watch)
         .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'bn'));
     },
+    /**
+     * mm_withdrawals — বর্ষ শেষে বা ড্রপআউটে last_class_id অনুসারে।
+     * @param {string} classId
+     * @param {string|null|undefined} hijriYearFilter — API.Settings-এর hijri_year; null হলে সব
+     */
+    getWithdrawalsFromClass(classId, hijriYearFilter) {
+      let w;
+      try { w = JSON.parse(localStorage.getItem('mm_withdrawals') || '[]'); } catch { return []; }
+      let list = w.filter((x) => x.last_class_id === classId);
+      if (hijriYearFilter != null && String(hijriYearFilter).trim() !== '' && String(hijriYearFilter) !== '—') {
+        const y = String(hijriYearFilter);
+        list = list.filter((x) => String(x.hijri_year || '') === y);
+      }
+      return list.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+    },
   };
 
   /* ══════════════════════════════
@@ -417,18 +432,28 @@ const API = (() => {
       const scores = sids.map(sid => { const k = Khuluk.getLatest(sid); return k ? k.score : null; }).filter(s => s !== null);
       return scores.length ? Math.round(scores.reduce((a,b) => a+b, 0) / scores.length) : null;
     },
-    /** সর্বশেষ স্কোর: ৮০+ মুজতাহিদ, ৬০–৮০ মুতাওয়াস্সিত, ৬০-এর নিচে মুসতায়িদ, রেকর্ড ছাড়া আলাদা */
+    /** সর্বশেষ হুসনুল খুলুক: ৮১+ মুজতাহিদ, ৬০–৮০ মুতাওয়াস্সিত, ৬০-এর নিচে মুসতায়িদ, রেকর্ড ছাড়া আলাদা (মেইন এডমিন ও বর্ষ পেজ এক মাপ) */
     getClassKhulukBands(cid) {
       const sids = Students.getByClass(cid).map(s => s.id);
       const out = { high: 0, mid: 0, low: 0, none: 0, total: sids.length };
       sids.forEach((sid) => {
         const k = Khuluk.getLatest(sid);
         if (!k) { out.none++; return; }
-        if (k.score > 80) out.high++;
-        else if (k.score >= 60) out.mid++;
+        const sc = Number(k.score);
+        if (Number.isNaN(sc)) { out.none++; return; }
+        if (sc >= 81) out.high++;
+        else if (sc >= 60) out.mid++;
         else out.low++;
       });
       return out;
+    },
+    /** বর্ষের সক্রিয় ছাত্রদের — সর্বশেষ খুলুক এন্ট্রি, তারিখ অনুসারে */
+    getRecentByClass(classId, limit = 12) {
+      const sids = new Set(Students.getByClass(classId).map((s) => s.id));
+      return load(KEYS.khuluk)
+        .filter((k) => sids.has(k.student_id))
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, limit);
     },
   };
 

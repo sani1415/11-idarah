@@ -47,7 +47,7 @@
 </div>
 
 <!-- PANELS -->
-<div class="content" id="panel-txn" style="padding-bottom:90px;">
+<div class="content" id="panel-txn" style="padding-bottom: var(--app-content-pad-bottom);">
   <div class="month-nav">
     <button class="month-nav-btn" onclick="changeMonth(-1)">‹</button>
     <span class="month-label" id="month-label">—</span>
@@ -58,13 +58,13 @@
   <div id="txn-list"></div>
 </div>
 
-<div class="content" id="panel-inv" style="display:none;padding-bottom:90px;">
+<div class="content" id="panel-inv" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div class="sec-header"><div class="sec-title">মজুদ তালিকা</div></div>
   <button class="add-btn" onclick="openAddInv()">+ মজুদ আপডেট করুন</button>
   <div id="inv-list"></div>
 </div>
 
-<div class="content" id="panel-report" style="display:none;padding-bottom:90px;">
+<div class="content" id="panel-report" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div class="stat-row-2" style="margin-top:14px;" id="report-summary"></div>
   <div class="sec-header"><div class="sec-title">সব লেনদেন</div></div>
   <div id="all-txn-list"></div>

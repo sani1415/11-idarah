@@ -29,7 +29,7 @@
     return tid ? A.Teachers.getById(tid) : null;
   }
 
-  /** মুহতামিম বা সংশ্লিষ্ট বর্ষের দায়িত্বশীল */
+  /** জিম্মাদার বা সংশ্লিষ্ট বর্ষের দায়িত্বশীল */
   function canEditClass(classId) {
     if (!classId) return false;
     if (isAdmin()) return true;
@@ -37,7 +37,7 @@
     return !!(t && t.class_id === classId);
   }
 
-  /** মাদ্রাসা বর্ষ ওয়ার্কস্পেস — মুহতামিম বা নিজ বর্ষের শিক্ষক */
+  /** মাদ্রাসা বর্ষ ওয়ার্কস্পেস — জিম্মাদার বা নিজ বর্ষের শিক্ষক */
   function canOpenMadrasaAdmin() {
     if (isAdmin()) return true;
     if (getRole() !== 'teacher') return false;

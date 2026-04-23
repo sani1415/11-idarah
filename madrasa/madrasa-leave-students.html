@@ -49,8 +49,7 @@
     <div class="topbar-name">ছুটির রেকর্ড</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn" onclick="location.href='../admin-hub.html'">হাব</button>
-    <button type="button" class="topbar-btn" onclick="location.href='madrasa-admin.html'">অ্যাডমিন</button>
+    <button type="button" class="topbar-btn" onclick="location.href='../main-admin-madrasa.html'">← এডমিন</button>
   </div>
 </div>
 
@@ -63,6 +62,7 @@
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mm-student-modal.js"></script>
 <script>
   if (!MMSession.isAdmin()) location.href = '../index.html';
 
@@ -87,7 +87,7 @@
         return `<div class="leave-row">
           <div class="leave-rank">${toBn(i + 1)}</div>
           <div class="leave-info">
-            <div class="leave-name">${API.esc(x.student.name)}</div>
+            <div class="leave-name"><button type="button" class="s-name-btn" style="font-size:14px;font-weight:600;" onclick="MMStudentModal.open('${x.student.id}')">${API.esc(x.student.name)}</button></div>
             <div class="leave-meta">${API.esc(cls ? cls.name : '—')} · রোল ${API.esc(x.student.roll || '—')}</div>
           </div>
           <div class="leave-days">${toBn(x.leaveDays)} দিন</div>

@@ -45,6 +45,8 @@
   .std-row { background:#fff; border-radius:var(--radius-xs); padding:11px 12px; box-shadow:var(--shadow); margin-bottom:7px; }
   .std-top { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
   .std-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
+  .std-name--btn { text-align:left; background:none; border:none; font:inherit; font-weight:600; color:var(--ink); padding:0; margin:0; cursor:pointer; flex:1; }
+  .std-name--btn:hover { text-decoration:underline; color:var(--blue); }
   .std-roll-old { font-size:11px; color:var(--ink3); background:var(--cream2); padding:2px 7px; border-radius:99px; }
   .std-bottom { display:flex; gap:8px; align-items:center; }
   .next-cls-sel { flex:1; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; border:1.5px solid var(--cream3); border-radius:6px; padding:7px 8px; background:#fff; color:var(--ink); outline:none; }
@@ -190,6 +192,8 @@
 
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mm-hijri.js"></script>
+<script src="../js/mm-student-modal.js"></script>
 <script src="../js/mm-session.js"></script>
 <script>
   if (!MMSession.getRole()) location.href = '../index.html';
@@ -332,7 +336,7 @@
           if (!decisions[s.id]) decisions[s.id] = { next_class_id: d.next_class_id, action: d.action, new_roll: roll };
           return `<div class="std-row" id="sr-${s.id}">
             <div class="std-top">
-              <span class="std-name">${API.esc(s.name)}</span>
+              <button type="button" class="std-name std-name--btn" onclick="event.stopPropagation();MMStudentModal.open('${s.id}')">${API.esc(s.name)}</button>
               <span class="std-roll-old">রোল ${API.esc(s.roll||'—')}</span>
             </div>
             <div class="std-bottom">

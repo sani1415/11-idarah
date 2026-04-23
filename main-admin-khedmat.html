@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>খেদমত — মেইন এডমিন</title>
+<title>খেদমত — জিম্মাদার</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/main-admin-nav.css">
 <style>
   .type-card { background:#fff; border-radius:var(--radius-sm); padding:14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
   .type-emoji { font-size:24px; width:42px; height:42px; background:var(--teal-light); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -17,23 +18,13 @@
   .ben-row-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
   .ben-row-sub { font-size:11px; color:var(--ink3); margin-top:2px; }
   .month-sel { background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:10px 14px; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; color:var(--ink); width:100%; margin-bottom:14px; outline:none; }
-
-  /* bottom nav */
-  .main-nav { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom,12px)); z-index:100; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:6px 8px; background:linear-gradient(180deg,#ffffff 0%,#faf6ef 100%); border:1px solid rgba(26,18,8,.08); border-radius:999px; box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1); max-width:456px; margin:0 auto; box-sizing:border-box; }
-  .main-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; text-decoration:none; transition:background .15s,color .15s; }
-  .main-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
-  .main-nav-ico path, .main-nav-ico circle { fill:none; stroke:currentColor; }
-  .main-nav-btn.is-active { background:rgba(232,184,75,.22); color:var(--ink2); }
-  .main-nav-btn.is-active .main-nav-ico { opacity:1; }
-  .main-nav-btn:hover, .main-nav-btn:focus-visible { background:rgba(255,255,255,.7); color:var(--ink2); outline:none; }
-  .main-nav-lbl { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-left">
-    <div class="topbar-role">মুহতামিম</div>
+    <div class="topbar-role">জিম্মাদার</div>
     <div class="topbar-name">খেদমতে খালক</div>
   </div>
   <div class="topbar-actions">
@@ -52,7 +43,7 @@
 </div>
 
 <!-- PANEL: OVERVIEW -->
-<div class="content" id="panel-overview" style="padding-bottom:90px;">
+<div class="content" id="panel-overview" style="padding-bottom: var(--app-content-pad-bottom);">
   <select class="month-sel" id="month-sel" onchange="onMonthChange()"></select>
   <div class="stat-row" id="stats-row"></div>
   <div class="sec-header"><div class="sec-title">কার্যক্রমের ধরন অনুযায়ী</div></div>
@@ -62,27 +53,27 @@
 </div>
 
 <!-- PANEL: BENEFICIARIES -->
-<div class="content" id="panel-bens" style="display:none;padding-bottom:90px;">
+<div class="content" id="panel-bens" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div class="sec-header" style="margin-top:10px;"><div class="sec-title">উপকারভোগী তালিকা</div></div>
   <div class="card-static" id="ben-table"></div>
 </div>
 
 <!-- PANEL: FINANCE -->
-<div class="content" id="panel-finance" style="display:none;padding-bottom:90px;">
+<div class="content" id="panel-finance" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div class="stat-row-2" style="margin-top:10px;" id="fin-stats"></div>
   <button class="add-btn" onclick="openModal('modal-fin')">+ তহবিল লেনদেন যোগ করুন</button>
   <div id="fin-list"></div>
 </div>
 
 <!-- PANEL: SETTINGS -->
-<div class="content" id="panel-settings" style="display:none;padding-bottom:90px;">
+<div class="content" id="panel-settings" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div class="sec-header" style="margin-top:10px;"><div class="sec-title">কার্যক্রমের ধরন</div></div>
   <button class="add-btn" onclick="openModal('modal-type')">+ নতুন ধরন যোগ করুন</button>
   <div id="type-list"></div>
 </div>
 
 <!-- BOTTOM NAV (main admin) -->
-<nav class="main-nav" role="navigation" aria-label="মেইন এডমিন নেভিগেশন">
+<nav class="main-nav" role="navigation" aria-label="জিম্মাদার নেভিগেশন">
   <a class="main-nav-btn" href="main-admin-madrasa.html" aria-label="মাদ্রাসা">
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
     <span class="main-nav-lbl">মাদ্রাসা</span>

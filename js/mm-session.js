@@ -64,7 +64,7 @@
 
     /**
      * Top bar: #topbar-hub → admin-hub (only if isAdmin). #topbar-lockout → session clear + index (staff).
-     * Hub button should start hidden (style="display:none") so staff never see muhtamim PIN by mistake.
+     * Hub button should start hidden (style="display:none") so staff never see admin PIN by mistake.
      */
     configureTopbarHubAndLockout: function () {
       var hub = document.getElementById('topbar-hub');

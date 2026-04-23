@@ -30,6 +30,16 @@
   --radius: 14px;
   --radius-sm: 8px;
   --radius-xs: 6px;
+  /* নিচের পিল নেভ — main-nav / hub / bottom-nav একই মাপ (ইনসেট, প্রস্থ, সেফ এরিয়া) */
+  --app-nav-pill-inset: 12px;
+  --app-nav-pill-max: 520px;
+  --app-content-pad-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  /* ইনবок্স ফ্যাব: পিলের উপর */
+  /* চ্যাট/লেআউট: নিচের পিল ধরে উচ্চতা কমানো */
+  --app-nav-layout-offset: 72px;
+  --app-fab-bottom: calc(64px + max(0px, env(safe-area-inset-bottom, 0px)));
+  /* টোস্ট/ফ্লোট: পিলের ঠিক উপরে */
+  --app-floating-above-nav: calc(84px + max(0px, env(safe-area-inset-bottom, 0px)));
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -102,58 +112,69 @@ body {
   line-height: 1.25; white-space: normal; text-align: center;
 }
 
-/* ── BOTTOM NAV — floating light pill, rounded “badge” active state ── */
+/* ── BOTTOM NAV — .main-nav / hub / one pill; নিচে সটিক, রাউন্ড, main-admin-nav.css সঙ্গে মিল -- */
 .bottom-nav {
   position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  max-width: 456px;
-  margin-left: auto;
-  margin-right: auto;
+  left: var(--app-nav-pill-inset, 12px);
+  right: var(--app-nav-pill-inset, 12px);
+  bottom: 0;
+  max-width: var(--app-nav-pill-max, 520px);
+  margin: 0 auto;
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-around;
   gap: 4px;
-  padding: 6px 8px;
+  box-sizing: border-box;
+  padding: 6px 8px max(10px, env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, #ffffff 0%, #faf6ef 100%);
   border: 1px solid rgba(26, 18, 8, 0.08);
   border-radius: 999px;
   box-shadow:
     0 4px 6px rgba(26, 18, 8, 0.04),
     0 14px 36px rgba(26, 18, 8, 0.1);
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 .nav-item {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  min-height: 44px;
-  padding: 8px 6px;
+  min-height: 0;
+  padding: 6px 6px 8px;
   cursor: pointer;
   border: none;
   background: transparent;
-  border-radius: 999px;
+  border-radius: 14px;
   color: var(--ink3);
-  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  font-family: 'Noto Sans Bengali', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  transition: background 0.15s, color 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 .nav-item:hover {
   color: var(--ink2);
-  background: rgba(232, 184, 75, 0.06);
+  background: rgba(255, 255, 255, 0.7);
 }
 .nav-item.active {
-  color: var(--gold);
-  background: linear-gradient(180deg, #fff9ed 0%, #fdf3dc 100%);
-  box-shadow:
-    0 4px 14px rgba(201, 149, 42, 0.15),
-    0 1px 2px rgba(26, 18, 8, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(201, 149, 42, 0.22);
-  transform: translateY(-1px);
+  color: var(--ink2);
+  background: rgba(232, 184, 75, 0.22);
+  font-weight: 600;
+  box-shadow: none;
+  border: none;
+  transform: none;
+}
+.nav-item.active .nav-icon svg {
+  opacity: 1;
+}
+.nav-item .nav-icon svg {
+  opacity: 0.88;
 }
 .nav-icon {
   display: flex;
@@ -170,17 +191,18 @@ body {
 }
 .nav-label {
   font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.03em;
+  font-weight: inherit;
+  letter-spacing: 0.02em;
   color: inherit;
-  line-height: 1.15;
+  line-height: 1.2;
   text-align: center;
   max-width: 100%;
-  opacity: 0.92;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .nav-item.active .nav-label {
   font-weight: 600;
-  opacity: 1;
 }
 
 /* ── PANELS ── */
@@ -355,7 +377,7 @@ body {
 
 /* ── TOAST ── */
 .toast {
-  position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%);
+  position: fixed; bottom: var(--app-floating-above-nav, 88px); left: 50%; transform: translateX(-50%);
   background: var(--ink); color: #fff; padding: 10px 20px;
   border-radius: 20px; font-size: 13px; opacity: 0;
   transition: opacity .3s; pointer-events: none; z-index: 999; white-space: nowrap;
@@ -505,7 +527,7 @@ body {
 .empty-icon { font-size: 40px; margin-bottom: 12px; display: block; }
 .empty-text { font-size: 14px; }
 
-/* ── মুহতামিম পর্যবেক্ষণ মোড — টপবার মাঝখানে ── */
+/* ── জিম্মাদার পর্যবেক্ষণ মোড — টপবার মাঝখানে ── */
 .topbar.mm-monitor-topbar {
   position: relative;
 }
@@ -537,7 +559,31 @@ body {
   z-index: 200;
 }
 
-/* ══ Shared: ছাত্র প্রোফাইল মডাল (दफতর, অ্যাডমিন, …) + mm-student-modal.js ══ */
+/* ছাত্রের নাম → MMStudentModal */
+.s-name-btn {
+  display: inline;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  line-height: inherit;
+}
+.s-name-btn:hover,
+.s-name-btn:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--blue);
+  outline: none;
+}
+
+/* ══ Shared: ছাত্র প্রোফাইল মডাল (दफतर, অ্যাডমিন, …) + mm-student-modal.js ══ */
 #modal-student-detail.modal-bg {
   align-items: center;
   justify-content: center;
@@ -563,6 +609,39 @@ body {
   border: 1px solid rgba(201, 149, 42, 0.12);
 }
 #modal-student-detail #st-tabs-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* শিক্ষক প্রোফাইল — দপ্তরের ছাত্র মডালের একই কাঠামো (mm-teacher-modal.js) */
+#modal-teacher-detail.modal-bg {
+  align-items: center;
+  justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  backdrop-filter: blur(2px);
+}
+#modal-teacher-detail .modal.modal--student {
+  --st-modal-h: min(75vh, 640px);
+  width: min(600px, calc(100vw - 32px));
+  max-width: min(600px, calc(100vw - 32px));
+  height: var(--st-modal-h);
+  min-height: var(--st-modal-h);
+  max-height: var(--st-modal-h);
+  margin: 0;
+  padding: 0;
+  border-radius: 20px;
+  align-self: center;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #fffef9 0%, #fcfaf5 8%, #fff 14%);
+  box-shadow: 0 4px 6px rgba(26, 18, 8, 0.04), 0 24px 64px rgba(26, 18, 8, 0.16);
+  border: 1px solid rgba(201, 149, 42, 0.12);
+}
+#modal-teacher-detail #mtch-tabs-wrap {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
@@ -619,7 +698,8 @@ body {
   user-select: none;
 }
 #modal-student-detail h2#st-modal-title,
-.st-modal-texts h2#st-modal-title {
+.st-modal-texts h2#st-modal-title,
+#modal-teacher-detail h2#mtch-title {
   font-family: 'Noto Serif Bengali', serif;
   font-size: 18px;
   font-weight: 700;

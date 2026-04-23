@@ -2,9 +2,10 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>মেইন এডমিন — মাদরাসাতুল মদীনা</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>জিম্মাদার — মাদরাসাতুল মদীনা</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/main-admin-nav.css">
 <style>
   /* ── Login ── */
   .hub-login-wrap {
@@ -24,19 +25,11 @@
   /* ── Dashboard shell ── */
   #dashboard { min-height:100vh; min-height:100dvh; background:linear-gradient(180deg,var(--cream2) 0%,var(--cream) 28%,var(--cream) 100%); display:flex; flex-direction:column; }
   .hub-main { flex:1; display:flex; flex-direction:column; min-height:0; }
-  .hub-tab-panels { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 16px; padding-top:calc(58px + max(8px,env(safe-area-inset-top,0px))); padding-bottom:calc(68px + env(safe-area-inset-bottom,0px)); }
+  .hub-tab-panels { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 16px; padding-top:calc(58px + max(8px,env(safe-area-inset-top,0px))); padding-bottom:var(--app-content-pad-bottom); }
   .hub-tab-panel { display:none; padding-bottom:8px; }
   .hub-tab-panel.is-active { display:block; }
 
-  /* ── Bottom nav ── */
-  .hub-bottom-nav { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom,12px)); z-index:100; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:6px 8px; background:linear-gradient(180deg,#ffffff 0%,#faf6ef 100%); border:1px solid rgba(26,18,8,.08); border-radius:999px; box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1); max-width:456px; margin:0 auto; box-sizing:border-box; }
-  .hub-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; line-height:1.2; cursor:pointer; transition:background .15s,color .15s; -webkit-tap-highlight-color:transparent; text-decoration:none; }
-  .hub-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
-  .hub-nav-ico path, .hub-nav-ico rect, .hub-nav-ico circle { fill:none; stroke:currentColor; }
-  .hub-nav-btn.is-active .hub-nav-ico { opacity:1; }
-  .hub-nav-label { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .hub-nav-btn:hover, .hub-nav-btn:focus-visible { background:rgba(255,255,255,.7); color:var(--ink2); outline:none; }
-  .hub-nav-btn.is-active { background:rgba(232,184,75,.22); color:var(--ink2); }
+  /* ── Bottom nav: পিল, মাপ = main-admin-nav.css — শুধু ব্যadge ── */
   .hub-nav-badge { position:absolute; top:4px; right:6px; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:var(--red); color:#fff; font-size:9px; font-weight:700; line-height:16px; text-align:center; display:none; }
   .hub-nav-btn.has-badge-wrap { position:relative; }
   .hub-nav-btn.has-badge-wrap .hub-nav-badge.is-visible { display:inline-block; }
@@ -52,7 +45,7 @@
   .hub-body { max-width:520px; margin:0 auto; position:relative; width:100%; box-sizing:border-box; }
 
   /* ── Inbox/chat ── */
-  #hub-panel-inbox { position:relative; padding-bottom:80px; min-height:200px; }
+  #hub-panel-inbox { position:relative; padding-bottom:var(--app-content-pad-bottom); min-height:200px; }
   .hub-inbox-lead { font-size:12px; color:var(--ink3); line-height:1.5; margin:0 0 6px; }
   .hub-inbox-subline { font-size:13px; font-weight:600; color:var(--ink2); margin:0 0 12px; }
   .hub-thread-list { display:flex; flex-direction:column; gap:8px; }
@@ -68,7 +61,7 @@
   .hub-t-right { text-align:right; flex-shrink:0; }
   .hub-t-time { font-size:10px; color:var(--ink3); }
   .hub-thread-empty { text-align:center; color:var(--ink3); padding:36px 16px; font-size:13px; line-height:1.55; background:rgba(255,255,255,.6); border-radius:var(--radius); border:1px dashed var(--cream3); }
-  .hub-inbox-fab { position:fixed; bottom:calc(76px + env(safe-area-inset-bottom,0px)); right:max(16px,calc(50% - 240px)); width:52px; height:52px; border-radius:50%; background:var(--gold); color:var(--ink); border:none; font-size:22px; cursor:pointer; box-shadow:0 6px 22px rgba(26,18,8,.18); z-index:45; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; }
+  .hub-inbox-fab { position:fixed; bottom:var(--app-fab-bottom); right:max(12px,calc(50% - 250px)); width:52px; height:52px; border-radius:50%; background:var(--gold); color:var(--ink); border:none; font-size:22px; cursor:pointer; box-shadow:0 6px 22px rgba(26,18,8,.18); z-index:45; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; }
   .hub-inbox-fab:active { transform:scale(.94); }
   @media (min-width:560px) { .hub-inbox-fab { right:calc(50% - 260px); } }
 
@@ -116,7 +109,7 @@
 <div class="login-screen hub-login-wrap" id="login-screen">
   <div class="hub-login-card">
     <div class="login-logo hub-login-logo">مدرسة المدينة</div>
-    <div class="hub-login-title">মেইন এডমিন</div>
+    <div class="hub-login-title">জিম্মাদার</div>
     <div class="hub-login-tag">সব মডিউল এক জায়গা থেকে · একটি পিন</div>
     <div class="hub-login-label">পিন দিন</div>
     <div class="login-box" style="background:transparent;border:none;box-shadow:none;padding:0;">
@@ -150,7 +143,7 @@
   <header class="hub-header">
     <div class="hub-header-inner">
       <div class="hub-header-lead">
-        <span class="hub-title-name">মেইন এডমিন</span>
+        <span class="hub-title-name">জিম্মাদার</span>
         <div class="hub-date-sub" id="date-line">—</div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0;">
@@ -180,7 +173,7 @@
     </div>
 
     <!-- BOTTOM NAV -->
-    <nav class="hub-bottom-nav" role="navigation" aria-label="মেইন এডমিন নেভিগেশন">
+    <nav class="hub-bottom-nav" role="navigation" aria-label="জিম্মাদার নেভিগেশন">
       <a class="hub-nav-btn" href="main-admin-madrasa.html" aria-label="মাদ্রাসা মডিউল">
         <svg class="hub-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
         <span class="hub-nav-label">মাদ্রাসা</span>
@@ -286,7 +279,7 @@
   function checkPin() {
     const s = API.Settings.get();
     if (pinVal === (s.admin_pin||'0000')) {
-      MMSession.setRole('admin'); MMSession.setName('মুহতামিম'); showDashboard();
+      MMSession.setRole('admin'); MMSession.setName('জিম্মাদার'); showDashboard();
     } else {
       document.getElementById('pin-error').textContent='পিন ভুল হয়েছে।';
       pinVal=''; updateDots();
@@ -349,7 +342,7 @@
     if (!el) return;
     const threads = ChatAPI.getThreads();
     const totalUnread = threads.reduce((s,t) => s+t.unread, 0);
-    if (sub) sub.textContent = totalUnread > 0 ? toBn(totalUnread)+' টি অপঠিত বার্তা · স্টাফ → মুহতামিম' : '';
+    if (sub) sub.textContent = totalUnread > 0 ? toBn(totalUnread)+' টি অপঠিত বার্তা · স্টাফ → জিম্মাদার' : '';
     if (!threads.length) {
       el.innerHTML = '<div class="hub-thread-empty">কোনো থ্রেড নেই।<br>✏️ বাটনে চেপে কোনো স্টাফকে প্রথম বার্তা লিখুন।</div>';
       return;
@@ -543,7 +536,7 @@
     if (old) old.remove();
     const t = document.createElement('div');
     t.id = '_hub_toast';
-    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 18px;border-radius:22px;font-size:13px;z-index:300;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.18);font-family:\'Noto Sans Bengali\',sans-serif;';
+    t.style.cssText = 'position:fixed;bottom:var(--app-floating-above-nav);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 18px;border-radius:22px;font-size:13px;z-index:300;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.18);font-family:\'Noto Sans Bengali\',sans-serif;';
     t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 2200);

@@ -23,7 +23,7 @@
 <div class="topbar">
   <div class="topbar-left">
     <div class="topbar-role">সেটিংস</div>
-    <div class="topbar-name" id="top-name">মুহতামিম</div>
+    <div class="topbar-name" id="top-name">জিম্মাদার</div>
   </div>
   <div class="topbar-actions">
     <button type="button" class="topbar-btn" onclick="location.href='../main-admin-madrasa.html'">← এডমিন</button>
@@ -175,7 +175,7 @@
 <script src="../js/mm-session.js"></script>
 <script>
   if (!MMSession.isAdmin()) location.href='../index.html';
-  document.getElementById('top-name').textContent = MMSession.getName()||'মুহতামিম';
+  document.getElementById('top-name').textContent = MMSession.getName()||'জিম্মাদার';
 
   let editingTeacherId = null;
 

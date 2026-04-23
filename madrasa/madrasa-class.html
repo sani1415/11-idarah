@@ -6,23 +6,63 @@
 <title>বর্ষ ড্যাশবোর্ড — মাদরাসাতুল মদীনা</title>
 <link rel="stylesheet" href="../css/style.css">
 <style>
-  .content { max-width:520px; margin:0 auto; padding:12px 16px 90px; }
-  .stat-row { display:flex; gap:8px; margin-bottom:14px; }
-  .stat-card { flex:1; background:#fff; border-radius:var(--radius-sm); padding:12px 10px; box-shadow:var(--shadow); text-align:center; }
-  .stat-num { font-family:'Noto Serif Bengali',serif; font-size:22px; font-weight:700; color:var(--ink2); display:block; }
-  .stat-label { font-size:10px; color:var(--ink3); margin-top:2px; display:block; }
-  .tab-bar { display:flex; border-bottom:2px solid var(--cream2); background:#fff; position:sticky; top:52px; z-index:10; }
-  .tab-btn { flex:1; padding:11px 4px; border:none; background:none; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:600; color:var(--ink3); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; }
-  .tab-btn.active { color:var(--ink); border-bottom-color:var(--gold); }
-  .std-row { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:7px; display:flex; align-items:center; gap:12px; cursor:pointer; }
+  .content { max-width:520px; margin:0 auto; padding:12px 16px var(--app-content-pad-bottom); }
+  .stat-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-bottom:10px; }
+  .stat-tile { background:#fff; border-radius:var(--radius-sm); padding:10px 4px; box-shadow:var(--shadow); text-align:center; min-height:96px; display:flex; flex-direction:column; align-items:center; justify-content:center; box-sizing:border-box; }
+  .stat-tile--kh { padding:6px 4px; min-height:96px; justify-content:center; }
+  .stat-num { font-family:'Noto Serif Bengali',serif; font-size:20px; font-weight:700; color:var(--ink2); display:block; line-height:1.1; }
+  .stat-label { font-size:9px; color:var(--ink3); margin-top:4px; display:block; line-height:1.2; }
+  .kh-mini { width:100%; text-align:left; font-size:9px; line-height:1.2; }
+  .kh-mini .kh-line { display:flex; justify-content:space-between; align-items:center; gap:6px; padding:2px 0; border-top:1px solid var(--cream2); }
+  .kh-mini .kh-line:first-of-type { border-top:none; }
+  .kh-mini .kh-cat { flex:1; min-width:0; font-size:10px; line-height:1.2; font-weight:600; }
+  .kh-mini .kh-n { font-family:'Noto Serif Bengali',serif; font-weight:700; font-size:12px; flex-shrink:0; line-height:1.1; }
+  .kh-line--gr .kh-cat, .kh-line--gr .kh-n { color:var(--green); }
+  .kh-line--sky .kh-cat, .kh-line--sky .kh-n { color:#0ea5e9; }
+  .kh-line--red .kh-cat, .kh-line--red .kh-n { color:var(--red); }
+  .stat-kh-hd { font-size:9px; font-weight:700; color:var(--ink2); margin-bottom:2px; line-height:1.2; }
+  .std-name-row { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; width:100%; min-width:0; }
+  .std-name-row .std-name { flex:0 1 auto; max-width:100%; }
+  .std-name-inner { display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; min-width:0; flex:1; }
+  .std-kh-inline { font-size:10px; font-weight:700; padding:1px 7px; border-radius:6px; flex-shrink:0; line-height:1.2; }
+  .std-kh-inline.kh-high { background:#d1fae5; color:#059669; }
+  .std-kh-inline.kh-mid { background:#fef9c3; color:#b45309; }
+  .std-kh-inline.kh-low { background:#fee2e2; color:#dc2626; }
+  .std-kh-inline.kh-none { background:var(--cream2); color:var(--ink3); font-weight:600; }
+  /* বাটন হিসেবে রাখলে ডিফলট বর্ডার/বড় সাইজ এড়াতে (আগের <span> লুক) */
+  button.std-kh-inline {
+    display: inline-block;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: 'Noto Sans Bengali', sans-serif;
+    -webkit-appearance: none;
+    appearance: none;
+    border: 0;
+    box-shadow: none;
+    margin: 0;
+    padding: 1px 7px;
+    line-height: 1.2;
+    border-radius: 6px;
+    cursor: pointer;
+    vertical-align: baseline;
+    color: inherit;
+  }
+  button.std-kh-inline:focus { outline: none; }
+  button.std-kh-inline:focus-visible { box-shadow: 0 0 0 1px rgba(26,18,8,.2); }
+  .kh-latest-summary { font-size:12px; color:var(--ink2); line-height:1.45; margin-bottom:10px; padding:10px; background:var(--cream2); border-radius:8px; }
+  .kh-hist-block { margin-top:4px; }
+  .kh-hist-toggle { display:none; width:100%; margin-top:0; padding:8px 10px; background:#fff; border:1.5px solid var(--cream3); border-radius:8px; font-size:12px; font-weight:600; color:var(--ink2); cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; }
+  .kh-hist-toggle:active { opacity:0.9; }
+  .kh-history-wrap { max-height:200px; overflow-y:auto; margin-top:6px; padding:8px; background:var(--cream2); border-radius:8px; font-size:11px; -webkit-overflow-scrolling:touch; }
+  .kh-hist-line { padding:4px 0; border-bottom:1px solid var(--cream3); }
+  .kh-hist-line:last-child { border-bottom:none; }
+  .kh-hist-date { font-size:9px; color:var(--ink3); }
+  .stat-num--leave { color:var(--red) !important; }
+  .std-row { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:7px; display:flex; align-items:center; gap:12px; }
   .std-roll { font-size:11px; font-weight:700; color:var(--ink3); background:var(--cream2); padding:3px 8px; border-radius:99px; flex-shrink:0; }
   .std-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
   .std-meta { font-size:11px; color:var(--ink3); }
-  .kh-badge { font-size:11px; padding:2px 8px; border-radius:99px; font-weight:600; }
-  .kh-high { background:#d1fae5; color:#059669; }
-  .kh-mid { background:#fef9c3; color:#b45309; }
-  .kh-low { background:#fee2e2; color:#dc2626; }
-  .kh-none { background:var(--cream2); color:var(--ink3); }
   .book-row { background:#fff; border-radius:var(--radius-sm); padding:13px 14px; box-shadow:var(--shadow); margin-bottom:7px; }
   .book-name { font-size:13px; font-weight:600; color:var(--ink); margin-bottom:6px; }
   .prog-wrap { display:flex; align-items:center; gap:10px; }
@@ -31,12 +71,64 @@
   .prog-pct { font-size:11px; font-weight:700; color:var(--ink3); width:36px; text-align:right; flex-shrink:0; }
   .prog-pages { font-size:10px; color:var(--ink3); margin-top:4px; }
   .log-item { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:7px; border-left:3px solid var(--gold); }
+  .log-item--student { border-left-color:#0ea5e9; }
   .log-date { font-size:10px; color:var(--ink3); margin-bottom:4px; }
   .log-text { font-size:13px; color:var(--ink); line-height:1.55; }
+  /* লগ — নেভ/ট্যাবের মতো ক্রিম বর্ডার, আন্ডারলাইন নয় */
+  .std-log-link {
+    flex-shrink: 0;
+    font-family: 'Noto Sans Bengali', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink2);
+    background: var(--cream2);
+    border: 1.5px solid var(--cream3);
+    border-radius: 8px;
+    padding: 6px 10px;
+    line-height: 1.2;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .std-log-link:hover,
+  .std-log-link:focus-visible {
+    background: #fff;
+    border-color: var(--gold);
+    color: var(--ink);
+    outline: none;
+  }
+  .std-log-link:active { opacity: 0.92; }
+  .log-tabs { display:flex; gap:6px; margin-bottom:12px; }
+  .log-tab { flex:1; padding:10px 8px; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:600; color:var(--ink3); cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .15s,border-color .15s,color .15s; }
+  .log-tab.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
+  .log-student-block { margin-bottom:10px; border-radius:8px; overflow:hidden; border:1px solid rgba(14,165,233,.25); background:#fff; }
+  .log-student-block:last-child { margin-bottom:0; }
+  .log-student-hd {
+    display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; text-align:left;
+    padding:10px 12px; background:var(--cream2); border:none; border-bottom:1px solid rgba(14,165,233,.12); box-shadow:inset 3px 0 0 #0ea5e9;
+    -webkit-tap-highlight-color:transparent; box-sizing:border-box; transition:background .12s;
+  }
+  .log-student-hd:hover, .log-student-hd:focus-within { background:rgba(255,255,255,.65); }
+  .log-student-hd-text { flex:1; min-width:0; display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; font-size:14px; font-weight:700; font-family:'Noto Serif Bengali',serif; color:var(--ink2); }
+  .log-student-hd .s-name-btn { font-size:14px; font-weight:700; font-family:'Noto Serif Bengali',serif; color:var(--ink2); }
+  .log-student-expand {
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; width:40px; min-height:40px; margin:-6px -6px -6px 0; padding:0;
+    background:transparent; border:none; border-radius:8px; cursor:pointer; color:var(--ink3);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .log-student-expand:hover, .log-student-expand:focus-visible { background:rgba(0,0,0,.05); outline:none; }
+  .log-student-hd .log-cnt { font-size:10px; font-weight:600; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; margin-top:3px; display:block; }
+  .log-chevron { flex-shrink:0; width:1.2em; height:1.2em; color:var(--ink3); transition:transform .2s ease; }
+  .log-student-block.is-open .log-chevron { transform:rotate(180deg); }
+  .log-student-body { padding:0 8px 8px; }
+  .log-student-body[hidden] { display:none !important; }
+  .log-student-body .log-item { margin-bottom:6px; }
+  .log-student-body .log-item:last-child { margin-bottom:0; }
+  .log-panel-empty { text-align:center; padding:32px 12px; color:var(--ink3); font-size:13px; line-height:1.55; }
   .add-btn { width:100%; padding:12px; background:var(--gold-light); border:1.5px dashed var(--gold); border-radius:var(--radius-sm); font-family:'Noto Sans Bengali',sans-serif; font-size:13px; font-weight:700; color:var(--ink2); cursor:pointer; margin-bottom:14px; }
   /* bottom nav */
   .bottom-nav { position:fixed; bottom:0; left:0; right:0; display:flex; background:#fff; border-top:1px solid var(--cream2); padding:4px 0 max(4px,env(safe-area-inset-bottom)); z-index:50; max-width:520px; margin:0 auto; }
-  .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:6px 4px; border:none; background:none; cursor:pointer; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; -webkit-tap-highlight-color:transparent; }
+  .nav-item { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:6px 2px; border:none; background:none; cursor:pointer; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:9px; font-weight:600; -webkit-tap-highlight-color:transparent; }
   .nav-item.active { color:var(--gold); }
   .nav-svg { width:22px; height:22px; }
   /* modals */
@@ -62,20 +154,11 @@
   <button type="button" class="topbar-btn" onclick="MMSession.logoutToIndex('../index.html')">লগআউট</button>
 </div>
 
-<!-- TABS -->
-<div class="tab-bar">
-  <button class="tab-btn active" id="tab-std" onclick="switchTab('std')">👨‍🎓 ছাত্র</button>
-  <button class="tab-btn" id="tab-kitab" onclick="switchTab('kitab')">📖 কিতাব</button>
-  <button class="tab-btn" id="tab-log" onclick="switchTab('log')">📝 লগ</button>
-</div>
-
-<!-- STATS -->
-<div class="content" style="padding-bottom:12px;">
-  <div class="stat-row" id="stat-row"></div>
-</div>
-
-<!-- PANEL: ছাত্র -->
+<!-- PANEL: হোম (স্ট্যাট + ছাত্র তালিকা) -->
 <div class="content" id="panel-std">
+  <div id="home-stats-block" style="padding-bottom:4px;padding-top:4px;">
+    <div class="stat-grid" id="stat-grid"></div>
+  </div>
   <div id="std-list"></div>
 </div>
 
@@ -85,17 +168,21 @@
   <div id="kitab-list"></div>
 </div>
 
-<!-- PANEL: লগ -->
+<!-- PANEL: লগ (শ্রেণী / ছাত্র — উপট্যাব) -->
 <div class="content" id="panel-log" style="display:none;">
-  <button class="add-btn" onclick="openModal('modal-log')">＋ নতুন লগ যোগ করুন</button>
-  <div id="log-list"></div>
+  <div class="log-tabs" role="tablist" aria-label="লগের ধরন">
+    <button type="button" class="log-tab active" data-log-tab="class" role="tab" aria-selected="true" id="log-tab-class" onclick="setLogSubTab('class')">শ্রেণী লগ</button>
+    <button type="button" class="log-tab" data-log-tab="student" role="tab" aria-selected="false" id="log-tab-student" onclick="setLogSubTab('student')">ছাত্রলোগ</button>
+  </div>
+  <button class="add-btn" type="button" onclick="openLogModal()">＋ নতুন লগ যোগ করুন</button>
+  <div id="log-list" role="tabpanel" aria-labelledby="log-tab-class"></div>
 </div>
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav" aria-label="নেভিগেশন">
-  <button class="nav-item active" id="nav-std" onclick="switchTab('std')">
-    <svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <span>ছাত্র</span>
+  <button type="button" class="nav-item active" id="nav-std" onclick="switchTab('std')" aria-label="হোম">
+    <svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1.5 1.5 0 01-1.5 1.5h-5V14.5h-5V21.5H4.5A1.5 1.5 0 013 20V9.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    <span>হোম</span>
   </button>
   <button class="nav-item" id="nav-kitab" onclick="switchTab('kitab')">
     <svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -104,6 +191,10 @@
   <button class="nav-item" id="nav-log" onclick="switchTab('log')">
     <svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span>লগ</span>
+  </button>
+  <button type="button" class="nav-item" onclick="location.href='madrasa-class-exams.html'" aria-label="পরীক্ষা ও ফল">
+    <svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="1.5"/><path d="M9 7h6M9 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <span>পরীক্ষা</span>
   </button>
   <button class="nav-item" onclick="location.href='../chat.html'">
     <svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -115,16 +206,21 @@
 <div class="modal-bg" id="modal-khuluk">
   <div class="modal">
     <div class="modal-title">হুসনুল খুলুক <button class="modal-close" onclick="closeModal('modal-khuluk')">✕</button></div>
-    <div style="font-size:13px;color:var(--ink2);font-weight:600;margin-bottom:12px;" id="kh-std-name">—</div>
+    <div style="font-size:13px;color:var(--ink2);font-weight:600;margin-bottom:6px;" id="kh-std-name">—</div>
+    <p id="kh-latest-summary" class="kh-latest-summary" style="display:none"></p>
     <div class="form-group">
-      <label class="form-label">স্কোর (০–১০০)</label>
+      <label class="form-label">নতুন হুসনুল খুলুক (০–১০০)</label>
       <input class="form-input" id="kh-score" type="number" min="0" max="100" placeholder="যেমন: 85">
     </div>
     <div class="form-group">
       <label class="form-label">কারণ / মন্তব্য</label>
-      <input class="form-input" id="kh-reason" placeholder="সংক্ষিপ্ত বিবরণ">
+      <input class="form-input" id="kh-reason" placeholder="সংক্ষিপ্ত বিবরণ (প্রতি সেভে ইতিহাসে সঞ্চিত)">
     </div>
-    <button class="submit-btn" onclick="saveKhuluk()">সংরক্ষণ করুন</button>
+    <button type="button" class="submit-btn" onclick="saveKhuluk()">সংরক্ষণ করুন</button>
+    <div id="kh-hist-outer" class="kh-hist-block" style="display:none">
+      <button type="button" class="kh-hist-toggle" id="kh-hist-toggle" aria-expanded="false" onclick="toggleKhHistPanel()">সম্পূর্ণ ইতিহাস</button>
+      <div id="kh-history-wrap" class="kh-history-wrap" style="display:none" aria-hidden="true"></div>
+    </div>
   </div>
 </div>
 
@@ -148,15 +244,21 @@
   </div>
 </div>
 
-<!-- MODAL: লগ -->
+<!-- MODAL: লগ (বর্ষ / নির্দিষ্ট ছাত্র — পুরনো অ্যাপের মতো) -->
 <div class="modal-bg" id="modal-log">
   <div class="modal">
-    <div class="modal-title">নতুন লগ <button class="modal-close" onclick="closeModal('modal-log')">✕</button></div>
+    <div class="modal-title">নতুন লগ <button type="button" class="modal-close" onclick="closeModal('modal-log')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">কার জন্য</label>
+      <select class="form-input" id="log-student" aria-label="বর্ষ অথবা ছাত্র">
+        <option value="">সবাই — বর্ষের সাধারণ লগ</option>
+      </select>
+    </div>
     <div class="form-group">
       <label class="form-label">লগের বিষয়বস্তু</label>
-      <textarea class="form-input" id="log-text" rows="4" placeholder="আজকের বর্ষের কার্যক্রম, বিশেষ ঘটনা…" style="resize:none;"></textarea>
+      <textarea class="form-input" id="log-text" rows="4" placeholder="আজকের বর্ষের কার্যক্রম, অথবা নির্দিষ্ট ছাত্র সম্পর্কে বিবরণ…" style="resize:none;"></textarea>
     </div>
-    <button class="submit-btn" onclick="saveLog()">সংরক্ষণ করুন</button>
+    <button type="button" class="submit-btn" onclick="saveLog()">সংরক্ষণ করুন</button>
   </div>
 </div>
 
@@ -165,6 +267,7 @@
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mm-student-modal.js"></script>
 <script>
   if (MMSession.getRole() !== 'teacher') location.href = '../index.html';
 
@@ -180,6 +283,34 @@
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
+  /** লগ প্যানেল: 'class' = বর্ষের সাধারণ লগ, 'student' = ছাত্রভিত্তিক (নামের নিচে গুচ্ছ) */
+  let logSubTab = 'class';
+
+  function _attrId(id) { return String(id).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
+  function _jsQuote(id) { return String(id).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+  function openLogFromRowBtn(el) {
+    const sid = el.getAttribute('data-std-sid');
+    if (sid) openLogModal(sid);
+  }
+
+  /** ছাত্রলোগ: নামে ক্লিক করলে নিচের লগ প্রসারিত/অ্যাকordion */
+  function toggleStdLogGroup(btn) {
+    if (!btn) return;
+    const block = btn.closest('.log-student-block');
+    const body = block && block.querySelector('.log-student-body');
+    if (!body || !body.classList.contains('log-student-body')) return;
+    const willOpen = body.hasAttribute('hidden');
+    if (willOpen) {
+      body.removeAttribute('hidden');
+      btn.setAttribute('aria-expanded', 'true');
+      if (block) block.classList.add('is-open');
+    } else {
+      body.setAttribute('hidden', '');
+      btn.setAttribute('aria-expanded', 'false');
+      if (block) block.classList.remove('is-open');
+    }
+  }
+
   function showToast(msg) {
     const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2200);
@@ -191,7 +322,6 @@
   function switchTab(name) {
     ['std','kitab','log'].forEach(p => {
       document.getElementById('panel-'+p).style.display = p===name ? '' : 'none';
-      document.getElementById('tab-'+p).classList.toggle('active', p===name);
       document.getElementById('nav-'+p).classList.toggle('active', p===name);
     });
     if (name==='std') renderStudents();
@@ -199,19 +329,52 @@
     if (name==='log') renderLog();
   }
 
+  function setLogSubTab(which) {
+    if (which !== 'class' && which !== 'student') return;
+    logSubTab = which;
+    document.querySelectorAll('#panel-log .log-tab').forEach(function (btn) {
+      const on = btn.getAttribute('data-log-tab') === which;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    const list = document.getElementById('log-list');
+    if (list) list.setAttribute('aria-labelledby', which === 'student' ? 'log-tab-student' : 'log-tab-class');
+    renderLog();
+  }
+
   /* ── STATS ── */
   function renderStats() {
-    if (!classId) return;
+    const grid = document.getElementById('stat-grid');
+    if (!grid) return;
+    if (!classId) { grid.innerHTML = ''; return; }
+
     const students = API.Students.getByClass(classId);
     const today = API.today();
     const att = API.Attendance.getByClassDate(classId, today) || {};
     const recs = att.records || [];
     const present = recs.filter(r => r.status === 'present').length;
     const avg = API.Khuluk.getClassAvg(classId);
-    document.getElementById('stat-row').innerHTML =
-      `<div class="stat-card"><span class="stat-num">${toBn(students.length)}</span><span class="stat-label">মোট ছাত্র</span></div>
-       <div class="stat-card"><span class="stat-num" style="color:var(--green)">${toBn(present)}</span><span class="stat-label">আজ উপস্থিত</span></div>
-       <div class="stat-card"><span class="stat-num" style="color:var(--gold)">${avg !== null ? toBn(avg) : '—'}</span><span class="stat-label">গড় খুলুক</span></div>`;
+
+    const st = API.Settings.get();
+    const hy = st && st.hijri_year && String(st.hijri_year) !== '—' ? String(st.hijri_year) : null;
+    const leavers = API.Students.getWithdrawalsFromClass(classId, hy);
+    const leaveCount = leavers.length;
+
+    const bands = API.Khuluk.getClassKhulukBands(classId);
+    const threeLines =
+      '<div class="kh-line kh-line--gr"><span class="kh-cat">মুজতাহিদ</span><span class="kh-n">' + toBn(bands.high) + '</span></div>' +
+      '<div class="kh-line kh-line--sky"><span class="kh-cat">মুতাওয়াস্সিত</span><span class="kh-n">' + toBn(bands.mid) + '</span></div>' +
+      '<div class="kh-line kh-line--red"><span class="kh-cat">মুসতায়িদ</span><span class="kh-n">' + toBn(bands.low) + '</span></div>';
+
+    grid.innerHTML =
+      '<div class="stat-tile"><span class="stat-num">' + toBn(students.length) + '</span><span class="stat-label">মোট ছাত্র</span></div>' +
+      '<div class="stat-tile"><span class="stat-num" style="color:var(--green)">' + toBn(present) + '</span><span class="stat-label">আজ উপস্থিত</span></div>' +
+      '<div class="stat-tile"><span class="stat-num stat-num--leave">' + toBn(leaveCount) + '</span><span class="stat-label">বিদায়ী</span></div>' +
+      '<div class="stat-tile"><span class="stat-num" style="color:var(--gold)">' + (avg !== null ? toBn(avg) : '—') + '</span><span class="stat-label">গড় হুসনুল খুলুক</span></div>' +
+      '<div class="stat-tile stat-tile--kh">' +
+      '<div class="stat-kh-hd">' + '\u09B9\u09C1\u09B8\u09A8\u09C1\u09B2 \u0996\u09C1\u09B2\u09C1\u0995' + '</div>' +
+      '<div class="kh-mini">' + threeLines + '</div>' +
+      '</div>';
   }
 
   /* ── STUDENTS ── */
@@ -225,37 +388,114 @@
       ? students.map(s => {
           const rec = recs.find(r => r.student_id === s.id);
           const status = rec ? rec.status : 'unknown';
-          const statusDot = status==='present' ? '🟢' : status==='absent' ? '🔴' : '⚪';
+          const attLine = status === 'present' ? '🟢 উপস্থিত' : status === 'absent' ? '🔴 অনুপস্থিত' : '';
           const kh = API.Khuluk.getLatest(s.id);
-          const khScore = kh ? kh.score : null;
-          const khClass = khScore===null ? 'kh-none' : khScore > 80 ? 'kh-high' : khScore >= 60 ? 'kh-mid' : 'kh-low';
-          const khText = khScore !== null ? toBn(khScore) : '—';
-          return `<div class="std-row" onclick="openKhuluk('${s.id}','${API.esc(s.name)}')">
-            <span class="std-roll">${toBn(s.roll||'—')}</span>
-            <div style="flex:1;"><div class="std-name">${API.esc(s.name)}</div><div class="std-meta">${statusDot} ${status==='present'?'উপস্থিত':status==='absent'?'অনুপস্থিত':'তথ্য নেই'}</div></div>
-            <span class="kh-badge ${khClass}">খুলুক ${khText}</span>
-          </div>`;
+          const khScore = kh != null && kh.score != null ? Number(kh.score) : null;
+          const khClass = khScore === null || Number.isNaN(khScore) ? 'kh-none' : khScore >= 81 ? 'kh-high' : khScore >= 60 ? 'kh-mid' : 'kh-low';
+          const khText = khScore !== null && !Number.isNaN(khScore) ? toBn(khScore) : '—';
+          const hasR = s.roll != null && String(s.roll).trim() !== '';
+          const rollPill = hasR ? API.esc(String(s.roll)) : '—';
+          const khTag = '<button type="button" class="std-kh-inline ' + khClass + '" title="হুসনুল খুলুক (সর্বশেষ)" onclick="event.stopPropagation();openKhuluk(\'' + _jsQuote(s.id) + '\')">' + khText + '</button>';
+          return '<div class="std-row" data-std-sid="' + _attrId(s.id) + '">' +
+            '<span class="std-roll">' + rollPill + '</span>' +
+            '<div style="flex:1;min-width:0;">' +
+            '<div class="std-name-row">' +
+            '<div class="std-name-inner"><button type="button" class="s-name-btn std-name" onclick="event.stopPropagation();MMStudentModal.open(\'' + _jsQuote(s.id) + '\')">' + API.esc(s.name) + '</button>' + khTag + '</div>' +
+            '</div>' +
+            (attLine ? '<div class="std-meta">' + attLine + '</div>' : '') +
+            '</div>' +
+            '<button type="button" class="std-log-link" data-std-sid="' + _attrId(s.id) + '" onclick="event.stopPropagation(); openLogFromRowBtn(this)">লগ</button>' +
+            '</div>';
         }).join('')
       : '<div style="text-align:center;padding:40px;color:var(--ink3);font-size:13px;">এই বর্ষে কোনো ছাত্র নেই</div>';
   }
 
-  /* ── KHULUK MODAL ── */
+  /* ── KHULUK: সর্বশেষ সারাংশ + সঙ্গোপন পূর্ণ ইতিহাস ── */
   let khulukTargetId = '';
-  function openKhuluk(sid, name) {
+  let khHistExpanded = false;
+  function toggleKhHistPanel() {
+    khHistExpanded = !khHistExpanded;
+    const w = document.getElementById('kh-history-wrap');
+    const t = document.getElementById('kh-hist-toggle');
+    if (w) {
+      w.style.display = khHistExpanded ? 'block' : 'none';
+      w.setAttribute('aria-hidden', khHistExpanded ? 'false' : 'true');
+    }
+    if (t) {
+      t.setAttribute('aria-expanded', khHistExpanded ? 'true' : 'false');
+      const n = t.getAttribute('data-total') || '0';
+      t.textContent = khHistExpanded ? 'ইতিহাস লোকাচুপ করুন' : ('সম্পূর্ণ ইতিহাস (' + toBn(n) + ')');
+    }
+  }
+  function fillKhulukHistory(sid) {
+    const sumEl = document.getElementById('kh-latest-summary');
+    const outer = document.getElementById('kh-hist-outer');
+    const wrap = document.getElementById('kh-history-wrap');
+    const tbtn = document.getElementById('kh-hist-toggle');
+    const hist = API.Khuluk.getByStudent(sid);
+    const total = hist.length;
+    const latest = API.Khuluk.getLatest(sid);
+    if (sumEl) {
+      if (latest && latest.score != null && !Number.isNaN(Number(latest.score))) {
+        var rs = (latest.reason && String(latest.reason).length > 100) ? String(latest.reason).slice(0, 100) + '…' : (latest.reason || '');
+        sumEl.style.display = 'block';
+        sumEl.textContent = 'সর্বশেষ: হুসনুল খুলুক ' + toBn(latest.score) + ' · ' + (latest.date || '') + (rs ? ' — ' + rs : '') + (latest.by ? ' (' + latest.by + ')' : '');
+      } else {
+        sumEl.style.display = 'block';
+        sumEl.textContent = 'এখনো কোনো হুসনুল খুলুক এন্ট্রি নেই — নিচে নতুন মান দিন';
+      }
+    }
+    if (!wrap || !outer) return;
+    khHistExpanded = false;
+    wrap.style.display = 'none';
+    wrap.setAttribute('aria-hidden', 'true');
+    if (tbtn) tbtn.setAttribute('aria-expanded', 'false');
+    if (total > 0) {
+      outer.style.display = 'block';
+      if (tbtn) {
+        tbtn.style.display = 'block';
+        tbtn.setAttribute('data-total', String(total));
+        tbtn.textContent = 'সম্পূর্ণ ইতিহাস (' + toBn(total) + ')';
+      }
+      var sub = total > 50 ? ' (মোট ' + toBn(total) + ' · সর্বোচ্চ ৫০টা দেখা)' : ' (মোট ' + toBn(total) + ')';
+      wrap.innerHTML = '<div style="font-size:10px;font-weight:600;color:var(--ink3);margin-bottom:6px;">আগের এন্ট্রি' + sub + '</div>' +
+        hist.slice(0, 50).map(function (h, i) {
+          return '<div class="kh-hist-line" style="padding:6px 0;' + (i ? 'border-top:1px solid var(--cream3);' : '') + 'font-size:11px;line-height:1.35;">' +
+            '<span class="kh-hist-date">' + API.esc(h.date) + (h.by ? ' · ' + API.esc(h.by) : '') + '</span><br>' +
+            'হুসনুল খুলুক ' + toBn(h.score) + (h.reason ? ' — ' + API.esc(h.reason) : '') +
+            '</div>';
+        }).join('');
+    } else {
+      outer.style.display = 'none';
+      if (tbtn) tbtn.style.display = 'none';
+      wrap.innerHTML = '';
+    }
+  }
+  function openKhuluk(sid) {
+    if (!sid || !API.Students.getById(sid)) { showToast('ছাত্র পাওয়া যায়নি'); return; }
     khulukTargetId = sid;
-    document.getElementById('kh-std-name').textContent = name;
+    const stu = API.Students.getById(sid);
+    document.getElementById('kh-std-name').textContent = stu && stu.name ? stu.name : '—';
     const kh = API.Khuluk.getLatest(sid);
-    document.getElementById('kh-score').value = kh ? kh.score : '';
+    document.getElementById('kh-score').value = kh != null && kh.score != null ? kh.score : '';
     document.getElementById('kh-reason').value = '';
+    fillKhulukHistory(sid);
     openModal('modal-khuluk');
   }
   function saveKhuluk() {
-    const score = document.getElementById('kh-score').value;
+    const scoreN = parseInt(String(document.getElementById('kh-score').value).trim(), 10);
     const reason = document.getElementById('kh-reason').value.trim();
-    if (!score || score < 0 || score > 100) { showToast('স্কোর ০–১০০ এর মধ্যে দিন'); return; }
-    if (!reason) { showToast('কারণ লিখুন'); return; }
-    API.Khuluk.add(khulukTargetId, score, reason, teacher.name);
-    closeModal('modal-khuluk'); renderStudents(); renderStats(); showToast('খুলুক আপডেট হয়েছে');
+    if (Number.isNaN(scoreN) || scoreN < 0 || scoreN > 100) { showToast('হুসনুল খুলুক ০–১০০ এর মধ্যে পূর্ণসংখ্যা হিসেবে দিন'); return; }
+    if (!reason) { showToast('কারণ / মন্তব্য লিখুন'); return; }
+    if (!khulukTargetId) { showToast('ছাত্র নির্বাচিত নেই'); return; }
+    API.Khuluk.add(khulukTargetId, scoreN, reason, teacher.name);
+    const latest = API.Khuluk.getLatest(khulukTargetId);
+    if (latest) document.getElementById('kh-score').value = latest.score;
+    document.getElementById('kh-reason').value = '';
+    fillKhulukHistory(khulukTargetId);
+    renderStudents();
+    renderStats();
+    showToast('হুসনুল খুলুক সংরক্ষিত');
   }
 
   /* ── KITAB ── */
@@ -289,24 +529,93 @@
     closeModal('modal-book-prog'); renderKitab(); showToast('অগ্রগতি আপডেট হয়েছে');
   }
 
-  /* ── LOG ── */
+  /* ── LOG (বর্ষ + নির্দিষ্ট ছাত্র — API.Logs type class | student) ── */
+  function populateLogStudentSelect() {
+    const sel = document.getElementById('log-student');
+    if (!sel || !classId) return;
+    const students = API.Students.getByClass(classId);
+    sel.innerHTML = '<option value="">সবাই — বর্ষের সাধারণ লগ</option>' +
+      students.map(function (s) {
+        return '<option value="' + _attrId(s.id) + '">' + API.esc(s.name) + (s.roll != null && String(s.roll) !== '' ? ' · রোল ' + API.esc(String(s.roll)) : '') + '</option>';
+      }).join('');
+  }
+  function openLogModal(prefStudentId) {
+    if (!classId) { showToast('বর্ষ নেই'); return; }
+    populateLogStudentSelect();
+    const sel = document.getElementById('log-student');
+    if (sel) {
+      sel.value = prefStudentId && API.Students.getById(prefStudentId) ? prefStudentId : '';
+    }
+    document.getElementById('log-text').value = '';
+    openModal('modal-log');
+  }
   function renderLog() {
     if (!classId) return;
-    const logs = API.Logs.getByClass(classId);
-    document.getElementById('log-list').innerHTML = logs.length
-      ? logs.map(l => `<div class="log-item"><div class="log-date">${l.date} · ${API.esc(l.by||'')}</div><div class="log-text">${API.esc(l.text)}</div></div>`).join('')
-      : '<div style="text-align:center;padding:36px;color:var(--ink3);font-size:13px;">কোনো লগ নেই</div>';
+    const el = document.getElementById('log-list');
+    if (!el) return;
+
+    const classLogs = API.Logs.getByClass(classId);
+    const students = API.Students.getByClass(classId);
+
+    if (logSubTab === 'class') {
+      el.innerHTML = classLogs.length
+        ? classLogs.map(function (l) {
+            return '<div class="log-item"><div class="log-date">' + l.date + ' · ' + API.esc(l.by || '') + '</div><div class="log-text">' + API.esc(l.text) + '</div></div>';
+          }).join('')
+        : '<div class="log-panel-empty">কোনো <strong>শ্রেণী লগ</strong> নেই।<br><span style="font-size:12px;opacity:.95;">＋ বাটনে বর্ষের সাধারণ নোট যোগ করুন (কোনো ছাত্র বেছে না নিলেই হবে)।</span></div>';
+      return;
+    }
+
+    /* ছাত্রলোগ: প্রতি ছাত্রের নামের আন্ডারে ঐ ছাত্রের সব এন্ট্রি (একাধিক হলে সব এখানে) */
+    const groups = students.map(function (s) {
+      return { student: s, logs: API.Logs.getByStudent(s.id) };
+    }).filter(function (g) { return g.logs.length > 0; });
+    groups.sort(function (a, b) { return b.logs[0].date.localeCompare(a.logs[0].date); });
+
+    if (!groups.length) {
+      el.innerHTML = '<div class="log-panel-empty">কোনো <strong>ছাত্র-নির্দিষ্ট লগ</strong> নেই।<br><span style="font-size:12px;opacity:.95;">নতুন লগে নির্দিষ্ট ছাত্র বেছে কিংবা হোম থেকে ছাত্রের সারিতে <strong>লগ</strong> চেপে এন্ট্রি করুন।</span></div>';
+      return;
+    }
+
+    el.innerHTML = groups.map(function (g) {
+      const s = g.student;
+      const rollPart = s.roll != null && String(s.roll) !== '' ? ' · রোল ' + toBn(String(s.roll)) : '';
+      const n = toBn(String(g.logs.length));
+      const head =
+        '<div class="log-student-hd">' +
+        '<div class="log-student-hd-text">' +
+        '<button type="button" class="s-name-btn" onclick="event.stopPropagation();MMStudentModal.open(\'' + _jsQuote(s.id) + '\')">' + API.esc(s.name) + '</button>' +
+        rollPart + '<span class="log-cnt">লগ ' + n + ' টি</span></div>' +
+        '<button type="button" class="log-student-expand" aria-expanded="false" aria-label="লগ তালিকা প্রসারিত বা সংকুচিত" onclick="toggleStdLogGroup(this)">' +
+        '<svg class="log-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>';
+      const body = '<div class="log-student-body" hidden>' + g.logs.map(function (l) {
+        return '<div class="log-item log-item--student"><div class="log-date">' + l.date + ' · ' + API.esc(l.by || '') + '</div><div class="log-text">' + API.esc(l.text) + '</div></div>';
+      }).join('') + '</div>';
+      return '<div class="log-student-block">' + head + body + '</div>';
+    }).join('');
   }
   function saveLog() {
     const text = document.getElementById('log-text').value.trim();
     if (!text) { showToast('লগ লিখুন'); return; }
-    API.Logs.add('class', classId, text, teacher.name);
+    const sel = document.getElementById('log-student');
+    const sid = sel && sel.value ? sel.value : '';
+    if (sid) {
+      if (!API.Students.getById(sid)) { showToast('অকার্যকর ছাত্র'); return; }
+      API.Logs.add('student', sid, text, teacher.name);
+    } else {
+      API.Logs.add('class', classId, text, teacher.name);
+    }
     document.getElementById('log-text').value = '';
     closeModal('modal-log'); renderLog(); showToast('লগ যোগ হয়েছে');
   }
 
   renderStats();
   renderStudents();
+  (function tabFromUrl() {
+    const q = new URLSearchParams(window.location.search).get('tab');
+    if (q === 'kitab') switchTab('kitab');
+    else if (q === 'log') switchTab('log');
+  })();
 </script>
 </body>
 </html>

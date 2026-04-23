@@ -12,6 +12,8 @@
   .type-half    { background:var(--blue-light);  color:var(--blue);  }
   .type-yearly  { background:var(--green-light); color:var(--green); }
   .type-test    { background:var(--gold-light);  color:var(--gold);  }
+  .type-weekly  { background:rgba(124,58,237,.12); color:#6d28d9; }
+  .type-monthly { background:rgba(14,116,144,.12); color:#0e7490; }
   .result-row { display:flex; align-items:center; padding:10px 0; border-bottom:1px solid var(--cream2); gap:8px; }
   .result-row:last-child { border-bottom:none; }
   .result-rank { font-family:'Noto Serif Bengali',serif; font-size:18px; font-weight:700; min-width:28px; color:var(--ink3); }
@@ -39,7 +41,7 @@
 <div class="topbar">
   <div class="topbar-left">
     <div class="topbar-role">পরীক্ষা বিভাগ</div>
-    <div class="topbar-name" id="top-name">মুহতামিম</div>
+    <div class="topbar-name" id="top-name">জিম্মাদার</div>
   </div>
   <div class="topbar-actions">
     <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../admin-hub.html'">হাব</button>
@@ -52,8 +54,8 @@
 
   <!-- HOME -->
   <div class="panel active" id="panel-home">
+    <p style="font-size:12px;color:var(--ink3);line-height:1.5;margin:0 0 12px;">নতুন পরীক্ষা ও মার্ক এন্ট্রি <strong>বর্ষের দায়িত্বশীল</strong> পোর্টালে। এখান থেকে <strong>ফলাফল/বিশ্লেষণ/ইতিহাস</strong> দেখা যাবে।</p>
     <div class="class-chips" id="class-chips"></div>
-    <button class="add-btn" onclick="prepareExamModal();openModal('add-exam')">＋ নতুন পরীক্ষা যোগ করুন</button>
     <div class="sec-header"><span class="sec-title" id="exam-list-title">পরীক্ষা তালিকা</span></div>
     <div id="exam-list"></div>
     <div class="pb-safe"></div>
@@ -67,12 +69,10 @@
     </div>
     <div class="tab-bar">
       <div class="tab-btn active" id="etab-results" onclick="switchExamTab('results')">ফলাফল</div>
-      <div class="tab-btn" id="etab-entry"   onclick="switchExamTab('entry')">মার্ক এন্ট্রি</div>
       <div class="tab-btn" id="etab-analytics" onclick="switchExamTab('analytics')">বিশ্লেষণ</div>
       <div class="tab-btn" id="etab-history" onclick="switchExamTab('history')">ইতিহাস</div>
     </div>
     <div id="etab-content-results"></div>
-    <div id="etab-content-entry"   style="display:none;"></div>
     <div id="etab-content-analytics" style="display:none;"></div>
     <div id="etab-content-history" style="display:none;"></div>
     <div class="pb-safe"></div>
@@ -89,45 +89,16 @@
   </div>
 </nav>
 
-<!-- ADD EXAM MODAL -->
-<div class="modal-bg" id="modal-add-exam">
-  <div class="modal">
-    <div class="modal-title">নতুন পরীক্ষা <button class="modal-close" onclick="closeModal('add-exam')">✕</button></div>
-    <div class="form-group">
-      <label class="form-label">পরীক্ষার নাম</label>
-      <input class="form-input" id="ex-name" placeholder="যেমন: ষান্মাসিক পরীক্ষা ১৪৪৭">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">ধরন</label>
-        <select class="form-input form-select" id="ex-type">
-          <option value="half_yearly">ষান্মাসিক</option>
-          <option value="yearly">বার্ষিক</option>
-          <option value="test">টেস্ট পরীক্ষা</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">বর্ষ</label>
-        <select class="form-input form-select" id="ex-class"></select>
-      </div>
-    </div>
-    <div style="font-size:12px;color:var(--ink3);margin-bottom:8px;font-weight:500;">বিষয়সমূহ ও পূর্ণমান</div>
-    <div id="subject-rows"></div>
-    <button onclick="addSubjectRow()" style="background:var(--cream2);border:none;border-radius:8px;padding:9px;font-family:'Noto Sans Bengali',sans-serif;font-size:12px;cursor:pointer;width:100%;margin-bottom:14px;">＋ বিষয় যোগ করুন</button>
-    <button class="submit-btn" onclick="saveExam()">পরীক্ষা তৈরি করুন</button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mm-student-modal.js"></script>
 <script src="../js/mm-permissions.js"></script>
 <script src="../js/madrasa-exams-analytics.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script>
   if (!MMSession.getRole()) location.href='../index.html';
-  document.getElementById('top-name').textContent = MMSession.getName()||'মুহতামিম';
+  document.getElementById('top-name').textContent = MMSession.getName()||'জিম্মাদার';
   mmInsertMonitorBanner();
   MMSession.configureTopbarHubAndLockout();
 
@@ -139,12 +110,11 @@
     if (pct>=60) return {label:'مقبول',  cls:'g-maqbul'};
     return              {label:'راسب',   cls:'g-rasib'};
   }
-  const TYPE_LABEL = { half_yearly:'ষান্মাসিক', yearly:'বার্ষিক', test:'টেস্ট' };
-  const TYPE_CLS   = { half_yearly:'type-half', yearly:'type-yearly', test:'type-test' };
+  const TYPE_LABEL = { weekly:'সাপ্তাহিক', monthly:'মাসিক', half_yearly:'ষান্মাসিক', yearly:'বার্ষিক', test:'টেস্ট' };
+  const TYPE_CLS   = { weekly:'type-weekly', monthly:'type-monthly', half_yearly:'type-half', yearly:'type-yearly', test:'type-test' };
 
   let selectedClassId = 'cls_k3';
   let currentExamId   = null;
-  let subjectIdx      = 0;
 
   function switchPanel(name) {
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -152,12 +122,11 @@
     window.scrollTo(0,0);
   }
   function switchExamTab(tab) {
-    ['results','entry','analytics','history'].forEach(t=>{
+    ['results','analytics','history'].forEach(t=>{
       document.getElementById('etab-'+t).classList.toggle('active',t===tab);
       document.getElementById('etab-content-'+t).style.display = t===tab?'block':'none';
     });
     if(tab==='results') renderResults();
-    else if(tab==='entry') renderEntry();
     else if(tab==='analytics') renderExamAnalytics();
     else renderHistory();
   }
@@ -179,7 +148,7 @@
             <div style="font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:700;">${API.esc(ex.name)}</div>
             <div style="font-size:11px;color:var(--ink3);margin-top:3px;">${API.esc(ex.created||'')}</div>
           </div>
-          <span class="exam-type ${TYPE_CLS[ex.type]||''}">${TYPE_LABEL[ex.type]||''}</span>
+          <span class="exam-type ${TYPE_CLS[ex.type]||''}">${TYPE_LABEL[ex.type]||ex.type||''}</span>
         </div>
         <div style="display:flex;gap:12px;font-size:12px;color:var(--ink3);">
           <span>📚 ${toBn(ex.subjects?.length||0)} বিষয়</span>
@@ -196,7 +165,7 @@
     const ex = API.Exams.getAll().find(e=>e.id===eid);
     document.getElementById('exam-detail-name').textContent = ex?.name||'';
     switchPanel('exam');
-    ['results','entry','analytics','history'].forEach((t,i)=>{
+    ['results','analytics','history'].forEach((t,i)=>{
       document.getElementById('etab-'+t).classList.toggle('active',i===0);
       document.getElementById('etab-content-'+t).style.display = i===0?'block':'none';
     });
@@ -222,59 +191,13 @@
       const g = getGrade(r.percentage||0);
       return `<div class="result-row">
         <div class="result-rank rank-${i+1<=3?i+1:''}">${toBn(i+1)}</div>
-        <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${s?API.esc(s.name):'—'}</div></div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${s?`<button type="button" class="s-name-btn" style="font-size:13px;font-weight:600;" onclick="MMStudentModal.open('${s.id}')">${API.esc(s.name)}</button>`:'—'}</div></div>
         <div style="text-align:right;">
           <div style="font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:700;">${toBn(r.total||0)}/${toBn(r.max_total||0)}</div>
           <span class="grade-badge ${g.cls}">${g.label}</span>
         </div>
       </div>`;
     }).join('')+'</div>';
-  }
-
-  function renderEntry() {
-    const ex       = API.Exams.getAll().find(e=>e.id===currentExamId);
-    const students = API.Students.getByClass(ex?.class_id||selectedClassId);
-    const done     = API.Exams.getResults(currentExamId).map(r=>r.student_id);
-    const el = document.getElementById('etab-content-entry');
-    el.innerHTML=`<div class="form-group">
-      <label class="form-label">ছাত্র নির্বাচন করুন</label>
-      <select class="form-input form-select" id="mark-student" onchange="renderMarkForm()">${
-        students.map(s=>`<option value="${s.id}">${API.esc(s.name)}${done.includes(s.id)?' ✓':''}</option>`).join('')
-      }</select>
-    </div><div id="mark-form"></div>`;
-    renderMarkForm();
-  }
-
-  function renderMarkForm() {
-    const ex  = API.Exams.getAll().find(e=>e.id===currentExamId);
-    const sid = document.getElementById('mark-student')?.value;
-    const prev= sid ? API.Exams.getResults(currentExamId).find(r=>r.student_id===sid) : null;
-    const mf  = document.getElementById('mark-form');
-    if (!ex?.subjects?.length) { mf.innerHTML='<div style="color:var(--ink3);font-size:13px;">পরীক্ষায় কোনো বিষয় নেই।</div>'; return; }
-    mf.innerHTML='<div class="card-static">'+ex.subjects.map((s,i)=>
-      `<div class="mark-row">
-        <div><div style="font-size:13px;font-weight:600;">${API.esc(s.name)}</div><div style="font-size:11px;color:var(--ink3);">পূর্ণমান: ${toBn(s.max)}</div></div>
-        <input class="mark-input" id="mk-${i}" type="number" min="0" max="${s.max}" value="${prev?.subjects?.[i]?.marks??''}">
-      </div>`).join('')+'</div>'+
-      '<button class="submit-btn" style="margin-top:8px;" onclick="saveMarks()">মার্ক সংরক্ষণ করুন</button>';
-  }
-
-  function saveMarks() {
-    if (mmMutationBlocked(showToast)) return;
-    const ex  = API.Exams.getAll().find(e=>e.id===currentExamId);
-    const sid = document.getElementById('mark-student')?.value;
-    if (!ex||!sid) return;
-    let total=0, maxTotal=0;
-    const subjects = ex.subjects.map((s,i)=>{
-      const m = parseFloat(document.getElementById('mk-'+i)?.value)||0;
-      total+=m; maxTotal+=s.max;
-      return { name:s.name, max:s.max, marks:m };
-    });
-    const pct   = maxTotal ? Math.round(total/maxTotal*1000)/10 : 0;
-    const grade = getGrade(pct).label;
-    API.Exams.addResult({ exam_id:currentExamId, student_id:sid, subjects, total, max_total:maxTotal, percentage:pct, grade });
-    showToast('মার্ক সংরক্ষিত ✓');
-    renderEntry();
   }
 
   function renderHistory() {
@@ -307,50 +230,6 @@
       </div>`;
     }).join('')||'<div class="empty-state"><span class="empty-icon">📊</span><div class="empty-text">কোনো পরীক্ষার ফলাফল নেই</div></div>';
   }
-
-  /* add exam */
-  function prepareExamModal() {
-    document.getElementById('ex-class').innerHTML = API.Classes.getAll().map(c=>
-      `<option value="${c.id}" ${c.id===selectedClassId?'selected':''}>${API.esc(c.name)}</option>`).join('');
-    document.getElementById('subject-rows').innerHTML=''; subjectIdx=0;
-    addSubjectRow(); addSubjectRow(); addSubjectRow();
-  }
-  function addSubjectRow() {
-    const i = subjectIdx++;
-    const div = document.createElement('div');
-    div.id='sr-'+i; div.className='subj-row';
-    div.innerHTML=`<input class="form-input" id="sn-${i}" placeholder="বিষয়ের নাম" style="flex:1;">
-      <input class="form-input" type="number" id="sm-${i}" placeholder="মান" min="1" value="100" style="width:70px;">
-      <button onclick="document.getElementById('sr-${i}').remove()" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;width:36px;height:44px;cursor:pointer;flex-shrink:0;font-size:16px;">✕</button>`;
-    document.getElementById('subject-rows').appendChild(div);
-  }
-  function saveExam() {
-    if (mmMutationBlocked(showToast)) return;
-    const name     = document.getElementById('ex-name').value.trim();
-    const type     = document.getElementById('ex-type').value;
-    const class_id = document.getElementById('ex-class').value;
-    if (!name||!class_id) { showToast('নাম ও বর্ষ আবশ্যক'); return; }
-    const subjects=[];
-    document.getElementById('subject-rows').querySelectorAll('[id^="sr-"]').forEach(row=>{
-      const i = row.id.replace('sr-','');
-      const n = document.getElementById('sn-'+i)?.value.trim();
-      const m = parseInt(document.getElementById('sm-'+i)?.value)||100;
-      if(n) subjects.push({name:n,max:m});
-    });
-    if (!subjects.length) { showToast('কমপক্ষে একটি বিষয় যোগ করুন'); return; }
-    API.Exams.add({name,type,class_id,subjects});
-    document.getElementById('ex-name').value='';
-    closeModal('add-exam');
-    showToast('পরীক্ষা তৈরি হয়েছে ✓');
-    renderHome();
-  }
-
-  function openModal(id) {
-    if (mmMutationBlocked(showToast)) return;
-    document.getElementById('modal-'+id).classList.add('open');
-  }
-  function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
-  function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
 
   renderHome();
 </script>

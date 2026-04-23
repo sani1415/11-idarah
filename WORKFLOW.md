@@ -42,7 +42,7 @@ dept-index.html   → বিভাগ মডিউলের রোল
 
 | রোল | পিন উৎস | লগইন পেজ | পরবর্তী পেজ |
 |-----|---------|---------|------------|
-| `admin` (মুহতামিম) | `mm_settings.admin_pin` | `index.html` বা `admin-hub.html` | `admin-hub.html` |
+| `admin` (জিম্মাদার) | `mm_settings.admin_pin` | `index.html` বা `admin-hub.html` | `admin-hub.html` |
 | `teacher` (বর্ষ দায়িত্বশীল) | শিক্ষকের নিজের পিন | `index.html` | `madrasa-staff.html` |
 | `daftar` | দফতরের পিন | `index.html` | `madrasa-daftar.html` |
 | `hifz` | হিফজের পিন | `index.html` | `madrasa-hifz.html` |
@@ -57,7 +57,7 @@ dept-index.html   → বিভাগ মডিউলের রোল
 
 ```
 admin-hub.html
-├── madrasa-admin.html       (মাদ্রাসা মডিউল — মুহতামিম ভিউ)
+├── madrasa-admin.html       (মাদ্রাসা মডিউল — জিম্মাদার ভিউ)
 │   ├── madrasa-daftar.html  (উপস্থিতি ও বেতন)
 │   ├── madrasa-staff.html   (বর্ষ দায়িত্বশীল)
 │   ├── madrasa-hifz.html    (হিফজ বিভাগ)
@@ -66,13 +66,13 @@ admin-hub.html
 │   ├── madrasa-exams.html   (পরীক্ষার ফলাফল)
 │   └── madrasa-settings.html (পিন, শিক্ষক, সাধারণ সেটিং)
 │
-├── dept-dashboard.html      (বিভাগ মডিউল — মুহতামিম ভিউ)
+├── dept-dashboard.html      (বিভাগ মডিউল — জিম্মাদার ভিউ)
 │   └── dept-staff.html      (বিভাগ দায়িত্বশীল পোর্টাল)
 │
-├── khedmat-admin.html       (খেদমতে খালক — মুহতামিম ভিউ)
+├── khedmat-admin.html       (খেদমতে খালক — জিম্মাদার ভিউ)
 │   └── khedmat-staff.html   (খেদমত দায়িত্বশীল পোর্টাল)
 │
-└── chat.html                (বার্তা — শুধু স্টাফ ↔ মুহতামিম)
+└── chat.html                (বার্তা — শুধু স্টাফ ↔ জিম্মাদার)
 ```
 
 ---
@@ -107,7 +107,7 @@ localStorage এ সংরক্ষণ (JSON.stringify)
 | `dept-api.js` | বিভাগ — বিভাগ, লেনদেন, মজুদ, সংশোধন অনুরোধ |
 | `khedmat-api.js` | খেদমত — উপকারভোগী, কার্যক্রম, তহবিল, লগ |
 | `chat-api.js` | বার্তা — থ্রেড, পঠন চিহ্ন, আনরিড কাউন্ট |
-| `monitor-mode.js` | মুহতামিম পর্যবেক্ষণ মোড — মিউটেশন ব্লক |
+| `monitor-mode.js` | জিম্মাদার পর্যবেক্ষণ মোড — মিউটেশন ব্লক |
 
 ---
 
@@ -124,12 +124,12 @@ if (sessionStorage.getItem('mm_role') !== 'admin') location.href = 'index.html';
 if (!sessionStorage.getItem('mm_role')) location.href = 'index.html';
 ```
 
-**২. অপারেশন গার্ড** — পেজে ঢুকলেও পরিবর্তন করতে পারবেন না যদি মুহতামিম হন:
+**২. অপারেশন গার্ড** — পেজে ঢুকলেও পরিবর্তন করতে পারবেন না যদি জিম্মাদার হন:
 ```javascript
 if (mmMutationBlocked(showToast)) return;
 ```
 
-### মুহতামিমের অনুমতি
+### জিম্মাদারের অনুমতি
 
 | কাজ | অনুমতি |
 |-----|--------|
@@ -148,12 +148,12 @@ if (mmMutationBlocked(showToast)) return;
     ↓ বার্তা লেখেন
 chat.html → chat-api.js → localStorage (mm_chat_messages)
     ↓
-শুধু মুহতামিম দেখতে পান (ইনবক্স)
+শুধু জিম্মাদার দেখতে পান (ইনবক্স)
     ↓ উত্তর দেন
 স্টাফ দেখতে পান
 
 ⚠️  স্টাফ থেকে স্টাফে সরাসরি যোগাযোগ নেই
-⚠️  প্রতিটি স্টাফের থ্রেড শুধু সেই স্টাফ ও মুহতামিমের মধ্যে
+⚠️  প্রতিটি স্টাফের থ্রেড শুধু সেই স্টাফ ও জিম্মাদারের মধ্যে
 ```
 
 ---
@@ -200,10 +200,10 @@ localStorage                   →     Supabase (PostgreSQL)
 ```
 test-markaz/
 ├── index.html              ← প্রধান প্রবেশদ্বার (সব রোল)
-├── admin-hub.html          ← মুহতামিম হাব (ড্যাশবোর্ড)
+├── admin-hub.html          ← জিম্মাদার হাব (ড্যাশবোর্ড)
 │
 ├── মাদ্রাসা মডিউল
-│   ├── madrasa-admin.html     মুহতামিম ভিউ
+│   ├── madrasa-admin.html     জিম্মাদার ভিউ
 │   ├── madrasa-staff.html     বর্ষ দায়িত্বশীল
 │   ├── madrasa-daftar.html    দফতর
 │   ├── madrasa-hifz.html      হিফজ বিভাগ
@@ -214,11 +214,11 @@ test-markaz/
 │
 ├── বিভাগ মডিউল
 │   ├── dept-index.html        বিভাগ লগইন
-│   ├── dept-dashboard.html    মুহতামিম ভিউ
+│   ├── dept-dashboard.html    জিম্মাদার ভিউ
 │   └── dept-staff.html        বিভাগ দায়িত্বশীল
 │
 ├── খেদমত মডিউল
-│   ├── khedmat-admin.html     মুহতামিম ভিউ
+│   ├── khedmat-admin.html     জিম্মাদার ভিউ
 │   └── khedmat-staff.html     খেদমত দায়িত্বশীল
 │
 ├── chat.html               ← বার্তা ব্যবস্থা

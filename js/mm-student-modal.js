@@ -124,7 +124,36 @@
     document.body.appendChild(wrap);
   }
 
+  var _openSid = null;
+
+  function logAuthorName() {
+    if (typeof global.MMSession === 'undefined' || !global.MMSession) return '—';
+    var APIg = getApi();
+    if (global.MMSession.getRole() === 'teacher' && APIg && APIg.Teachers) {
+      var t = APIg.Teachers.getById(global.MMSession.getTeacherId());
+      if (t && t.name) return t.name;
+    }
+    var n = global.MMSession.getName && global.MMSession.getName();
+    return n && String(n).trim() ? n : 'অ্যাডমিন';
+  }
+
+  function submitStudentLog() {
+    var API = getApi();
+    var ta = document.getElementById('st-teacher-log-ta');
+    if (!API || !API.Logs || !_openSid || !ta) return;
+    var text = (ta.value || '').trim();
+    if (!text) {
+      toast('লগের বিষয়বস্তু লিখুন');
+      return;
+    }
+    API.Logs.add('student', _openSid, text, logAuthorName());
+    ta.value = '';
+    toast('ছাত্রের লগ সংরক্ষিত');
+    open(_openSid);
+  }
+
   function close() {
+    _openSid = null;
     var el = document.getElementById(MODAL_ID);
     if (el) el.classList.remove('open');
     if (typeof global.closeModal === 'function') {
@@ -156,6 +185,10 @@
       toast('ছাত্র পাওয়া যায়নি');
       return;
     }
+    if (API.MMNameLock && !API.MMNameLock.ensure(s)) {
+      return;
+    }
+    _openSid = sid;
 
     ensureModal();
 
@@ -199,6 +232,7 @@
       (s.dept && (s.dept === 'kitab' || s.dept === 'maktab')
         ? kv('রেকর্ড অনুযায়ী বিভাগ', s.dept === 'kitab' ? 'কিতাব' : 'মক্তব')
         : '') +
+      kv('তালিকা লক', s.name_lock_pin ? 'সক্রিয় (দফতর › ছাত্র › লক বোতাম)। ফাঁকা পিনে সরান' : 'নেই') +
       '</div>';
 
     if (s.class_history && s.class_history.length) {
@@ -293,7 +327,28 @@
     var resList = API.Exams.getStudentResults(sid);
     var logList = API.Logs.getByStudent(sid).slice(0, 12);
 
+    var canAddStudentLog = false;
+    try {
+      if (typeof global.MMSession !== 'undefined' && global.MMSession && API.Teachers) {
+        var role = global.MMSession.getRole();
+        if (role === 'admin') canAddStudentLog = true;
+        else if (role === 'teacher') {
+          var mteach = API.Teachers.getById(global.MMSession.getTeacherId());
+          canAddStudentLog = !!(mteach && mteach.class_id === s.class_id);
+        }
+      }
+    } catch (e2) { /* ignore */ }
+
     var more = '';
+    if (canAddStudentLog) {
+      more +=
+        '<div class="st-block st-teacher-log-add">' +
+        '<h4>ছাত্রের জন্য নতুন লগ</h4>' +
+        '<p class="st-note" style="margin:0 0 8px">বর্ষের সাধারণ লগ বর্ষ ট্যাব থেকে; এটি শুধু এই ছাত্রের নোট (পুরনো অ্যাপের মতো)।</p>' +
+        '<textarea class="form-input" id="st-teacher-log-ta" rows="3" placeholder="পর্যবেক্ষণ, আচরণ, বিশেষ ঘটনা…" style="width:100%;box-sizing:border-box;font-size:13px;resize:vertical"></textarea>' +
+        '<button type="button" class="submit-btn" style="margin-top:10px;padding:11px 16px;font-size:13px;width:100%" onclick="MMStudentModal.submitStudentLog()">লগ সংরক্ষণ</button>' +
+        '</div>';
+    }
     if (khList.length) {
       more +=
         '<h4>হুসনুল খুলুক</h4>' +
@@ -404,7 +459,7 @@
     if (modal) modal.classList.add('open');
   }
 
-  global.MMStudentModal = { open: open, close: close, switchTab: switchTab };
+  global.MMStudentModal = { open: open, close: close, switchTab: switchTab, submitStudentLog: submitStudentLog };
   global.switchStudentTab = switchTab;
   global.openStudentDetail = function (sid) {
     return open(sid);

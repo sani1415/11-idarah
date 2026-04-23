@@ -256,6 +256,7 @@
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mm-student-modal.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script>
   if (!MMSession.getRole()) location.href = '../index.html';
@@ -444,7 +445,7 @@
       return s ? `<div class="member-row">
         <div class="list-avatar">📿</div>
         <div style="flex:1;">
-          <div class="member-name">${API.esc(s.name)}</div>
+          <div class="member-name"><button type="button" class="s-name-btn" style="font-size:14px;font-weight:600;color:var(--ink);" onclick="MMStudentModal.open('${s.id}')">${API.esc(s.name)}</button></div>
           <div class="member-class">${cls ? API.esc(cls.name) : ''} · যোগদান: ${API.esc(m.joined || '')}</div>
         </div>
         <span class="list-badge badge-ink">${API.esc(s.permanent_id)}</span>

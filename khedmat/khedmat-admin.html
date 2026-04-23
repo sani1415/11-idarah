@@ -25,7 +25,7 @@
 
 <div class="topbar">
   <div class="topbar-left">
-    <div class="topbar-role">মুহতামিম</div>
+    <div class="topbar-role">জিম্মাদার</div>
     <div class="topbar-name">খেদমতে খালক</div>
   </div>
   <div class="topbar-actions">
@@ -34,7 +34,7 @@
 </div>
 
 <!-- PANEL: OVERVIEW -->
-<div class="content" id="panel-overview" style="padding-bottom:90px;">
+<div class="content" id="panel-overview" style="padding-bottom: var(--app-content-pad-bottom);">
   <select class="month-sel" id="month-sel" onchange="onMonthChange()"></select>
   <div class="stat-row" id="stats-row"></div>
   <div class="sec-header"><div class="sec-title">কার্যক্রমের ধরন অনুযায়ী</div></div>
@@ -44,20 +44,20 @@
 </div>
 
 <!-- PANEL: BENEFICIARIES -->
-<div class="content" id="panel-bens" style="display:none;padding-bottom:90px;">
+<div class="content" id="panel-bens" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div class="sec-header" style="margin-top:10px;"><div class="sec-title">উপকারভোগী তালিকা</div></div>
   <div class="card-static" id="ben-table"></div>
 </div>
 
 <!-- PANEL: FINANCE -->
-<div class="content" id="panel-finance" style="display:none;padding-bottom:90px;">
+<div class="content" id="panel-finance" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div class="stat-row-2" style="margin-top:10px;" id="fin-stats"></div>
   <button class="add-btn" onclick="openModal('modal-fin')">+ তহবিল লেনদেন যোগ করুন</button>
   <div id="fin-list"></div>
 </div>
 
 <!-- PANEL: SETTINGS -->
-<div class="content" id="panel-settings" style="display:none;padding-bottom:90px;">
+<div class="content" id="panel-settings" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div class="sec-header" style="margin-top:10px;"><div class="sec-title">কার্যক্রমের ধরন</div></div>
   <button class="add-btn" onclick="openModal('modal-type')">+ নতুন ধরন যোগ করুন</button>
   <div id="type-list"></div>

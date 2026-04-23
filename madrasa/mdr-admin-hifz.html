@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>হিফজ বিভাগ — মেইন এডমিন</title>
+<title>হিফজ বিভাগ — জিম্মাদার</title>
 <link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/main-admin-nav.css">
 <style>
   .group-card { background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:10px; }
   .group-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--cream2); }
@@ -27,13 +28,6 @@
   .legend { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
   .legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--ink3); }
   .legend-dot { width:12px; height:12px; border-radius:3px; }
-  .main-nav { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom,12px)); z-index:100; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:6px 8px; background:linear-gradient(180deg,#ffffff 0%,#faf6ef 100%); border:1px solid rgba(26,18,8,.08); border-radius:999px; box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1); max-width:456px; margin:0 auto; box-sizing:border-box; }
-  .main-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; text-decoration:none; transition:background .15s,color .15s; }
-  .main-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
-  .main-nav-ico path, .main-nav-ico circle { fill:none; stroke:currentColor; }
-  .main-nav-btn.is-active { background:rgba(232,184,75,.22); color:var(--ink2); }
-  .main-nav-btn.is-active .main-nav-ico { opacity:1; }
-  .main-nav-lbl { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
   .cls-overlay { position:fixed; inset:0; z-index:200; background:var(--bg,#faf6ef); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .25s ease; }
   .cls-overlay.is-open { transform:translateX(0); }
   .cls-ov-header { display:flex; align-items:center; gap:10px; padding:14px 16px 10px; background:var(--ink); color:var(--gold2); flex-shrink:0; }
@@ -65,7 +59,7 @@
 
 <div class="topbar">
   <div class="topbar-left">
-    <div class="topbar-role">মুহতামিম</div>
+    <div class="topbar-role">জিম্মাদার</div>
     <div class="topbar-name">হিফজ বিভাগ</div>
   </div>
   <div class="topbar-actions">
@@ -134,7 +128,7 @@
   </div>
 </div>
 
-<nav class="main-nav" role="navigation" aria-label="মেইন এডমিন নেভিগেশন">
+<nav class="main-nav" role="navigation" aria-label="জিম্মাদার নেভিগেশন">
   <a class="main-nav-btn is-active" href="../main-admin-madrasa.html" aria-label="মাদ্রাসা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span class="main-nav-lbl">মাদ্রাসা</span></a>
   <a class="main-nav-btn" href="../main-admin-dept.html" aria-label="বিভাগ"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg><span class="main-nav-lbl">বিভাগ</span></a>
   <a class="main-nav-btn" href="../main-admin-khedmat.html" aria-label="খেদমত"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span class="main-nav-lbl">খেদমত</span></a>
@@ -147,6 +141,8 @@
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mm-hijri.js"></script>
+<script src="../js/mm-student-modal.js"></script>
 <script>
   if (!MMSession.isAdmin()) location.href = '../index.html';
   const HIFZ_KEY='mm_hifz_groups', HIFZ_PROG_KEY='mm_hifz_progress', HIFZ_MEMBERS_KEY='mm_hifz_members', HIFZ_ACTIVITY_KEY='mm_hifz_activity';
@@ -155,7 +151,7 @@
     API.persistSaveArr(HIFZ_KEY,[{id:'grp_1',name:'গ্রুপ আলিফ',start:'2025-01-01',note:'',active:true},{id:'grp_2',name:'গ্রুপ বা',start:'2025-02-01',note:'',active:true}]);
     API.persistSaveArr(HIFZ_PROG_KEY,[{id:API.uid(),group_id:'grp_1',para_done:15,surah_done:40,revision_para:10,current_para:16,note:'',date:API.today()},{id:API.uid(),group_id:'grp_2',para_done:8,surah_done:22,revision_para:5,current_para:9,note:'',date:API.today()}]);
     API.persistSaveArr(HIFZ_MEMBERS_KEY,[{id:API.uid(),group_id:'grp_1',student_id:'std_2',joined:'2025-01-01'},{id:API.uid(),group_id:'grp_2',student_id:'std_1',joined:'2025-02-01'}]);
-    API.persistSaveArr(HIFZ_ACTIVITY_KEY,[{id:API.uid(),group_id:'grp_1',type:'পাঠ',text:'আজ ১৬তম পারার ৫ম রুকু পর্যন্ত পড়ানো হয়েছে।',date:API.today(),by:'মুহতামিম'}]);
+    API.persistSaveArr(HIFZ_ACTIVITY_KEY,[{id:API.uid(),group_id:'grp_1',type:'পাঠ',text:'আজ ১৬তম পারার ৫ম রুকু পর্যন্ত পড়ানো হয়েছে।',date:API.today(),by:'জিম্মাদার'}]);
   }
   let currentGroupId=null;
   function switchPanel(name) { document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active')); document.getElementById('panel-'+name).classList.add('active'); window.scrollTo(0,0); }
@@ -200,7 +196,7 @@
   }
   function renderGroupMembers() {
     const members=API.persistLoadArr(HIFZ_MEMBERS_KEY).filter(m=>m.group_id===currentGroupId);
-    document.getElementById('member-list').innerHTML=members.map(m=>{const s=API.Students.getById(m.student_id);const cls=s?API.Classes.getById(s.class_id):null;return s?`<div class="member-row"><div class="list-avatar">📿</div><div style="flex:1;"><div class="member-name">${API.esc(s.name)}</div><div class="member-class">${cls?API.esc(cls.name):''} · যোগদান: ${API.esc(m.joined||'')}</div></div><span class="list-badge badge-ink">${API.esc(s.permanent_id)}</span></div>`:''}).join('')||'<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো সদস্য নেই</div></div>';
+    document.getElementById('member-list').innerHTML=members.map(m=>{const s=API.Students.getById(m.student_id);const cls=s?API.Classes.getById(s.class_id):null;return s?`<div class="member-row"><div class="list-avatar">📿</div><div style="flex:1;"><div class="member-name"><button type="button" class="s-name-btn" style="font-size:13px;font-weight:600;color:var(--ink);" onclick="MMStudentModal.open('${s.id}')">${API.esc(s.name)}</button></div><div class="member-class">${cls?API.esc(cls.name):''} · যোগদান: ${API.esc(m.joined||'')}</div></div><span class="list-badge badge-ink">${API.esc(s.permanent_id)}</span></div>`:''}).join('')||'<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো সদস্য নেই</div></div>';
   }
   function renderGroupActivity() {
     const acts=API.persistLoadArr(HIFZ_ACTIVITY_KEY).filter(a=>a.group_id===currentGroupId).sort((a,b)=>b.date.localeCompare(a.date));

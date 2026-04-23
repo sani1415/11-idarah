@@ -200,6 +200,7 @@
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mm-student-modal.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script>
   if (!MMSession.getRole()) location.href = '../index.html';
@@ -341,7 +342,7 @@
         <div class="issue-top">
           <div>
             <div class="issue-book">${book ? API.esc(book.title) : '—'}</div>
-            <div class="issue-student">${student ? API.esc(student.name) + ' · ' + API.esc(student.permanent_id) : '—'}</div>
+            <div class="issue-student">${student ? `<button type="button" class="s-name-btn" style="font-size:12px;font-weight:600;color:var(--ink3);" onclick="MMStudentModal.open('${student.id}')">${API.esc(student.name)}</button> · ${API.esc(student.permanent_id)}` : '—'}</div>
           </div>
           ${!i.returned ? `<button onclick="returnBook('${i.id}')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:'Noto Sans Bengali',sans-serif;font-size:12px;cursor:pointer;">ফেরত</button>` : '<span class="list-badge badge-green">ফেরত দেওয়া</span>'}
         </div>

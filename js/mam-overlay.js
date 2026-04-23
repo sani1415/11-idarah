@@ -4,9 +4,35 @@
 /* overlay-কে compositor layer-এ রাখতে will-change inject করা */
 (function() {
   const s = document.createElement('style');
-  s.textContent = '.cls-overlay{will-change:transform;}.kh-overlay{will-change:transform;}';
+  s.textContent = '.cls-overlay{will-change:transform;}.kh-overlay{will-change:transform;}' +
+    '.ov-s-name--btn{display:block;width:100%;text-align:left;background:none;border:none;font:inherit;padding:0;margin:0;cursor:pointer;color:inherit;font-size:13px;font-family:"Noto Serif Bengali",serif;}' +
+    '.ov-s-name--btn:hover{text-decoration:underline;color:var(--blue);}';
   document.head.appendChild(s);
 })();
+
+/**
+ * বর্ষ ওভারলেতে ছাত্রের নামে ক্লিক — MMStudentModal থাকলে প্রোফাইল খোলে।
+ * @param {string} sid
+ */
+function openOvStudent(sid) {
+  if (typeof MMStudentModal !== 'undefined' && MMStudentModal && typeof MMStudentModal.open === 'function') {
+    MMStudentModal.open(sid);
+  }
+}
+if (typeof window !== 'undefined') window.openOvStudent = openOvStudent;
+
+function _ovNameHtml(sid, nameEsc) {
+  if (typeof MMStudentModal !== 'undefined' && MMStudentModal && typeof MMStudentModal.open === 'function') {
+    return (
+      '<button type="button" class="ov-s-name ov-s-name--btn" onclick="openOvStudent(\'' +
+      String(sid).replace(/\\/g, '\\\\').replace(/'/g, "\\'") +
+      '\')">' +
+      nameEsc +
+      '</button>'
+    );
+  }
+  return '<div class="ov-s-name">' + nameEsc + '</div>';
+}
 
 let _ovClassId = null;
 
@@ -105,8 +131,8 @@ function _renderOvStudents(body) {
     const label  = status ? _STATUS_LABEL[status] : '—';
     const color  = status ? _STATUS_COLOR[status]  : 'var(--ink3)';
     return `<div class="ov-student-row">
-      <div class="ov-s-id">${API.esc(s.roll || s.permanent_id || '—')}</div>
-      <div class="ov-s-name">${API.esc(s.name)}</div>
+      <div class="ov-s-id">${API.esc(s.permanent_id || s.roll || '—')}</div>
+      ${_ovNameHtml(s.id, API.esc(s.name))}
       <div class="ov-s-status" style="color:${color};">${label}</div>
     </div>`;
   }).join('');
@@ -142,7 +168,7 @@ function _renderOvKhuluk(body) {
   const avg = API.Khuluk.getClassAvg(_ovClassId);
   const avgBanner = avg !== null
     ? `<div style="background:#fff;border-radius:10px;padding:12px;text-align:center;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
-        <div style="font-size:10px;color:var(--ink3);">বর্ষের গড় স্কোর</div>
+        <div style="font-size:10px;color:var(--ink3);">বর্ষের গড় হুসনুল খুলুক</div>
         <div style="font-family:'Noto Serif Bengali',serif;font-size:24px;font-weight:700;color:#7c3aed;">${_toBn(avg)}</div>
        </div>`
     : '';
@@ -150,11 +176,12 @@ function _renderOvKhuluk(body) {
   const rows = students.map(s => {
     const k     = API.Khuluk.getLatest(s.id);
     const score = k ? k.score : null;
-    const color = score === null ? 'var(--ink3)' : (score > 80 ? 'var(--green)' : score >= 60 ? 'var(--gold)' : 'var(--red)');
+    const scn = score === null ? null : Number(score);
+    const color = scn === null || Number.isNaN(scn) ? 'var(--ink3)' : (scn >= 81 ? 'var(--green)' : scn >= 60 ? 'var(--gold)' : 'var(--red)');
     const label = score !== null ? _toBn(score) : '—';
     return `<div class="ov-student-row">
-      <div class="ov-s-id">${API.esc(s.roll || s.permanent_id || '—')}</div>
-      <div class="ov-s-name">${API.esc(s.name)}</div>
+      <div class="ov-s-id">${API.esc(s.permanent_id || s.roll || '—')}</div>
+      ${_ovNameHtml(s.id, API.esc(s.name))}
       <div class="ov-s-status" style="color:${color};">${label}</div>
     </div>`;
   }).join('');
@@ -162,14 +189,52 @@ function _renderOvKhuluk(body) {
 }
 
 function _renderOvLogs(body) {
-  const logs = API.Logs.getByClass(_ovClassId);
-  if (!logs.length) {
-    body.innerHTML = '<p class="ov-empty">কোনো লগ নেই</p>'; return;
+  const classPart = API.Logs.getByClass(_ovClassId).map((l) => ({ kind: 'class', l }));
+  const students = API.Students.getByClass(_ovClassId);
+  const stuPart = [];
+  students.forEach((s) => {
+    API.Logs.getByStudent(s.id).forEach((l) => {
+      stuPart.push({ kind: 'student', l, student: s });
+    });
+  });
+  const merged = classPart.concat(stuPart).sort((a, b) => b.l.date.localeCompare(a.l.date));
+  if (!merged.length) {
+    body.innerHTML = '<p class="ov-empty">কোনো লগ নেই</p>';
+    return;
   }
-  const rows = logs.map(l => `<div class="ov-log-row">
-    <div class="ov-log-date">${API.esc(l.date)}</div>
-    <div class="ov-log-text">${API.esc(l.text)}</div>
-  </div>`).join('');
+  const rows = merged
+    .map((item) => {
+      if (item.kind === 'class') {
+        const l = item.l;
+        return (
+          '<div class="ov-log-row" style="border-left:3px solid var(--gold)">' +
+          '<div class="ov-log-date">' +
+          API.esc(l.date) +
+          ' · ' +
+          API.esc(l.by || '') +
+          ' <span style="color:var(--ink3);font-size:9px">(বর্ষ)</span></div>' +
+          '<div class="ov-log-text">' +
+          API.esc(l.text) +
+          '</div></div>'
+        );
+      }
+      const l = item.l;
+      const sn = item.student && item.student.name ? item.student.name : '—';
+      return (
+        '<div class="ov-log-row" style="border-left:3px solid #0ea5e9">' +
+        '<div class="ov-log-date">' +
+        API.esc(l.date) +
+        ' · ' +
+        API.esc(l.by || '') +
+        ' · ' +
+        API.esc(sn) +
+        ' <span style="color:var(--ink3);font-size:9px">(ছাত্র)</span></div>' +
+        '<div class="ov-log-text">' +
+        API.esc(l.text) +
+        '</div></div>'
+      );
+    })
+    .join('');
   body.innerHTML = `<div class="ov-list">${rows}</div>`;
 }
 

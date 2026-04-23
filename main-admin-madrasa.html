@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>মাদ্রাসা — মেইন এডমিন</title>
+<title>মাদ্রাসা — জিম্মাদার</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/main-admin-nav.css">
 <style>
   .content { max-width:760px; }
   .ma-sum-wrap { margin-bottom:12px; }
@@ -53,7 +54,8 @@
   .kh-tier-list { margin-top:8px; display:none; }
   .kh-tier-list.open { display:block; }
   .kh-tier-student { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--cream); border-radius:8px; margin-bottom:6px; }
-  .kh-ts-name { flex:1; font-size:13px; font-family:'Noto Serif Bengali',serif; color:var(--ink); }
+  .kh-ts-name { flex:1; min-width:0; text-align:left; font-size:13px; font-family:'Noto Serif Bengali',serif; color:var(--ink); }
+  .kh-tier-student .s-name-btn.kh-ts-name { display:block; width:100%; }
   .kh-ts-score { font-size:13px; font-weight:700; font-family:'Noto Serif Bengali',serif; }
   .kh-ts-class { font-size:10px; color:var(--ink3); }
   .kh-avg-banner { background:#fff; border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow); margin-bottom:14px; display:flex; align-items:center; gap:12px; }
@@ -62,12 +64,14 @@
   .kh-avg-label { font-size:11px; color:var(--ink3); }
   .kh-avg-note { font-size:12px; color:var(--ink2); margin-top:2px; }
 
-  /* shortcuts */
+  /* shortcuts — স্ট্রোক আইকন (রঙিন ইমোজি নয়) */
   .shortcut-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
-  .shortcut-card { background:#fff; border-radius:var(--radius-sm); padding:12px 8px; box-shadow:var(--shadow); text-align:center; cursor:pointer; transition:transform .12s; }
-  .shortcut-card:active { transform:scale(.97); }
-  .shortcut-icon { font-size:22px; }
-  .shortcut-label { font-size:10px; color:var(--ink3); margin-top:4px; line-height:1.25; }
+  .shortcut-card { background:#fff; border-radius:var(--radius-sm); padding:12px 8px; box-shadow:var(--shadow); text-align:center; cursor:pointer; transition:transform .12s,box-shadow .15s; display:flex; flex-direction:column; align-items:center; gap:6px; border:1px solid rgba(26,18,8,.06); }
+  .shortcut-card:hover { box-shadow:0 2px 10px rgba(26,18,8,.1); }
+  .shortcut-card:active { transform:scale(.98); }
+  .shortcut-ico { width:26px; height:26px; color:var(--ink2); opacity:0.92; flex-shrink:0; }
+  .shortcut-ico svg { width:100%; height:100%; display:block; }
+  .shortcut-label { font-size:10px; color:var(--ink3); line-height:1.25; font-weight:600; }
 
   /* dept tab */
   .dept-tab { display:flex; gap:8px; margin-bottom:12px; }
@@ -91,6 +95,8 @@
   .class-table tbody tr.class-row:active { background:rgba(0,0,0,.06); }
   .class-table .td-name { font-family:'Noto Serif Bengali',serif; font-size:12px; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .class-table .td-teacher { font-size:10px; color:var(--ink3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .class-table .td-teacher--tch { color: var(--ink2); text-decoration: underline; text-decoration-color: rgba(14, 165, 233, 0.5); cursor: pointer; }
+  .class-table .td-teacher--tch:active { opacity: 0.85; }
   .class-table .td-num { font-family:'Noto Serif Bengali',serif; font-size:12px; font-weight:700; text-align:center; white-space:nowrap; }
   .class-table .td-num.n-in { color:var(--ink); }
   .class-table .td-num.n-pr { color:var(--green); }
@@ -123,23 +129,13 @@
   .ov-log-date { font-size:10px; color:var(--ink3); margin-bottom:4px; }
   .ov-log-text { font-size:13px; color:var(--ink2); line-height:1.5; white-space:pre-wrap; }
   .ov-empty { text-align:center; color:var(--ink3); padding:40px 0; font-size:13px; }
-
-  /* bottom nav — shared main-admin style */
-  .main-nav { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom,12px)); z-index:100; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:6px 8px; background:linear-gradient(180deg,#ffffff 0%,#faf6ef 100%); border:1px solid rgba(26,18,8,.08); border-radius:999px; box-shadow:0 4px 6px rgba(26,18,8,.04),0 14px 36px rgba(26,18,8,.1); max-width:456px; margin:0 auto; box-sizing:border-box; }
-  .main-nav-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px 8px; border:none; border-radius:14px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; text-decoration:none; transition:background .15s,color .15s; }
-  .main-nav-ico { width:22px; height:22px; flex-shrink:0; opacity:.88; color:inherit; }
-  .main-nav-ico path, .main-nav-ico circle { fill:none; stroke:currentColor; }
-  .main-nav-btn.is-active { background:rgba(232,184,75,.22); color:var(--ink2); }
-  .main-nav-btn.is-active .main-nav-ico { opacity:1; }
-  .main-nav-btn:hover, .main-nav-btn:focus-visible { background:rgba(255,255,255,.7); color:var(--ink2); outline:none; }
-  .main-nav-lbl { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-left">
-    <div class="topbar-role">মুহতামিম</div>
+    <div class="topbar-role">জিম্মাদার</div>
     <div class="topbar-name">মাদ্রাসা মডিউল</div>
   </div>
   <div class="topbar-actions">
@@ -148,7 +144,7 @@
   </div>
 </div>
 
-<div class="content" style="padding-bottom:90px;">
+<div class="content" style="padding-bottom: var(--app-content-pad-bottom);">
 
   <!-- stats summary -->
   <div class="ma-sum-wrap ma-sum-wrap--top" id="stats-wrap">
@@ -180,29 +176,29 @@
 
   <!-- shortcuts -->
   <div class="shortcut-grid">
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-daftar.html'">
-      <div class="shortcut-icon">📋</div><div class="shortcut-label">দফতর</div>
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-daftar.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+      <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span>
+      <span class="shortcut-label">দফতর</span>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-teachers.html'">
-      <div class="shortcut-icon">👨‍🏫</div><div class="shortcut-label">শিক্ষক</div>
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-teachers.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+      <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <span class="shortcut-label">শিক্ষক</span>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-exams.html'">
-      <div class="shortcut-icon">📝</div><div class="shortcut-label">পরীক্ষা</div>
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-exams.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+      <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M10 12h4M10 16h4"/></svg></span>
+      <span class="shortcut-label">পরীক্ষা</span>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-hifz.html'">
-      <div class="shortcut-icon">📿</div><div class="shortcut-label">হিফজ</div>
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-hifz.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+      <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+      <span class="shortcut-label">হিফজ</span>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-library.html'">
-      <div class="shortcut-icon">📚</div><div class="shortcut-label">মাকতাবা</div>
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-library.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+      <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+      <span class="shortcut-label">মাকতাবা</span>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-alumni.html'">
-      <div class="shortcut-icon">🎓</div><div class="shortcut-label">পুরনো ছাত্র</div>
-    </div>
-    <div class="shortcut-card" onclick="openAddStudent()">
-      <div class="shortcut-icon">➕</div><div class="shortcut-label">নতুন ছাত্র</div>
-    </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/madrasa-settings.html'">
-      <div class="shortcut-icon">⚙️</div><div class="shortcut-label">সেটিং</div>
+    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-alumni.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+      <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
+      <span class="shortcut-label">পুরনো ছাত্র</span>
     </div>
   </div>
 
@@ -263,7 +259,7 @@
 </div>
 
 <!-- BOTTOM NAV -->
-<nav class="main-nav" role="navigation" aria-label="মেইন এডমিন নেভিগেশন">
+<nav class="main-nav" role="navigation" aria-label="জিম্মাদার নেভিগেশন">
   <a class="main-nav-btn is-active" href="main-admin-madrasa.html" aria-label="মাদ্রাসা">
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
     <span class="main-nav-lbl">মাদ্রাসা</span>
@@ -286,54 +282,19 @@
   </a>
 </nav>
 
-<!-- ADD STUDENT MODAL -->
-<div class="modal-bg" id="modal-add-student">
-  <div class="modal">
-    <div class="modal-title">নতুন ছাত্র ভর্তি <button class="modal-close" onclick="closeModal('modal-add-student')">✕</button></div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">বিভাগ</label>
-        <select class="form-input form-select" id="ns-dept" onchange="updateNsClasses()">
-          <option value="kitab">কিতাব বিভাগ</option>
-          <option value="maktab">মক্তব বিভাগ</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">বর্ষ</label>
-        <select class="form-input form-select" id="ns-class"></select>
-      </div>
-    </div>
-    <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="ns-name" placeholder="ছাত্রের পূর্ণ নাম"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">অভিভাবকের নাম</label><input class="form-input" id="ns-guardian" placeholder="অভিভাবকের নাম"></div>
-      <div class="form-group"><label class="form-label">ফোন</label><input class="form-input" id="ns-phone" placeholder="ফোন নম্বর" type="tel"></div>
-    </div>
-    <div class="form-group"><label class="form-label">ঠিকানা</label><input class="form-input" id="ns-address" placeholder="গ্রাম / ইউনিয়ন"></div>
-    <div class="form-group"><label class="form-label">ভর্তির হিজরী সন</label><input class="form-input" id="ns-year" placeholder="১৪৪৭"></div>
-    <button class="submit-btn" onclick="addStudent()">ভর্তি করুন</button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
 <script src="js/api.js"></script>
 <script src="js/mm-sample-data.js"></script>
 <script src="js/mm-session.js"></script>
 <script src="js/hijri-utils.js"></script>
+<script src="js/mm-hijri.js"></script>
+<script src="js/mm-student-modal.js"></script>
+<script src="js/mm-teacher-modal.js"></script>
 <script src="js/mam-overlay.js"></script>
 <script>
-  if (!MMSession.isAdmin()) { location.href = 'index.html'; }
+  if (!MMSession.isAdmin()) { location.href = 'admin-hub.html'; }
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   let currentDept = 'kitab';
-
-  function showToast(msg) {
-    const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2200);
-  }
-  function openModal(id) { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  function openAddStudent() { updateNsClasses(); openModal('modal-add-student'); }
 
   function switchDept(dept) {
     currentDept = dept;
@@ -384,8 +345,10 @@
         const k = API.Khuluk.getLatest(s.id);
         const entry = { id: s.id, name: s.name, score: k ? k.score : null, className: classMap[cls.id] || '' };
         if (!k) { bands.none.push(entry); return; }
-        if (k.score > 80) bands.high.push(entry);
-        else if (k.score >= 60) bands.mid.push(entry);
+        const sc = Number(k.score);
+        if (Number.isNaN(sc)) { bands.none.push(entry); return; }
+        if (sc >= 81) bands.high.push(entry);
+        else if (sc >= 60) bands.mid.push(entry);
         else bands.low.push(entry);
       });
     });
@@ -397,8 +360,8 @@
     const avg = getMadrasaKhulukAvg();
     const total = bands.high.length + bands.mid.length + bands.low.length + bands.none.length;
     const renderList = (arr, colorClass) => arr.length ? arr.map(s =>
-      `<div class="kh-tier-student">
-        <div class="kh-ts-name">${API.esc(s.name)}</div>
+      `<div class="kh-tier-student" onclick="event.stopPropagation()">
+        <button type="button" class="s-name-btn kh-ts-name" onclick="event.stopPropagation();MMStudentModal.open('${String(s.id).replace(/'/g, "\\'")}')">${API.esc(s.name)}</button>
         <div class="kh-ts-class">${API.esc(s.className)}</div>
         ${s.score !== null ? `<div class="kh-ts-score ${colorClass}">${toBn(s.score)}</div>` : ''}
       </div>`).join('') : `<div style="color:var(--ink3);font-size:12px;padding:8px 0;">কেউ নেই</div>`;
@@ -407,7 +370,7 @@
       <div class="kh-avg-banner">
         <div class="kh-avg-num">${avg !== null ? toBn(avg) : '—'}</div>
         <div class="kh-avg-info">
-          <div class="kh-avg-label">মাদ্রাসার গড় স্কোর</div>
+          <div class="kh-avg-label">মাদ্রাসার গড় হুসনুল খুলুক</div>
           <div class="kh-avg-note">${toBn(total)} জন ছাত্রের মধ্যে ${toBn(bands.none.length)} জনের রেকর্ড নেই</div>
         </div>
       </div>
@@ -416,7 +379,7 @@
           <div class="kh-tier-name">মুজতাহিদ (৮১+)</div>
           <div class="kh-tier-count kh-tier-count--high">${toBn(bands.high.length)}</div>
         </div>
-        <div class="kh-tier-desc">সর্বোচ্চ আচরণগত স্তর — স্কোর ৮১ বা তার বেশি</div>
+        <div class="kh-tier-desc">সর্বোচ্চ আচরণগত স্তর — হুসনুল খুলুক ৮১ বা তার বেশি</div>
         <div class="kh-tier-list">${renderList(bands.high,'kh-ts-score')}</div>
       </div>
       <div class="kh-tier-card kh-tier-card--mid" onclick="toggleKhTier(this)">
@@ -424,7 +387,7 @@
           <div class="kh-tier-name">মুতাওয়াস্সিত (৬০–৮০)</div>
           <div class="kh-tier-count kh-tier-count--mid">${toBn(bands.mid.length)}</div>
         </div>
-        <div class="kh-tier-desc">মধ্যম আচরণগত স্তর — স্কোর ৬০ থেকে ৮০</div>
+        <div class="kh-tier-desc">মধ্যম আচরণগত স্তর — হুসনুল খুলুক ৬০ থেকে ৮০</div>
         <div class="kh-tier-list">${renderList(bands.mid,'kh-ts-score')}</div>
       </div>
       <div class="kh-tier-card kh-tier-card--low" onclick="toggleKhTier(this)">
@@ -432,7 +395,7 @@
           <div class="kh-tier-name">মুসতায়িদ (৬০-এর নিচে)</div>
           <div class="kh-tier-count kh-tier-count--low">${toBn(bands.low.length)}</div>
         </div>
-        <div class="kh-tier-desc">উন্নতি প্রয়োজন — স্কোর ৬০-এর নিচে</div>
+        <div class="kh-tier-desc">উন্নতি প্রয়োজন — হুসনুল খুলুক ৬০-এর নিচে</div>
         <div class="kh-tier-list">${renderList(bands.low,'kh-ts-score')}</div>
       </div>`;
     /* cls-overlay যদি open থাকে বন্ধ করো */
@@ -482,9 +445,11 @@
       const absent  = attRecs.filter(a => API.Attendance.statusOf(a) === 'absent').length;
       const khAvg   = API.Khuluk.getClassAvg(cls.id);
       const teacherName = teacherMap[cls.id] || '—';
+      const tObj = API.Teachers.getByClassId(cls.id);
+      const tid = tObj && tObj.id ? tObj.id : '';
       return `<tr class="class-row" onclick="openClassOverlay('${cls.id}')">
         <td class="td-name">${API.esc(cls.name)}</td>
-        <td class="td-teacher">${API.esc(teacherName)}</td>
+        <td class="td-teacher${tid ? ' td-teacher--tch' : ''}" ${tid ? `onclick="event.stopPropagation();MMTeacherModal.open('${tid}')"` : ''} title="${tid ? 'শিক্ষকের সারাংশ' : ''}">${API.esc(teacherName)}</td>
         <td class="td-num n-in">${toBn(students.length)}</td>
         <td class="td-num n-pr">${toBn(present)}</td>
         <td class="td-num n-ab">${toBn(absent)}</td>
@@ -496,31 +461,7 @@
       `<tr><td colspan="6" style="text-align:center;color:var(--ink3);padding:24px;">কোনো বর্ষ নেই</td></tr>`;
   }
 
-  function updateNsClasses() {
-    const dept = document.getElementById('ns-dept').value;
-    const classes = API.Classes.getByDept(dept);
-    document.getElementById('ns-class').innerHTML = classes.map(c => `<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
-  }
-
-  function addStudent() {
-    const dept = document.getElementById('ns-dept').value;
-    const class_id = document.getElementById('ns-class').value;
-    const name = document.getElementById('ns-name').value.trim();
-    const guardian = document.getElementById('ns-guardian').value.trim();
-    const phone = document.getElementById('ns-phone').value.trim();
-    const address = document.getElementById('ns-address').value.trim();
-    const hijriYear = document.getElementById('ns-year').value.trim() || '১৪৪৭';
-    if (!name || !class_id) { showToast('নাম ও বর্ষ আবশ্যক'); return; }
-    const permanent_id = API.Students.getNextPermanentId(dept, hijriYear);
-    API.Students.add({ name, class_id, guardian, phone, address, admitted:hijriYear, permanent_id, dept });
-    closeModal('modal-add-student');
-    showToast('ছাত্র ভর্তি সম্পন্ন ✓');
-    renderStats();
-    renderClassList();
-  }
-
   // init
-  updateNsClasses();
   renderStats();
   updateWatchCounts();
   renderClassList();
