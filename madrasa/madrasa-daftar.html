@@ -21,9 +21,9 @@
   padding: 0;
 }
 .hd-nav {
-  flex: 0 0 40px; height: 48px;
+  flex: 0 0 36px; height: 36px;
   background: none; border: none;
-  font-size: 22px; color: rgba(255,255,255,.5);
+  font-size: 20px; color: rgba(255,255,255,.5);
   display: flex; align-items: center; justify-content: center;
   transition: color .15s, background .15s;
 }
@@ -31,18 +31,16 @@
 .hd-nav:active { background: rgba(255,255,255,.12); transform: scale(.94); }
 .hd-center {
   flex: 1; text-align: center; cursor: pointer;
-  position: relative; padding: 8px 4px; user-select: none;
+  position: relative; padding: 5px 4px; user-select: none;
 }
-.hd-weekday { font-size: 9px; color: rgba(232,184,75,.7); letter-spacing: .5px; margin-bottom: 2px; }
-.hd-main    { font-family: 'Noto Serif Bengali', serif; font-size: 15px; font-weight: 600; color: #fff; line-height: 1.25; }
-.hd-geo     { font-size: 9px; color: rgba(255,255,255,.55); margin-top: 2px; line-height: 1.3; }
-.hd-sub     { font-size: 9px; color: rgba(255,255,255,.45); margin-top: 2px; }
+.hd-compact-line { font-family: 'Noto Serif Bengali', serif; font-size: 12px; font-weight: 600; color: #fff; line-height: 1.25; }
+.hd-cal-chev { margin-left: 4px; font-size: 12px; color: rgba(255,255,255,.5); display: inline-block; transition: transform .15s ease; }
+.hero-date.is-cal-open .hd-cal-chev { transform: rotate(180deg); color: rgba(255,255,255,.8); }
 .hd-today-dot {
   display: inline-block; width: 5px; height: 5px; border-radius: 50%;
-  background: var(--gold2); margin-right: 5px; vertical-align: middle; margin-top: -1px;
+  background: var(--gold2); margin-right: 4px; vertical-align: middle; margin-top: -1px;
 }
-.hd-input-wrap { position: absolute; inset: 0; opacity: 0; overflow: hidden; }
-.hd-input-wrap input { width: 100%; height: 100%; border: none; outline: none; cursor: pointer; }
+/* নেটিভ তারিখ নির্বাচন: ক্যালেন্ডার প্যানেলে */
 
 .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); }
 .hs-stat {
@@ -81,6 +79,107 @@
 .hero-notice-ico { font-size: 12px; flex-shrink: 0; margin-top: 1px; }
 .hero-notice strong { color: var(--ink2); }
 .notice-ok { color: var(--green) !important; font-weight: 600; }
+
+/* ── হাজিরা অডিট: সেশন শুরু→আজ (লাইন) + কালো বারে ক্লিকে ক্যালেন্ডার ── */
+.hero-audit-strip {
+  padding: 5px 10px 6px;
+  background: #fff;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  font-size: 10px;
+  line-height: 1.35;
+}
+.hero-audit-panel {
+  border-top: 1px solid var(--cream2);
+  background: #fff;
+  padding: 8px 10px 10px;
+}
+.hero-audit-panel[hidden] { display: none !important; }
+.audit-mnav {
+  width: 32px; height: 30px; border: none; border-radius: 8px;
+  background: rgba(26,18,8,.05); color: var(--ink2);
+  font-size: 16px; line-height: 1; cursor: pointer; flex-shrink: 0;
+}
+.audit-mnav:hover { background: var(--cream); }
+.audit-mnav:disabled { opacity: .3; cursor: not-allowed; }
+.audit-meta{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.audit-month{
+  font-size: 12px;
+  color: var(--ink2);
+  font-weight: 700;
+  text-align: center; flex: 1; min-width: 0;
+}
+.audit-date-jump { margin-top: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.audit-date-jump label { font-size: 10px; color: var(--ink3); }
+.audit-date-jump .form-input { padding: 6px 8px; font-size: 12px; max-width: 100%; }
+.audit-legend{
+  display:flex;
+  align-items:center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--ink3);
+  white-space: nowrap;
+}
+.audit-legend .lg{
+  width: 10px; height: 10px; border-radius: 4px;
+  border: 1px solid var(--cream2);
+  display: inline-block;
+}
+.audit-legend .lg-taken{ border-color: rgba(45,106,79,.35); background: rgba(45,106,79,.18); }
+.audit-legend .lg-miss { border-color: rgba(220,53,69,.35); background: rgba(220,53,69,.18); }
+.audit-dow{
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-bottom: 5px;
+}
+.ad-dow{
+  height: 18px;
+  font-size: 10px;
+  color: var(--ink3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.audit-line {
+  font-size: 11px;
+  color: var(--ink2);
+  margin: 0;
+}
+.audit-line strong { color: var(--ink); }
+.audit-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.ad-day {
+  height: 24px;
+  border-radius: 8px;
+  border: 1px solid var(--cream2);
+  background: #fff;
+  font-size: 11px;
+  font-family: 'Noto Sans Bengali', sans-serif;
+  color: var(--ink2);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ad-day:hover { background: var(--cream); }
+.ad-day:disabled { opacity: .45; cursor: default; background: #fff; }
+.ad-taken { border-color: rgba(45,106,79,.35); background: rgba(45,106,79,.10); color: var(--green); }
+.ad-miss  { border-color: rgba(220,53,69,.35); background: rgba(220,53,69,.10); color: var(--red); }
+.ad-out   { opacity: .22; cursor: default; }
+.ad-sel   { box-shadow: 0 0 0 2px rgba(201,149,42,.35); border-color: rgba(201,149,42,.55); }
+.ad-pad{
+  height: 24px;
+}
 
 /* ── ফিল্টার: [বর্ষ] [খোঁজ] [কপি] [বাল্ক✓] [বাল্ক✗] — সব বিন্দু এক উচ্চতা (--fs-h) ── */
 .daftar-toolbar {
@@ -158,13 +257,6 @@
   box-shadow: var(--shadow); overflow: hidden; margin-bottom: 6px; padding: 0;
 }
 #att-list { margin: 0; padding: 0; }
-.att-count-note {
-  padding: 5px 6px; font-size: 10px; color: var(--ink3);
-  background: var(--cream);
-  border-top: 1px solid var(--cream2);
-  border-bottom: 1px solid var(--cream2);
-  line-height: 1.35;
-}
 .class-sep {
   display: flex; align-items: center; gap: 6px;
   padding: 7px 8px 6px;
@@ -203,14 +295,15 @@
   bottom: calc(58px + env(safe-area-inset-bottom));
   z-index: 90; padding: 4px 0 2px;
   pointer-events: none;
+  display: none;
 }
 .save-btn {
   width: 100%; pointer-events: all;
   background: var(--green); color: #fff; border: none;
-  border-radius: 12px; padding: 11px 14px;
+  border-radius: 10px; padding: 7px 12px;
   font-family: 'Noto Sans Bengali', sans-serif;
-  font-size: 14px; font-weight: 600;
-  box-shadow: 0 4px 16px rgba(45,106,79,.32);
+  font-size: 13px; font-weight: 600;
+  box-shadow: 0 3px 12px rgba(45,106,79,.28);
   display: flex; align-items: center; justify-content: space-between;
   gap: 8px; transition: all .15s;
 }
@@ -257,13 +350,7 @@ body.page-daftar .form-label { font-size: 12px; margin-bottom: 3px; }
 body.page-daftar .form-input { padding: 9px 11px; font-size: 14px; }
 body.page-daftar .form-select { padding: 9px 28px 9px 10px; }
 body.page-daftar .add-btn { padding: 11px 14px; font-size: 14px; margin-bottom: 8px; }
-body.page-daftar .bottom-nav {
-  left: 8px; right: 8px; bottom: max(6px, env(safe-area-inset-bottom));
-  padding: 4px 6px; gap: 2px;
-}
-body.page-daftar .nav-item { min-height: 44px; padding: 5px 4px; gap: 3px; }
-body.page-daftar .nav-icon svg.nav-svg, body.page-daftar .nav-icon .nav-svg { width: 22px; height: 22px; }
-body.page-daftar .nav-label { font-size: 10px; line-height: 1.15; }
+/* .bottom-nav — ../css/style.css (পেজ ওভাররাইড নেই; নিচে সটিক + একই উচ্চতা) */
 body.page-daftar .card-static { padding: 10px 12px; }
 body.page-daftar .att-card .empty-state { padding: 18px 8px; }
 </style>
@@ -286,22 +373,39 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
   <!-- HOME PANEL -->
   <div class="panel active" id="panel-home">
 
-    <!-- হিরো কার্ড: তারিখ নেভিগেটর + স্ট্যাটস + নোটিস -->
+    <!-- হিরো কার্ড: অডিট লাইন + তারিখ বার (ক্যালেন্ডার) + স্ট্যাটস + নোটিস -->
     <div class="hero">
-      <div class="hero-date">
-        <button type="button" class="hd-nav" onclick="daftarPrevDay()" aria-label="আগের দিন">‹</button>
-        <div class="hd-center">
-          <div class="hd-weekday" id="hd-weekday"></div>
-          <div class="hd-main">
-            <span class="hd-today-dot" id="hd-dot"></span><span id="hd-date-primary"></span>
-          </div>
-          <div class="hd-geo" id="hd-geo-bn"></div>
-          <div class="hd-sub" id="hd-sub"></div>
-          <div class="hd-input-wrap">
-            <input type="date" id="daftar-att-date" onchange="onDaftarDateInput()" tabindex="-1">
+      <div class="hero-audit-strip" id="hero-audit-summary" style="display:none" aria-live="polite">
+        <div class="audit-line" id="audit-line"></div>
+      </div>
+
+      <div class="hero-date" id="hero-date-bar" role="group" aria-label="নির্বাচিত দিন ও ক্যালেন্ডার" aria-expanded="false" onclick="onHeroDateBarClick(event)">
+        <button type="button" class="hd-nav" onclick="event.stopPropagation();daftarPrevDay();" aria-label="আগের দিন">‹</button>
+        <div class="hd-center" id="hd-center" role="button" tabindex="0" title="ক্যালেন্ডার" onkeydown="onHeroDateBarKeydown(event)">
+          <div class="hd-compact-line">
+            <span class="hd-today-dot" id="hd-dot"></span><span id="hd-compact-text"></span>
+            <span class="hd-cal-chev" id="hd-cal-chev" aria-hidden="true">▾</span>
           </div>
         </div>
-        <button type="button" class="hd-nav" onclick="daftarNextDay()" aria-label="পরের দিন">›</button>
+        <button type="button" class="hd-nav" onclick="event.stopPropagation();daftarNextDay();" aria-label="পরের দিন">›</button>
+      </div>
+
+      <div class="hero-audit-panel" id="audit-body" role="region" aria-label="হাজিরা ক্যালেন্ডার" hidden>
+        <div class="audit-meta" id="audit-meta-row">
+          <button type="button" class="audit-mnav" id="audit-m-prev" onclick="auditShiftMonth(-1)" aria-label="আগের মাস">‹</button>
+          <div class="audit-month" id="audit-month"></div>
+          <button type="button" class="audit-mnav" id="audit-m-next" onclick="auditShiftMonth(1)" aria-label="পরের মাস">›</button>
+        </div>
+        <div class="audit-legend" aria-hidden="true" style="margin-bottom:6px;justify-content:center;">
+          <span class="lg lg-taken"></span><span>হাজিরা আছে</span>
+          <span class="lg lg-miss"></span><span>নেই</span>
+        </div>
+        <div class="audit-dow" id="audit-dow"></div>
+        <div class="audit-grid" id="audit-grid" aria-label="এই মাসের হাজিরা অবস্থা"></div>
+        <div class="audit-date-jump">
+          <label for="daftar-att-date">দ্রুত তারিখ</label>
+          <input class="form-input" type="date" id="daftar-att-date" onchange="onDaftarDateInput()" tabindex="0" title="অন্য দিন">
+        </div>
       </div>
 
       <div class="hero-stats">
@@ -351,14 +455,13 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
 
     <!-- হাজিরা কার্ড -->
     <div class="att-card">
-      <div class="att-count-note" id="att-count-note">লোড হচ্ছে…</div>
       <div id="att-list"></div>
     </div>
 
     <!-- স্টিকি সেভ ফুটার -->
     <div class="save-footer">
       <button type="button" class="save-btn" id="save-btn" onclick="saveAllAttendance()">
-        <span>✓ সকল বর্ষের উপস্থিতি সংরক্ষণ করুন</span>
+        <span>✓ হাজিরা সংরক্ষণ করুন</span>
         <span class="save-btn-count" id="save-count"></span>
       </button>
     </div>
@@ -476,37 +579,227 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
   let qFilter         = 'all';
   let feeHistoryClassId = null;
   let absentModalMode = null;
+  /** ক্যালেন্ডারে দেখা মাস (গ্রিড); দিনে ক্লিক বা “দ্রুত তারিখ” দিয়ে `daftarAttDate` বদলায় */
+  let auditView = { y: new Date().getFullYear(), m: new Date().getMonth() };
 
   /* ── PENDING CHANGES (তারিখ কনফার্ম) ── */
   function hasPendingEdits() {
     return Object.keys(attState).length > 0 || Object.keys(attReasonState).length > 0;
   }
 
-  /* ── DATE + হিজরী ── */
+  /* ── হাজিরা অডিট: সেশন শুরু → আজ ── */
+  function getSessionStartISO() {
+    try {
+      const s = API.Settings && API.Settings.get ? API.Settings.get() : null;
+      const fromSet = s && s.session_start_date != null && String(s.session_start_date).trim() !== '' ? String(s.session_start_date).trim() : '';
+      if (fromSet) return fromSet;
+    } catch (e) {}
+    try {
+      if (API.Sessions && API.Sessions.getCurrent) {
+        const cur = API.Sessions.getCurrent();
+        if (cur && cur.start_date) return String(cur.start_date);
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function isoAddDays(iso, delta) {
+    const d = new Date(iso + 'T12:00:00');
+    d.setDate(d.getDate() + delta);
+    return d.toISOString().split('T')[0];
+  }
+
+  function ddmmyyBn(iso) {
+    const d = new Date(iso + 'T12:00:00');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yy = String(d.getFullYear()).slice(-2);
+    return toBn(dd) + '/' + toBn(mm) + '/' + toBn(yy);
+  }
+
+  let auditExpanded = false;
+  function ymcmp(a, b) {
+    if (a.y !== b.y) return a.y - b.y;
+    return a.m - b.m;
+  }
+  function getAuditMinYM() {
+    const s = getSessionStartISO();
+    if (!s) return null;
+    const d = new Date(s + 'T12:00:00');
+    return { y: d.getFullYear(), m: d.getMonth() };
+  }
+  function getAuditMaxYM() {
+    const t = new Date(API.today() + 'T12:00:00');
+    return { y: t.getFullYear(), m: t.getMonth() };
+  }
+  function syncAuditViewFromDaftar() {
+    const d = new Date(daftarAttDate + 'T12:00:00');
+    auditView = { y: d.getFullYear(), m: d.getMonth() };
+  }
+  function setAuditMonthNavDisabled() {
+    const minA = getAuditMinYM();
+    const maxA = getAuditMaxYM();
+    const prevB = document.getElementById('audit-m-prev');
+    const nextB = document.getElementById('audit-m-next');
+    if (prevB) prevB.disabled = !!(minA && ymcmp(auditView, minA) <= 0);
+    if (nextB) nextB.disabled = !!(maxA && ymcmp(auditView, maxA) >= 0);
+  }
+  function onHeroDateBarClick(ev) {
+    ev.stopPropagation();
+    if (ev.target && ev.target.closest && ev.target.closest('button.hd-nav')) return;
+    setAuditExpanded(!auditExpanded);
+  }
+  function onHeroDateBarKeydown(ev) {
+    if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setAuditExpanded(!auditExpanded); }
+  }
+  function setAuditExpanded(next) {
+    auditExpanded = !!next;
+    const bar  = document.getElementById('hero-date-bar');
+    const body = document.getElementById('audit-body');
+    if (bar) {
+      bar.classList.toggle('is-cal-open', auditExpanded);
+      bar.setAttribute('aria-expanded', auditExpanded ? 'true' : 'false');
+    }
+    if (body) {
+      body.hidden = !auditExpanded;
+      body.setAttribute('aria-hidden', auditExpanded ? 'false' : 'true');
+    }
+    if (auditExpanded) {
+      syncAuditViewFromDaftar();
+      renderAttendanceAudit(true);
+    }
+  }
+  function auditShiftMonth(delta) {
+    const d = new Date(auditView.y, auditView.m + delta, 1, 12, 0, 0);
+    auditView = { y: d.getFullYear(), m: d.getMonth() };
+    const minA = getAuditMinYM();
+    const maxA = getAuditMaxYM();
+    if (minA && ymcmp(auditView, minA) < 0) auditView = { y: minA.y, m: minA.m };
+    if (maxA && ymcmp(auditView, maxA) > 0) auditView = { y: maxA.y, m: maxA.m };
+    renderAttendanceAudit(true);
+  }
+
+  function renderAttendanceAudit(forceGrid) {
+    const startISO = getSessionStartISO();
+    const todayISO = API.today();
+    const summary = document.getElementById('hero-audit-summary');
+    const panel  = document.getElementById('audit-body');
+    if (!summary || !startISO || startISO > todayISO) {
+      if (summary) summary.style.display = 'none';
+      if (panel) { panel.hidden = true; }
+      return;
+    }
+
+    // ১) শুরু→আজ পর্যন্ত "কোনো হাজিরা নেই" এমন দিনগুলো
+    const missingDays = [];
+    for (let cur = startISO; cur <= todayISO; cur = isoAddDays(cur, 1)) {
+      const any = API.Attendance.getByDate(cur).length > 0;
+      if (!any) missingDays.push(cur);
+    }
+
+    const lineEl = document.getElementById('audit-line');
+    if (lineEl) {
+      if (!missingDays.length) {
+        lineEl.innerHTML = 'শিক্ষাবর্ষ শুরু থেকে আজ পর্যন্ত <strong>সব দিনেই</strong> হাজিরা আছে';
+      } else {
+        const sample = missingDays.slice(0, 5).map(ddmmyyBn).join(', ');
+        const extra = missingDays.length > 5 ? '…' : '';
+        lineEl.innerHTML = 'শিক্ষাবর্ষ শুরু থেকে আজ পর্যন্ত বাকি <strong>' + toBn(missingDays.length) + '</strong> দিন · ' + sample + extra;
+      }
+    }
+    summary.style.display = 'block';
+
+    if (!forceGrid && !auditExpanded) return;
+
+    const y = auditView.y;
+    const m = auditView.m;
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const firstDow = new Date(y, m, 1).getDay();
+    const grid = document.getElementById('audit-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const monthEl = document.getElementById('audit-month');
+    if (monthEl) {
+      const MON_BN = ['জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগ', 'সেপ', 'অক্টো', 'নভে', 'ডিসে'];
+      monthEl.textContent = MON_BN[m] + ' ' + toBn(y);
+    }
+    const dowEl = document.getElementById('audit-dow');
+    if (dowEl) {
+      const DOW = ['রবি','সোম','মঙ্গল','বুধ','বৃহ','শুক্র','শনি'];
+      dowEl.innerHTML = DOW.map(d0 => '<div class="ad-dow">' + d0 + '</div>').join('');
+    }
+
+    for (let i = 0; i < firstDow; i++) {
+      const pad = document.createElement('div');
+      pad.className = 'ad-pad';
+      grid.appendChild(pad);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dd = String(day).padStart(2, '0');
+      const mm = String(m + 1).padStart(2, '0');
+      const iso = y + '-' + mm + '-' + dd;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ad-day';
+      btn.textContent = toBn(day);
+
+      const outOfSession = iso < startISO;
+      const future = iso > todayISO;
+      if (outOfSession) btn.classList.add('ad-out');
+
+      if (iso === daftarAttDate) btn.classList.add('ad-sel');
+
+      if (outOfSession || future) {
+        btn.disabled = true;
+      } else {
+        const taken = API.Attendance.getByDate(iso).length > 0;
+        btn.classList.add(taken ? 'ad-taken' : 'ad-miss');
+        btn.addEventListener('click', () => trySetDaftarAttDate(iso));
+      }
+
+      grid.appendChild(btn);
+    }
+    setAuditMonthNavDisabled();
+  }
+
+  /* ── DATE + হিজরী (compact একলাইন) ── */
   function updateHero() {
     const isToday = daftarAttDate === API.today();
-    const du = (window.MMHijri && window.MMHijri.dualLine) ? window.MMHijri.dualLine(daftarAttDate) : null;
-    if (du) {
-      document.getElementById('hd-weekday').textContent = du.weekday;
-      document.getElementById('hd-date-primary').textContent = du.primary;
-      document.getElementById('hd-geo-bn').textContent = du.hijriOk
-        ? du.secondary
-        : (window.MMHijri && window.MMHijri.gregorianLongBn
-          ? 'গ্রিগরিয়ান: ' + window.MMHijri.gregorianLongBn(daftarAttDate)
-          : '');
-    } else {
-      const d0 = new Date(daftarAttDate + 'T12:00:00');
-      const BN_D = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
-      const M_SHORT = ['জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগ', 'সেপ', 'অক্টো', 'নভে', 'ডিসে'];
-      document.getElementById('hd-weekday').textContent = BN_D[d0.getDay()];
-      document.getElementById('hd-date-primary').textContent =
-        toBn(d0.getDate()) + ' ' + M_SHORT[d0.getMonth()] + ' ' + toBn(d0.getFullYear());
-      document.getElementById('hd-geo-bn').textContent = '';
-    }
-    document.getElementById('hd-sub').textContent   = isToday ? 'আজ' : '';
+    const d0 = new Date(daftarAttDate + 'T12:00:00');
+    const BN_D_SHORT = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহস্পতি', 'শুক্র', 'শনি'];
+    const weekday = BN_D_SHORT[d0.getDay()];
+
+    // গ্রিগরিয়ান DD/MM/YY বাংলায়
+    const gd = String(d0.getDate()).padStart(2,'0');
+    const gm = String(d0.getMonth()+1).padStart(2,'0');
+    const gy = String(d0.getFullYear()).slice(-2);
+    const gregShort = toBn(gd) + '/' + toBn(gm) + '/' + toBn(gy);
+
+    // হিজরী DD/MM/YY বাংলায়
+    let hijriShort = '';
+    try {
+      const parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',
+        { day:'numeric', month:'numeric', year:'numeric' }).formatToParts(d0);
+      const get = t => parts.find(p => p.type === t)?.value || '';
+      const hd = parseInt(get('day')), hm = parseInt(get('month')), hy = parseInt(get('year'));
+      if (!isNaN(hd)) hijriShort = toBn(hd) + '/' + toBn(hm) + '/' + toBn(hy % 100);
+    } catch(e) {}
+
+    const lineParts = [weekday];
+    if (hijriShort) lineParts.push('হি: ' + hijriShort);
+    lineParts.push('খ্রি: ' + gregShort);
+    document.getElementById('hd-compact-text').textContent = lineParts.join(' · ');
     document.getElementById('hd-dot').style.display = isToday ? 'inline-block' : 'none';
     const inp = document.getElementById('daftar-att-date');
-    if (inp) { inp.value = daftarAttDate; inp.max = API.today(); }
+    if (inp) {
+      inp.value = daftarAttDate;
+      inp.max = API.today();
+      const sMin = getSessionStartISO();
+      if (sMin) { inp.min = sMin; } else { inp.removeAttribute('min'); }
+    }
 
     const existing = API.Attendance.getByDate(daftarAttDate);
     const active   = API.Students.getAll().filter(s => s.active);
@@ -518,7 +811,7 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
       else p++;
     });
     document.getElementById('st-present').textContent = toBn(p);
-    document.getElementById('st-absent').textContent  = h > 0 ? toBn(a) + '+' + toBn(h) + '🏖' : toBn(a);
+    document.getElementById('st-absent').textContent  = toBn(a);
     document.getElementById('st-total').textContent   = toBn(active.length);
     const schoolTotal = p + a;
     const pct = schoolTotal ? Math.round(p / schoolTotal * 100) : 0;
@@ -543,7 +836,11 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
     const allSaved = active.length > 0 && missing.length === 0 && !unsaved;
     document.getElementById('save-btn').classList.toggle('all-saved', allSaved && isToday);
     document.getElementById('save-count').textContent =
-      unsaved ? 'সংরক্ষণ না হওয়া এডিট আছে' : (allSaved && isToday ? 'পুনরায় সংরক্ষণও করা যাবে' : '');
+      unsaved ? '● সেভ বাকি' : (allSaved && isToday ? '✓ সম্পন্ন' : '');
+    const sf = document.querySelector('.save-footer');
+    if (sf) sf.style.display = unsaved ? 'block' : 'none';
+    if (auditExpanded) renderAttendanceAudit(true);
+    else renderAttendanceAudit(false);
     updateHeroFilterClasses();
   }
 
@@ -570,6 +867,7 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
     daftarAttDate = iso;
     attState = {};
     attReasonState = {};
+    if (auditExpanded) syncAuditViewFromDaftar();
     updateHero();
     renderAttendance();
   }
@@ -699,7 +997,6 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
 
     if (!allActive.length) {
       el.innerHTML = '<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো সক্রিয় ছাত্র নেই</div></div>';
-      document.getElementById('att-count-note').textContent = '';
       return;
     }
 
@@ -708,9 +1005,6 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
 
     const inScope  = getStudentsInScope();
     const filtered = getFiltered(inScope, existing);
-
-    document.getElementById('att-count-note').textContent =
-      'দেখাচ্ছে ' + toBn(filtered.length) + ' / ' + toBn(inScope.length) + ' জন';
 
     if (!filtered.length) {
       el.innerHTML = '<div class="empty-state"><span class="empty-icon">🔎</span><div class="empty-text">এই ফিল্টারে কোনো ছাত্র নেই</div></div>';

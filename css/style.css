@@ -33,6 +33,7 @@
   /* নিচের পিল নেভ — main-nav / hub / bottom-nav একই মাপ (ইনসেট, প্রস্থ, সেফ এরিয়া) */
   --app-nav-pill-inset: 12px;
   --app-nav-pill-max: 520px;
+  /* safe-area: বাইরের bottom-এ gap দেবেন না — নেভের ভেতরে padding-diye হাতেল। */
   --app-content-pad-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   /* ইনবок্স ফ্যাব: পিলের উপর */
   /* চ্যাট/লেআউট: নিচের পিল ধরে উচ্চতা কমানো */
@@ -118,6 +119,7 @@ body {
   left: var(--app-nav-pill-inset, 12px);
   right: var(--app-nav-pill-inset, 12px);
   bottom: 0;
+  /* পর্দার নিচে সটিক; ফাঁকা “ধূসর” লাইন এড়াতে bottom offset দেবেন না (পেজ-level ওভাররাইড সরান) */
   max-width: var(--app-nav-pill-max, 520px);
   margin: 0 auto;
   z-index: 100;

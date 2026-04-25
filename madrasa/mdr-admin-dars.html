@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>দরস — কিতাব পড়া — জিম্মাদার</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/main-admin-nav.css">
+<style>
+  .dars-lead { font-size:12px; color:var(--ink3); line-height:1.5; margin:0 0 12px; }
+  .dars-tabs { display:flex; gap:8px; margin-bottom:10px; }
+  .dars-tab { flex:1; padding:10px 6px; background:#fff; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-size:12px; color:var(--ink3); }
+  .dars-tab.active { border-color:var(--ink); background:var(--ink); color:var(--gold2); font-weight:600; }
+  .dars-class-strip-wrap { margin:0 -4px 12px; padding:0 4px; }
+  .dars-class-strip {
+    display:flex; flex-wrap:nowrap; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory; padding-bottom:4px; scrollbar-width:thin;
+  }
+  .dars-class-strip::-webkit-scrollbar { height:4px; }
+  .dars-class-strip::-webkit-scrollbar-thumb { background:var(--cream3); border-radius:4px; }
+  .dars-class-chip {
+    flex:0 0 auto; scroll-snap-align:start;
+    padding:8px 14px; border-radius:999px; border:1.5px solid var(--cream3);
+    background:#fff; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink3);
+    cursor:pointer; white-space:nowrap; -webkit-tap-highlight-color:transparent; transition:background .12s,border-color .12s,color .12s;
+  }
+  .dars-class-chip:hover { border-color:rgba(201,149,42,.45); }
+  .dars-class-chip.is-active { border-color:var(--ink); background:var(--ink); color:var(--gold2); font-weight:600; }
+  .dars-panel { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; border:1px solid rgba(26,18,8,.06); }
+  .dars-class-h { padding:10px 12px; background:var(--cream2); font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; color:var(--ink2); }
+  .dars-class-sub { font-size:10px; font-weight:500; color:var(--ink3); margin-top:2px; font-family:'Noto Sans Bengali',sans-serif; }
+  .dars-book { padding:10px 12px; border-top:1px solid var(--cream2); }
+  .dars-book-t { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:4px; }
+  .dars-book-n { font-size:13px; font-family:'Noto Serif Bengali',serif; color:var(--ink); }
+  .dars-book-meta { font-size:10px; color:var(--ink3); }
+  .dars-pct { font-size:12px; font-weight:700; color:var(--green); }
+  .dars-bar { height:6px; background:var(--cream2); border-radius:3px; overflow:hidden; margin-top:6px; }
+  .dars-fill { height:100%; background:var(--green); border-radius:3px; transition:width .3s; }
+  .dars-empty { text-align:center; color:var(--ink3); padding:20px; font-size:12px; }
+  .content { padding-bottom:var(--app-content-pad-bottom); }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">জিম্মাদার</div>
+    <div class="topbar-name">দরস — বই পড়া</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='../main-admin-madrasa.html'">← এডমিন</button>
+  </div>
+</div>
+
+<div class="content" style="max-width:640px; margin:0 auto;">
+  <p class="dars-lead">উপরে <strong>বর্ষ</strong> বেছে নিন (বাঁদিকে স্লাইড করুন)—নিচে ওই বর্ষের কিতাবের পড়া দেখাবে। শিক্ষকরা <strong>বর্ষ ড্যাশবোর্ড</strong> থেকে হালনাগাদ করেন।</p>
+  <div class="dars-tabs">
+    <button type="button" class="dars-tab active" id="dtab-k" onclick="setDept('kitab')">কিতাব বিভাগ</button>
+    <button type="button" class="dars-tab" id="dtab-m" onclick="setDept('maktab')">মক্তব বিভাগ</button>
+  </div>
+  <div class="dars-class-strip-wrap">
+    <div class="dars-class-strip" id="dars-class-strip" role="tablist" aria-label="বর্ষ নির্বাচন"></div>
+  </div>
+  <div id="dars-detail"></div>
+</div>
+
+<nav class="main-nav" role="navigation" aria-label="জিম্মাদার নেভিগেশন">
+  <a class="main-nav-btn is-active" href="../main-admin-madrasa.html" aria-label="মাদ্রাসা">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    <span class="main-nav-lbl">মাদ্রাসা</span>
+  </a>
+  <a class="main-nav-btn" href="../main-admin-dept.html" aria-label="বিভাগ">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg>
+    <span class="main-nav-lbl">বিভাগ</span>
+  </a>
+  <a class="main-nav-btn" href="../main-admin-khedmat.html" aria-label="খেদমত">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    <span class="main-nav-lbl">খেদমত</span>
+  </a>
+  <a class="main-nav-btn" href="../admin-hub.html?tab=inbox" aria-label="বার্তা">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg>
+    <span class="main-nav-lbl">বার্তা</span>
+  </a>
+  <a class="main-nav-btn" href="../admin-hub.html?tab=recent" aria-label="কার্যক্রম">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg>
+    <span class="main-nav-lbl">কার্যক্রম</span>
+  </a>
+</nav>
+
+<script src="../js/api.js"></script>
+<script src="../js/mm-sample-data.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.isAdmin()) { location.href = '../admin-hub.html'; }
+  const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  let dept = 'kitab';
+  let selectedClassId = null;
+
+  function sortClasses(list) {
+    return [...list].sort((a, b) => {
+      const o = (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0);
+      if (o !== 0) return o;
+      return String(a.name || '').localeCompare(String(b.name || ''), 'bn');
+    });
+  }
+
+  function currentClasses() { return sortClasses(API.Classes.getByDept(dept)); }
+
+  function setDept(d) {
+    dept = d;
+    document.getElementById('dtab-k').classList.toggle('active', d === 'kitab');
+    document.getElementById('dtab-m').classList.toggle('active', d === 'maktab');
+    const cl = currentClasses();
+    const still = cl.some(c => c.id === selectedClassId);
+    if (!still) selectedClassId = cl[0] ? cl[0].id : null;
+    renderAll();
+  }
+
+  function selectClass(cid) {
+    selectedClassId = cid;
+    renderClassStrip();
+    renderDetail();
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const p = iso.split('-');
+    if (p.length < 3) return API.esc(iso);
+    return toBn(parseInt(p[2], 10)) + '/' + toBn(parseInt(p[1], 10)) + '/' + toBn(p[0]);
+  }
+
+  function barPct(done, total) {
+    const t = Number(total) || 0;
+    const d = Math.max(0, Number(done) || 0);
+    if (t <= 0) return d > 0 ? 100 : 0;
+    return Math.min(100, Math.round((d / t) * 1000) / 10);
+  }
+
+  function teacherMap() {
+    const m = {};
+    API.Teachers.getByDept(dept).forEach(t => { m[t.class_id] = t.name; });
+    return m;
+  }
+
+  function renderClassStrip() {
+    const classes = currentClasses();
+    const strip = document.getElementById('dars-class-strip');
+    if (!classes.length) {
+      selectedClassId = null;
+      strip.innerHTML = '';
+      return;
+    }
+    if (!selectedClassId || !classes.some(c => c.id === selectedClassId)) selectedClassId = classes[0].id;
+
+    strip.innerHTML = classes.map(c => {
+      const active = c.id === selectedClassId;
+      const idJs = String(c.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return `<button type="button" class="dars-class-chip${active ? ' is-active' : ''}" role="tab" aria-selected="${active ? 'true' : 'false'}" onclick="selectClass('${idJs}')">${API.esc(c.name)}</button>`;
+    }).join('');
+    requestAnimationFrame(() => {
+      const a = strip.querySelector('.dars-class-chip.is-active');
+      if (a) a.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    });
+  }
+
+  function renderDetail() {
+    const el = document.getElementById('dars-detail');
+    const classes = currentClasses();
+    const tm = teacherMap();
+    if (!classes.length) {
+      el.innerHTML = '<div class="dars-empty">এ বিভাগে কোনো বর্ষ নেই।</div>';
+      return;
+    }
+    const cls = classes.find(c => c.id === selectedClassId) || classes[0];
+    const books = API.KitabProgress.getByClass(cls.id);
+    const tName = tm[cls.id] || '—';
+
+    if (!books.length) {
+      el.innerHTML = `<div class="dars-panel">
+        <div class="dars-class-h">${API.esc(cls.name)}<div class="dars-class-sub">শ্রেণি শিক্ষক: ${API.esc(tName)}</div></div>
+        <div class="dars-empty">এ বর্ষে কোনো কিতাব যোগ নেই। সেটিং বা বই তালিকা যাচাই করুন।</div>
+      </div>`;
+      return;
+    }
+    const rows = books.map(k => {
+      const total = k.total_pages != null ? Number(k.total_pages) : 0;
+      const done = Number(k.pages_done) || 0;
+      const pct = barPct(done, total);
+      const pctInt = Math.round(pct);
+      return `<div class="dars-book">
+        <div class="dars-book-t">
+          <div><div class="dars-book-n">${API.esc(k.name || '—')}</div>
+            <div class="dars-book-meta">সর্বশেষ হালনাগাদ: ${fmtDate(k.last_updated)}</div></div>
+          <div class="dars-pct">${toBn(pctInt)}%</div>
+        </div>
+        <div class="dars-book-meta">পৃষ্ঠা: <strong style="color:var(--ink2);">${toBn(done)}</strong> / ${total ? toBn(total) : '—'}</div>
+        <div class="dars-bar" aria-hidden="true"><div class="dars-fill" style="width:${Math.min(100, pct)}%"></div></div>
+      </div>`;
+    }).join('');
+
+    el.innerHTML = `<div class="dars-panel">
+      <div class="dars-class-h">${API.esc(cls.name)}<div class="dars-class-sub">শ্রেণি শিক্ষক: ${API.esc(tName)}</div></div>
+      ${rows}
+    </div>`;
+  }
+
+  function renderAll() {
+    renderClassStrip();
+    renderDetail();
+  }
+  renderAll();
+</script>
+</body>
+</html>

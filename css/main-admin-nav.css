@@ -39,7 +39,7 @@
   color: var(--ink3);
   font-family: 'Noto Sans Bengali', sans-serif;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.2;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -69,6 +69,7 @@
 .hub-bottom-nav .hub-nav-btn.is-active {
   background: rgba(232, 184, 75, 0.22);
   color: var(--ink2);
+  font-weight: 600;
 }
 
 .main-nav-btn.is-active .main-nav-ico,

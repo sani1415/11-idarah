@@ -606,13 +606,22 @@ const API = (() => {
       const cur = list.find(s => !s.end_date);
       if (cur) { cur.end_date = end_date || today(); save(KEYS.sessions, list); }
     },
-    ensureInitialized() {
+    /** চালু সেশনের start_date (সেটিংসে শিক্ষাবর্ষ শুরু) আপডেট */
+    setCurrentStartDate(iso) {
+      if (!iso) return;
       const list = load(KEYS.sessions);
-      if (list.length) return;
+      const cur = list.find(s2 => !s2.end_date);
+      if (!cur) return;
+      cur.start_date = String(iso).trim();
+      save(KEYS.sessions, list);
+    },
+    ensureInitialized() {
+      if (this.getCurrent()) return;
       const s = Settings.get();
-      const hy = (s.hijri_year || '').trim();
-      if (!hy || hy === '—') return;
-      const sd = (s.session_start_date || '').trim() || today();
+      const sd = (s.session_start_date || '').trim();
+      if (!sd) return;
+      let hy = (s.hijri_year || '').trim();
+      if (!hy || hy === '—') hy = '১৪৪৭';
       this.startNew(hy, sd);
     },
   };

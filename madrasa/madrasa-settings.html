@@ -202,7 +202,8 @@
     document.getElementById('inst-name').value    = s.institution||'';
     document.getElementById('hijri-year').value   = s.hijri_year||'';
     const cur = API.Sessions.getCurrent();
-    document.getElementById('session-start').value = (cur && cur.start_date) || s.session_start_date || '';
+    /* সেটিংস-এর তারিখই প্রাধান্য, যেন ব্রাউজার রিফ্রেশে সেশন-রো-এর পুরনো 'আজ' লুকিয়ে সেটিংস মুছে না দেখায় */
+    document.getElementById('session-start').value = (s.session_start_date && String(s.session_start_date).trim()) || (cur && cur.start_date) || '';
   }
   function saveGeneral() {
     const s = API.Settings.get();
@@ -212,8 +213,10 @@
     if (hy) s.hijri_year = hy;
     if (sd) s.session_start_date = sd;
     API.Settings.save(s);
-    /* সেশন না থাকলে এখনই initialize করো */
-    if (hy && sd) API.Sessions.ensureInitialized();
+    if (sd) {
+      if (API.Sessions.getCurrent()) API.Sessions.setCurrentStartDate(sd);
+      else API.Sessions.ensureInitialized();
+    }
     showToast('সংরক্ষণ হয়েছে ✓');
   }
 
