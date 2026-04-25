@@ -50,6 +50,13 @@
         <label class="form-label">চলতি হিজরী বর্ষ</label>
         <input class="form-input" id="hijri-year" placeholder="যেমন: ১৪৪৭">
       </div>
+      <div class="form-group">
+        <label class="form-label">চলতি শিক্ষাবর্ষ শুরুর তারিখ</label>
+        <input class="form-input" type="date" id="session-start">
+        <div style="font-size:11px;color:var(--ink3);margin-top:4px;">
+          প্রথমবার সেটআপ করুন। বর্ষ উন্নীতকরণে স্বয়ংক্রিয় আপডেট হয়।
+        </div>
+      </div>
       <button class="submit-btn" onclick="saveGeneral()">সংরক্ষণ করুন</button>
     </div>
   </div>
@@ -192,14 +199,21 @@
   /* GENERAL */
   function loadGeneral() {
     const s = API.Settings.get();
-    document.getElementById('inst-name').value  = s.institution||'';
-    document.getElementById('hijri-year').value = s.hijri_year||'';
+    document.getElementById('inst-name').value    = s.institution||'';
+    document.getElementById('hijri-year').value   = s.hijri_year||'';
+    const cur = API.Sessions.getCurrent();
+    document.getElementById('session-start').value = (cur && cur.start_date) || s.session_start_date || '';
   }
   function saveGeneral() {
     const s = API.Settings.get();
     s.institution = document.getElementById('inst-name').value.trim()||s.institution;
-    s.hijri_year  = document.getElementById('hijri-year').value.trim()||s.hijri_year;
+    const hy = document.getElementById('hijri-year').value.trim();
+    const sd = document.getElementById('session-start').value;
+    if (hy) s.hijri_year = hy;
+    if (sd) s.session_start_date = sd;
     API.Settings.save(s);
+    /* সেশন না থাকলে এখনই initialize করো */
+    if (hy && sd) API.Sessions.ensureInitialized();
     showToast('সংরক্ষণ হয়েছে ✓');
   }
 

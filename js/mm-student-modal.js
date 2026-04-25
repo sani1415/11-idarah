@@ -210,13 +210,17 @@
       );
     }
     var actBg = s.active ? 'var(--green-light);color:var(--green)' : 'var(--cream2);color:var(--ink3)';
+    var hasZillaUpazila =
+      (s.district != null && String(s.district).trim() !== '') || (s.upazila != null && String(s.upazila).trim() !== '');
+    var addressRows = hasZillaUpazila
+      ? kv('জেলা', API.esc(s.district || '—')) + kv('উপজেলা', API.esc(s.upazila || '—'))
+      : kv('ঠিকানা', API.esc(s.address || '—'));
     var infoBlock =
       '<div class="st-kv-grid">' +
       kv('স্থায়ী আইডি', API.esc(s.permanent_id || '—')) +
       kv('রোল', API.esc(s.roll || '—')) +
       kv('বর্তমান বর্ষ', API.esc(clsName)) +
       kv('বিভাগ', API.esc(deptLbl)) +
-      kv('ভর্তির তারিখ', API.esc(s.admitted || '—')) +
       kv(
         'অবস্থা',
         '<span class="st-kv-val--tag" style="background:' +
@@ -228,7 +232,7 @@
       kv('অভিভাবক', API.esc(s.guardian || '—')) +
       kv('অভিভাবকের পেশা', API.esc(s.guardian_job || '—')) +
       kv('যোগাযোগ (ফোন)', API.esc(s.phone || '—')) +
-      kv('ঠিকানা', API.esc(s.address || '—')) +
+      addressRows +
       (s.dept && (s.dept === 'kitab' || s.dept === 'maktab')
         ? kv('রেকর্ড অনুযায়ী বিভাগ', s.dept === 'kitab' ? 'কিতাব' : 'মক্তব')
         : '') +

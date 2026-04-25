@@ -20,6 +20,8 @@ const API = (() => {
     teachers:    'mm_teachers',
     users:       'mm_users',
     settings:    'mm_settings',
+    sessions:    'mm_sessions',
+    holidays:    'mm_holidays',
   };
 
   /* ── HELPERS ── */
@@ -56,6 +58,26 @@ const API = (() => {
     const allT2 = load(KEYS.teachers);
     if (allT2.length && !allT2.find(t => t.id === 'usr_khedmat')) {
       save(KEYS.teachers, [...allT2, { id:'usr_khedmat', name:'খেদমত দায়িত্বশীল', class_id:null, pin:'0000', role:'khedmat' }]);
+    }
+
+    /* ── MIGRATION: ছাত্র — ভর্তি_বছর সরান; একক ঠিকানা → জেলা+উপজেলা (পুরনো পুরো লাইন উপজেলায়) ── */
+    {
+      const stud = load(KEYS.students);
+      if (stud.some((s) => s.admitted != null || s.address)) {
+        save(
+          KEYS.students,
+          stud.map((s) => {
+            const o = { ...s };
+            if ('admitted' in o) delete o.admitted;
+            if (o.address != null && String(o.address).trim() !== '' && o.district == null && o.upazila == null) {
+              o.district = '';
+              o.upazila = String(o.address).trim();
+            }
+            if ('address' in o) delete o.address;
+            return o;
+          })
+        );
+      }
     }
 
     /* ── MIGRATION: exam — ডেটা: js/mm-sample-data.js ── */
@@ -110,7 +132,7 @@ const API = (() => {
     },
     add(data) {
       const list = load(KEYS.students);
-      const s = { id: 'std_' + uid(), ...data, active: true, admitted: data.admitted || today() };
+      const s = { id: 'std_' + uid(), ...data, active: true };
       list.push(s);
       save(KEYS.students, list);
       return s;
@@ -155,15 +177,38 @@ const API = (() => {
       save(KEYS.students, updated);
       localStorage.setItem('mm_withdrawals', JSON.stringify(withdrawals));
     },
-    getNextPermanentId(dept, hijriYear) {
+    /**
+     * স্থায়ী আইডি DB তে কারও আছে কিনা (অবস্থা স্বতন্ত্র)।
+     */
+    isPermanentIdTaken(permanentId) {
+      const p = String(permanentId || '').trim();
+      if (!p) return false;
+      return load(KEYS.students).some((s) => String(s.permanent_id || '').trim() === p);
+    },
+    /**
+     * একই ব্যাচে ইতোমধ্যে বরাদ্দ/ম্যানুয়াল ধরা আইডি (virtual) + DB = পরের ফাঁকা।
+     * @param {Set<string>} virtualPids
+     */
+    getNextPermanentIdRespecting(virtualPids, dept, hijriYear) {
       const prefix = dept === 'maktab' ? 'ম' : '';
       const yr = String(hijriYear).slice(-2);
-      const existing = load(KEYS.students)
-        .map(s => s.permanent_id)
-        .filter(pid => pid && pid.startsWith(prefix + yr))
-        .map(pid => parseInt(pid.slice((prefix + yr).length)) || 0);
-      const next = existing.length ? Math.max(...existing) + 1 : 1;
-      return prefix + yr + String(next).padStart(3, '0');
+      const head = prefix + yr;
+      const takeNum = (pid) => {
+        if (!pid || !String(pid).startsWith(head)) return 0;
+        return parseInt(String(pid).slice(head.length), 10) || 0;
+      };
+      const nums = [];
+      load(KEYS.students).forEach((s) => {
+        if (s.permanent_id) nums.push(takeNum(s.permanent_id));
+      });
+      if (virtualPids && virtualPids.forEach) {
+        virtualPids.forEach((id) => nums.push(takeNum(id)));
+      }
+      const next = nums.length ? Math.max(...nums) + 1 : 1;
+      return head + String(next).padStart(3, '0');
+    },
+    getNextPermanentId(dept, hijriYear) {
+      return Students.getNextPermanentIdRespecting(new Set(), dept, hijriYear);
     },
     /** শিক্ষক কর্তৃক চিহ্নিত বিশেষ পর্যবেক্ষণ */
     countSpecialWatchByDept(dept) {
@@ -240,11 +285,14 @@ const API = (() => {
 
   /* ══════════════════════════════
      ATTENDANCE
+     স্ট্যাটাস: 'present' | 'absent' | 'holiday'
+     'leave' পুরনো ডেটায় থাকতে পারে — মাইগ্রেশনে absent হয়
      ══════════════════════════════ */
   const Attendance = {
     statusOf(a) {
       if (!a) return 'present';
-      if (a.status === 'present' || a.status === 'absent' || a.status === 'leave') return a.status;
+      if (a.status === 'present' || a.status === 'absent' || a.status === 'holiday') return a.status;
+      if (a.status === 'leave') return 'absent';
       return a.present ? 'present' : 'absent';
     },
     getByDate: date => load(KEYS.attendance).filter(a => a.date === date),
@@ -259,15 +307,16 @@ const API = (() => {
       return load(KEYS.attendance).filter(a => a.date === date && sids.includes(a.student_id));
     },
     /**
-     * @param statusIn 'present' | 'absent' | 'leave' | boolean (legacy)
+     * @param statusIn 'present' | 'absent' | 'holiday' | boolean (legacy)
      * @param absentReason শুধু status absent হলে — অনুপস্থিতির কারণ
      */
     save(student_id, date, statusIn, absentReason) {
       let status;
       if (statusIn === true || statusIn === 'present') status = 'present';
-      else if (statusIn === false || statusIn === 'absent') status = 'absent';
-      else if (statusIn === 'leave') status = 'leave';
+      else if (statusIn === false || statusIn === 'absent' || statusIn === 'leave') status = 'absent';
+      else if (statusIn === 'holiday') status = 'holiday';
       else status = 'absent';
+      const hijri_year = (Settings.get().hijri_year || '').trim() || null;
       const list = load(KEYS.attendance);
       const idx = list.findIndex(a => a.student_id === student_id && a.date === date);
       const prev = idx >= 0 ? list[idx] : null;
@@ -275,6 +324,7 @@ const API = (() => {
       const reasonIn =
         typeof absentReason === 'string' ? absentReason.trim() : (prev && prev.absent_reason) ? String(prev.absent_reason).trim() : '';
       const row = { id, student_id, date, status };
+      if (hijri_year) row.hijri_year = hijri_year;
       if (status === 'absent') row.absent_reason = reasonIn;
       if (idx >= 0) list[idx] = row;
       else list.push(row);
@@ -283,11 +333,11 @@ const API = (() => {
     getSummary(cid, month) {
       const sids = Students.getByClass(cid).map(s => s.id);
       const records = load(KEYS.attendance).filter(a => sids.includes(a.student_id) && a.date.startsWith(month));
-      const total = records.length;
       const present = records.filter(a => this.statusOf(a) === 'present').length;
       const absent = records.filter(a => this.statusOf(a) === 'absent').length;
-      const leave = records.filter(a => this.statusOf(a) === 'leave').length;
-      return { total, present, absent, leave, pct: total ? Math.round(present / total * 100) : 0 };
+      const holiday = records.filter(a => this.statusOf(a) === 'holiday').length;
+      const total = present + absent;
+      return { total, present, absent, holiday, pct: total ? Math.round(present / total * 100) : 0 };
     },
     getTodaySummary() {
       return this.getDateSummary(today());
@@ -295,33 +345,10 @@ const API = (() => {
     getDateSummary(date) {
       const all = load(KEYS.attendance).filter(a => a.date === date);
       const st = a => this.statusOf(a);
-      return {
-        present: all.filter(a => st(a) === 'present').length,
-        absent: all.filter(a => st(a) === 'absent').length,
-        leave: all.filter(a => st(a) === 'leave').length,
-        total: all.length,
-      };
-    },
-    /** ছাত্র প্রতি মোট ছুটির দিন (স্ট্যাটাস leave) */
-    getLeaveStatsByStudent() {
-      const byStudent = {};
-      load(KEYS.attendance).forEach(a => {
-        if (this.statusOf(a) !== 'leave') return;
-        byStudent[a.student_id] = (byStudent[a.student_id] || 0) + 1;
-      });
-      return byStudent;
-    },
-    /** যে ছাত্রদের কমপক্ষে এক দিন ছুটির রেকর্ড আছে — ছুটির দিন বেশি থেকে কম */
-    getStudentsWithLeaveSorted() {
-      const by = this.getLeaveStatsByStudent();
-      return Students.getAll()
-        .filter(s => s.active)
-        .map(s => ({ student: s, leaveDays: by[s.id] || 0 }))
-        .filter(x => x.leaveDays > 0)
-        .sort((a, b) => b.leaveDays - a.leaveDays);
-    },
-    countStudentsWithAnyLeave() {
-      return this.getStudentsWithLeaveSorted().length;
+      const present = all.filter(a => st(a) === 'present').length;
+      const absent = all.filter(a => st(a) === 'absent').length;
+      const holiday = all.filter(a => st(a) === 'holiday').length;
+      return { present, absent, holiday, total: present + absent };
     },
     getDateSummaryForDept(date, dept) {
       if (dept !== 'kitab' && dept !== 'maktab') return this.getDateSummary(date);
@@ -331,27 +358,12 @@ const API = (() => {
       );
       const all = load(KEYS.attendance).filter(a => a.date === date && sidSet.has(a.student_id));
       const st = (a) => this.statusOf(a);
-      return {
-        present: all.filter((a) => st(a) === 'present').length,
-        absent: all.filter((a) => st(a) === 'absent').length,
-        leave: all.filter((a) => st(a) === 'leave').length,
-        total: all.length,
-      };
+      const present = all.filter((a) => st(a) === 'present').length;
+      const absent = all.filter((a) => st(a) === 'absent').length;
+      const holiday = all.filter((a) => st(a) === 'holiday').length;
+      return { present, absent, holiday, total: present + absent };
     },
-    getStudentsWithLeaveSortedByDept(dept) {
-      if (dept !== 'kitab' && dept !== 'maktab') return this.getStudentsWithLeaveSorted();
-      const cids = new Set(Classes.getByDept(dept).map((c) => c.id));
-      const by = this.getLeaveStatsByStudent();
-      return Students.getAll()
-        .filter((s) => s.active && cids.has(s.class_id))
-        .map((s) => ({ student: s, leaveDays: by[s.id] || 0 }))
-        .filter((x) => x.leaveDays > 0)
-        .sort((a, b) => b.leaveDays - a.leaveDays);
-    },
-    countStudentsWithAnyLeaveByDept(dept) {
-      return this.getStudentsWithLeaveSortedByDept(dept).length;
-    },
-    /** ছাত্র প্রতি মোট অনুপস্থিত দিন (স্ট্যাটাস absent) */
+    /** ছাত্র প্রতি মোট অনুপস্থিত দিন (স্ট্যাটাস absent, holiday বাদ) */
     getAbsentStatsByStudent() {
       const byStudent = {};
       load(KEYS.attendance).forEach((a) => {
@@ -381,6 +393,19 @@ const API = (() => {
     },
     countStudentsWithAnyAbsentByDept(dept) {
       return this.getStudentsWithAbsentSortedByDept(dept).length;
+    },
+    /**
+     * ছাত্রের নির্দিষ্ট শিক্ষাবর্ষের হাজিরার সারসংক্ষেপ।
+     * holiday বাদে মোট পাঠদান দিন ভিত্তিতে হিসাব।
+     */
+    getStudentYearSummary(student_id, hijri_year) {
+      let recs = load(KEYS.attendance).filter(a => a.student_id === student_id);
+      if (hijri_year) recs = recs.filter(a => (a.hijri_year || '') === String(hijri_year));
+      const present = recs.filter(a => this.statusOf(a) === 'present').length;
+      const absent = recs.filter(a => this.statusOf(a) === 'absent').length;
+      const holiday = recs.filter(a => this.statusOf(a) === 'holiday').length;
+      const schoolDays = present + absent;
+      return { present, absent, holiday, schoolDays, pct: schoolDays ? Math.round(present / schoolDays * 100) : null };
     },
   };
 
@@ -538,14 +563,94 @@ const API = (() => {
 
   function migrateAttendanceStatus() {
     const list = load(KEYS.attendance);
-    if (!list.some(a => a.present !== undefined && !a.status)) return;
+    const needsMigration = list.some(a =>
+      (a.present !== undefined && !a.status) || a.status === 'leave'
+    );
+    if (!needsMigration) return;
     save(KEYS.attendance, list.map(a => {
-      if (a.status) return a;
-      const status = a.present ? 'present' : 'absent';
-      const { present, ...rest } = a;
-      return { ...rest, status };
+      const next = { ...a };
+      if (!next.status && next.present !== undefined) {
+        next.status = next.present ? 'present' : 'absent';
+        delete next.present;
+      }
+      if (next.status === 'leave') next.status = 'absent';
+      return next;
     }));
   }
+
+  /* ══════════════════════════════
+     SESSIONS — শিক্ষাবর্ষ সেশন
+     { id, hijri_year, start_date, end_date|null }
+     ══════════════════════════════ */
+  const Sessions = {
+    getAll: () => load(KEYS.sessions),
+    getCurrent() {
+      const s = Settings.get();
+      return load(KEYS.sessions).find(s2 => !s2.end_date) || null;
+    },
+    /**
+     * প্রথম সেটআপ বা নতুন বর্ষ শুরু করার সময় call করুন।
+     * আগের open সেশন থাকলে সেটা end_date দিয়ে বন্ধ করে নতুনটা খোলে।
+     */
+    startNew(hijri_year, start_date) {
+      const list = load(KEYS.sessions);
+      const prev = list.find(s => !s.end_date);
+      const today_ = today();
+      if (prev) prev.end_date = today_;
+      list.push({ id: uid(), hijri_year: String(hijri_year), start_date: start_date || today_, end_date: null });
+      save(KEYS.sessions, list);
+    },
+    /** বর্তমান সেশন শেষ করুন (end_date সেট) */
+    endCurrent(end_date) {
+      const list = load(KEYS.sessions);
+      const cur = list.find(s => !s.end_date);
+      if (cur) { cur.end_date = end_date || today(); save(KEYS.sessions, list); }
+    },
+    ensureInitialized() {
+      const list = load(KEYS.sessions);
+      if (list.length) return;
+      const s = Settings.get();
+      const hy = (s.hijri_year || '').trim();
+      if (!hy || hy === '—') return;
+      const sd = (s.session_start_date || '').trim() || today();
+      this.startNew(hy, sd);
+    },
+  };
+
+  /* ══════════════════════════════
+     HOLIDAYS — বিরতির দিন (শ্রেণিব্যাপী)
+     { id, from_date, to_date, note }
+     বিরতির দিনে সব ছাত্রের status='holiday' সংরক্ষণ হয়
+     ══════════════════════════════ */
+  const Holidays = {
+    getAll: () => load(KEYS.holidays),
+    /**
+     * from_date থেকে to_date পর্যন্ত সব ছাত্রের হাজিরা 'holiday' হিসেবে save করে।
+     * প্রতিটি তারিখে API.Attendance.save call করে।
+     */
+    markRange(from_date, to_date, note) {
+      const d1 = new Date(from_date + 'T12:00:00');
+      const d2 = new Date(to_date + 'T12:00:00');
+      if (isNaN(d1) || isNaN(d2) || d1 > d2) return 0;
+      const students = Students.getAll().filter(s => s.active);
+      let days = 0;
+      for (let d = new Date(d1); d <= d2; d.setDate(d.getDate() + 1)) {
+        const iso = d.toISOString().split('T')[0];
+        students.forEach(s => Attendance.save(s.id, iso, 'holiday'));
+        days++;
+      }
+      const list = load(KEYS.holidays);
+      list.push({ id: uid(), from_date, to_date, note: note || '', created_at: now() });
+      save(KEYS.holidays, list);
+      return days;
+    },
+    isHoliday(date) {
+      return load(KEYS.holidays).some(h => date >= h.from_date && date <= h.to_date);
+    },
+    remove(id) {
+      save(KEYS.holidays, load(KEYS.holidays).filter(h => h.id !== id));
+    },
+  };
 
   /** পুরনো ডেটায় মক্তব বর্ষের নাম: মক্তব ১ম → প্রথম শ্রেণি ইত্যাদি (কাস্টম নাম স্পর্শ করে না) */
   function migrateMaktabClassNames() {
@@ -581,10 +686,12 @@ const API = (() => {
   seedIfEmpty();
   migrateAttendanceStatus();
   migrateMaktabClassNames();
+  Sessions.ensureInitialized();
 
   /* ── PUBLIC API ── */
   return {
-    Students, Classes, Teachers, Attendance, KitabProgress, Khuluk, Logs, Fees, Exams, Settings,
+    Students, Classes, Teachers, Attendance, KitabProgress, Khuluk, Logs, Fees, Exams,
+    Settings, Sessions, Holidays,
     persistLoadArr, persistSaveArr,
     uid, today, now, esc,
   };

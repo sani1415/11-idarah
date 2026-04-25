@@ -96,24 +96,13 @@ body.page-daftar .nav-label { font-size:10px; line-height:1.15; }
         <label class="form-label">পূর্ণ নাম <span style="color:var(--red)">*</span></label>
         <input class="form-input" id="add-name" placeholder="ছাত্রের পূর্ণ নাম">
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">রোল নম্বর <span style="color:var(--red)">*</span></label>
-          <input class="form-input" id="add-roll" placeholder="যেমন: ১০১">
-        </div>
-        <div class="form-group">
-          <label class="form-label">ভর্তি বছর (হিজরী)</label>
-          <input class="form-input" id="add-hijri" placeholder="যেমন: ১৪৪৭">
-        </div>
+      <div class="form-group">
+        <label class="form-label">রোল নম্বর <span style="color:var(--red)">*</span></label>
+        <input class="form-input" id="add-roll" placeholder="যেমন: ১০১">
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">স্থায়ী আইডি</label>
-          <input class="form-input" id="add-pid" placeholder="স্বয়ংক্রিয় (ফাঁকা রাখুন)">
-        </div>
-        <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:1px;">
-          <button type="button" class="topbar-btn" style="margin:0;width:100%;padding:10px;" onclick="autoFillId()">🔄 আইডি তৈরি</button>
-        </div>
+      <div class="form-group">
+        <label class="form-label">স্থায়ী আইডি <span style="color:var(--red)">*</span></label>
+        <input class="form-input" id="add-pid" placeholder="যেমন: ৪৭০১২" autocomplete="off">
       </div>
       <div class="form-group">
         <label class="form-label">অভিভাবকের নাম</label>
@@ -129,9 +118,15 @@ body.page-daftar .nav-label { font-size:10px; line-height:1.15; }
           <input class="form-input" id="add-phone" placeholder="০১৭XX-XXXXXX" type="tel">
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">ঠিকানা</label>
-        <input class="form-input" id="add-address" placeholder="গ্রাম, থানা, জেলা">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">জেলা</label>
+          <input class="form-input" id="add-district" placeholder="জেলা">
+        </div>
+        <div class="form-group">
+          <label class="form-label">উপজেলা</label>
+          <input class="form-input" id="add-upazila" placeholder="উপজেলা">
+        </div>
       </div>
       <div class="form-group" style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="add-hifz" style="width:18px;height:18px;accent-color:var(--gold);">
@@ -146,15 +141,14 @@ body.page-daftar .nav-label { font-size:10px; line-height:1.15; }
   <div class="panel" id="panel-csv">
     <div style="margin-top:8px;">
       <div style="background:var(--cream2);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;font-size:12px;color:var(--ink2);line-height:1.7;">
-        <strong>CSV ফরম্যাট:</strong> প্রথম সারি হবে হেডার।<br>
-        কলাম ক্রম: <code style="background:#fff;padding:1px 5px;border-radius:4px;">নাম, বর্ষ, রোল, অভিভাবক, পেশা, ফোন, ঠিকানা</code><br>
-        <em>বর্ষ কলামে সঠিক বর্ষের নাম লিখুন (যেমন: ১ম বর্ষ, ২য় বর্ষ)</em>
+        <strong>CSV ফরম্যাট:</strong> প্রথম সারি হেডার।<br>
+        <strong>নয় কলাম:</strong> <code style="background:#fff;padding:1px 5px;border-radius:4px;">নাম, বর্ষ, রোল, অভিভাবক, পেশা, ফোন, জেলা, উপজেলা, স্থায়ী_আইডি</code> — ভর্তি বছর স্থায়ী আইডি থেকেই ধরা; আলাদা কলাম নেই।<br>
+        <em>আট কলাম</em> (ফোন, এক লাইন ঠিকানা, স্থায়ী আইডি) — পুরনো বিন্যাস; উপজেলায় এক লাইন, জেলা ফাঁকা। পুরনো ৯-কলাম (ঠিকানা+হিজরী+আইডি) স্বয়ংক্রিয় ধরা হয়।<br>
+        <em>বর্ষ কলামে</em> সঠিক বর্ষের নাম (যেমন: ১ম বর্ষ)।<br>
+        <span style="color:var(--ink2);">স্থায়ী আইডি: ডুপ্লিকেট (অ্যাপে আগে থেকে + একই ফাইলে দুবার) হলে সারি বাতিল।</span><br>
+        <em style="font-size:11px;">সেভ: Excel এ “CSV UTF-8 (Comma delimited)”, বা Google Sheets → CSV.</em>
       </div>
       <button class="dl-btn" onclick="downloadTemplate()">⬇ নমুনা CSV ডাউনলোড</button>
-      <div class="form-group">
-        <label class="form-label">হিজরী বছর (সকলের জন্য)</label>
-        <input class="form-input" id="csv-hijri" placeholder="যেমন: ১৪৪৭">
-      </div>
       <div class="csv-box" id="csv-drop" onclick="document.getElementById('csv-file').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
         <input type="file" id="csv-file" accept=".csv,text/csv" onchange="onFileChange(event)">
         <div class="csv-icon">📄</div>
@@ -174,19 +168,23 @@ body.page-daftar .nav-label { font-size:10px; line-height:1.15; }
 
 </div>
 
-<!-- BOTTOM NAV -->
+<!-- BOTTOM NAV — দফতর: madrasa-daftar.html এর মেনুর সাথে একই ৫ আইটেম -->
 <nav class="bottom-nav" aria-label="নিচের নেভিগেশন">
   <div class="nav-item" onclick="location.href='madrasa-daftar.html'">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="nav-label">উপস্থিতি</span>
   </div>
-  <div class="nav-item active">
+  <div class="nav-item active" aria-current="page">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="nav-label">ছাত্র</span>
   </div>
-  <div class="nav-item" onclick="location.href='madrasa-daftar.html'">
+  <div class="nav-item" onclick="location.href='madrasa-daftar.html#fees'">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="nav-label">ওয়াযিফা</span>
+  </div>
+  <div class="nav-item" onclick="location.href='madrasa-yearend.html'">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">বর্ষ</span>
   </div>
   <div class="nav-item" onclick="location.href='../chat.html'">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -254,17 +252,11 @@ body.page-daftar .nav-label { font-size:10px; line-height:1.15; }
   /* ── নতুন ছাত্র ── */
   function populateAddForm() {
     onDeptChange();
-    document.getElementById('add-hijri').value = document.getElementById('add-hijri').value || '১৪৪৭';
   }
   function onDeptChange() {
     const dept = document.getElementById('add-dept').value;
     const sel = document.getElementById('add-class');
     sel.innerHTML = API.Classes.getAll().filter(c=>c.dept===dept).map(c=>`<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
-  }
-  function autoFillId() {
-    const dept = document.getElementById('add-dept').value;
-    const hijri = document.getElementById('add-hijri').value.trim() || '১৪৪৭';
-    document.getElementById('add-pid').value = API.Students.getNextPermanentId(dept, hijri);
   }
   function addStudent() {
     const name = document.getElementById('add-name').value.trim();
@@ -274,20 +266,21 @@ body.page-daftar .nav-label { font-size:10px; line-height:1.15; }
     if (!roll) { showToast('রোল নম্বর আবশ্যক'); return; }
     if (!classId) { showToast('বর্ষ নির্বাচন করুন'); return; }
     const dept = document.getElementById('add-dept').value;
-    const hijri = document.getElementById('add-hijri').value.trim() || '১৪৪৭';
-    let pid = document.getElementById('add-pid').value.trim();
-    if (!pid) pid = API.Students.getNextPermanentId(dept, hijri);
+    const pid = document.getElementById('add-pid').value.trim();
+    if (!pid) { showToast('স্থায়ী আইডি আবশ্যক'); return; }
+    if (API.Students.isPermanentIdTaken(pid)) { showToast('এই স্থায়ী আইডি ইতিমধ্যে কারো আছে'); return; }
     API.Students.add({
       name, roll, class_id: classId, permanent_id: pid,
       guardian: document.getElementById('add-guardian').value.trim(),
       guardian_job: document.getElementById('add-job').value.trim(),
       phone: document.getElementById('add-phone').value.trim(),
-      address: document.getElementById('add-address').value.trim(),
-      dept, admitted: hijri,
+      district: document.getElementById('add-district').value.trim(),
+      upazila: document.getElementById('add-upazila').value.trim(),
+      dept,
       hifz: document.getElementById('add-hifz').checked,
     });
     showToast(name + ' — ভর্তি সম্পন্ন ✓');
-    ['add-name','add-roll','add-pid','add-guardian','add-job','add-phone','add-address'].forEach(id=>document.getElementById(id).value='');
+    ['add-name','add-roll','add-pid','add-guardian','add-job','add-phone','add-district','add-upazila'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('add-hifz').checked = false;
   }
 
@@ -295,10 +288,11 @@ body.page-daftar .nav-label { font-size:10px; line-height:1.15; }
   let csvRows = [];
   function downloadTemplate() {
     const clsNames = API.Classes.getAll().map(c=>c.name).join(', ');
-    const header = 'নাম,বর্ষ,রোল,অভিভাবক,পেশা,ফোন,ঠিকানা';
+    const header = 'নাম,বর্ষ,রোল,অভিভাবক,পেশা,ফোন,জেলা,উপজেলা,স্থায়ী_আইডি';
     const note = `# বর্ষের নাম: ${clsNames}`;
-    const sample = 'মুহাম্মাদ আব্দুল্লাহ,১ম বর্ষ,১০১,আব্দুর রহীম,চাষাবাদ,০১৭০০-০০০০০০,ঢাকা';
-    const blob = new Blob([note + '\n' + header + '\n' + sample], {type:'text/csv;charset=utf-8'});
+    const sample = 'মুহাম্মাদ আব্দুল্লাহ,১ম বর্ষ,১০১,আব্দুর রহীম,চাষাবাদ,০১৭০০-০০০০০০,ঢাকা,দোহার,৪৭০১২';
+    /* UTF-8 BOM: Windows/Excel-এ .csv বাংলা ঠিক দেখার জন্য (BOM ছাড়া প্রায়ই ????? হয়) */
+    const blob = new Blob(['\uFEFF' + note + '\n' + header + '\n' + sample], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = 'ছাত্র_নমুনা.csv'; a.click();
   }
@@ -311,6 +305,41 @@ body.page-daftar .nav-label { font-size:10px; line-height:1.15; }
     document.getElementById('csv-preview-wrap').style.display = 'none';
     document.getElementById('csv-file').value = '';
   }
+  /** স্থায়ী আইডি বাধ্যতামূলক; একই ব্যাচ + DB-তে ডুপ্লিকেট চেক */
+  function applyCsvPermanentIds() {
+    const inBatch = new Set();
+    csvRows.forEach((r) => {
+      r.resolved_pid = '';
+      r.err = (r._baseErr || '').trim() ? r._baseErr : '';
+      if (String(r._baseErr || '').trim() || !r.cls) return;
+      const manual = (r.manual_pid || '').trim();
+      if (!manual) {
+        r.err = (r._baseErr && r._baseErr.trim() ? r._baseErr + ' ' : '') + 'স্থায়ী আইডি বাধ্যতামূলক';
+        return;
+      }
+      if (inBatch.has(manual) || API.Students.isPermanentIdTaken(manual)) {
+        r.err = (r._baseErr && r._baseErr.trim() ? r._baseErr + ' ' : '') + 'স্থায়ী আইডি ডুপ্লিকেট/ব্যবহৃত';
+      } else {
+        inBatch.add(manual);
+        r.resolved_pid = manual;
+      }
+    });
+  }
+  function renderCsvPreview() {
+    if (!csvRows || !csvRows.length) return;
+    applyCsvPermanentIds();
+    const validN = csvRows.filter((r) => !r.err).length, errN = csvRows.length - validN;
+    document.getElementById('csv-count-lbl').textContent = toBn(validN) + ' টি সঠিক, ' + toBn(errN) + ' টিতে সমস্যা';
+    const thead = '<thead><tr><th>#</th><th>নাম</th><th>বর্ষ</th><th>রোল</th><th>জেলা</th><th>উপজেলা</th><th>স্থায়ী আইডি</th><th>অভিভাবক</th><th>ফোন</th><th>অবস্থা</th></tr></thead>';
+    const tbody = '<tbody>' + csvRows.map((r) => {
+      const st = r.err ? ('<span class="err-tag">' + API.esc(r.err) + '</span>') : '✓';
+      const idCell = r.err ? '—' : API.esc(r.resolved_pid || '—');
+      return `<tr class="${r.err ? 'row-err' : ''}"><td>${toBn(r.idx)}</td><td>${API.esc(r.name)}</td><td>${API.esc(r.clsName)}</td><td>${API.esc(r.roll)}</td><td>${API.esc(r.district || '—')}</td><td>${API.esc(r.upazila || '—')}</td><td>${idCell}</td><td>${API.esc(r.guardian)}</td><td>${API.esc(r.phone)}</td><td>${st}</td></tr>`;
+    }).join('') + '</tbody>';
+    document.getElementById('csv-table').innerHTML = thead + tbody;
+    document.getElementById('csv-confirm-btn').textContent = toBn(validN) + ' জন ছাত্র ভর্তি করুন';
+    document.getElementById('csv-confirm-btn').disabled = validN === 0;
+  }
   function parseFile(file) {
     if (!file) return;
     const reader = new FileReader();
@@ -319,29 +348,61 @@ body.page-daftar .nav-label { font-size:10px; line-height:1.15; }
       if (lines.length < 2) { showToast('CSV ফাইলে ডেটা নেই'); return; }
       const clsAll = API.Classes.getAll();
       const clsMap = Object.fromEntries(clsAll.map(c=>[c.name.trim(),c]));
+      function csvLooksLikeHijriCol(s) {
+        const t = String(s || '').trim();
+        if (!t || t.length > 7) return false;
+        return /^[\d০-৯\.\-]+$/.test(t);
+      }
       csvRows = lines.slice(1).filter(l=>l.trim()).map((line,i) => {
         const cols = line.split(',').map(s=>s.trim());
-        const [name,clsName,roll,guardian,job,phone,address] = cols;
+        let name, clsName, roll, guardian, job, phone;
+        let district = '', upazila = '', manualPid = '';
+        if (cols.length >= 9) {
+          [name, clsName, roll, guardian, job, phone] = cols;
+          if (csvLooksLikeHijriCol(cols[7]) && String(cols[8] || '').trim()) {
+            district = '';
+            upazila = (cols[6] || '').trim();
+            manualPid = (cols[8] || '').trim();
+          } else {
+            district = (cols[6] || '').trim();
+            upazila = (cols[7] || '').trim();
+            manualPid = (cols[8] || '').trim();
+          }
+        } else {
+          [name, clsName, roll, guardian, job, phone, upazila, manualPid] = cols;
+          upazila = (upazila || '').trim();
+          manualPid = (manualPid || '').trim();
+        }
         const cls = clsMap[clsName];
-        return { idx:i+1, name:name||'', clsName:clsName||'', cls, roll:roll||'', guardian:guardian||'', job:job||'', phone:phone||'', address:address||'', err:(!name?'নাম নেই ':'')+((!cls&&clsName)?'বর্ষ খুঁজে পাওয়া যায়নি ':'')+(!roll?'রোল নেই':'') };
+        let baseErr = (!name ? 'নাম নেই ' : '') + ((!cls && clsName) ? 'বর্ষ খুঁজে পাওয়া যায়নি ' : '') + (!roll ? 'রোল নেই' : '');
+        const pidStr = (manualPid || '').trim();
+        if (cols.length < 8) baseErr += (baseErr.trim() ? ' ' : '') + 'কমপক্ষে ৮ কলাম লাগবে।';
+        if (!pidStr) baseErr += (baseErr.trim() ? ' ' : '') + 'স্থায়ী আইডি বাধ্যতামূলক';
+        return {
+          idx: i + 1, name: name || '', clsName: clsName || '', cls, roll: roll || '',
+          guardian: guardian || '', job: job || '', phone: phone || '',
+          district, upazila,
+          manual_pid: pidStr,
+          _baseErr: baseErr, err: baseErr, resolved_pid: '',
+        };
       });
-      const validN = csvRows.filter(r=>!r.err).length, errN = csvRows.filter(r=>r.err).length;
-      document.getElementById('csv-count-lbl').textContent = toBn(validN) + ' টি সঠিক, ' + toBn(errN) + ' টিতে সমস্যা';
-      const thead = '<thead><tr><th>#</th><th>নাম</th><th>বর্ষ</th><th>রোল</th><th>অভিভাবক</th><th>ফোন</th><th>অবস্থা</th></tr></thead>';
-      const tbody = '<tbody>' + csvRows.map(r=>`<tr class="${r.err?'row-err':''}"><td>${toBn(r.idx)}</td><td>${API.esc(r.name)}</td><td>${API.esc(r.clsName)}</td><td>${API.esc(r.roll)}</td><td>${API.esc(r.guardian)}</td><td>${API.esc(r.phone)}</td><td>${r.err?'<span class="err-tag">'+API.esc(r.err)+'</span>':'✓'}</td></tr>`).join('') + '</tbody>';
-      document.getElementById('csv-table').innerHTML = thead + tbody;
-      document.getElementById('csv-confirm-btn').textContent = toBn(validN) + ' জন ছাত্র ভর্তি করুন';
-      document.getElementById('csv-confirm-btn').disabled = validN === 0;
+      renderCsvPreview();
       document.getElementById('csv-preview-wrap').style.display = 'block';
     };
     reader.readAsText(file, 'utf-8');
   }
   function confirmCsvImport() {
-    const hijri = document.getElementById('csv-hijri').value.trim() || '১৪৪৭';
+    applyCsvPermanentIds();
+    const ok = csvRows.filter((r) => !r.err && r.cls);
+    if (!ok.length) { showToast('কোনো সঠিক সারি নেই'); return; }
     let count = 0;
-    csvRows.filter(r=>!r.err&&r.cls).forEach(r => {
-      const pid = API.Students.getNextPermanentId(r.cls.dept, hijri);
-      API.Students.add({ name:r.name, roll:r.roll, class_id:r.cls.id, permanent_id:pid, guardian:r.guardian, guardian_job:r.job, phone:r.phone, address:r.address, dept:r.cls.dept, admitted:hijri });
+    ok.forEach((r) => {
+      API.Students.add({
+        name: r.name, roll: r.roll, class_id: r.cls.id, permanent_id: r.resolved_pid,
+        guardian: r.guardian, guardian_job: r.job, phone: r.phone,
+        district: (r.district || '').trim(), upazila: (r.upazila || '').trim(),
+        dept: r.cls.dept,
+      });
       count++;
     });
     showToast(toBn(count) + ' জন ছাত্র ভর্তি সম্পন্ন ✓');

@@ -11,6 +11,7 @@
     institution: 'মাদরাসাতুল মদীনা',
     hijri_year: '১৪৪৭',
     admin_pin: '0000',
+    session_start_date: new Date().toISOString().split('T')[0],
   };
 
   function padAttendanceExtra(today, base) {
@@ -22,10 +23,10 @@
       const d = new Date(t);
       d.setDate(d.getDate() - i);
       const date = d.toISOString().slice(0, 10);
-      if (i % 2 === 0) out.push({ id: 'mm_ex_lv_' + ++n, student_id: 'std_1', date, status: 'leave' });
-      if (i % 3 === 0) out.push({ id: 'mm_ex_lv_' + ++n, student_id: 'std_2', date, status: 'leave' });
-      if (i % 4 === 0) out.push({ id: 'mm_ex_lv_' + ++n, student_id: 'std_4', date, status: 'leave' });
-      if (i % 5 === 0) out.push({ id: 'mm_ex_lv_' + ++n, student_id: 'std_3', date, status: 'leave' });
+      if (i % 2 === 0) out.push({ id: 'mm_ex_lv_' + ++n, student_id: 'std_1', date, status: 'absent', absent_reason: 'অনুপস্থিত' });
+      if (i % 3 === 0) out.push({ id: 'mm_ex_lv_' + ++n, student_id: 'std_2', date, status: 'absent', absent_reason: 'অনুপস্থিত' });
+      if (i % 4 === 0) out.push({ id: 'mm_ex_lv_' + ++n, student_id: 'std_4', date, status: 'absent', absent_reason: 'অনুপস্থিত' });
+      if (i % 5 === 0) out.push({ id: 'mm_ex_lv_' + ++n, student_id: 'std_3', date, status: 'absent', absent_reason: 'অনুপস্থিত' });
     }
     for (let i = 1; i <= 14; i++) {
       const d = new Date(t);
@@ -156,37 +157,37 @@
       { id: 'usr_khedmat', name: 'খেদমত দায়িত্বশীল', class_id: null, pin: '0000', role: 'khedmat', address: 'খেদমত কক্ষ', phone: '০১৭০৪-০৪০৪০৪' },
     ];
     const students = [
-      { id: 'std_1', permanent_id: '৪৭০০১', name: 'মুহাম্মাদ আলী', class_id: 'cls_k3', roll: '৩০১', guardian: 'আলী হোসেন', guardian_job: 'কৃষক', phone: '০১৭১১-১১১১১১', address: 'উত্তর পাড়া', admitted: '১৪৪৭', active: true, hifz: false, class_history: [{ from: 'cls_k2', to: 'cls_k3', date: '2025-10-10' }] },
-      { id: 'std_2', permanent_id: '৪৭০০২', name: 'আব্দুল কাদের', class_id: 'cls_k3', roll: '৩০২', guardian: 'কাদের মিয়া', guardian_job: 'ব্যবসায়ী', phone: '০১৮২২-২২২২২২', address: 'দক্ষিণ পাড়া', admitted: '১৪৪৭', active: true, hifz: true, special_watch: true },
-      { id: 'std_3', permanent_id: '৪৭০০৩', name: 'ইউসুফ আহমাদ', class_id: 'cls_k3', roll: '৩০৩', guardian: 'আহমাদ উল্লাহ', guardian_job: 'শিক্ষক', phone: '০১৯৩৩-৩৩৩৩৩৩', address: 'পূর্ব পাড়া', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_4', permanent_id: '৪৭০০৪', name: 'উমর ফারুক', class_id: 'cls_k3', roll: '৩০৪', guardian: 'ফারুক আহমেদ', guardian_job: 'চাকরিজীবী', phone: '০১৬৪৪-৪৪৪৪৪৪', address: 'পশ্চিম পাড়া', admitted: '১৪৪৭', active: true, hifz: true, special_watch: true },
-      { id: 'std_5', permanent_id: '৪৬০০১', name: 'আব্দুর রহমান', class_id: 'cls_k2', roll: '২০১', guardian: 'রহমান মিয়া', guardian_job: 'কৃষক', phone: '০১৫৫৫-৫৫৫৫৫৫', address: 'উত্তর পাড়া', admitted: '১৪৪৬', active: true, hifz: false },
-      { id: 'std_6', permanent_id: '৪৬০০২', name: 'হাসান মাহমুদ', class_id: 'cls_k2', roll: '২০২', guardian: 'মাহমুদ আলী', guardian_job: 'ব্যবসায়ী', phone: '০১৬৬৬-৬৬৬৬৬৬', address: 'দক্ষিণ পাড়া', admitted: '১৪৪৬', active: true, hifz: false },
-      { id: 'std_7', permanent_id: '৪৫০০১', name: 'জাকারিয়া হোসেন', class_id: 'cls_k1', roll: '১০১', guardian: 'হোসেন আলী', guardian_job: 'দোকানদার', phone: '০১৭৭৭-৭৭৭৭৭৭', address: 'মাঠ পাড়া', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_8', permanent_id: '৪৫০০২', name: 'ইবরাহীম খান', class_id: 'cls_k1', roll: '১০২', guardian: 'খান সাহেব', guardian_job: 'কৃষক', phone: '০১৮৮৮-৮৮৮৮৮৮', address: 'বাজার রোড', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_9', permanent_id: '৪৭০০৫', name: "সা'দ বিন মালিক", class_id: 'cls_k3', roll: '৩০৫', guardian: 'মালিক হোসেন', guardian_job: 'ব্যবসায়ী', phone: '০১৯৯৯-৯৯৯৯৯৯', address: 'নদীর পাড়', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_10', permanent_id: '৪৪১০১', name: 'তামিম আনোয়ার', class_id: 'cls_ky', roll: 'ই১', guardian: 'আনোয়ার হোসেন', guardian_job: 'কৃষক', phone: '০১৭২০-১১১১১১', address: 'ইয়াদা কক্ষ গেট', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_11', permanent_id: '৪৪১০২', name: 'রায়হান', class_id: 'cls_ky', roll: 'ই২', guardian: 'আব্দুস সাত্তার', guardian_job: 'দোকান', phone: '০১৭২১-২২২২২২', address: 'বাজার পাড়', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_12', permanent_id: '৪৪১১', name: 'সাকিবুল ইসলাম', class_id: 'cls_k4', roll: '৪০১', guardian: 'ইসলাম উদ্দিন', guardian_job: 'রিকশাচালক', phone: '০১৭২২-৩৩৩৩৩৩', address: 'স্টেশন রোড', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_13', permanent_id: '৪৪১২', name: 'নোমান হাসান', class_id: 'cls_k4', roll: '৪০২', guardian: 'হাসান মোল্লা', guardian_job: 'মুদি', phone: '০১৭২৩-৪৪৪৪৪৪', address: 'বটতলা', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_14', permanent_id: '৪৪২১', name: 'শাহাদাত হুসেন', class_id: 'cls_k5', roll: '৫০১', guardian: 'হুসেন আলী', guardian_job: 'দিনমজুর', phone: '০১৭২৪-৫৫৫৫৫৫', address: 'পূর্ব পাড়', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_15', permanent_id: '৪৪২২', name: 'রাব্বানী', class_id: 'cls_k5', roll: '৫০২', guardian: 'কেরামত আলী', guardian_job: 'রাজমিস্ত্রি', phone: '০১৭২৫-৬৬৬৬৬৬', address: 'রেলগেট', admitted: '১৪৪৭', active: true, hifz: true },
-      { id: 'std_16', permanent_id: '৪৪৩১', name: 'হামজা', class_id: 'cls_k6', roll: '৬০১', guardian: 'আরিফা বেগম', guardian_job: 'গৃহিণী', phone: '০১৭২৬-৭৭৭৭৭৭', address: 'আমতলা', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_17', permanent_id: '৪৪৩২', name: 'আরিফজ্জামান', class_id: 'cls_k6', roll: '৬০২', guardian: 'শফিকুল', guardian_job: 'কৃষক', phone: '০১৭২৭-৮৮৮৮৮৮', address: 'নিচু পাড়', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_18', permanent_id: '৪৪৪১', name: 'মিকাইল', class_id: 'cls_k7', roll: '৭০১', guardian: 'আরশাদ', guardian_job: 'কামার', phone: '০১৭২৮-৯৯৯৯৯৯', address: 'বাজার', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_19', permanent_id: '৪৪৪২', name: 'ইয়াহইয়া', class_id: 'cls_k7', roll: '৭০২', guardian: 'আনিসুর রহমান', guardian_job: 'টেক্সি', phone: '০১৭২৯-১০১০১০', address: 'স্টেশন', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_20', permanent_id: '৪৪৫১', name: 'রাহাত করিম', class_id: 'cls_k8', roll: '৮০১', guardian: 'আব্দুল করিম', guardian_job: 'রাজমিস্ত্রি', phone: '০১৭৩০-১১১২১১', address: 'হাট', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_21', permanent_id: '৪৪৫২', name: 'যশিন পারভেজ', class_id: 'cls_k8', roll: '৮০২', guardian: 'সিরাজুল ইসলাম', guardian_job: 'রাজনীতিক', phone: '০১৭৩১-১২১৩১২', address: 'পল্লী', admitted: '১৪৪৭', active: true, hifz: true },
-      { id: 'std_22', permanent_id: 'ম৪৭১০১', name: 'আব্দুল্লাহ (ম.)', class_id: 'cls_m1', roll: 'ম১-১', guardian: 'নুর আলম', guardian_job: 'কৃষক', phone: '০১৭৪১-৪৪৪৪৪', address: 'মক্তব ১', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_23', permanent_id: 'ম৪৭১০২', name: 'আবু বকর (ম.)', class_id: 'cls_m1', roll: 'ম১-২', guardian: 'বকর সাহেব', guardian_job: 'রংমিস্ত্রি', phone: '০১৭৪২-৪৪৪৪৫', address: 'মক্তব ১', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_24', permanent_id: 'ম৪৭২০১', name: 'সুফিয়ান (ম.)', class_id: 'cls_m2', roll: 'ম২-১', guardian: 'সুহেল আহমেদ', guardian_job: 'কৃষক', phone: '০১৭৪৩-৪৪৪৪৬', address: 'মক্তব ২', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_25', permanent_id: 'ম৪৭২০২', name: 'সাবরিনা (ম.)', class_id: 'cls_m2', roll: 'ম২-২', guardian: 'নুরজাহান', guardian_job: '—', phone: '০১৭৪৪-৪৪৪৪৭', address: 'মক্তব ২', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_26', permanent_id: 'ম৪৭৩০১', name: 'আরমান (ম.)', class_id: 'cls_m3', roll: 'ম৩-১', guardian: 'আরিফ', guardian_job: 'সেলুন', phone: '০১৭৪৫-৪৪৪৪৮', address: 'মক্তব ৩', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_27', permanent_id: 'ম৪৭৩০২', name: 'আরোশ (ম.)', class_id: 'cls_m3', roll: 'ম৩-২', guardian: 'রোকেয়া', guardian_job: '—', phone: '০১৭৪৬-৪৪৪৪৯', address: 'মক্তব ৩', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_28', permanent_id: 'ম৪৭৪০১', name: 'তাওহীদ (ম.)', class_id: 'cls_m4', roll: 'ম৪-১', guardian: 'তানভীর', guardian_job: 'কৃষক', phone: '০১৭৪৭-৪৪৪৫০', address: 'মক্তব ৪', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_29', permanent_id: 'ম৪৭৪০২', name: 'তাওফিক (ম.)', class_id: 'cls_m4', roll: 'ম৪-২', guardian: 'তৌহিদ', guardian_job: 'রাজমিস্ত্রি', phone: '০১৭৪৮-৪৪৪৫১', address: 'মক্তব ৪', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_30', permanent_id: 'ম৪৭৫০১', name: 'আরিফ (ম.)', class_id: 'cls_m5', roll: 'ম৫-১', guardian: 'আরিফ', guardian_job: 'রাজনীতি', phone: '০১৭৪৯-৪৪৪৫২', address: 'মক্তব ৫', admitted: '১৪৪৭', active: true, hifz: false },
-      { id: 'std_31', permanent_id: 'ম৪৭৫০২', name: 'আরমান (ম.)', class_id: 'cls_m5', roll: 'ম৫-২', guardian: 'আরিফ', guardian_job: 'ব্যবসা', phone: '০১৭৫০-৪৪৪৫৩', address: 'মক্তব ৫', admitted: '১৪৪৭', active: true, hifz: false },
+      { id: 'std_1', permanent_id: '৪৭০০১', name: 'মুহাম্মাদ আলী', class_id: 'cls_k3', roll: '৩০১', guardian: 'আলী হোসেন', guardian_job: 'কৃষক', phone: '০১৭১১-১১১১১১', district: 'কুমিল্লা', upazila: 'উত্তর পাড়া', active: true, hifz: false, class_history: [{ from: 'cls_k2', to: 'cls_k3', date: '2025-10-10' }] },
+      { id: 'std_2', permanent_id: '৪৭০০২', name: 'আব্দুল কাদের', class_id: 'cls_k3', roll: '৩০২', guardian: 'কাদের মিয়া', guardian_job: 'ব্যবসায়ী', phone: '০১৮২২-২২২২২২', district: 'কুমিল্লা', upazila: 'দক্ষিণ পাড়া', active: true, hifz: true, special_watch: true },
+      { id: 'std_3', permanent_id: '৪৭০০৩', name: 'ইউসুফ আহমাদ', class_id: 'cls_k3', roll: '৩০৩', guardian: 'আহমাদ উল্লাহ', guardian_job: 'শিক্ষক', phone: '০১৯৩৩-৩৩৩৩৩৩', district: 'কুমিল্লা', upazila: 'পূর্ব পাড়া', active: true, hifz: false },
+      { id: 'std_4', permanent_id: '৪৭০০৪', name: 'উমর ফারুক', class_id: 'cls_k3', roll: '৩০৪', guardian: 'ফারুক আহমেদ', guardian_job: 'চাকরিজীবী', phone: '০১৬৪৪-৪৪৪৪৪৪', district: 'কুমিল্লা', upazila: 'পশ্চিম পাড়া', active: true, hifz: true, special_watch: true },
+      { id: 'std_5', permanent_id: '৪৬০০১', name: 'আব্দুর রহমান', class_id: 'cls_k2', roll: '২০১', guardian: 'রহমান মিয়া', guardian_job: 'কৃষক', phone: '০১৫৫৫-৫৫৫৫৫৫', district: 'কুমিল্লা', upazila: 'উত্তর পাড়া', active: true, hifz: false },
+      { id: 'std_6', permanent_id: '৪৬০০২', name: 'হাসান মাহমুদ', class_id: 'cls_k2', roll: '২০২', guardian: 'মাহমুদ আলী', guardian_job: 'ব্যবসায়ী', phone: '০১৬৬৬-৬৬৬৬৬৬', district: 'কুমিল্লা', upazila: 'দক্ষিণ পাড়া', active: true, hifz: false },
+      { id: 'std_7', permanent_id: '৪৫০০১', name: 'জাকারিয়া হোসেন', class_id: 'cls_k1', roll: '১০১', guardian: 'হোসেন আলী', guardian_job: 'দোকানদার', phone: '০১৭৭৭-৭৭৭৭৭৭', district: 'কুমিল্লা', upazila: 'মাঠ পাড়া', active: true, hifz: false },
+      { id: 'std_8', permanent_id: '৪৫০০২', name: 'ইবরাহীম খান', class_id: 'cls_k1', roll: '১০২', guardian: 'খান সাহেব', guardian_job: 'কৃষক', phone: '০১৮৮৮-৮৮৮৮৮৮', district: 'কুমিল্লা', upazila: 'বাজার রোড', active: true, hifz: false },
+      { id: 'std_9', permanent_id: '৪৭০০৫', name: "সা'দ বিন মালিক", class_id: 'cls_k3', roll: '৩০৫', guardian: 'মালিক হোসেন', guardian_job: 'ব্যবসায়ী', phone: '০১৯৯৯-৯৯৯৯৯৯', district: 'কুমিল্লা', upazila: 'নদীর পাড়', active: true, hifz: false },
+      { id: 'std_10', permanent_id: '৪৪১০১', name: 'তামিম আনোয়ার', class_id: 'cls_ky', roll: 'ই১', guardian: 'আনোয়ার হোসেন', guardian_job: 'কৃষক', phone: '০১৭২০-১১১১১১', district: 'কুমিল্লা', upazila: 'ইয়াদা কক্ষ গেট', active: true, hifz: false },
+      { id: 'std_11', permanent_id: '৪৪১০২', name: 'রায়হান', class_id: 'cls_ky', roll: 'ই২', guardian: 'আব্দুস সাত্তার', guardian_job: 'দোকান', phone: '০১৭২১-২২২২২২', district: 'কুমিল্লা', upazila: 'বাজার পাড়', active: true, hifz: false },
+      { id: 'std_12', permanent_id: '৪৪১১', name: 'সাকিবুল ইসলাম', class_id: 'cls_k4', roll: '৪০১', guardian: 'ইসলাম উদ্দিন', guardian_job: 'রিকশাচালক', phone: '০১৭২২-৩৩৩৩৩৩', district: 'কুমিল্লা', upazila: 'স্টেশন রোড', active: true, hifz: false },
+      { id: 'std_13', permanent_id: '৪৪১২', name: 'নোমান হাসান', class_id: 'cls_k4', roll: '৪০২', guardian: 'হাসান মোল্লা', guardian_job: 'মুদি', phone: '০১৭২৩-৪৪৪৪৪৪', district: 'কুমিল্লা', upazila: 'বটতলা', active: true, hifz: false },
+      { id: 'std_14', permanent_id: '৪৪২১', name: 'শাহাদাত হুসেন', class_id: 'cls_k5', roll: '৫০১', guardian: 'হুসেন আলী', guardian_job: 'দিনমজুর', phone: '০১৭২৪-৫৫৫৫৫৫', district: 'কুমিল্লা', upazila: 'পূর্ব পাড়', active: true, hifz: false },
+      { id: 'std_15', permanent_id: '৪৪২২', name: 'রাব্বানী', class_id: 'cls_k5', roll: '৫০২', guardian: 'কেরামত আলী', guardian_job: 'রাজমিস্ত্রি', phone: '০১৭২৫-৬৬৬৬৬৬', district: 'কুমিল্লা', upazila: 'রেলগেট', active: true, hifz: true },
+      { id: 'std_16', permanent_id: '৪৪৩১', name: 'হামজা', class_id: 'cls_k6', roll: '৬০১', guardian: 'আরিফা বেগম', guardian_job: 'গৃহিণী', phone: '০১৭২৬-৭৭৭৭৭৭', district: 'কুমিল্লা', upazila: 'আমতলা', active: true, hifz: false },
+      { id: 'std_17', permanent_id: '৪৪৩২', name: 'আরিফজ্জামান', class_id: 'cls_k6', roll: '৬০২', guardian: 'শফিকুল', guardian_job: 'কৃষক', phone: '০১৭২৭-৮৮৮৮৮৮', district: 'কুমিল্লা', upazila: 'নিচু পাড়', active: true, hifz: false },
+      { id: 'std_18', permanent_id: '৪৪৪১', name: 'মিকাইল', class_id: 'cls_k7', roll: '৭০১', guardian: 'আরশাদ', guardian_job: 'কামার', phone: '০১৭২৮-৯৯৯৯৯৯', district: 'কুমিল্লা', upazila: 'বাজার', active: true, hifz: false },
+      { id: 'std_19', permanent_id: '৪৪৪২', name: 'ইয়াহইয়া', class_id: 'cls_k7', roll: '৭০২', guardian: 'আনিসুর রহমান', guardian_job: 'টেক্সি', phone: '০১৭২৯-১০১০১০', district: 'কুমিল্লা', upazila: 'স্টেশন', active: true, hifz: false },
+      { id: 'std_20', permanent_id: '৪৪৫১', name: 'রাহাত করিম', class_id: 'cls_k8', roll: '৮০১', guardian: 'আব্দুল করিম', guardian_job: 'রাজমিস্ত্রি', phone: '০১৭৩০-১১১২১১', district: 'কুমিল্লা', upazila: 'হাট', active: true, hifz: false },
+      { id: 'std_21', permanent_id: '৪৪৫২', name: 'যশিন পারভেজ', class_id: 'cls_k8', roll: '৮০২', guardian: 'সিরাজুল ইসলাম', guardian_job: 'রাজনীতিক', phone: '০১৭৩১-১২১৩১২', district: 'কুমিল্লা', upazila: 'পল্লী', active: true, hifz: true },
+      { id: 'std_22', permanent_id: 'ম৪৭১০১', name: 'আব্দুল্লাহ (ম.)', class_id: 'cls_m1', roll: 'ম১-১', guardian: 'নুর আলম', guardian_job: 'কৃষক', phone: '০১৭৪১-৪৪৪৪৪', district: 'কুমিল্লা', upazila: 'মক্তব ১', active: true, hifz: false },
+      { id: 'std_23', permanent_id: 'ম৪৭১০২', name: 'আবু বকর (ম.)', class_id: 'cls_m1', roll: 'ম১-২', guardian: 'বকর সাহেব', guardian_job: 'রংমিস্ত্রি', phone: '০১৭৪২-৪৪৪৪৫', district: 'কুমিল্লা', upazila: 'মক্তব ১', active: true, hifz: false },
+      { id: 'std_24', permanent_id: 'ম৪৭২০১', name: 'সুফিয়ান (ম.)', class_id: 'cls_m2', roll: 'ম২-১', guardian: 'সুহেল আহমেদ', guardian_job: 'কৃষক', phone: '০১৭৪৩-৪৪৪৪৬', district: 'কুমিল্লা', upazila: 'মক্তব ২', active: true, hifz: false },
+      { id: 'std_25', permanent_id: 'ম৪৭২০২', name: 'সাবরিনা (ম.)', class_id: 'cls_m2', roll: 'ম২-২', guardian: 'নুরজাহান', guardian_job: '—', phone: '০১৭৪৪-৪৪৪৪৭', district: 'কুমিল্লা', upazila: 'মক্তব ২', active: true, hifz: false },
+      { id: 'std_26', permanent_id: 'ম৪৭৩০১', name: 'আরমান (ম.)', class_id: 'cls_m3', roll: 'ম৩-১', guardian: 'আরিফ', guardian_job: 'সেলুন', phone: '০১৭৪৫-৪৪৪৪৮', district: 'কুমিল্লা', upazila: 'মক্তব ৩', active: true, hifz: false },
+      { id: 'std_27', permanent_id: 'ম৪৭৩০২', name: 'আরোশ (ম.)', class_id: 'cls_m3', roll: 'ম৩-২', guardian: 'রোকেয়া', guardian_job: '—', phone: '০১৭৪৬-৪৪৪৪৯', district: 'কুমিল্লা', upazila: 'মক্তব ৩', active: true, hifz: false },
+      { id: 'std_28', permanent_id: 'ম৪৭৪০১', name: 'তাওহীদ (ম.)', class_id: 'cls_m4', roll: 'ম৪-১', guardian: 'তানভীর', guardian_job: 'কৃষক', phone: '০১৭৪৭-৪৪৪৫০', district: 'কুমিল্লা', upazila: 'মক্তব ৪', active: true, hifz: false },
+      { id: 'std_29', permanent_id: 'ম৪৭৪০২', name: 'তাওফিক (ম.)', class_id: 'cls_m4', roll: 'ম৪-২', guardian: 'তৌহিদ', guardian_job: 'রাজমিস্ত্রি', phone: '০১৭৪৮-৪৪৪৫১', district: 'কুমিল্লা', upazila: 'মক্তব ৪', active: true, hifz: false },
+      { id: 'std_30', permanent_id: 'ম৪৭৫০১', name: 'আরিফ (ম.)', class_id: 'cls_m5', roll: 'ম৫-১', guardian: 'আরিফ', guardian_job: 'রাজনীতি', phone: '০১৭৪৯-৪৪৪৫২', district: 'কুমিল্লা', upazila: 'মক্তব ৫', active: true, hifz: false },
+      { id: 'std_31', permanent_id: 'ম৪৭৫০২', name: 'আরমান (ম.)', class_id: 'cls_m5', roll: 'ম৫-২', guardian: 'আরিফ', guardian_job: 'ব্যবসা', phone: '০১৭৫০-৪৪৪৫৩', district: 'কুমিল্লা', upazila: 'মক্তব ৫', active: true, hifz: false },
     ];
     const kitabs = [
       { id: 'ktb_1', name: 'হেদায়াতুন নাহু', class_id: 'cls_k3', total_pages: 120 },

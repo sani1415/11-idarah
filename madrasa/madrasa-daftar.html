@@ -137,7 +137,8 @@
 .fs-icon-btn:hover { background: var(--cream); color: var(--ink); }
 .fs-icon-btn svg { display: block; flex-shrink: 0; width: 17px; height: 17px; }
 .fs-icon-btn.fs-bulk-p svg,
-.fs-icon-btn.fs-bulk-a svg { width: 18px; height: 18px; }
+.fs-icon-btn.fs-bulk-a svg,
+.fs-icon-btn.fs-bulk-h svg { width: 16px; height: 16px; }
 .fs-icon-btn.fs-bulk-p {
   border-color: var(--green2); background: var(--green-light); color: var(--green);
 }
@@ -146,6 +147,10 @@
   border-color: var(--red); background: var(--red-light); color: var(--red);
 }
 .fs-icon-btn.fs-bulk-a:hover { filter: brightness(0.97); }
+.fs-icon-btn.fs-bulk-h {
+  border-color: var(--gold); background: var(--gold-light); color: var(--gold);
+}
+.fs-icon-btn.fs-bulk-h:hover { filter: brightness(0.97); }
 
 /* ── হাজিরা কার্ড (তালিকা ফিল্টার সারির সাথে সারিবদ্ধ; অতি ভেতরে নয়) ── */
 .att-card {
@@ -177,18 +182,20 @@
   border-bottom: 1px solid rgba(26,18,8,.04); transition: background .1s;
 }
 .s-row:last-child { border-bottom: none; }
-.s-row.is-absent { background: rgba(193,68,14,.03); }
-.s-roll { width: 22px; font-size: 10px; color: var(--ink3); text-align: center; flex-shrink: 0; }
-.s-toggle { display: flex; gap: 4px; flex-shrink: 0; }
-.tog {
-  width: 32px; height: 32px; border-radius: var(--radius-xs);
-  border: 1.5px solid var(--cream3); background: #fff; font-size: 15px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .12s; font-family: inherit;
-}
-.tog:active { transform: scale(.93); }
-.tog.is-p  { background: var(--green-light); border-color: var(--green2); color: var(--green); }
-.tog.is-a  { background: var(--red-light);   border-color: var(--red);    color: var(--red); }
+.s-row.is-absent  { background: rgba(193,68,14,.03); }
+  .s-row.is-holiday { background: rgba(100,130,220,.05); }
+  .s-roll { width: 22px; font-size: 10px; color: var(--ink3); text-align: center; flex-shrink: 0; }
+  .s-toggle { display: flex; gap: 4px; flex-shrink: 0; }
+  .tog {
+    width: 32px; height: 32px; border-radius: var(--radius-xs);
+    border: 1.5px solid var(--cream3); background: #fff; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .12s; font-family: inherit; cursor: pointer;
+  }
+  .tog:active { transform: scale(.93); }
+  .tog.is-p { background: var(--green-light); border-color: var(--green2); color: var(--green); }
+  .tog.is-a { background: var(--red-light);   border-color: var(--red);    color: var(--red); }
+  .tog.is-h { background: var(--gold-light);  border-color: var(--gold);   color: var(--gold); }
 
 /* ── স্টিকি সেভ বাটন ── */
 .save-footer {
@@ -335,6 +342,9 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
         </button>
         <button type="button" class="fs-icon-btn fs-bulk-a" title="দেখানো সবাই অনুপস্থিত" aria-label="দেখানো সবাই অনুপস্থিত" onclick="bulkMark('absent')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="22" y2="13"/><line x1="22" y1="8" x2="17" y2="13"/></svg>
+        </button>
+        <button type="button" class="fs-icon-btn fs-bulk-h" title="দেখানো সবাই বিরতি" aria-label="দেখানো সবাই বিরতি" onclick="bulkMark('holiday')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
       </div>
     </div>
@@ -500,12 +510,18 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
 
     const existing = API.Attendance.getByDate(daftarAttDate);
     const active   = API.Students.getAll().filter(s => s.active);
-    let p = 0, a = 0;
-    active.forEach(s => { currentAttStatus(s.id, existing) === 'absent' ? a++ : p++; });
+    let p = 0, a = 0, h = 0;
+    active.forEach(s => {
+      const st = currentAttStatus(s.id, existing);
+      if (st === 'absent') a++;
+      else if (st === 'holiday') h++;
+      else p++;
+    });
     document.getElementById('st-present').textContent = toBn(p);
-    document.getElementById('st-absent').textContent  = toBn(a);
+    document.getElementById('st-absent').textContent  = h > 0 ? toBn(a) + '+' + toBn(h) + '🏖' : toBn(a);
     document.getElementById('st-total').textContent   = toBn(active.length);
-    const pct = active.length ? Math.round(p / active.length * 100) : 0;
+    const schoolTotal = p + a;
+    const pct = schoolTotal ? Math.round(p / schoolTotal * 100) : 0;
     document.getElementById('bar-present').style.width = pct + '%';
     document.getElementById('bar-absent').style.width  = (100 - pct) + '%';
 
@@ -601,6 +617,9 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
       if (st === 'absent') {
         attState[s.id] = 'absent';
         attReasonState[s.id] = (r.absent_reason || '').trim() || 'আগের দিন থেকে (কারণ সেভ হয়নি)';
+      } else if (st === 'holiday') {
+        attState[s.id] = 'holiday';
+        delete attReasonState[s.id];
       } else {
         attState[s.id] = 'present';
         delete attReasonState[s.id];
@@ -642,10 +661,12 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
   }
 
   function currentAttStatus(sid, existing) {
-    if (attState[sid] !== undefined) return attState[sid] === 'absent' ? 'absent' : 'present';
+    if (attState[sid] !== undefined) {
+      const s = attState[sid];
+      return (s === 'absent' || s === 'holiday') ? s : 'present';
+    }
     const rec = existing.find ? existing.find(a => a.student_id === sid) : null;
-    const raw = rec ? API.Attendance.statusOf(rec) : 'present';
-    return raw === 'absent' ? 'absent' : 'present';
+    return rec ? API.Attendance.statusOf(rec) : 'present';
   }
 
   function getAbsentReason(sid, existing) {
@@ -668,6 +689,7 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
       return true;
     });
   }
+
 
   /* ── RENDER ATTENDANCE ── */
   function renderAttendance() {
@@ -724,7 +746,16 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
           : (st === 'absent' && !rsn
             ? '<span class="s-abs-reason s-abs-missing" title="সংরক্ষণের আগে কারণ লিখতে হবে">কারণ সেভের আগে</span>'
             : '');
-        html += `<div class="s-row${st === 'absent' ? ' is-absent' : ''}" id="att-${s.id}">
+        const rowCls = st === 'absent' ? ' is-absent' : st === 'holiday' ? ' is-holiday' : '';
+        const SVG_P = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        const SVG_A = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+        const SVG_H = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+        const toggleBlock = `<div class="s-toggle">
+          <button type="button" class="tog${st === 'present' ? ' is-p' : ''}" onclick="markAtt('${s.id}','present')" title="উপস্থিত">${SVG_P}</button>
+          <button type="button" class="tog${st === 'absent'  ? ' is-a' : ''}" onclick="markAtt('${s.id}','absent')"  title="অনুপস্থিত">${SVG_A}</button>
+          <button type="button" class="tog${st === 'holiday' ? ' is-h' : ''}" onclick="markAtt('${s.id}','holiday')" title="বিরতি">${SVG_H}</button>
+        </div>`;
+        html += `<div class="s-row${rowCls}" id="att-${s.id}">
           <span class="s-roll">${API.esc(s.roll || '')}</span>
           <div class="s-name-col">
             <div class="s-line1">
@@ -733,10 +764,7 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
               ${reasonBlock}
             </div>
           </div>
-          <div class="s-toggle">
-            <button type="button" class="tog${st === 'present' ? ' is-p' : ''}" data-st="present" onclick="markAtt('${s.id}','present')" title="উপস্থিত">✓</button>
-            <button type="button" class="tog${st === 'absent'  ? ' is-a' : ''}" data-st="absent"  onclick="markAtt('${s.id}','absent')"  title="অনুপস্থিত">✗</button>
-          </div>
+          ${toggleBlock}
         </div>`;
       });
     });
@@ -748,6 +776,12 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
     if (mmMutationBlocked(showToast)) return;
     if (status === 'present') {
       attState[sid] = 'present';
+      delete attReasonState[sid];
+      renderAttendance();
+      return;
+    }
+    if (status === 'holiday') {
+      attState[sid] = 'holiday';
       delete attReasonState[sid];
       renderAttendance();
       return;
@@ -779,19 +813,21 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
 
   function bulkMark(status) {
     if (mmMutationBlocked(showToast)) return;
+    const ex = API.Attendance.getByDate(daftarAttDate);
+    const filtered = getFiltered(getStudentsInScope(), ex);
+    if (!filtered.length) { showToast('কোনো ছাত্র নেই'); return; }
     if (status === 'absent') {
-      const ex = API.Attendance.getByDate(daftarAttDate);
-      if (getFiltered(getStudentsInScope(), ex).length === 0) { showToast('কোনো ছাত্র নেই'); return; }
       absentModalMode = { type: 'bulk' };
       document.getElementById('abs-reason-inp').value = '';
       openModal('absent-reason');
       return;
     }
-    const ex = API.Attendance.getByDate(daftarAttDate);
-    getFiltered(getStudentsInScope(), ex).forEach(s => {
-      attState[s.id] = 'present';
-      delete attReasonState[s.id];
-    });
+    if (status === 'holiday') {
+      filtered.forEach(s => { attState[s.id] = 'holiday'; delete attReasonState[s.id]; });
+      renderAttendance();
+      return;
+    }
+    filtered.forEach(s => { attState[s.id] = 'present'; delete attReasonState[s.id]; });
     renderAttendance();
   }
 
@@ -799,7 +835,10 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
     if (mmMutationBlocked(showToast)) return;
     const students = API.Students.getAll().filter(s => s.active);
     const existing = API.Attendance.getByDate(daftarAttDate);
-    const needReason = students.filter(s => currentAttStatus(s.id, existing) === 'absent' && !getAbsentReason(s.id, existing));
+    const needReason = students.filter(s => {
+      const st = currentAttStatus(s.id, existing);
+      return st === 'absent' && !getAbsentReason(s.id, existing);
+    });
     if (needReason.length) {
       showToast('অনুপস্থিত কিন্তু কারণ বাকি: ' + needReason.slice(0, 2).map(s => s.name).join('، ') + (needReason.length > 2 ? '…' : ''));
       return;
@@ -807,7 +846,8 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
     students.forEach(s => {
       const st = currentAttStatus(s.id, existing);
       if (st === 'absent') API.Attendance.save(s.id, daftarAttDate, 'absent', getAbsentReason(s.id, existing));
-      else API.Attendance.save(s.id, daftarAttDate, st);
+      else if (st === 'holiday') API.Attendance.save(s.id, daftarAttDate, 'holiday');
+      else API.Attendance.save(s.id, daftarAttDate, 'present');
     });
     showToast('সকল বর্ষের উপস্থিতি সংরক্ষিত হয়েছে ✓');
     attState = {};
@@ -893,11 +933,11 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
     if (API.Students.getAll().filter(s => s.active).length) return;
     const classId = classes[0].id;
     [
-      { permanent_id:'ডেমো-০০১', name:'ডেমো ছাত্র ১', roll:'১', guardian:'ডেমো অভিভাবক', guardian_job:'চাষাবাদ', phone:'০১০০০-০০০০০০', address:'ডেমো পাড়া' },
-      { permanent_id:'ডেমো-০০২', name:'ডেমো ছাত্র ২', roll:'২', guardian:'ডেমো অভিভাবক', guardian_job:'ব্যবসা',   phone:'০১১১১-১১১১১১', address:'ডেমো পাড়া' },
-      { permanent_id:'ডেমো-০০৩', name:'ডেমো ছাত্র ৩', roll:'৩', guardian:'ডেমো অভিভাবক', guardian_job:'দোকান',   phone:'০১২২২-২২২২২২', address:'ডেমো পাড়া' },
-      { permanent_id:'ডেমো-০০৪', name:'ডেমো ছাত্র ৪', roll:'৪', guardian:'ডেমো অভিভাবক', guardian_job:'কর্মচারী',phone:'০১৩৩৩-৩৩৩৩৩৩', address:'ডেমো পাড়া' },
-    ].forEach(d => API.Students.add({ ...d, class_id: classId, admitted:'১৪৪৭', dept:'kitab' }));
+      { permanent_id:'ডেমো-০০১', name:'ডেমো ছাত্র ১', roll:'১', guardian:'ডেমো অভিভাবক', guardian_job:'চাষাবাদ', phone:'০১০০০-০০০০০০', district:'কুমিল্লা', upazila:'ডেমো পাড়া' },
+      { permanent_id:'ডেমো-০০২', name:'ডেমো ছাত্র ২', roll:'২', guardian:'ডেমো অভিভাবক', guardian_job:'ব্যবসা',   phone:'০১১১১-১১১১১১', district:'কুমিল্লা', upazila:'ডেমো পাড়া' },
+      { permanent_id:'ডেমো-০০৩', name:'ডেমো ছাত্র ৩', roll:'৩', guardian:'ডেমো অভিভাবক', guardian_job:'দোকান',   phone:'০১২২২-২২২২২২', district:'কুমিল্লা', upazila:'ডেমো পাড়া' },
+      { permanent_id:'ডেমো-০০৪', name:'ডেমো ছাত্র ৪', roll:'৪', guardian:'ডেমো অভিভাবক', guardian_job:'কর্মচারী',phone:'০১৩৩৩-৩৩৩৩৩৩', district:'কুমিল্লা', upazila:'ডেমো পাড়া' },
+    ].forEach(d => API.Students.add({ ...d, class_id: classId, dept:'kitab' }));
     API.Students.getByClass(classId).slice(0,4).forEach((s, i) =>
       API.Attendance.save(s.id, daftarAttDate, i === 2 ? 'absent' : 'present', i === 2 ? 'ডেমো: বাড়িতে' : undefined));
     showToast('ডেমো হাজিরা তথ্য যোগ করা হয়েছে');
@@ -917,6 +957,12 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
   populateClassFilter();
   updateHero();
   renderAttendance();
+  (function openPanelFromHash() {
+    if (location.hash === '#fees') {
+      switchPanel('fees');
+      renderFees();
+    }
+  })();
 </script>
 </body>
 </html>

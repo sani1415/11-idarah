@@ -66,9 +66,14 @@
   .success-icon { font-size:56px; text-align:center; margin:24px 0 12px; }
   .undo-box { margin-top:20px; padding:14px; background:var(--red-light); border:1px solid #fca5a5; border-radius:var(--radius-sm); text-align:center; }
   .undo-btn { margin-top:10px; padding:10px 20px; background:#dc2626; border:none; border-radius:var(--radius-xs); font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:700; color:#fff; cursor:pointer; }
+  /* দফতর নিচের নেভ — madrasa-daftar / students এর মতো */
+  body.page-daftar .bottom-nav { left:8px; right:8px; bottom:max(6px,env(safe-area-inset-bottom)); padding:4px 6px; gap:2px; max-width:520px; margin:0 auto; }
+  body.page-daftar .nav-item { min-height:44px; padding:5px 4px; gap:3px; }
+  body.page-daftar .nav-label { font-size:10px; line-height:1.15; }
+  body.page-daftar .nav-icon svg.nav-svg, body.page-daftar .nav-icon .nav-svg { width:22px; height:22px; }
 </style>
 </head>
-<body>
+<body class="page-daftar">
 
 <div class="topbar">
   <button type="button" class="topbar-btn" onclick="history.back()">← ফিরুন</button>
@@ -99,6 +104,11 @@
     <div class="form-group">
       <label class="form-label">নতুন হিজরী শিক্ষাবর্ষ</label>
       <input class="form-input" id="inp-year" placeholder="যেমন: ১৪৪৮" maxlength="4">
+    </div>
+    <div class="form-group">
+      <label class="form-label">নতুন শিক্ষাবর্ষ শুরুর তারিখ (গ্রিগরিয়ান)</label>
+      <input class="form-input" type="date" id="inp-start-date">
+      <div style="font-size:11px;color:var(--ink3);margin-top:4px;">ফাঁকা রাখলে আজকের তারিখ ধরা হবে</div>
     </div>
     <div class="form-group" style="margin-top:16px;">
       <label class="form-label">কোন বিভাগের উন্নীতকরণ করবেন?</label>
@@ -188,6 +198,30 @@
 
 </div><!-- /.wiz-wrap -->
 
+<!-- BOTTOM NAV — দফতর: daftar / students এর মেনুর সাথে একই ৫ আইটেম -->
+<nav class="bottom-nav" aria-label="নিচের নেভিগেশন">
+  <div class="nav-item" onclick="location.href='madrasa-daftar.html'">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">উপস্থিতি</span>
+  </div>
+  <div class="nav-item" onclick="location.href='madrasa-students.html'">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">ছাত্র</span>
+  </div>
+  <div class="nav-item" onclick="location.href='madrasa-daftar.html#fees'">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">ওয়াযিফা</span>
+  </div>
+  <div class="nav-item active" aria-current="page">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">বর্ষ</span>
+  </div>
+  <div class="nav-item" onclick="location.href='../chat.html'">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">বার্তা</span>
+  </div>
+</nav>
+
 <div class="toast" id="toast"></div>
 
 <script src="../js/mm-sample-data.js"></script>
@@ -211,6 +245,7 @@
   /* ── state ── */
   let deptChoice = 'both';
   let newYear = '';
+  let newSessionStartDate = '';
   let tourClasses = [];
   let tourIdx = 0;
   let decisions = {};     /* sid → {next_class_id, new_roll, action} */
@@ -242,7 +277,7 @@
     const y = document.getElementById('inp-year').value.trim();
     if (!y) { showToast('হিজরী বর্ষ দিন'); return; }
     newYear = y;
-    /* build teacher grid for step 2 */
+    newSessionStartDate = document.getElementById('inp-start-date').value || API.today();
     buildTeacherGrid();
     goStep(2);
   }
@@ -408,13 +443,21 @@
   /* ── step 5: execute ── */
   function executeYearEnd() {
     /* backup */
-    const backup = { students: localStorage.getItem('mm_students'), withdrawals: localStorage.getItem('mm_withdrawals'), date: new Date().toLocaleDateString('bn-BD') };
+    const backup = {
+      students: localStorage.getItem('mm_students'),
+      withdrawals: localStorage.getItem('mm_withdrawals'),
+      sessions: localStorage.getItem('mm_sessions'),
+      date: new Date().toLocaleDateString('bn-BD'),
+    };
     localStorage.setItem('mm_yearend_backup', JSON.stringify(backup));
     /* build changes array */
     const changes = Object.entries(decisions).map(([id, d]) => ({ id, new_class_id: d.next_class_id, new_roll: d.new_roll, action: d.action }));
     API.Students.bulkYearEnd(changes, newYear);
     /* update settings hijri year */
-    const s = API.Settings.get(); API.Settings.save({ ...s, hijri_year: newYear });
+    const s = API.Settings.get();
+    API.Settings.save({ ...s, hijri_year: newYear });
+    /* session: end current → start new */
+    API.Sessions.startNew(newYear, newSessionStartDate);
     document.getElementById('success-sub').textContent = newYear + ' হিজরী শিক্ষাবর্ষ শুরু হয়েছে।';
     document.getElementById('backup-date').textContent = backup.date;
     goStep(5);
