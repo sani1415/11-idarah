@@ -16,6 +16,21 @@
   .tab-pills { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:4px; }
   .pill { background:#fff; border:1px solid var(--cream3); border-radius:20px; padding:7px 14px; font-size:12px; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; color:var(--ink3); white-space:nowrap; flex-shrink:0; }
   .pill.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
+  .perm-card { background:#fff; border-radius:var(--radius-sm); padding:12px 13px; box-shadow:var(--shadow); border:1px solid rgba(26,18,8,.06); margin-bottom:8px; display:flex; align-items:center; gap:10px; }
+  .perm-ico { width:36px; height:36px; border-radius:50%; background:var(--cream2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .perm-meta { flex:1; min-width:0; }
+  .perm-name { font-size:14px; font-weight:700; color:var(--ink); }
+  .perm-sub { font-size:11px; color:var(--ink3); margin-top:2px; line-height:1.4; }
+  .perm-actions { display:flex; gap:6px; flex-shrink:0; }
+  .small-btn { background:#fff; border:1px solid var(--cream3); border-radius:8px; padding:5px 9px; font-family:'Noto Sans Bengali',sans-serif; font-size:11px; color:var(--ink2); cursor:pointer; }
+  .perm-box { background:var(--cream); border:1px solid rgba(26,18,8,.08); border-radius:14px; padding:12px; margin-bottom:12px; }
+  .check-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:6px; }
+  .check-item { display:flex; align-items:center; gap:6px; background:#fff; border:1px solid rgba(26,18,8,.08); border-radius:10px; padding:8px; font-size:12px; color:var(--ink2); }
+  .check-item input { width:auto; margin:0; }
+  .class-row-set { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--cream2); }
+  .class-row-set:last-child { border-bottom:none; }
+  .class-badge { font-size:10px; color:var(--ink3); background:var(--cream2); border-radius:999px; padding:2px 7px; }
+  .class-row-set.inactive { opacity:.55; }
 </style>
 </head>
 <body>
@@ -34,6 +49,8 @@
   <div class="tab-pills">
     <div class="pill active" id="pill-general"  onclick="switchTab('general')">সাধারণ</div>
     <div class="pill"        id="pill-pin"       onclick="switchTab('pin')">পিন পরিবর্তন</div>
+    <div class="pill"        id="pill-admins"    onclick="switchTab('admins')">জিম্মাদার</div>
+    <div class="pill"        id="pill-classes"   onclick="switchTab('classes')">বর্ষ/শ্রেণি</div>
     <div class="pill"        id="pill-teachers"  onclick="switchTab('teachers')">শিক্ষক</div>
     <div class="pill"        id="pill-kitab"     onclick="switchTab('kitab')">কিতাব</div>
   </div>
@@ -75,6 +92,30 @@
       </div>
       <button class="submit-btn" onclick="changeAdminPin()">পিন পরিবর্তন করুন</button>
     </div>
+  </div>
+
+  <!-- ADMINS -->
+  <div id="tab-admins" style="display:none;">
+    <div class="settings-section">
+      <div class="settings-title">🛡️ সহকারী জিম্মাদার</div>
+      <div id="admin-list"></div>
+    </div>
+    <button class="add-btn" onclick="openAdminModal(null)">＋ সহকারী জিম্মাদার যোগ করুন</button>
+  </div>
+
+  <!-- CLASSES -->
+  <div id="tab-classes" style="display:none;">
+    <div class="settings-section">
+      <div class="settings-title">🏫 বর্ষ/শ্রেণি ব্যবস্থাপনা</div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <select class="form-input form-select" id="class-filter" onchange="renderClasses()">
+          <option value="kitab">কিতাব বিভাগ</option>
+          <option value="maktab">মক্তব বিভাগ</option>
+        </select>
+      </div>
+      <div id="class-list"></div>
+    </div>
+    <button class="add-btn" onclick="openClassModal(null)">＋ নতুন বর্ষ/শ্রেণি যোগ করুন</button>
   </div>
 
   <!-- TEACHERS -->
@@ -163,6 +204,77 @@
   </div>
 </div>
 
+<!-- ADD/EDIT CLASS MODAL -->
+<div class="modal-bg" id="modal-class">
+  <div class="modal">
+    <div class="modal-title">বর্ষ/শ্রেণি <button class="modal-close" onclick="closeModal('class')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">বিভাগ</label>
+      <select class="form-input form-select" id="cls-dept" onchange="populateClassNextOptions()">
+        <option value="kitab">কিতাব বিভাগ</option>
+        <option value="maktab">মক্তব বিভাগ</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">নাম</label>
+      <input class="form-input" id="cls-name" placeholder="যেমন: ১ম বর্ষ">
+    </div>
+    <div class="form-group">
+      <label class="form-label">রোল prefix</label>
+      <input class="form-input" id="cls-roll-prefix" placeholder="যেমন: 100 / ম১ / ই">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ক্রম</label>
+      <input class="form-input" id="cls-sort" type="number" placeholder="যেমন: ১০">
+    </div>
+    <div class="form-group">
+      <label class="form-label">বর্ষ শেষে ডিফল্ট গন্তব্য</label>
+      <select class="form-input form-select" id="cls-next"></select>
+    </div>
+    <label class="check-item" style="margin-bottom:12px;"><input type="checkbox" id="cls-active"> সক্রিয় থাকবে</label>
+    <button class="submit-btn" onclick="saveClass()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<!-- ADD/EDIT RESTRICTED ADMIN MODAL -->
+<div class="modal-bg" id="modal-admin-user">
+  <div class="modal">
+    <div class="modal-title">সহকারী জিম্মাদার <button class="modal-close" onclick="closeModal('admin-user')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">নাম</label>
+      <input class="form-input" id="adm-name" placeholder="সহকারী জিম্মাদারের নাম">
+    </div>
+    <div class="form-group">
+      <label class="form-label">পিন (৪ সংখ্যা)</label>
+      <input class="form-input" id="adm-pin" type="password" maxlength="4" placeholder="যেমন: 1234" inputmode="numeric">
+    </div>
+    <div class="perm-box">
+      <label class="form-label">কোন মাদ্রাসা বিভাগ দেখতে পারবে</label>
+      <div class="check-grid">
+        <label class="check-item"><input type="checkbox" id="adm-dept-kitab"> কিতাব বিভাগ</label>
+        <label class="check-item"><input type="checkbox" id="adm-dept-maktab"> মক্তব বিভাগ</label>
+      </div>
+    </div>
+    <div class="perm-box">
+      <label class="form-label">কোন মেনু দেখতে পারবে</label>
+      <div class="check-grid">
+        <label class="check-item"><input type="checkbox" class="adm-menu" value="dashboard" checked disabled> ড্যাশবোর্ড</label>
+        <label class="check-item"><input type="checkbox" class="adm-menu" value="daftar"> দফতর</label>
+        <label class="check-item"><input type="checkbox" class="adm-menu" value="teachers"> শিক্ষক</label>
+        <label class="check-item"><input type="checkbox" class="adm-menu" value="dars"> দরস</label>
+        <label class="check-item"><input type="checkbox" class="adm-menu" value="exams"> পরীক্ষা</label>
+        <label class="check-item"><input type="checkbox" class="adm-menu" value="withdrawn"> বিদায় ছাত্র</label>
+        <label class="check-item"><input type="checkbox" class="adm-menu" value="hifz"> হিফজ</label>
+        <label class="check-item"><input type="checkbox" class="adm-menu" value="library"> মাকতাবা</label>
+        <label class="check-item"><input type="checkbox" class="adm-menu" value="alumni"> পুরনো ছাত্র</label>
+        <label class="check-item"><input type="checkbox" class="adm-menu" value="messages"> বার্তা</label>
+        <label class="check-item"><input type="checkbox" class="adm-menu" value="recent"> কার্যক্রম</label>
+      </div>
+    </div>
+    <button class="submit-btn" onclick="saveAdminUser()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
 <!-- EDIT PIN MODAL -->
 <div class="modal-bg" id="modal-edit-pin">
   <div class="modal">
@@ -181,17 +293,21 @@
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
 <script>
-  if (!MMSession.isAdmin()) location.href='../index.html';
+  if (!MMSession.isMainAdmin()) location.href='../main-admin-madrasa.html';
   document.getElementById('top-name').textContent = MMSession.getName()||'জিম্মাদার';
 
   let editingTeacherId = null;
+  let editingAdminId = null;
+  let editingClassId = null;
 
   function switchTab(tab) {
-    ['general','pin','teachers','kitab'].forEach(t=>{
+    ['general','pin','admins','classes','teachers','kitab'].forEach(t=>{
       document.getElementById('tab-'+t).style.display   = t===tab?'block':'none';
       document.getElementById('pill-'+t).classList.toggle('active',t===tab);
     });
     if (tab==='general')  loadGeneral();
+    if (tab==='admins')   renderAdmins();
+    if (tab==='classes')  renderClasses();
     if (tab==='teachers') renderTeachers();
     if (tab==='kitab')    initKitab();
   }
@@ -233,11 +349,161 @@
     showToast('অ্যাডমিন পিন পরিবর্তন হয়েছে ✓');
   }
 
+  /* ADMINS */
+  function defaultAdminPerms() {
+    const permissions = {};
+    ['dashboard', 'daftar', 'teachers', 'dars', 'exams', 'withdrawn', 'hifz', 'library', 'alumni', 'messages', 'recent'].forEach(k => {
+      permissions[k] = true;
+    });
+    return { scope: { madrasa_depts: ['kitab', 'maktab'] }, permissions };
+  }
+  function normalizeAdminPerms(perms) {
+    let p = perms;
+    if (typeof p === 'string') {
+      try { p = JSON.parse(p); } catch (e) { p = {}; }
+    }
+    const d = defaultAdminPerms();
+    const rawDepts = (p && p.scope && Array.isArray(p.scope.madrasa_depts)) ? p.scope.madrasa_depts : d.scope.madrasa_depts;
+    const permissions = { ...d.permissions, ...((p && p.permissions) || {}) };
+    permissions.dashboard = true;
+    return {
+      scope: { madrasa_depts: rawDepts.filter(x => x === 'kitab' || x === 'maktab') },
+      permissions
+    };
+  }
+  function adminPermSummary(perms) {
+    const p = normalizeAdminPerms(perms);
+    const deptNames = p.scope.madrasa_depts.map(d => d === 'maktab' ? 'মক্তব' : 'কিতাব').join(', ') || 'কোনো বিভাগ নয়';
+    const menuLabels = {
+      dashboard:'ড্যাশবোর্ড', daftar:'দফতর', teachers:'শিক্ষক', dars:'দরস', exams:'পরীক্ষা',
+      withdrawn:'বিদায় ছাত্র', hifz:'হিফজ', library:'মাকতাবা', alumni:'পুরনো ছাত্র',
+      messages:'বার্তা', recent:'কার্যক্রম'
+    };
+    const menuNames = Object.keys(p.permissions).filter(k => p.permissions[k]).map(k => menuLabels[k] || k).join(', ') || 'কোনো মেনু নয়';
+    return `${deptNames} · ${menuNames}`;
+  }
+  function renderAdmins() {
+    const admins = API.Teachers.getAll().filter(t => t.role === 'restricted_admin');
+    document.getElementById('admin-list').innerHTML = admins.map(a => `
+      <div class="perm-card">
+        <div class="perm-ico">🛡️</div>
+        <div class="perm-meta">
+          <div class="perm-name">${API.esc(a.name)}</div>
+          <div class="perm-sub">${API.esc(adminPermSummary(a.admin_perms))}</div>
+        </div>
+        <span class="pin-display">পিন: ${API.esc(a.pin || '—')}</span>
+        <div class="perm-actions">
+          <button class="small-btn" onclick="openAdminModal('${a.id}')">সম্পাদনা</button>
+        </div>
+      </div>`).join('') || '<div style="font-size:13px;color:var(--ink3);">কোনো সহকারী জিম্মাদার নেই</div>';
+  }
+  function setAdminPermFields(perms) {
+    const p = normalizeAdminPerms(perms || defaultAdminPerms());
+    document.getElementById('adm-dept-kitab').checked = p.scope.madrasa_depts.includes('kitab');
+    document.getElementById('adm-dept-maktab').checked = p.scope.madrasa_depts.includes('maktab');
+    document.querySelectorAll('.adm-menu').forEach(cb => { cb.checked = !!p.permissions[cb.value]; });
+  }
+  function readAdminPermFields() {
+    const depts = [];
+    if (document.getElementById('adm-dept-kitab').checked) depts.push('kitab');
+    if (document.getElementById('adm-dept-maktab').checked) depts.push('maktab');
+    const permissions = {};
+    document.querySelectorAll('.adm-menu').forEach(cb => { permissions[cb.value] = !!cb.checked; });
+    permissions.dashboard = true;
+    return { scope: { madrasa_depts: depts }, permissions };
+  }
+  function openAdminModal(id) {
+    editingAdminId = id;
+    const user = id ? API.Teachers.getById(id) : null;
+    document.getElementById('adm-name').value = user ? (user.name || '') : '';
+    document.getElementById('adm-pin').value = user ? (user.pin || '') : '';
+    setAdminPermFields(user ? user.admin_perms : defaultAdminPerms());
+    openModal('admin-user');
+  }
+  function saveAdminUser() {
+    const name = document.getElementById('adm-name').value.trim();
+    const pin = document.getElementById('adm-pin').value.trim();
+    const perms = readAdminPermFields();
+    if (!name) { showToast('নাম দিন'); return; }
+    if (pin.length !== 4) { showToast('৪ সংখ্যার পিন দিন'); return; }
+    if (!perms.scope.madrasa_depts.length) { showToast('কমপক্ষে একটি বিভাগ দিন'); return; }
+    if (!Object.keys(perms.permissions).some(k => perms.permissions[k])) { showToast('কমপক্ষে একটি মেনু দিন'); return; }
+    const data = { name, pin, role:'restricted_admin', class_id:null, admin_perms:perms, is_active:true };
+    if (editingAdminId) API.Teachers.update(editingAdminId, data);
+    else API.Teachers.add(data);
+    closeModal('admin-user');
+    showToast('সহকারী জিম্মাদার সংরক্ষণ হয়েছে ✓');
+    renderAdmins();
+  }
+
+  /* CLASSES */
+  function classNextLabel(val) {
+    if (val === 'alumni_pass') return 'বিদায় — পাস করেছেন';
+    if (val === 'dropout') return 'বিদায় — মাঝপথে';
+    return API.Classes.getName(val);
+  }
+  function renderClasses() {
+    const dept = document.getElementById('class-filter').value || 'kitab';
+    const classes = API.Classes.getByDept(dept, true);
+    document.getElementById('class-list').innerHTML = classes.map(c => `
+      <div class="class-row-set ${c.active === false ? 'inactive' : ''}">
+        <div style="flex:1;min-width:0;">
+          <div class="t-name">${API.esc(c.name)}</div>
+          <div class="t-meta">
+            <span class="class-badge">রোল: ${API.esc(c.roll_prefix || '—')}</span>
+            <span class="class-badge">ক্রম: ${API.esc(c.sort_order || '—')}</span>
+            <span class="class-badge">পরবর্তী: ${API.esc(classNextLabel(c.next_class_id))}</span>
+            ${c.active === false ? '<span class="class-badge">নিষ্ক্রিয়</span>' : ''}
+          </div>
+        </div>
+        <button class="small-btn" onclick="openClassModal('${c.id}')">সম্পাদনা</button>
+      </div>`).join('') || '<div style="font-size:13px;color:var(--ink3);">কোনো বর্ষ নেই</div>';
+  }
+  function populateClassNextOptions(selected) {
+    const dept = document.getElementById('cls-dept').value || 'kitab';
+    const options = API.Classes.getAll(true)
+      .filter(c => !editingClassId || c.id !== editingClassId)
+      .map(c => `<option value="${c.id}">${API.esc(c.dept === 'maktab' ? 'মক্তব — ' : 'কিতাব — ')}${API.esc(c.name)}</option>`)
+      .join('');
+    document.getElementById('cls-next').innerHTML = options +
+      '<option value="alumni_pass">বিদায় — পাস করেছেন</option>' +
+      '<option value="dropout">বিদায় — মাঝপথে</option>';
+    document.getElementById('cls-next').value = selected || (dept === 'maktab' ? 'alumni_pass' : 'alumni_pass');
+  }
+  function openClassModal(id) {
+    editingClassId = id;
+    const currentDept = document.getElementById('class-filter')?.value || 'kitab';
+    const c = id ? API.Classes.getById(id) : null;
+    document.getElementById('cls-dept').value = c ? c.dept : currentDept;
+    document.getElementById('cls-name').value = c ? (c.name || '') : '';
+    document.getElementById('cls-roll-prefix').value = c ? (c.roll_prefix || '') : '';
+    document.getElementById('cls-sort').value = c ? (c.sort_order || '') : '';
+    document.getElementById('cls-active').checked = c ? c.active !== false : true;
+    populateClassNextOptions(c ? c.next_class_id : 'alumni_pass');
+    openModal('class');
+  }
+  function saveClass() {
+    const dept = document.getElementById('cls-dept').value;
+    const name = document.getElementById('cls-name').value.trim();
+    const rollPrefix = document.getElementById('cls-roll-prefix').value.trim();
+    const sortOrder = parseInt(document.getElementById('cls-sort').value, 10) || 999;
+    const nextClassId = document.getElementById('cls-next').value || 'alumni_pass';
+    const active = document.getElementById('cls-active').checked;
+    if (!name) { showToast('নাম দিন'); return; }
+    const data = { dept, name, roll_prefix: rollPrefix, sort_order: sortOrder, next_class_id: nextClassId, active };
+    if (editingClassId) API.Classes.update(editingClassId, data);
+    else API.Classes.add(data);
+    document.getElementById('class-filter').value = dept;
+    closeModal('class');
+    showToast('বর্ষ/শ্রেণি সংরক্ষণ হয়েছে ✓');
+    renderClasses();
+  }
+
   /* TEACHERS */
   function renderTeachers() {
-    const teachers = API.Teachers.getAll();
+    const teachers = API.Teachers.getAll().filter(t => t.role !== 'restricted_admin');
     const classes  = API.Classes.getAll();
-    const roleLabel = { daftar:'দফতর', hifz:'হিফজ', library:'মাকতাবা', alumni:'পুরনো ছাত্র', khedmat:'খেদমত' };
+    const roleLabel = { daftar:'দফতর', hifz:'হিফজ', library:'মাকতাবা', alumni:'পুরনো ছাত্র', khedmat:'খেদমত', restricted_admin:'সহকারী জিম্মাদার' };
     document.getElementById('teacher-list').innerHTML = teachers.map(t=>{
       const cls = t.class_id ? classes.find(c=>c.id===t.class_id) : null;
       const meta = cls ? API.esc(cls.name) : (t.role ? roleLabel[t.role]||t.role : '—');

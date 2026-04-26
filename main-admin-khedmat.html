@@ -86,11 +86,11 @@
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
     <span class="main-nav-lbl">খেদমত</span>
   </a>
-  <a class="main-nav-btn" href="admin-hub.html?tab=inbox" aria-label="বার্তা">
+  <a class="main-nav-btn" href="chat.html" aria-label="বার্তা">
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg>
     <span class="main-nav-lbl">বার্তা</span>
   </a>
-  <a class="main-nav-btn" href="admin-hub.html?tab=recent" aria-label="কার্যক্রম">
+  <a class="main-nav-btn" href="main-admin-recent.html" aria-label="কার্যক্রম">
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg>
     <span class="main-nav-lbl">কার্যক্রম</span>
   </a>
@@ -126,7 +126,7 @@
 <script src="js/monitor-mode.js"></script>
 <script src="js/khedmat-api.js"></script>
 <script>
-  if (!MMSession.isAdmin()) { location.href = 'admin-hub.html'; }
+  if (!MMSession.isAdmin() || MMSession.isRestrictedAdmin()) { location.href = 'main-admin-madrasa.html'; }
   mmInsertMonitorBanner();
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);

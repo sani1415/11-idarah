@@ -67,12 +67,13 @@
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script>
-  if (!MMSession.isAdmin()) location.href = '../index.html';
+  if (!MMSession.requireAdminPerm('dashboard', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
 
   const toBn = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
 
   const params = new URLSearchParams(location.search);
-  const dept = params.get('dept') === 'maktab' ? 'maktab' : 'kitab';
+  let dept = params.get('dept') === 'maktab' ? 'maktab' : 'kitab';
+  if (!MMSession.canUseMadrasaDept(dept)) dept = MMSession.getAllowedMadrasaDepts()[0] || 'kitab';
   const deptLabel = dept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
   const sub = document.querySelector('.sw-sub');
   if (sub) sub.textContent = deptLabel + ' — যে ছাত্রদের শিক্ষক বিশেষ পর্যবেক্ষণ হিসেবে চিহ্নিত করেছেন।';

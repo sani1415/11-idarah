@@ -172,10 +172,12 @@ body {
   border: none;
   transform: none;
 }
-.nav-item.active .nav-icon svg {
+.nav-item.active .nav-icon svg,
+.nav-item.active > svg.nav-svg {
   opacity: 1;
 }
-.nav-item .nav-icon svg {
+.nav-item .nav-icon svg,
+.nav-item > svg.nav-svg {
   opacity: 0.88;
 }
 .nav-icon {
@@ -186,12 +188,14 @@ body {
   flex-shrink: 0;
 }
 .nav-icon svg.nav-svg,
-.nav-icon .nav-svg {
+.nav-icon .nav-svg,
+.nav-item > svg.nav-svg {
   width: 22px;
   height: 22px;
   flex-shrink: 0;
 }
-.nav-label {
+.nav-label,
+.nav-item > span:not(.nav-icon) {
   font-size: 10px;
   font-weight: inherit;
   letter-spacing: 0.02em;
@@ -203,7 +207,8 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.nav-item.active .nav-label {
+.nav-item.active .nav-label,
+.nav-item.active > span:not(.nav-icon) {
   font-weight: 600;
 }
 

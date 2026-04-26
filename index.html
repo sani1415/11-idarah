@@ -25,7 +25,9 @@
     align-items: flex-start;
   }
   .role-grid.role-grid-index .role-btn:not(.role-btn-admin) .role-icon {
-    font-size: 22px;
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
   }
   .role-grid.role-grid-index .role-btn:not(.role-btn-admin) .role-name {
     font-size: 13px;
@@ -36,6 +38,44 @@
     line-height: 1.3;
     margin-top: 3px;
   }
+  .role-icon,
+  .pin-role-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink2);
+    background: linear-gradient(180deg, #fffaf0, var(--cream2));
+    border: 1px solid rgba(201, 149, 42, .22);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 4px 14px rgba(26,18,8,.06);
+  }
+  .role-btn-admin .role-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 15px;
+    color: var(--gold2);
+    background: linear-gradient(145deg, var(--ink), var(--ink2));
+    border-color: rgba(201,149,42,.42);
+  }
+  .role-icon svg,
+  .pin-role-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+  }
+  .role-btn-admin .role-icon svg { width: 23px; height: 23px; }
+  .pin-role-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    margin: 0 auto 10px;
+    color: var(--gold2);
+    background: linear-gradient(145deg, var(--ink), var(--ink2));
+    border-color: rgba(201,149,42,.42);
+  }
+  .pin-role-icon svg { width: 25px; height: 25px; }
 </style>
 </head>
 <body>
@@ -48,56 +88,63 @@
 
   <div class="role-grid role-grid-index">
     <div class="role-btn role-btn-admin" onclick="selectRole('admin')">
-      <div class="role-icon">🛡️</div>
+      <div class="role-icon" data-icon="admin"></div>
       <div>
-        <div class="role-name">জিম্মাদার / অ্যাডমিন</div>
+        <div class="role-name">জিম্মাদার</div>
         <div class="role-desc">সম্পূর্ণ নিয়ন্ত্রণ ও সব মডিউল</div>
       </div>
     </div>
+    <div class="role-btn" onclick="selectRole('restricted_admin')">
+      <div class="role-icon" data-icon="assistant"></div>
+      <div>
+        <div class="role-name">সহকারী</div>
+        <div class="role-desc">নির্ধারিত অনুমতি অনুযায়ী প্রবেশ</div>
+      </div>
+    </div>
     <div class="role-btn" onclick="selectRole('teacher')">
-      <div class="role-icon">📖</div>
+      <div class="role-icon" data-icon="teacher"></div>
       <div>
         <div class="role-name">বর্ষ দায়িত্বশীল</div>
         <div class="role-desc">নিজের বর্ষের রিপোর্ট ও লগ</div>
       </div>
     </div>
     <div class="role-btn" onclick="selectRole('daftar')">
-      <div class="role-icon">📋</div>
+      <div class="role-icon" data-icon="daftar"></div>
       <div>
         <div class="role-name">দফতর দায়িত্বশীল</div>
         <div class="role-desc">উপস্থিতি ও ওয়াযিফা সারসংক্ষেপ</div>
       </div>
     </div>
     <div class="role-btn" onclick="selectRole('hifz')">
-      <div class="role-icon">📿</div>
+      <div class="role-icon" data-icon="hifz"></div>
       <div>
         <div class="role-name">হিফজ দায়িত্বশীল</div>
         <div class="role-desc">হিফজ বিভাগ পরিচালনা</div>
       </div>
     </div>
     <div class="role-btn" onclick="selectRole('library')">
-      <div class="role-icon">📚</div>
+      <div class="role-icon" data-icon="library"></div>
       <div>
         <div class="role-name">মাকতাবা দায়িত্বশীল</div>
         <div class="role-desc">বই ইস্যু ও ব্যবস্থাপনা</div>
       </div>
     </div>
     <div class="role-btn" onclick="selectRole('alumni')">
-      <div class="role-icon">🎓</div>
+      <div class="role-icon" data-icon="alumni"></div>
       <div>
         <div class="role-name">পুরনো ছাত্র দায়িত্বশীল</div>
         <div class="role-desc">পুরনো ছাত্রদের ট্র্যাকিং</div>
       </div>
     </div>
     <div class="role-btn" onclick="selectRole('khedmat')">
-      <div class="role-icon">🤝</div>
+      <div class="role-icon" data-icon="khedmat"></div>
       <div>
         <div class="role-name">খেদমত দায়িত্বশীল</div>
         <div class="role-desc">খেদমতে খালক মডিউল</div>
       </div>
     </div>
     <div class="role-btn" onclick="location.href='dept/dept-index.html'">
-      <div class="role-icon">🏢</div>
+      <div class="role-icon" data-icon="dept"></div>
       <div>
         <div class="role-name">বিভাগ দায়িত্বশীল</div>
         <div class="role-desc">আয়-ব্যয় ও মজুদ (কৃষি/মধু ইত্যাদি)</div>
@@ -109,7 +156,7 @@
 <!-- PIN SCREEN -->
 <div class="login-screen" id="pin-screen" style="display:none;">
   <div style="text-align:center;margin-bottom:32px;position:relative;">
-    <span style="font-size:40px;display:block;margin-bottom:8px;" id="pin-icon">🛡️</span>
+    <div class="pin-role-icon" id="pin-icon" data-icon="admin"></div>
     <div style="font-family:'Noto Serif Bengali',serif;font-size:19px;font-weight:700;color:var(--ink2);" id="pin-title">জিম্মাদার লগইন</div>
     <div style="font-size:12px;color:var(--ink3);margin-top:4px;" id="pin-sub">অ্যাডমিন পিন দিন</div>
   </div>
@@ -161,6 +208,31 @@
 
   const BN_MAP = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
 
+  function iconSvg(name) {
+    const icons = {
+      admin: '<path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 3v5c0 4.5-2.9 8.6-7 10-4.1-1.4-7-5.5-7-10V6l7-3z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9.5 12l1.7 1.7 3.6-4"/>',
+      assistant: '<path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M12 3l6 2.7v4.8c0 4-2.4 7.6-6 9.1-3.6-1.5-6-5.1-6-9.1V5.7L12 3z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 12h6M12 9v6"/>',
+      teacher: '<path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 5.5A2.5 2.5 0 016.5 3H20v16H6.5A2.5 2.5 0 014 16.5v-11z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M8 7h8M8 11h6"/>',
+      daftar: '<path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 4h6l1 2h2a1 1 0 011 1v12a1 1 0 01-1 1H6a1 1 0 01-1-1V7a1 1 0 011-1h2l1-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 11h6M9 15h4"/>',
+      hifz: '<path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6 4h12v16l-6-3-6 3V4z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 8h6M9 11h4"/>',
+      library: '<path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 5.5A2.5 2.5 0 016.5 3H20v16H6.5A2.5 2.5 0 014 16.5v-11z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M7 3v16M11 7h5M11 11h4"/>',
+      alumni: '<path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 8l9-4 9 4-9 4-9-4z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M7 10.5V15c0 1.7 2.2 3 5 3s5-1.3 5-3v-4.5"/>',
+      khedmat: '<path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.5 8.5c0 5-8.5 10-8.5 10s-8.5-5-8.5-10A4.5 4.5 0 018 5.2c1.6 0 3 1 4 2.2 1-1.2 2.4-2.2 4-2.2a4.5 4.5 0 014.5 3.3z"/>',
+      dept: '<path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 20h16M6 20V8l6-4 6 4v12"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 20v-6h6v6M9 10h.01M12 10h.01M15 10h.01"/>',
+    };
+    return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">' + (icons[name] || icons.teacher) + '</svg>';
+  }
+
+  function renderIcon(el, name) {
+    if (el) el.innerHTML = iconSvg(name);
+  }
+
+  function renderStaticIcons() {
+    document.querySelectorAll('[data-icon]').forEach(el => renderIcon(el, el.dataset.icon));
+  }
+
+  renderStaticIcons();
+
   function selectRole(role) {
     currentRole = role;
     if (role === 'teacher') {
@@ -168,15 +240,16 @@
       return;
     }
     const info = {
-      admin:   { icon:'🛡️', title:'জিম্মাদার লগইন',   sub:'অ্যাডমিন পিন দিন' },
-      daftar:  { icon:'📋', title:'দফতর লগইন',        sub:'দফতর পিন দিন' },
-      hifz:    { icon:'📿', title:'হিফজ লগইন',        sub:'হিফজ পিন দিন' },
-      library: { icon:'📚', title:'মাকতাবা লগইন',   sub:'মাকতাবা পিন দিন' },
-      alumni:  { icon:'🎓', title:'পুরনো ছাত্র লগইন', sub:'পিন দিন' },
-      khedmat: { icon:'🤝', title:'খেদমত লগইন',       sub:'পিন দিন' },
+      admin:   { icon:'admin', title:'জিম্মাদার লগইন',   sub:'অ্যাডমিন পিন দিন' },
+      restricted_admin: { icon:'assistant', title:'সহকারী জিম্মাদার লগইন', sub:'নিজের পিন দিন' },
+      daftar:  { icon:'daftar', title:'দফতর লগইন',        sub:'দফতর পিন দিন' },
+      hifz:    { icon:'hifz', title:'হিফজ লগইন',        sub:'হিফজ পিন দিন' },
+      library: { icon:'library', title:'মাকতাবা লগইন',   sub:'মাকতাবা পিন দিন' },
+      alumni:  { icon:'alumni', title:'পুরনো ছাত্র লগইন', sub:'পিন দিন' },
+      khedmat: { icon:'khedmat', title:'খেদমত লগইন',       sub:'পিন দিন' },
     };
     const i = info[role];
-    document.getElementById('pin-icon').textContent = i.icon;
+    renderIcon(document.getElementById('pin-icon'), i.icon);
     document.getElementById('pin-title').textContent = i.title;
     document.getElementById('pin-sub').textContent = i.sub;
     showScreen('pin-screen');
@@ -190,7 +263,7 @@
     list.innerHTML = teachers.map(t => {
       const cls = classes.find(c => c.id === t.class_id);
       return `<div class="role-btn" onclick="selectTeacher('${t.id}')">
-        <div class="role-icon">📖</div>
+        <div class="role-icon">${iconSvg('teacher')}</div>
         <div>
           <div class="role-name">${API.esc(t.name)}</div>
           <div class="role-desc">${cls ? API.esc(cls.name) : ''}</div>
@@ -203,7 +276,7 @@
   function selectTeacher(tid) {
     selectedTeacher = API.Teachers.getById(tid);
     const cls = API.Classes.getById(selectedTeacher.class_id);
-    document.getElementById('pin-icon').textContent = '📖';
+    renderIcon(document.getElementById('pin-icon'), 'teacher');
     document.getElementById('pin-title').textContent = API.esc(selectedTeacher.name);
     document.getElementById('pin-sub').textContent = cls ? API.esc(cls.name) : '';
     showScreen('pin-screen');
@@ -253,9 +326,18 @@
 
     if (currentRole === 'admin' && pinVal === settings.admin_pin) {
       ok = true;
-      MMSession.setRole('admin');
-      MMSession.setName('জিম্মাদার');
-      redirect = 'admin-hub.html';
+      MMSession.setAdminSession('জিম্মাদার', null, null);
+      redirect = 'main-admin-madrasa.html';
+    } else if (currentRole === 'restricted_admin') {
+      const helper = API.Teachers.getAll().find(t =>
+        t.role === 'restricted_admin' && t.is_active !== false && String(t.pin || '') === pinVal
+      );
+      if (helper) {
+        ok = true;
+        MMSession.setAdminSession(helper.name || 'সহকারী জিম্মাদার', helper.admin_perms, helper.id);
+        const allowed = MMSession.getAllowedMadrasaDepts();
+        redirect = 'main-admin-madrasa.html?dept=' + encodeURIComponent(allowed[0] || 'kitab');
+      }
     } else if (currentRole === 'daftar') {
       const daftar = API.Teachers.getAll().find(t => t.role === 'daftar');
       if (daftar && pinVal === daftar.pin) {

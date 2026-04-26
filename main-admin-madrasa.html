@@ -31,6 +31,16 @@
   .watch-val--khuluk { color:var(--green); }
   .watch-lbl { font-size:9px; color:var(--ink3); margin-top:4px; line-height:1.3; }
 
+  .dept-choice-bg { position:fixed; inset:0; z-index:260; background:rgba(26,18,8,.32); display:none; align-items:flex-end; justify-content:center; padding:16px; box-sizing:border-box; }
+  .dept-choice-bg.is-open { display:flex; }
+  .dept-choice-card { width:100%; max-width:420px; background:#fff; border-radius:var(--radius); box-shadow:0 18px 50px rgba(26,18,8,.22); padding:16px; }
+  .dept-choice-title { font-family:'Noto Serif Bengali',serif; font-size:17px; font-weight:700; color:var(--ink2); }
+  .dept-choice-sub { font-size:12px; color:var(--ink3); margin-top:4px; line-height:1.5; }
+  .dept-choice-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+  .dept-choice-btn { border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:var(--cream); color:var(--ink2); padding:12px 8px; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
+  .dept-choice-btn:active { transform:scale(.98); }
+  .dept-choice-cancel { width:100%; margin-top:10px; border:none; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:12px; padding:8px; cursor:pointer; }
+
   /* হুসনুল খুলুক tier overlay */
   .kh-overlay { position:fixed; inset:0; z-index:200; background:var(--bg,#faf6ef); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .25s ease; }
   .kh-overlay.is-open { transform:translateX(0); }
@@ -93,6 +103,7 @@
   .class-table tbody tr.class-row { cursor:pointer; transition:background .12s; }
   .class-table tbody tr.class-row:hover { background:rgba(0,0,0,.03); }
   .class-table tbody tr.class-row:active { background:rgba(0,0,0,.06); }
+  .class-table tbody tr.dept-section-row td { background:var(--cream2); color:var(--ink2); font-size:10px; font-weight:700; padding:6px 8px; border-bottom:1px solid var(--cream3); }
   .class-table .td-name { font-family:'Noto Serif Bengali',serif; font-size:12px; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .class-table .td-teacher { font-size:10px; color:var(--ink3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .class-table .td-teacher--tch { color: var(--ink2); text-decoration: underline; text-decoration-color: rgba(14, 165, 233, 0.5); cursor: pointer; }
@@ -139,15 +150,16 @@
     <div class="topbar-name">মাদ্রাসা মডিউল</div>
   </div>
   <div class="topbar-actions">
-    <button class="topbar-btn" onclick="location.href='madrasa/madrasa-settings.html'">⚙ সেটিং</button>
+    <button class="topbar-btn" id="btn-madrasa-settings" onclick="location.href='madrasa/madrasa-settings.html'">⚙ সেটিং</button>
     <button class="topbar-btn" onclick="MMSession.logoutToIndex('index.html')">লগআউট</button>
   </div>
 </div>
 
 <div class="content" style="padding-top:10px;padding-bottom: var(--app-content-pad-bottom);">
 
-  <div class="dept-tab" role="tablist" aria-label="কিতাব বা মক্তব বিভাগ">
-    <div class="dept-tab-btn" role="tab" id="dtab-kitab" aria-selected="true" onclick="switchDept('kitab')">কিতাব বিভাগ</div>
+  <div class="dept-tab" role="tablist" aria-label="সামগ্রিক, কিতাব বা মক্তব বিভাগ">
+    <div class="dept-tab-btn" role="tab" id="dtab-all" aria-selected="true" onclick="switchDept('all')">সামগ্রিক</div>
+    <div class="dept-tab-btn" role="tab" id="dtab-kitab" aria-selected="false" onclick="switchDept('kitab')">কিতাব বিভাগ</div>
     <div class="dept-tab-btn" role="tab" id="dtab-maktab" aria-selected="false" onclick="switchDept('maktab')">মক্তব বিভাগ</div>
   </div>
 
@@ -157,7 +169,7 @@
       <div class="ma-sum-card"><span class="ma-sum-label">মোট ছাত্র</span><span class="ma-sum-val" id="s-total">—</span></div>
       <div class="ma-sum-card"><span class="ma-sum-label">উপস্থিত</span><span class="ma-sum-val v-green" id="s-present">—</span></div>
       <div class="ma-sum-card"><span class="ma-sum-label">অনুপস্থিত</span><span class="ma-sum-val v-red" id="s-absent">—</span></div>
-      <div class="ma-sum-card" style="cursor:pointer" onclick="location.href=mdrHref('madrasa/mdr-admin-withdrawn.html')">
+      <div class="ma-sum-card" data-admin-perm="withdrawn" style="cursor:pointer" onclick="openDeptRoute('madrasa/mdr-admin-withdrawn.html')">
         <span class="ma-sum-label">বিদায় ছাত্র</span><span class="ma-sum-val v-gold" id="s-withdrawn">—</span>
       </div>
     </div>
@@ -165,7 +177,7 @@
 
   <!-- অনুপস্থিত তালিকা, বিশেষ পর্যবেক্ষণ ও হুসনুল খুলুক -->
   <div class="watch-row">
-    <div class="watch-card watch-card--absent" id="card-absent-list" onclick="goAbsentList()">
+    <div class="watch-card watch-card--absent" id="card-absent-list" data-admin-perm="daftar" onclick="goAbsentList()">
       <div class="watch-val watch-val--absent" id="w-absent">—</div>
       <div class="watch-lbl">অনুপস্থিত তালিকা</div>
     </div>
@@ -181,31 +193,31 @@
 
   <!-- shortcuts -->
   <div class="shortcut-grid">
-    <div class="shortcut-card" onclick="location.href=mdrHref('madrasa/mdr-admin-daftar.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="daftar" onclick="openDeptRoute('madrasa/mdr-admin-daftar.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span>
       <span class="shortcut-label">দফতর</span>
     </div>
-    <div class="shortcut-card" onclick="location.href=mdrHref('madrasa/mdr-admin-teachers.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="teachers" onclick="openDeptRoute('madrasa/mdr-admin-teachers.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
       <span class="shortcut-label">শিক্ষক</span>
     </div>
-    <div class="shortcut-card" onclick="location.href=mdrHref('madrasa/mdr-admin-dars.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="dars" onclick="openDeptRoute('madrasa/mdr-admin-dars.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 12h5"/></svg></span>
       <span class="shortcut-label">দরস</span>
     </div>
-    <div class="shortcut-card" onclick="location.href=mdrHref('madrasa/mdr-admin-exams.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="exams" onclick="openDeptRoute('madrasa/mdr-admin-exams.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M10 12h4M10 16h4"/></svg></span>
       <span class="shortcut-label">পরীক্ষা</span>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-hifz.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="hifz" onclick="location.href='madrasa/mdr-admin-hifz.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
       <span class="shortcut-label">হিফজ</span>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-library.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="library" onclick="location.href='madrasa/mdr-admin-library.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
       <span class="shortcut-label">মাকতাবা</span>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-alumni.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="alumni" onclick="location.href='madrasa/mdr-admin-alumni.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
       <span class="shortcut-label">পুরনো ছাত্র</span>
     </div>
@@ -229,6 +241,19 @@
     </div>
   </div>
 
+</div>
+
+<!-- DEPT CHOICE MODAL -->
+<div class="dept-choice-bg" id="dept-choice-modal" onclick="if(event.target===this)closeDeptChoice()">
+  <div class="dept-choice-card">
+    <div class="dept-choice-title">কোন বিভাগে যাবেন?</div>
+    <div class="dept-choice-sub">সামগ্রিক view থেকে কাজের পেজে যেতে একটি বিভাগ বেছে নিন।</div>
+    <div class="dept-choice-actions">
+      <button type="button" class="dept-choice-btn" id="choose-kitab" onclick="chooseDeptRoute('kitab')">কিতাব বিভাগ</button>
+      <button type="button" class="dept-choice-btn" id="choose-maktab" onclick="chooseDeptRoute('maktab')">মক্তব বিভাগ</button>
+    </div>
+    <button type="button" class="dept-choice-cancel" onclick="closeDeptChoice()">বাতিল</button>
+  </div>
 </div>
 
 <!-- KHULUK PANEL OVERLAY -->
@@ -275,11 +300,11 @@
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
     <span class="main-nav-lbl">খেদমত</span>
   </a>
-  <a class="main-nav-btn" href="admin-hub.html?tab=inbox" aria-label="বার্তা">
+  <a class="main-nav-btn" href="chat.html" aria-label="বার্তা" data-admin-perm="messages">
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg>
     <span class="main-nav-lbl">বার্তা</span>
   </a>
-  <a class="main-nav-btn" href="admin-hub.html?tab=recent" aria-label="কার্যক্রম">
+  <a class="main-nav-btn" href="main-admin-recent.html" aria-label="কার্যক্রম" data-admin-perm="recent">
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg>
     <span class="main-nav-lbl">কার্যক্রম</span>
   </a>
@@ -294,38 +319,100 @@
 <script src="js/mm-teacher-modal.js"></script>
 <script src="js/mam-overlay.js"></script>
 <script>
-  if (!MMSession.isAdmin()) { location.href = 'admin-hub.html'; }
+  if (!MMSession.requireAdminPerm('dashboard', 'index.html')) { throw new Error('admin permission denied'); }
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const MADRASA_DEPT_KEY = 'mm_madrasa_jimmadar_dept';
+  let pendingDeptRoute = '';
 
   function mdrHref(path) {
-    return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'dept=' + encodeURIComponent(currentDept);
+    const routeDept = currentDept === 'all' ? (getScopeDepts()[0] || 'kitab') : currentDept;
+    return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'dept=' + encodeURIComponent(routeDept);
+  }
+
+  function deptHref(path, dept) {
+    return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'dept=' + encodeURIComponent(dept);
+  }
+
+  function getScopeDepts() {
+    const allowed = MMSession.getAllowedMadrasaDepts();
+    if (currentDept === 'kitab' || currentDept === 'maktab') return allowed.includes(currentDept) ? [currentDept] : [];
+    return allowed.filter(d => d === 'kitab' || d === 'maktab');
+  }
+
+  function openDeptRoute(path) {
+    const allowed = MMSession.getAllowedMadrasaDepts();
+    if (currentDept === 'kitab' || currentDept === 'maktab') {
+      location.href = deptHref(path, currentDept);
+      return;
+    }
+    if (allowed.length <= 1) {
+      location.href = deptHref(path, allowed[0] || 'kitab');
+      return;
+    }
+    pendingDeptRoute = path;
+    document.getElementById('choose-kitab').style.display = allowed.includes('kitab') ? '' : 'none';
+    document.getElementById('choose-maktab').style.display = allowed.includes('maktab') ? '' : 'none';
+    document.getElementById('dept-choice-modal').classList.add('is-open');
+  }
+
+  function chooseDeptRoute(dept) {
+    if (!pendingDeptRoute || !MMSession.canUseMadrasaDept(dept)) return;
+    location.href = deptHref(pendingDeptRoute, dept);
+  }
+
+  function closeDeptChoice() {
+    pendingDeptRoute = '';
+    document.getElementById('dept-choice-modal').classList.remove('is-open');
   }
 
   function readInitialDept() {
+    const allowed = MMSession.getAllowedMadrasaDepts();
     try {
       const u = new URLSearchParams(location.search).get('dept');
-      if (u === 'kitab' || u === 'maktab') return u;
+      if (u === 'all' && allowed.length > 1) return 'all';
+      if ((u === 'kitab' || u === 'maktab') && allowed.includes(u)) return u;
     } catch (e) {}
+    if (allowed.length > 1) return 'all';
     try {
       const s = localStorage.getItem(MADRASA_DEPT_KEY);
-      if (s === 'kitab' || s === 'maktab') return s;
+      if ((s === 'kitab' || s === 'maktab') && allowed.includes(s)) return s;
     } catch (e) {}
-    return 'kitab';
+    return allowed[0] || 'kitab';
   }
 
   let currentDept = readInitialDept();
 
   function syncDeptTabUI() {
+    const a = document.getElementById('dtab-all');
     const k = document.getElementById('dtab-kitab');
     const m = document.getElementById('dtab-maktab');
-    if (k) k.setAttribute('aria-selected', currentDept === 'kitab' ? 'true' : 'false');
-    if (m) m.setAttribute('aria-selected', currentDept === 'maktab' ? 'true' : 'false');
+    const allowed = MMSession.getAllowedMadrasaDepts();
+    if (a) {
+      a.setAttribute('aria-selected', currentDept === 'all' ? 'true' : 'false');
+      a.style.display = allowed.length > 1 ? '' : 'none';
+    }
+    if (k) {
+      k.setAttribute('aria-selected', currentDept === 'kitab' ? 'true' : 'false');
+      k.style.display = allowed.includes('kitab') ? '' : 'none';
+    }
+    if (m) {
+      m.setAttribute('aria-selected', currentDept === 'maktab' ? 'true' : 'false');
+      m.style.display = allowed.includes('maktab') ? '' : 'none';
+    }
+  }
+
+  function applyAdminPermissions() {
+    document.querySelectorAll('[data-admin-perm]').forEach(el => {
+      el.style.display = MMSession.canAdmin(el.dataset.adminPerm) ? '' : 'none';
+    });
+    const settingsBtn = document.getElementById('btn-madrasa-settings');
+    if (settingsBtn && MMSession.isRestrictedAdmin()) settingsBtn.style.display = 'none';
   }
 
   function countWithdrawalsByDept(dept) {
-    if (dept !== 'kitab' && dept !== 'maktab') return API.persistLoadArr('mm_withdrawals').length;
+    if (dept === 'all') return getScopeDepts().reduce((sum, d) => sum + countWithdrawalsByDept(d), 0);
+    if (dept !== 'kitab' && dept !== 'maktab') return 0;
     const cids = new Set(API.Classes.getByDept(dept).map(c => c.id));
     return API.persistLoadArr('mm_withdrawals').filter(w => {
       if (w.last_class_id && cids.has(w.last_class_id)) return true;
@@ -335,9 +422,15 @@
   }
 
   function switchDept(dept) {
-    if (dept !== 'kitab' && dept !== 'maktab') return;
+    const allowed = MMSession.getAllowedMadrasaDepts();
+    if (dept !== 'all' && dept !== 'kitab' && dept !== 'maktab') return;
+    if (dept === 'all' && allowed.length <= 1) return;
+    if (dept !== 'all' && !MMSession.canUseMadrasaDept(dept)) return;
     currentDept = dept;
-    try { localStorage.setItem(MADRASA_DEPT_KEY, dept); } catch (e) {}
+    try {
+      if (dept === 'all') localStorage.removeItem(MADRASA_DEPT_KEY);
+      else localStorage.setItem(MADRASA_DEPT_KEY, dept);
+    } catch (e) {}
     syncDeptTabUI();
     renderStats();
     renderClassList();
@@ -346,8 +439,12 @@
 
   function renderStats() {
     const iso = new Date().toISOString().split('T')[0];
-    const att = API.Attendance.getDateSummaryForDept(iso, currentDept);
-    const total = API.Students.countActiveByDept(currentDept);
+    const depts = getScopeDepts();
+    const att = depts.reduce((sum, dept) => {
+      const part = API.Attendance.getDateSummaryForDept(iso, dept);
+      return { present: sum.present + part.present, absent: sum.absent + part.absent };
+    }, { present: 0, absent: 0 });
+    const total = depts.reduce((sum, dept) => sum + API.Students.countActiveByDept(dept), 0);
     document.getElementById('s-total').textContent = toBn(total);
     document.getElementById('s-present').textContent = toBn(att.present);
     document.getElementById('s-absent').textContent = toBn(att.absent);
@@ -355,14 +452,15 @@
   }
 
   function updateWatchCounts() {
-    document.getElementById('w-absent').textContent = toBn(API.Attendance.countStudentsWithAnyAbsentByDept(currentDept));
-    document.getElementById('w-special').textContent = toBn(API.Students.countSpecialWatchByDept(currentDept));
+    const depts = getScopeDepts();
+    document.getElementById('w-absent').textContent = toBn(depts.reduce((sum, dept) => sum + API.Attendance.countStudentsWithAnyAbsentByDept(dept), 0));
+    document.getElementById('w-special').textContent = toBn(depts.reduce((sum, dept) => sum + API.Students.countSpecialWatchByDept(dept), 0));
     const avg = getKhulukAvgByDept(currentDept);
     document.getElementById('w-khuluk-avg').textContent = avg !== null ? toBn(avg) : '—';
   }
 
   function getKhulukAvgByDept(dept) {
-    const classes = API.Classes.getByDept(dept);
+    const classes = getClassesForScope(dept);
     const scores = [];
     classes.forEach(cls => {
       API.Students.getByClass(cls.id).forEach(s => {
@@ -374,9 +472,9 @@
   }
 
   function getKhulukBandsByDept(dept) {
-    const classes = API.Classes.getByDept(dept);
+    const classes = getClassesForScope(dept);
     const classMap = {};
-    classes.forEach(c => { classMap[c.id] = c.name; });
+    classes.forEach(c => { classMap[c.id] = dept === 'all' ? deptLabel(c.dept) + ' — ' + c.name : c.name; });
     const bands = { high: [], mid: [], low: [], none: [] };
     classes.forEach(cls => {
       API.Students.getByClass(cls.id).forEach(s => {
@@ -398,7 +496,7 @@
     const avg = getKhulukAvgByDept(currentDept);
     const total = bands.high.length + bands.mid.length + bands.low.length + bands.none.length;
     const subEl = document.getElementById('kh-ov-sub');
-    if (subEl) subEl.textContent = (currentDept === 'maktab' ? 'মক্তব' : 'কিতাব') + ' বিভাগ — নির্বাচিত বর্ষের সারসংক্ষেপ';
+    if (subEl) subEl.textContent = (currentDept === 'all' ? 'সামগ্রিক' : (currentDept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ')) + ' — নির্বাচিত বর্ষের সারসংক্ষেপ';
     const renderList = (arr, colorClass) => arr.length ? arr.map(s =>
       `<div class="kh-tier-student" onclick="event.stopPropagation()">
         <button type="button" class="s-name-btn kh-ts-name" onclick="event.stopPropagation();MMStudentModal.open('${String(s.id).replace(/'/g, "\\'")}')">${API.esc(s.name)}</button>
@@ -406,7 +504,7 @@
         ${s.score !== null ? `<div class="kh-ts-score ${colorClass}">${toBn(s.score)}</div>` : ''}
       </div>`).join('') : `<div style="color:var(--ink3);font-size:12px;padding:8px 0;">কেউ নেই</div>`;
 
-    const deptBn = currentDept === 'maktab' ? 'মক্তব' : 'কিতাব';
+    const deptBn = currentDept === 'all' ? 'সামগ্রিক' : (currentDept === 'maktab' ? 'মক্তব' : 'কিতাব');
     document.getElementById('kh-ov-body').innerHTML = `
       <div class="kh-avg-banner">
         <div class="kh-avg-num">${avg !== null ? toBn(avg) : '—'}</div>
@@ -466,19 +564,29 @@
   }
 
   function goAbsentList() {
-    location.href = 'madrasa/madrasa-absent-students.html?dept=' + encodeURIComponent(currentDept);
+    openDeptRoute('madrasa/madrasa-absent-students.html');
   }
   function goSpecialWatch() {
-    location.href = 'madrasa/madrasa-special-watch.html?dept=' + encodeURIComponent(currentDept);
+    openDeptRoute('madrasa/madrasa-special-watch.html');
+  }
+
+  function deptLabel(dept) {
+    return dept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
+  }
+
+  function getClassesForScope(dept) {
+    if (dept === 'all') return getScopeDepts().flatMap(d => API.Classes.getByDept(d).map(c => ({ ...c, dept: d })));
+    return API.Classes.getByDept(dept).map(c => ({ ...c, dept }));
   }
 
   function renderClassList() {
     const iso = new Date().toISOString().split('T')[0];
-    const classes = API.Classes.getByDept(currentDept);
-    const teachers = API.Teachers.getByDept(currentDept);
+    const classes = getClassesForScope(currentDept);
+    const teachers = getScopeDepts().flatMap(dept => API.Teachers.getByDept(dept));
     const teacherMap = {};
     teachers.forEach(t => { teacherMap[t.class_id] = t.name; });
 
+    let lastDept = '';
     const rows = classes.map(cls => {
       const students = API.Students.getByClass(cls.id);
       const attRecs = API.Attendance.getByClassDate(cls.id, iso);
@@ -488,7 +596,11 @@
       const teacherName = teacherMap[cls.id] || '—';
       const tObj = API.Teachers.getByClassId(cls.id);
       const tid = tObj && tObj.id ? tObj.id : '';
-      return `<tr class="class-row" onclick="openClassOverlay('${cls.id}')">
+      const section = currentDept === 'all' && cls.dept !== lastDept
+        ? `<tr class="dept-section-row"><td colspan="6">${deptLabel(cls.dept)}</td></tr>`
+        : '';
+      lastDept = cls.dept;
+      return section + `<tr class="class-row" onclick="openClassOverlay('${cls.id}')">
         <td class="td-name">${API.esc(cls.name)}</td>
         <td class="td-teacher${tid ? ' td-teacher--tch' : ''}" ${tid ? `onclick="event.stopPropagation();MMTeacherModal.open('${tid}')"` : ''} title="${tid ? 'শিক্ষকের সারাংশ' : ''}">${API.esc(teacherName)}</td>
         <td class="td-num n-in">${toBn(students.length)}</td>
@@ -503,6 +615,7 @@
   }
 
   // init
+  applyAdminPermissions();
   syncDeptTabUI();
   renderStats();
   updateWatchCounts();

@@ -225,17 +225,8 @@
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mm-session.js"></script>
 <script>
-  if (!MMSession.getRole()) location.href = '../index.html';
+  if (!MMSession.requireStaffRoleOrAdminPerm('daftar', 'daftar', '../main-admin-madrasa.html')) { throw new Error('daftar permission denied'); }
   document.getElementById('top-name').textContent = MMSession.getName() || 'দফতর';
-
-  /* ── default next class mapping ── */
-  const NEXT_CLS = {
-    cls_k1:'cls_ky', cls_ky:'cls_k2', cls_k2:'cls_k3', cls_k3:'cls_k4',
-    cls_k4:'cls_k5', cls_k5:'cls_k6', cls_k6:'cls_k7', cls_k7:'cls_k8',
-    cls_k8:'alumni_pass',
-    cls_m1:'cls_m2', cls_m2:'cls_m3', cls_m3:'cls_m4', cls_m4:'cls_m5',
-    cls_m5:'cls_k1',
-  };
 
   /* ── state ── */
   let deptChoice = 'both';
@@ -313,12 +304,7 @@
     /* reset kitab progress */
     API.KitabProgress.resetAllProgress();
     /* build tour */
-    const allCls = API.Classes.getAll();
-    const order = ['cls_k1','cls_ky','cls_k2','cls_k3','cls_k4','cls_k5','cls_k6','cls_k7','cls_k8',
-                   'cls_m1','cls_m2','cls_m3','cls_m4','cls_m5'];
-    tourClasses = order
-      .map(id => allCls.find(c => c.id === id))
-      .filter(c => c && (deptChoice === 'both' || c.dept === deptChoice));
+    tourClasses = API.Classes.getAll().filter(c => deptChoice === 'both' || c.dept === deptChoice);
     tourIdx = 0;
     decisions = {};
     rollCounters = {};
@@ -347,7 +333,7 @@
   function renderCurrentClass() {
     const cls = tourClasses[tourIdx];
     const students = API.Students.getAll().filter(s => s.active && s.class_id === cls.id);
-    const defNext = NEXT_CLS[cls.id] || 'alumni_pass';
+    const defNext = cls.next_class_id || 'alumni_pass';
     const defCls = API.Classes.getById(defNext);
     const defName = defCls ? defCls.name : (defNext === 'alumni_pass' ? 'বিদায় — পাস' : '—');
     document.getElementById('cls-progress').textContent = `বর্ষ ${toBn(tourIdx+1)} / ${toBn(tourClasses.length)}`;
@@ -403,7 +389,7 @@
 
   function bulkDefault() {
     const cls = tourClasses[tourIdx];
-    const defNext = NEXT_CLS[cls.id] || 'alumni_pass';
+    const defNext = cls.next_class_id || 'alumni_pass';
     const students = API.Students.getAll().filter(s => s.active && s.class_id === cls.id);
     students.forEach(s => {
       const action = defNext === 'alumni_pass' ? 'alumni_pass' : 'promote';

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>সাম্প্রতিক কার্যক্রম — মাদরাসাতুল মদীনা</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/main-admin-nav.css">
+<style>
+  .recent-wrap { padding:14px; padding-bottom:var(--app-content-pad-bottom); }
+  .recent-head { background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:12px; }
+  .recent-title { font-family:'Noto Serif Bengali',serif; font-size:18px; font-weight:700; color:var(--ink2); }
+  .recent-sub { font-size:12px; color:var(--ink3); margin-top:4px; line-height:1.5; }
+  .recent-item { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:flex-start; gap:12px; border:1px solid rgba(26,18,8,.05); }
+  .recent-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+  .recent-text { flex:1; font-size:12px; color:var(--ink); line-height:1.45; }
+  .recent-date { font-size:10px; color:var(--ink3); flex-shrink:0; margin-top:2px; }
+  .recent-empty { text-align:center; color:var(--ink3); padding:28px 16px; font-size:13px; background:rgba(255,255,255,.5); border-radius:var(--radius-sm); border:1px dashed var(--cream3); }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">জিম্মাদার</div>
+    <div class="topbar-name">সাম্প্রতিক কার্যক্রম</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="MMSession.logoutToIndex('index.html')">লগআউট</button>
+  </div>
+</div>
+
+<main class="content recent-wrap">
+  <section class="recent-head">
+    <div class="recent-title">সাম্প্রতিক কার্যক্রম</div>
+    <div class="recent-sub">মাদ্রাসা লগ, বিভাগ লেনদেন ও খেদমত থেকে সর্বশেষ রেকর্ড</div>
+  </section>
+  <div id="recent-feed"></div>
+</main>
+
+<nav class="main-nav" role="navigation" aria-label="জিম্মাদার নেভিগেশন">
+  <a class="main-nav-btn" href="main-admin-madrasa.html" aria-label="মাদ্রাসা">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    <span class="main-nav-lbl">মাদ্রাসা</span>
+  </a>
+  <a class="main-nav-btn" href="main-admin-dept.html" aria-label="বিভাগ">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg>
+    <span class="main-nav-lbl">বিভাগ</span>
+  </a>
+  <a class="main-nav-btn" href="main-admin-khedmat.html" aria-label="খেদমত">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    <span class="main-nav-lbl">খেদমত</span>
+  </a>
+  <a class="main-nav-btn" href="chat.html" aria-label="বার্তা" data-admin-perm="messages">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg>
+    <span class="main-nav-lbl">বার্তা</span>
+  </a>
+  <a class="main-nav-btn is-active" href="main-admin-recent.html" aria-label="কার্যক্রম" data-admin-perm="recent">
+    <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg>
+    <span class="main-nav-lbl">কার্যক্রম</span>
+  </a>
+</nav>
+
+<script src="js/api.js"></script>
+<script src="js/mm-sample-data.js"></script>
+<script src="js/mm-session.js"></script>
+<script src="js/dept-api.js"></script>
+<script src="js/khedmat-api.js"></script>
+<script>
+  if (!MMSession.requireAdminPerm('recent', 'main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
+  const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  const fmtAmt = n => '৳' + toBn(Math.round(Number(n)).toLocaleString('en'));
+  const fmtDate = d => { if (!d) return ''; const p = String(d).split('-'); return p[2] + '/' + p[1]; };
+
+  function canSeeLog(log) {
+    if (!MMSession.isRestrictedAdmin()) return true;
+    const cids = new Set(MMSession.getAllowedMadrasaDepts().flatMap(dept => API.Classes.getByDept(dept).map(c => c.id)));
+    if (log.type === 'class') return cids.has(log.ref_id);
+    if (log.type === 'student') {
+      const s = API.Students.getById(log.ref_id);
+      return !!(s && cids.has(s.class_id));
+    }
+    if (log.type === 'teacher') {
+      const t = API.Teachers.getById(log.ref_id);
+      return !!(t && t.class_id && cids.has(t.class_id));
+    }
+    return false;
+  }
+
+  function renderRecent() {
+    const today = new Date();
+    const feed = [];
+    if (!MMSession.isRestrictedAdmin()) {
+      const khLog = KhAPI.DailyLogs.getLatest();
+      if (khLog) feed.push({ color:'var(--gold)', text:'খেদমত লগ: ' + khLog.content.slice(0,50) + (khLog.content.length > 50 ? '...' : ''), date:fmtDate(khLog.date) });
+      KhAPI.Activities.getAll().slice(0,2).forEach(a => {
+        const ben = KhAPI.Beneficiaries.getById(a.beneficiary_id);
+        feed.push({ color:'var(--teal)', text:(ben?.name || '—') + ': ' + a.title, date:fmtDate(a.date) });
+      });
+      DeptAPI.Transactions.getAll().slice(0,2).forEach(t => {
+        const dept = DeptAPI.Departments.getById(t.dept_id);
+        const dStr = t.date || t.txn_date || today.toISOString().slice(0,10);
+        feed.push({ color:t.type === 'income' ? 'var(--green)' : 'var(--red)', text:(dept?.name || '—') + ' — ' + t.description + ' ' + fmtAmt(t.amount), date:fmtDate(dStr) });
+      });
+    }
+    API.Logs.getAll().filter(canSeeLog).slice(0,4).forEach(l => {
+      feed.push({ color:'var(--blue)', text:l.text.slice(0,60) + (l.text.length > 60 ? '...' : ''), date:fmtDate(l.date) });
+    });
+    feed.sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+    document.getElementById('recent-feed').innerHTML = feed.slice(0,10).map(f =>
+      `<div class="recent-item"><div class="recent-dot" style="background:${f.color};"></div><div class="recent-text">${API.esc(f.text)}</div><div class="recent-date">${API.esc(f.date)}</div></div>`
+    ).join('') || '<div class="recent-empty">এখনো কোনো কার্যক্রমের রেকর্ড নেই।</div>';
+  }
+
+  renderRecent();
+</script>
+</body>
+</html>

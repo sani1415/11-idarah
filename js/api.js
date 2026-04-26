@@ -274,11 +274,51 @@ const API = (() => {
   /* ══════════════════════════════
      CLASSES
      ══════════════════════════════ */
+  const DEFAULT_CLASS_NEXT = {
+    cls_k1: 'cls_ky', cls_ky: 'cls_k2', cls_k2: 'cls_k3', cls_k3: 'cls_k4',
+    cls_k4: 'cls_k5', cls_k5: 'cls_k6', cls_k6: 'cls_k7', cls_k7: 'cls_k8',
+    cls_k8: 'alumni_pass',
+    cls_m1: 'cls_m2', cls_m2: 'cls_m3', cls_m3: 'cls_m4', cls_m4: 'cls_m5',
+    cls_m5: 'cls_k1',
+  };
+  const DEFAULT_CLASS_ORDER = {
+    cls_k1: 10, cls_ky: 20, cls_k2: 30, cls_k3: 40, cls_k4: 50,
+    cls_k5: 60, cls_k6: 70, cls_k7: 80, cls_k8: 90,
+    cls_m1: 10, cls_m2: 20, cls_m3: 30, cls_m4: 40, cls_m5: 50,
+  };
+  function normalizeClass(c) {
+    if (!c) return c;
+    return {
+      active: c.active !== false,
+      sort_order: c.sort_order != null ? Number(c.sort_order) : (DEFAULT_CLASS_ORDER[c.id] || Number(c.year) * 10 || 999),
+      next_class_id: c.next_class_id || DEFAULT_CLASS_NEXT[c.id] || 'alumni_pass',
+      ...c,
+      active: c.active !== false,
+    };
+  }
+  function sortClasses(list) {
+    return list.map(normalizeClass).sort((a, b) =>
+      (a.dept || '').localeCompare(b.dept || '') ||
+      (Number(a.sort_order) || 999).toString().localeCompare((Number(b.sort_order) || 999).toString(), undefined, { numeric: true }) ||
+      String(a.name || '').localeCompare(String(b.name || ''), 'bn')
+    );
+  }
   const Classes = {
-    getAll: () => load(KEYS.classes),
-    getById: id => load(KEYS.classes).find(c => c.id === id),
-    getByDept: dept => load(KEYS.classes).filter(c => c.dept === dept),
+    getAll: (includeInactive = false) => sortClasses(load(KEYS.classes).filter(c => includeInactive || c.active !== false)),
+    getById: id => normalizeClass(load(KEYS.classes).find(c => c.id === id)),
+    getByDept: (dept, includeInactive = false) => sortClasses(load(KEYS.classes).filter(c => c.dept === dept && (includeInactive || c.active !== false))),
     getName: id => { const c = load(KEYS.classes).find(c => c.id === id); return c ? c.name : '—'; },
+    add(data) {
+      const list = load(KEYS.classes);
+      const id = data.id || 'cls_' + uid();
+      const entry = normalizeClass({ active: true, sort_order: 999, next_class_id: 'alumni_pass', ...data, id });
+      list.push(entry);
+      save(KEYS.classes, list);
+      return entry;
+    },
+    update(id, data) {
+      save(KEYS.classes, load(KEYS.classes).map(c => c.id === id ? normalizeClass({ ...c, ...data, id: c.id }) : c));
+    },
   };
 
   /* ══════════════════════════════

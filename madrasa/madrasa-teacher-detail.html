@@ -111,11 +111,12 @@
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
 <script>
-  if (!MMSession.isAdmin()) location.href = '../index.html';
+  if (!MMSession.requireAdminPerm('teachers', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
 
   const params = new URLSearchParams(location.search);
   const id = params.get('id');
-  const dept = params.get('dept') === 'maktab' ? 'maktab' : 'kitab';
+  let dept = params.get('dept') === 'maktab' ? 'maktab' : 'kitab';
+  if (!MMSession.canUseMadrasaDept(dept)) dept = MMSession.getAllowedMadrasaDepts()[0] || 'kitab';
 
   const toBn = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = (n) => '৳' + toBn(Math.round(Number(n) || 0).toLocaleString('en'));
