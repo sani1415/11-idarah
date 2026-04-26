@@ -254,6 +254,14 @@ body.page-daftar .topbar-btn { padding:6px 10px; font-size:11px; }
     const dept = document.getElementById('add-dept').value;
     const sel = document.getElementById('add-class');
     sel.innerHTML = API.Classes.getAll().filter(c=>c.dept===dept).map(c=>`<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
+    const pidInp = document.getElementById('add-pid');
+    const hy = (API.Settings.get().hijri_year || '১৪৪৪৭').trim();
+    if (dept === 'maktab') {
+      pidInp.placeholder = 'ম + বাংলা অঙ্ক (নম্বর স্বয়ংক্রিয় ধরা যায়)';
+      if (!String(pidInp.value || '').trim()) pidInp.value = API.Students.getNextPermanentId('maktab', hy);
+    } else {
+      pidInp.placeholder = 'যেমন: ৪৭০১২';
+    }
   }
   function addStudent() {
     const name = document.getElementById('add-name').value.trim();

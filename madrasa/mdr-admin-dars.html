@@ -93,6 +93,12 @@
   if (!MMSession.isAdmin()) { location.href = '../admin-hub.html'; }
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   let dept = 'kitab';
+  (function() {
+    try {
+      const d = new URLSearchParams(location.search).get('dept');
+      if (d === 'kitab' || d === 'maktab') dept = d;
+    } catch (e) {}
+  })();
   let selectedClassId = null;
 
   function sortClasses(list) {
@@ -207,7 +213,7 @@
     renderClassStrip();
     renderDetail();
   }
-  renderAll();
+  setDept(dept);
 </script>
 </body>
 </html>

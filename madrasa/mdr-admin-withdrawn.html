@@ -131,6 +131,21 @@
   const WD_KEY = 'mm_withdrawals';
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   let currentFilter = 'সব';
+  let wDept = null;
+  (function() {
+    try {
+      const d = new URLSearchParams(location.search).get('dept');
+      if (d === 'kitab' || d === 'maktab') wDept = d;
+    } catch (e) {}
+  })();
+
+  function withdrawalMatchesDept(w) {
+    if (!wDept) return true;
+    const cids = new Set(API.Classes.getByDept(wDept).map(c => c.id));
+    if (w.last_class_id && cids.has(w.last_class_id)) return true;
+    const s = API.Students.getById(w.student_id);
+    return !!(s && cids.has(s.class_id));
+  }
 
   function setFilter(f, btn) {
     currentFilter = f;
@@ -139,7 +154,7 @@
   }
 
   function render() {
-    const list = API.persistLoadArr(WD_KEY);
+    const list = API.persistLoadArr(WD_KEY).filter(withdrawalMatchesDept);
     const today = API.today();
     const thisYear = today.slice(0, 4);
     const thisMonth = today.slice(0, 7);
@@ -172,9 +187,14 @@
       </div>`;
     }).join('') || '<div class="empty-state"><span class="empty-icon">🚪</span><div class="empty-text">এখনো কোনো বিদায় রেকর্ড নেই</div></div>';
 
-    /* populate student select */
-    const activeStudents = API.Students.getAll().filter(s => s.active);
-    const wdStudentIds = new Set(list.map(w => w.student_id));
+    /* populate student select — সব বিভাগের বিদায় আইডি বাদ, তালিকা শুধু এখনকার `wDept` বা সব */
+    const allWd = API.persistLoadArr(WD_KEY);
+    const wdStudentIds = new Set(allWd.map(w => w.student_id));
+    let activeStudents = API.Students.getAll().filter(s => s.active);
+    if (wDept) {
+      const cids = new Set(API.Classes.getByDept(wDept).map(c => c.id));
+      activeStudents = activeStudents.filter(s => cids.has(s.class_id));
+    }
     document.getElementById('wd-student').innerHTML = activeStudents
       .filter(s => !wdStudentIds.has(s.id))
       .map(s => {

@@ -106,6 +106,12 @@
 <script>
   if (!MMSession.isAdmin()) location.href = '../index.html';
   let currentDept = 'kitab';
+  (function() {
+    try {
+      const d = new URLSearchParams(location.search).get('dept');
+      if (d === 'kitab' || d === 'maktab') currentDept = d;
+    } catch (e) {}
+  })();
 
   function switchDept(dept) {
     currentDept = dept;
@@ -134,6 +140,8 @@
       </div>`;
     }).join('');
   }
+  document.getElementById('dtab-kitab').classList.toggle('active', currentDept === 'kitab');
+  document.getElementById('dtab-maktab').classList.toggle('active', currentDept === 'maktab');
   render();
 </script>
 </body>

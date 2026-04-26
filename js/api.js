@@ -40,6 +40,27 @@ const API = (() => {
     localStorage.setItem(key, JSON.stringify(data));
   }
 
+  /** মক্তব: স্থায়ী আইডি শুধু `ম` + বাংলা/ইংরেজি অঙ্কের ধারা (৪/৫ অঙ্ক প্যাড) */
+  const MAKTAB_ID_PREFIX = 'ম';
+  function bnDigitsToInt(str) {
+    if (!str) return 0;
+    const t = String(str).trim().replace(/[০-৯]/g, (ch) => {
+      const i = '০১২৩৪৫৬৭৮৯'.indexOf(ch);
+      return i < 0 ? ch : String(i);
+    });
+    const digits = t.replace(/[^0-9]/g, '');
+    return parseInt(digits, 10) || 0;
+  }
+  function intToBnPadded(n, minLen) {
+    const s = String(n).split('').map((c) => '০১২৩৪৫৬৭৮৯'[Number(c)]).join('');
+    return s.length >= minLen ? s : '০'.repeat(minLen - s.length) + s;
+  }
+  function parseMaktabPermanentIdToInt(pid) {
+    const s = String(pid || '').trim();
+    if (!s.startsWith(MAKTAB_ID_PREFIX)) return 0;
+    return bnDigitsToInt(s.slice(MAKTAB_ID_PREFIX.length));
+  }
+
   /* ══════════════════════════════
      SEED DATA — প্রথম লোডে নমুনা ডেটা
      ══════════════════════════════ */
@@ -190,9 +211,19 @@ const API = (() => {
      * @param {Set<string>} virtualPids
      */
     getNextPermanentIdRespecting(virtualPids, dept, hijriYear) {
-      const prefix = dept === 'maktab' ? 'ম' : '';
+      if (dept === 'maktab') {
+        const nums = [];
+        load(KEYS.students).forEach((s) => {
+          if (s.permanent_id) nums.push(parseMaktabPermanentIdToInt(s.permanent_id));
+        });
+        if (virtualPids && virtualPids.forEach) {
+          virtualPids.forEach((id) => nums.push(parseMaktabPermanentIdToInt(id)));
+        }
+        const next = nums.length ? Math.max(0, ...nums) + 1 : 1;
+        return MAKTAB_ID_PREFIX + intToBnPadded(next, 5);
+      }
       const yr = String(hijriYear).slice(-2);
-      const head = prefix + yr;
+      const head = yr;
       const takeNum = (pid) => {
         if (!pid || !String(pid).startsWith(head)) return 0;
         return parseInt(String(pid).slice(head.length), 10) || 0;

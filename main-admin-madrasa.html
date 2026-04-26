@@ -73,10 +73,10 @@
   .shortcut-ico svg { width:100%; height:100%; display:block; }
   .shortcut-label { font-size:10px; color:var(--ink3); line-height:1.25; font-weight:600; }
 
-  /* dept tab */
-  .dept-tab { display:flex; gap:8px; margin-bottom:12px; }
+  /* dept tab — এডমিন কনটেন্টের সবার উপর (টপবারের নিচে) */
+  .dept-tab { display:flex; gap:8px; margin-top:0; margin-bottom:14px; }
   .dept-tab-btn { flex:1; padding:10px 6px; background:#fff; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink3); transition:all .15s; }
-  .dept-tab-btn.active { border-color:var(--ink); background:var(--ink); color:var(--gold2); }
+  .dept-tab-btn[aria-selected="true"] { border-color:var(--ink); background:var(--ink); color:var(--gold2); }
 
   /* class table */
   .class-table-wrap { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:12px; overflow:hidden; }
@@ -144,7 +144,12 @@
   </div>
 </div>
 
-<div class="content" style="padding-bottom: var(--app-content-pad-bottom);">
+<div class="content" style="padding-top:10px;padding-bottom: var(--app-content-pad-bottom);">
+
+  <div class="dept-tab" role="tablist" aria-label="কিতাব বা মক্তব বিভাগ">
+    <div class="dept-tab-btn" role="tab" id="dtab-kitab" aria-selected="true" onclick="switchDept('kitab')">কিতাব বিভাগ</div>
+    <div class="dept-tab-btn" role="tab" id="dtab-maktab" aria-selected="false" onclick="switchDept('maktab')">মক্তব বিভাগ</div>
+  </div>
 
   <!-- stats summary -->
   <div class="ma-sum-wrap ma-sum-wrap--top" id="stats-wrap">
@@ -152,7 +157,7 @@
       <div class="ma-sum-card"><span class="ma-sum-label">মোট ছাত্র</span><span class="ma-sum-val" id="s-total">—</span></div>
       <div class="ma-sum-card"><span class="ma-sum-label">উপস্থিত</span><span class="ma-sum-val v-green" id="s-present">—</span></div>
       <div class="ma-sum-card"><span class="ma-sum-label">অনুপস্থিত</span><span class="ma-sum-val v-red" id="s-absent">—</span></div>
-      <div class="ma-sum-card" style="cursor:pointer" onclick="location.href='madrasa/mdr-admin-withdrawn.html'">
+      <div class="ma-sum-card" style="cursor:pointer" onclick="location.href=mdrHref('madrasa/mdr-admin-withdrawn.html')">
         <span class="ma-sum-label">বিদায় ছাত্র</span><span class="ma-sum-val v-gold" id="s-withdrawn">—</span>
       </div>
     </div>
@@ -176,19 +181,19 @@
 
   <!-- shortcuts -->
   <div class="shortcut-grid">
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-daftar.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" onclick="location.href=mdrHref('madrasa/mdr-admin-daftar.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span>
       <span class="shortcut-label">দফতর</span>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-teachers.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" onclick="location.href=mdrHref('madrasa/mdr-admin-teachers.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
       <span class="shortcut-label">শিক্ষক</span>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-dars.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" onclick="location.href=mdrHref('madrasa/mdr-admin-dars.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 12h5"/></svg></span>
       <span class="shortcut-label">দরস</span>
     </div>
-    <div class="shortcut-card" onclick="location.href='madrasa/mdr-admin-exams.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" onclick="location.href=mdrHref('madrasa/mdr-admin-exams.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M10 12h4M10 16h4"/></svg></span>
       <span class="shortcut-label">পরীক্ষা</span>
     </div>
@@ -204,12 +209,6 @@
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
       <span class="shortcut-label">পুরনো ছাত্র</span>
     </div>
-  </div>
-
-  <!-- dept tabs + class list -->
-  <div class="dept-tab">
-    <div class="dept-tab-btn active" id="dtab-kitab" onclick="switchDept('kitab')">কিতাব বিভাগ</div>
-    <div class="dept-tab-btn" id="dtab-maktab" onclick="switchDept('maktab')">মক্তব বিভাগ</div>
   </div>
 
   <div class="class-table-wrap">
@@ -238,7 +237,7 @@
     <button class="kh-ov-back" onclick="closeKhulukPanel()" aria-label="ফিরে যাও">←</button>
     <div>
       <div class="kh-ov-title">হুসনুল খুলুক</div>
-      <div class="kh-ov-sub">পুরো মাদ্রাসার সারসংক্ষেপ</div>
+      <div class="kh-ov-sub" id="kh-ov-sub">—</div>
     </div>
   </div>
   <div class="kh-ov-body" id="kh-ov-body"></div>
@@ -298,37 +297,72 @@
   if (!MMSession.isAdmin()) { location.href = 'admin-hub.html'; }
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
-  let currentDept = 'kitab';
+  const MADRASA_DEPT_KEY = 'mm_madrasa_jimmadar_dept';
+
+  function mdrHref(path) {
+    return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'dept=' + encodeURIComponent(currentDept);
+  }
+
+  function readInitialDept() {
+    try {
+      const u = new URLSearchParams(location.search).get('dept');
+      if (u === 'kitab' || u === 'maktab') return u;
+    } catch (e) {}
+    try {
+      const s = localStorage.getItem(MADRASA_DEPT_KEY);
+      if (s === 'kitab' || s === 'maktab') return s;
+    } catch (e) {}
+    return 'kitab';
+  }
+
+  let currentDept = readInitialDept();
+
+  function syncDeptTabUI() {
+    const k = document.getElementById('dtab-kitab');
+    const m = document.getElementById('dtab-maktab');
+    if (k) k.setAttribute('aria-selected', currentDept === 'kitab' ? 'true' : 'false');
+    if (m) m.setAttribute('aria-selected', currentDept === 'maktab' ? 'true' : 'false');
+  }
+
+  function countWithdrawalsByDept(dept) {
+    if (dept !== 'kitab' && dept !== 'maktab') return API.persistLoadArr('mm_withdrawals').length;
+    const cids = new Set(API.Classes.getByDept(dept).map(c => c.id));
+    return API.persistLoadArr('mm_withdrawals').filter(w => {
+      if (w.last_class_id && cids.has(w.last_class_id)) return true;
+      const s = API.Students.getById(w.student_id);
+      return !!(s && cids.has(s.class_id));
+    }).length;
+  }
 
   function switchDept(dept) {
+    if (dept !== 'kitab' && dept !== 'maktab') return;
     currentDept = dept;
-    document.getElementById('dtab-kitab').classList.toggle('active', dept==='kitab');
-    document.getElementById('dtab-maktab').classList.toggle('active', dept==='maktab');
+    try { localStorage.setItem(MADRASA_DEPT_KEY, dept); } catch (e) {}
+    syncDeptTabUI();
+    renderStats();
     renderClassList();
     updateWatchCounts();
   }
 
   function renderStats() {
     const iso = new Date().toISOString().split('T')[0];
-    const kAtt = API.Attendance.getDateSummaryForDept(iso,'kitab');
-    const mAtt = API.Attendance.getDateSummaryForDept(iso,'maktab');
-    const total = API.Students.countActiveByDept('kitab') + API.Students.countActiveByDept('maktab');
+    const att = API.Attendance.getDateSummaryForDept(iso, currentDept);
+    const total = API.Students.countActiveByDept(currentDept);
     document.getElementById('s-total').textContent = toBn(total);
-    document.getElementById('s-present').textContent = toBn(kAtt.present + mAtt.present);
-    document.getElementById('s-absent').textContent = toBn(kAtt.absent + mAtt.absent);
-    const withdrawals = API.persistLoadArr('mm_withdrawals');
-    document.getElementById('s-withdrawn').textContent = toBn(withdrawals.length);
+    document.getElementById('s-present').textContent = toBn(att.present);
+    document.getElementById('s-absent').textContent = toBn(att.absent);
+    document.getElementById('s-withdrawn').textContent = toBn(countWithdrawalsByDept(currentDept));
   }
 
   function updateWatchCounts() {
     document.getElementById('w-absent').textContent = toBn(API.Attendance.countStudentsWithAnyAbsentByDept(currentDept));
     document.getElementById('w-special').textContent = toBn(API.Students.countSpecialWatchByDept(currentDept));
-    const avg = getMadrasaKhulukAvg();
+    const avg = getKhulukAvgByDept(currentDept);
     document.getElementById('w-khuluk-avg').textContent = avg !== null ? toBn(avg) : '—';
   }
 
-  function getMadrasaKhulukAvg() {
-    const classes = [...API.Classes.getByDept('kitab'), ...API.Classes.getByDept('maktab')];
+  function getKhulukAvgByDept(dept) {
+    const classes = API.Classes.getByDept(dept);
     const scores = [];
     classes.forEach(cls => {
       API.Students.getByClass(cls.id).forEach(s => {
@@ -339,8 +373,8 @@
     return scores.length ? Math.round(scores.reduce((a,b) => a+b,0) / scores.length) : null;
   }
 
-  function getMadrasaKhulukBands() {
-    const classes = [...API.Classes.getByDept('kitab'), ...API.Classes.getByDept('maktab')];
+  function getKhulukBandsByDept(dept) {
+    const classes = API.Classes.getByDept(dept);
     const classMap = {};
     classes.forEach(c => { classMap[c.id] = c.name; });
     const bands = { high: [], mid: [], low: [], none: [] };
@@ -360,9 +394,11 @@
   }
 
   function openKhulukPanel() {
-    const bands = getMadrasaKhulukBands();
-    const avg = getMadrasaKhulukAvg();
+    const bands = getKhulukBandsByDept(currentDept);
+    const avg = getKhulukAvgByDept(currentDept);
     const total = bands.high.length + bands.mid.length + bands.low.length + bands.none.length;
+    const subEl = document.getElementById('kh-ov-sub');
+    if (subEl) subEl.textContent = (currentDept === 'maktab' ? 'মক্তব' : 'কিতাব') + ' বিভাগ — নির্বাচিত বর্ষের সারসংক্ষেপ';
     const renderList = (arr, colorClass) => arr.length ? arr.map(s =>
       `<div class="kh-tier-student" onclick="event.stopPropagation()">
         <button type="button" class="s-name-btn kh-ts-name" onclick="event.stopPropagation();MMStudentModal.open('${String(s.id).replace(/'/g, "\\'")}')">${API.esc(s.name)}</button>
@@ -370,11 +406,12 @@
         ${s.score !== null ? `<div class="kh-ts-score ${colorClass}">${toBn(s.score)}</div>` : ''}
       </div>`).join('') : `<div style="color:var(--ink3);font-size:12px;padding:8px 0;">কেউ নেই</div>`;
 
+    const deptBn = currentDept === 'maktab' ? 'মক্তব' : 'কিতাব';
     document.getElementById('kh-ov-body').innerHTML = `
       <div class="kh-avg-banner">
         <div class="kh-avg-num">${avg !== null ? toBn(avg) : '—'}</div>
         <div class="kh-avg-info">
-          <div class="kh-avg-label">মাদ্রাসার গড় হুসনুল খুলুক</div>
+          <div class="kh-avg-label">${deptBn} বিভাগের গড় হুসনুল খুলুক</div>
           <div class="kh-avg-note">${toBn(total)} জন ছাত্রের মধ্যে ${toBn(bands.none.length)} জনের রেকর্ড নেই</div>
         </div>
       </div>
@@ -466,6 +503,7 @@
   }
 
   // init
+  syncDeptTabUI();
   renderStats();
   updateWatchCounts();
   renderClassList();

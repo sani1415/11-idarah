@@ -139,6 +139,12 @@
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   let currentDate = new Date().toISOString().split('T')[0];
   let currentDept = 'kitab';
+  (function() {
+    try {
+      const d = new URLSearchParams(location.search).get('dept');
+      if (d === 'kitab' || d === 'maktab') currentDept = d;
+    } catch (e) {}
+  })();
 
   function changeDate(dir) {
     const d = new Date(currentDate);
@@ -189,6 +195,8 @@
     document.getElementById('s-pct').textContent = toBn(overallPct) + '%';
   }
 
+  document.getElementById('dtab-kitab').classList.toggle('active', currentDept === 'kitab');
+  document.getElementById('dtab-maktab').classList.toggle('active', currentDept === 'maktab');
   render();
 </script>
 </body>

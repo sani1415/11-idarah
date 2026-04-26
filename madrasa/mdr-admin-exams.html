@@ -133,6 +133,13 @@
 
   let selectedClassId = null;
   let currentExamId   = null;
+  let examsDept = 'kitab';
+  (function() {
+    try {
+      const d = new URLSearchParams(location.search).get('dept');
+      if (d === 'kitab' || d === 'maktab') examsDept = d;
+    } catch (e) {}
+  })();
 
   function switchPanel(name) {
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -150,8 +157,10 @@
   }
 
   function renderHome() {
-    const classes = API.Classes.getAll();
-    if (!selectedClassId && classes.length) selectedClassId = classes[0].id;
+    const classes = API.Classes.getByDept(examsDept);
+    if (!selectedClassId || !classes.some(c => c.id === selectedClassId)) {
+      selectedClassId = classes.length ? classes[0].id : null;
+    }
     document.getElementById('class-chips').innerHTML = classes.map(c=>
       `<div class="chip ${c.id===selectedClassId?'active':''}" onclick="selectClass('${c.id}')">${API.esc(c.name)}</div>`
     ).join('');
