@@ -69,14 +69,19 @@
   const toBn = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
 
   const params = new URLSearchParams(location.search);
-  let dept = params.get('dept') === 'maktab' ? 'maktab' : 'kitab';
-  if (!MMSession.canUseMadrasaDept(dept)) dept = MMSession.getAllowedMadrasaDepts()[0] || 'kitab';
-  const deptLabel = dept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
+  const allowed = MMSession.getAllowedMadrasaDepts();
+  let dept = params.get('dept') === 'all' && allowed.length > 1 ? 'all' : (params.get('dept') === 'maktab' ? 'maktab' : 'kitab');
+  if (dept !== 'all' && !MMSession.canUseMadrasaDept(dept)) dept = allowed[0] || 'kitab';
+  if (dept === 'all' && allowed.length <= 1) dept = allowed[0] || 'kitab';
+  const deptName = (d) => d === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
+  const deptLabel = dept === 'all' ? 'সামগ্রিক' : deptName(dept);
   const sub = document.querySelector('.abs-sub');
   if (sub) sub.textContent = deptLabel + ' — যাদের কমপক্ষে এক দিন অনুপস্থিতের রেকর্ড আছে। বেশি দিন থেকে কম — সাজানো।';
 
   function render() {
-    const rows = API.Attendance.getStudentsWithAbsentSortedByDept(dept);
+    const rows = (dept === 'all' ? allowed : [dept])
+      .flatMap(d => API.Attendance.getStudentsWithAbsentSortedByDept(d).map(x => ({ ...x, dept: d })))
+      .sort((a, b) => (b.absentDays || 0) - (a.absentDays || 0));
     const el = document.getElementById('abs-list');
     if (!rows.length) {
       el.innerHTML = '<div class="abs-empty">কোনো ছাত্রের অনুপস্থিত রেকর্ড নেই। উপস্থিতি স্ক্রিনে অনুপস্থিত চিহ্নিত করলে এখানে দেখা যাবে।</div>';
@@ -85,11 +90,12 @@
     el.innerHTML = rows
       .map((x, i) => {
         const cls = API.Classes.getById(x.student.class_id);
+        const metaDept = dept === 'all' ? ` · ${deptName(x.dept)}` : '';
         return `<div class="abs-row">
           <div class="abs-rank">${toBn(i + 1)}</div>
           <div class="abs-info">
             <div class="abs-name"><button type="button" class="s-name-btn" style="font-size:14px;font-weight:600;" onclick="MMStudentModal.open('${x.student.id}')">${API.esc(x.student.name)}</button></div>
-            <div class="abs-meta">${API.esc(cls ? cls.name : '—')} · রোল ${API.esc(x.student.roll || '—')}</div>
+            <div class="abs-meta">${API.esc(cls ? cls.name : '—')}${metaDept} · রোল ${API.esc(x.student.roll || '—')}</div>
           </div>
           <div class="abs-days">${toBn(x.absentDays)} দিন</div>
         </div>`;

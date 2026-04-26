@@ -72,14 +72,18 @@
   const toBn = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
 
   const params = new URLSearchParams(location.search);
-  let dept = params.get('dept') === 'maktab' ? 'maktab' : 'kitab';
-  if (!MMSession.canUseMadrasaDept(dept)) dept = MMSession.getAllowedMadrasaDepts()[0] || 'kitab';
-  const deptLabel = dept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
+  const allowed = MMSession.getAllowedMadrasaDepts();
+  let dept = params.get('dept') === 'all' && allowed.length > 1 ? 'all' : (params.get('dept') === 'maktab' ? 'maktab' : 'kitab');
+  if (dept !== 'all' && !MMSession.canUseMadrasaDept(dept)) dept = allowed[0] || 'kitab';
+  if (dept === 'all' && allowed.length <= 1) dept = allowed[0] || 'kitab';
+  const deptName = (d) => d === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
+  const deptLabel = dept === 'all' ? 'সামগ্রিক' : deptName(dept);
   const sub = document.querySelector('.sw-sub');
   if (sub) sub.textContent = deptLabel + ' — যে ছাত্রদের শিক্ষক বিশেষ পর্যবেক্ষণ হিসেবে চিহ্নিত করেছেন।';
 
   function render() {
-    const students = API.Students.getSpecialWatchByDeptSorted(dept);
+    const students = (dept === 'all' ? allowed : [dept])
+      .flatMap(d => API.Students.getSpecialWatchByDeptSorted(d).map(s => ({ ...s, dept: d })));
     const el = document.getElementById('sw-list');
     if (!students.length) {
       el.innerHTML = '<div class="sw-empty">এই বিভাগে কোনো ছাত্র বিশেষ পর্যবেক্ষণে নেই। শিক্ষক পর্যয় থেকে চিহ্নিত করলে এখানে দেখা যাবে।</div>';
@@ -88,11 +92,12 @@
     el.innerHTML = students
       .map((s, i) => {
         const cls = API.Classes.getById(s.class_id);
+        const metaDept = dept === 'all' ? ` · ${deptName(s.dept)}` : '';
         return `<div class="sw-row">
           <div class="sw-rank">${toBn(i + 1)}</div>
           <div class="sw-info">
             <div class="sw-name"><button type="button" class="s-name-btn" style="font-size:14px;font-weight:600;" onclick="MMStudentModal.open('${s.id}')">${API.esc(s.name)}</button></div>
-            <div class="sw-meta">${API.esc(cls ? cls.name : '—')} · রোল ${API.esc(s.roll || '—')}</div>
+            <div class="sw-meta">${API.esc(cls ? cls.name : '—')}${metaDept} · রোল ${API.esc(s.roll || '—')}</div>
           </div>
           <div class="sw-badge">পর্যবেক্ষণ</div>
         </div>`;

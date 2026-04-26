@@ -31,6 +31,7 @@
   .att-table tbody tr.cls-row { cursor:pointer; transition:background .12s; }
   .att-table tbody tr.cls-row:hover { background:rgba(0,0,0,.03); }
   .att-table tbody tr.cls-row:active { background:rgba(0,0,0,.06); }
+  .att-table tbody tr.dept-section-row td { background:var(--cream2); color:var(--ink2); font-size:10px; font-weight:700; padding:6px 8px; border-bottom:1px solid var(--cream3); }
   /* class overlay */
   .cls-overlay { position:fixed; inset:0; z-index:200; background:var(--bg,#faf6ef); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .25s ease; }
   .cls-overlay.is-open { transform:translateX(0); }
@@ -87,7 +88,8 @@
   </div>
 
   <div class="dept-tab">
-    <div class="dept-tab-btn active" id="dtab-kitab" onclick="switchDept('kitab')">কিতাব বিভাগ</div>
+    <div class="dept-tab-btn active" id="dtab-all" onclick="switchDept('all')">সামগ্রিক</div>
+    <div class="dept-tab-btn" id="dtab-kitab" onclick="switchDept('kitab')">কিতাব বিভাগ</div>
     <div class="dept-tab-btn" id="dtab-maktab" onclick="switchDept('maktab')">মক্তব বিভাগ</div>
   </div>
 
@@ -138,13 +140,16 @@
   if (!MMSession.requireAdminPerm('daftar', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   let currentDate = new Date().toISOString().split('T')[0];
-  let currentDept = 'kitab';
+  let currentDept = 'all';
   (function() {
+    const allowed = MMSession.getAllowedMadrasaDepts();
     try {
       const d = new URLSearchParams(location.search).get('dept');
+      if (d === 'all' && allowed.length > 1) currentDept = 'all';
       if ((d === 'kitab' || d === 'maktab') && MMSession.canUseMadrasaDept(d)) currentDept = d;
     } catch (e) {}
-    if (!MMSession.canUseMadrasaDept(currentDept)) currentDept = MMSession.getAllowedMadrasaDepts()[0] || 'kitab';
+    if (currentDept !== 'all' && !MMSession.canUseMadrasaDept(currentDept)) currentDept = allowed[0] || 'kitab';
+    if (currentDept === 'all' && allowed.length <= 1) currentDept = allowed[0] || 'kitab';
   })();
 
   function changeDate(dir) {
@@ -157,19 +162,39 @@
   }
 
   function switchDept(dept) {
-    if (!MMSession.canUseMadrasaDept(dept)) return;
+    const allowed = MMSession.getAllowedMadrasaDepts();
+    if (dept === 'all' && allowed.length <= 1) return;
+    if (dept !== 'all' && !MMSession.canUseMadrasaDept(dept)) return;
     currentDept = dept;
-    document.getElementById('dtab-kitab').classList.toggle('active', dept === 'kitab');
-    document.getElementById('dtab-maktab').classList.toggle('active', dept === 'maktab');
+    syncDeptTabs();
     render();
+  }
+
+  function deptLabel(dept) { return dept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ'; }
+  function getScopeDepts() {
+    const allowed = MMSession.getAllowedMadrasaDepts();
+    return currentDept === 'all' ? allowed : [currentDept];
+  }
+  function getScopedClasses() {
+    return getScopeDepts().flatMap(dept => API.Classes.getByDept(dept).map(cls => ({ ...cls, dept })));
+  }
+  function syncDeptTabs() {
+    const allowed = MMSession.getAllowedMadrasaDepts();
+    document.getElementById('dtab-all').classList.toggle('active', currentDept === 'all');
+    document.getElementById('dtab-kitab').classList.toggle('active', currentDept === 'kitab');
+    document.getElementById('dtab-maktab').classList.toggle('active', currentDept === 'maktab');
+    document.getElementById('dtab-all').style.display = allowed.length > 1 ? '' : 'none';
+    document.getElementById('dtab-kitab').style.display = allowed.includes('kitab') ? '' : 'none';
+    document.getElementById('dtab-maktab').style.display = allowed.includes('maktab') ? '' : 'none';
   }
 
   function render() {
     const d = new Date(currentDate);
     document.getElementById('date-label').textContent = toBn(d.getFullYear()) + '–' + toBn(String(d.getMonth()+1).padStart(2,'0')) + '–' + toBn(String(d.getDate()).padStart(2,'0'));
 
-    const allClasses = API.Classes.getByDept(currentDept);
+    const allClasses = getScopedClasses();
     let totalStudents = 0, totalPresent = 0, totalAbsent = 0;
+    let lastDept = '';
     const rows = allClasses.map(cls => {
       const students = API.Students.getByClass(cls.id);
       const attRecs  = API.Attendance.getByClassDate(cls.id, currentDate);
@@ -178,7 +203,9 @@
       const pct      = students.length ? Math.round(present / students.length * 100) : 0;
       const pctColor = pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--gold)' : 'var(--red)';
       totalStudents += students.length; totalPresent += present; totalAbsent += absent;
-      return `<tr class="cls-row" onclick="openClassOverlay('${cls.id}')">
+      const section = currentDept === 'all' && cls.dept !== lastDept ? `<tr class="dept-section-row"><td colspan="5">${deptLabel(cls.dept)}</td></tr>` : '';
+      lastDept = cls.dept;
+      return section + `<tr class="cls-row" onclick="openClassOverlay('${cls.id}')">
         <td class="cls-name">${API.esc(cls.name)}</td>
         <td class="num-cell">${toBn(students.length)}</td>
         <td class="num-cell" style="color:var(--green);">${attRecs.length ? toBn(present) : '—'}</td>
@@ -197,10 +224,7 @@
     document.getElementById('s-pct').textContent = toBn(overallPct) + '%';
   }
 
-  document.getElementById('dtab-kitab').classList.toggle('active', currentDept === 'kitab');
-  document.getElementById('dtab-maktab').classList.toggle('active', currentDept === 'maktab');
-  document.getElementById('dtab-kitab').style.display = MMSession.canUseMadrasaDept('kitab') ? '' : 'none';
-  document.getElementById('dtab-maktab').style.display = MMSession.canUseMadrasaDept('maktab') ? '' : 'none';
+  syncDeptTabs();
   render();
 </script>
 </body>

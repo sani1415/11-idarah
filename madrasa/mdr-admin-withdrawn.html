@@ -16,6 +16,9 @@
   .filter-row { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px; }
   .filter-btn { background:#fff; border:1px solid var(--cream3); border-radius:20px; padding:6px 12px; font-size:11px; white-space:nowrap; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; color:var(--ink3); }
   .filter-btn.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
+  .dept-tab { display:flex; gap:6px; margin-bottom:14px; }
+  .dept-tab-btn { flex:1; padding:10px; border:1px solid var(--cream3); border-radius:var(--radius-sm); text-align:center; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:600; cursor:pointer; background:#fff; color:var(--ink3); transition:all .15s; }
+  .dept-tab-btn.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
   .cls-overlay { position:fixed; inset:0; z-index:200; background:var(--bg,#faf6ef); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .25s ease; }
   .cls-overlay.is-open { transform:translateX(0); }
   .cls-ov-header { display:flex; align-items:center; gap:10px; padding:14px 16px 10px; background:var(--ink); color:var(--gold2); flex-shrink:0; }
@@ -66,6 +69,12 @@
   </div>
 
   <button class="add-btn" style="background:var(--red);" onclick="openModal('add-wd')">＋ ছাত্র বিদায় রেকর্ড করুন</button>
+
+  <div class="dept-tab">
+    <div class="dept-tab-btn active" id="dtab-all" onclick="switchDept('all')">সামগ্রিক</div>
+    <div class="dept-tab-btn" id="dtab-kitab" onclick="switchDept('kitab')">কিতাব বিভাগ</div>
+    <div class="dept-tab-btn" id="dtab-maktab" onclick="switchDept('maktab')">মক্তব বিভাগ</div>
+  </div>
 
   <div class="filter-row">
     <div class="filter-btn active" onclick="setFilter('সব',this)">সব</div>
@@ -133,12 +142,34 @@
   let currentFilter = 'সব';
   let wDept = null;
   (function() {
+    const allowed = MMSession.getAllowedMadrasaDepts();
     try {
       const d = new URLSearchParams(location.search).get('dept');
+      if (d === 'all' && allowed.length > 1) wDept = null;
       if ((d === 'kitab' || d === 'maktab') && MMSession.canUseMadrasaDept(d)) wDept = d;
     } catch (e) {}
-    if (wDept && !MMSession.canUseMadrasaDept(wDept)) wDept = MMSession.getAllowedMadrasaDepts()[0] || 'kitab';
+    if (wDept && !MMSession.canUseMadrasaDept(wDept)) wDept = allowed[0] || 'kitab';
+    if (!wDept && allowed.length <= 1) wDept = allowed[0] || 'kitab';
   })();
+
+  function deptLabel(dept) { return dept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ'; }
+  function syncDeptTabs() {
+    const allowed = MMSession.getAllowedMadrasaDepts();
+    document.getElementById('dtab-all').classList.toggle('active', !wDept);
+    document.getElementById('dtab-kitab').classList.toggle('active', wDept === 'kitab');
+    document.getElementById('dtab-maktab').classList.toggle('active', wDept === 'maktab');
+    document.getElementById('dtab-all').style.display = allowed.length > 1 ? '' : 'none';
+    document.getElementById('dtab-kitab').style.display = allowed.includes('kitab') ? '' : 'none';
+    document.getElementById('dtab-maktab').style.display = allowed.includes('maktab') ? '' : 'none';
+  }
+  function switchDept(dept) {
+    const allowed = MMSession.getAllowedMadrasaDepts();
+    if (dept === 'all' && allowed.length <= 1) return;
+    if (dept !== 'all' && !MMSession.canUseMadrasaDept(dept)) return;
+    wDept = dept === 'all' ? null : dept;
+    syncDeptTabs();
+    render();
+  }
 
   function withdrawalMatchesDept(w) {
     if (!wDept) return true;
@@ -172,6 +203,7 @@
     el.innerHTML = filtered.map(w => {
       const s = API.Students.getById(w.student_id);
       const cls = s ? API.Classes.getById(s.class_id) : null;
+      const deptText = !wDept && cls?.dept ? `<span>${deptLabel(cls.dept)}</span>` : '';
       return `<div class="withdrawn-card">
         <div class="wd-top">
           <div>
@@ -182,6 +214,7 @@
         </div>
         <div class="wd-meta">
           ${cls ? `<span style="cursor:pointer;text-decoration:underline dotted;" onclick="openClassOverlay('${API.esc(cls.id)}')">📚 ${API.esc(cls.name)}</span>` : ''}
+          ${deptText}
           <span>🚪 ${API.esc(w.reason)}</span>
           ${w.note ? `<span>💬 ${API.esc(w.note.slice(0, 30))}${w.note.length > 30 ? '...' : ''}</span>` : ''}
         </div>
@@ -231,6 +264,7 @@
   function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
   function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
 
+  syncDeptTabs();
   render();
 </script>
 

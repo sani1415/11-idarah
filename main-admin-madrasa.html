@@ -326,7 +326,7 @@
   let pendingDeptRoute = '';
 
   function mdrHref(path) {
-    const routeDept = currentDept === 'all' ? (getScopeDepts()[0] || 'kitab') : currentDept;
+    const routeDept = currentDept === 'all' ? 'all' : currentDept;
     return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'dept=' + encodeURIComponent(routeDept);
   }
 
@@ -346,14 +346,7 @@
       location.href = deptHref(path, currentDept);
       return;
     }
-    if (allowed.length <= 1) {
-      location.href = deptHref(path, allowed[0] || 'kitab');
-      return;
-    }
-    pendingDeptRoute = path;
-    document.getElementById('choose-kitab').style.display = allowed.includes('kitab') ? '' : 'none';
-    document.getElementById('choose-maktab').style.display = allowed.includes('maktab') ? '' : 'none';
-    document.getElementById('dept-choice-modal').classList.add('is-open');
+    location.href = deptHref(path, allowed.length > 1 ? 'all' : (allowed[0] || 'kitab'));
   }
 
   function chooseDeptRoute(dept) {

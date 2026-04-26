@@ -26,6 +26,7 @@
   }
   .dars-class-chip:hover { border-color:rgba(201,149,42,.45); }
   .dars-class-chip.is-active { border-color:var(--ink); background:var(--ink); color:var(--gold2); font-weight:600; }
+  .dars-class-chip--section { cursor:default; background:var(--cream2); color:var(--ink2); font-weight:700; }
   .dars-panel { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; border:1px solid rgba(26,18,8,.06); }
   .dars-class-h { padding:10px 12px; background:var(--cream2); font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; color:var(--ink2); }
   .dars-class-sub { font-size:10px; font-weight:500; color:var(--ink3); margin-top:2px; font-family:'Noto Sans Bengali',sans-serif; }
@@ -54,7 +55,8 @@
 <div class="content" style="max-width:640px; margin:0 auto;">
   <p class="dars-lead">উপরে <strong>বর্ষ</strong> বেছে নিন (বাঁদিকে স্লাইড করুন)—নিচে ওই বর্ষের কিতাবের পড়া দেখাবে। শিক্ষকরা <strong>বর্ষ ড্যাশবোর্ড</strong> থেকে হালনাগাদ করেন।</p>
   <div class="dars-tabs">
-    <button type="button" class="dars-tab active" id="dtab-k" onclick="setDept('kitab')">কিতাব বিভাগ</button>
+    <button type="button" class="dars-tab active" id="dtab-a" onclick="setDept('all')">সামগ্রিক</button>
+    <button type="button" class="dars-tab" id="dtab-k" onclick="setDept('kitab')">কিতাব বিভাগ</button>
     <button type="button" class="dars-tab" id="dtab-m" onclick="setDept('maktab')">মক্তব বিভাগ</button>
   </div>
   <div class="dars-class-strip-wrap">
@@ -92,13 +94,16 @@
 <script>
   if (!MMSession.requireAdminPerm('dars', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
-  let dept = 'kitab';
+  let dept = 'all';
   (function() {
+    const allowed = MMSession.getAllowedMadrasaDepts();
     try {
       const d = new URLSearchParams(location.search).get('dept');
+      if (d === 'all' && allowed.length > 1) dept = 'all';
       if ((d === 'kitab' || d === 'maktab') && MMSession.canUseMadrasaDept(d)) dept = d;
     } catch (e) {}
-    if (!MMSession.canUseMadrasaDept(dept)) dept = MMSession.getAllowedMadrasaDepts()[0] || 'kitab';
+    if (dept !== 'all' && !MMSession.canUseMadrasaDept(dept)) dept = allowed[0] || 'kitab';
+    if (dept === 'all' && allowed.length <= 1) dept = allowed[0] || 'kitab';
   })();
   let selectedClassId = null;
 
@@ -110,13 +115,24 @@
     });
   }
 
-  function currentClasses() { return sortClasses(API.Classes.getByDept(dept)); }
+  function deptLabel(d) { return d === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ'; }
+  function getScopeDepts() {
+    const allowed = MMSession.getAllowedMadrasaDepts();
+    return dept === 'all' ? allowed : [dept];
+  }
+  function currentClasses() {
+    return getScopeDepts().flatMap(d => sortClasses(API.Classes.getByDept(d)).map(c => ({ ...c, dept: d })));
+  }
 
   function setDept(d) {
-    if (!MMSession.canUseMadrasaDept(d)) return;
+    const allowed = MMSession.getAllowedMadrasaDepts();
+    if (d === 'all' && allowed.length <= 1) return;
+    if (d !== 'all' && !MMSession.canUseMadrasaDept(d)) return;
     dept = d;
+    document.getElementById('dtab-a').classList.toggle('active', d === 'all');
     document.getElementById('dtab-k').classList.toggle('active', d === 'kitab');
     document.getElementById('dtab-m').classList.toggle('active', d === 'maktab');
+    document.getElementById('dtab-a').style.display = allowed.length > 1 ? '' : 'none';
     document.getElementById('dtab-k').style.display = MMSession.canUseMadrasaDept('kitab') ? '' : 'none';
     document.getElementById('dtab-m').style.display = MMSession.canUseMadrasaDept('maktab') ? '' : 'none';
     const cl = currentClasses();
@@ -147,7 +163,7 @@
 
   function teacherMap() {
     const m = {};
-    API.Teachers.getByDept(dept).forEach(t => { m[t.class_id] = t.name; });
+    getScopeDepts().forEach(d => API.Teachers.getByDept(d).forEach(t => { m[t.class_id] = t.name; }));
     return m;
   }
 
@@ -161,10 +177,13 @@
     }
     if (!selectedClassId || !classes.some(c => c.id === selectedClassId)) selectedClassId = classes[0].id;
 
+    let lastDept = '';
     strip.innerHTML = classes.map(c => {
       const active = c.id === selectedClassId;
       const idJs = String(c.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      return `<button type="button" class="dars-class-chip${active ? ' is-active' : ''}" role="tab" aria-selected="${active ? 'true' : 'false'}" onclick="selectClass('${idJs}')">${API.esc(c.name)}</button>`;
+      const section = dept === 'all' && c.dept !== lastDept ? `<span class="dars-class-chip dars-class-chip--section">${deptLabel(c.dept)}</span>` : '';
+      lastDept = c.dept;
+      return section + `<button type="button" class="dars-class-chip${active ? ' is-active' : ''}" role="tab" aria-selected="${active ? 'true' : 'false'}" onclick="selectClass('${idJs}')">${API.esc(c.name)}</button>`;
     }).join('');
     requestAnimationFrame(() => {
       const a = strip.querySelector('.dars-class-chip.is-active');
@@ -186,7 +205,7 @@
 
     if (!books.length) {
       el.innerHTML = `<div class="dars-panel">
-        <div class="dars-class-h">${API.esc(cls.name)}<div class="dars-class-sub">শ্রেণি শিক্ষক: ${API.esc(tName)}</div></div>
+        <div class="dars-class-h">${API.esc(cls.name)}<div class="dars-class-sub">${dept === 'all' ? deptLabel(cls.dept) + ' · ' : ''}শ্রেণি শিক্ষক: ${API.esc(tName)}</div></div>
         <div class="dars-empty">এ বর্ষে কোনো কিতাব যোগ নেই। সেটিং বা বই তালিকা যাচাই করুন।</div>
       </div>`;
       return;
@@ -208,7 +227,7 @@
     }).join('');
 
     el.innerHTML = `<div class="dars-panel">
-      <div class="dars-class-h">${API.esc(cls.name)}<div class="dars-class-sub">শ্রেণি শিক্ষক: ${API.esc(tName)}</div></div>
+      <div class="dars-class-h">${API.esc(cls.name)}<div class="dars-class-sub">${dept === 'all' ? deptLabel(cls.dept) + ' · ' : ''}শ্রেণি শিক্ষক: ${API.esc(tName)}</div></div>
       ${rows}
     </div>`;
   }
