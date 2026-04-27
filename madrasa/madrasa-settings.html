@@ -31,6 +31,7 @@
   .class-row-set:last-child { border-bottom:none; }
   .class-badge { font-size:10px; color:var(--ink3); background:var(--cream2); border-radius:999px; padding:2px 7px; }
   .class-row-set.inactive { opacity:.55; }
+  .secondary-btn { border:1px solid var(--cream3); background:#fff; color:var(--ink2); border-radius:12px; padding:12px; font-family:'Noto Sans Bengali',sans-serif; font-weight:800; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -75,6 +76,14 @@
         </div>
       </div>
       <button class="submit-btn" onclick="saveGeneral()">সংরক্ষণ করুন</button>
+    </div>
+    <div class="settings-section">
+      <div class="settings-title">📦 পুরনো ডাটা ইমপোর্ট</div>
+      <div style="font-size:12px;color:var(--ink3);line-height:1.7;margin-bottom:10px;">
+        Supabase staging table-এ থাকা পুরনো ছাত্রদের দেখে স্থায়ী আইডি, শ্রেণি ও রোল ঠিক করে মূল ছাত্র তালিকায় অনুমোদন করুন।
+      </div>
+      <button class="submit-btn" onclick="location.href='mdr-import-review.html'">Supabase ইমপোর্ট রিভিউ খুলুন</button>
+      <button class="secondary-btn" style="margin-top:8px;width:100%;" onclick="location.href='madrasa-old-import.html'">Prototype localStorage ইমপোর্ট</button>
     </div>
   </div>
 

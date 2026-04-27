@@ -233,7 +233,7 @@ CREATE TABLE IF NOT EXISTS mdr_classes (
   created_at   timestamptz NOT NULL DEFAULT now()
 );
 -- Seed data (কিতাব বিভাগ):
--- ১ম বর্ষ (roll_prefix=100), ইয়াদা (is_iyada=true), ২য়-৮ম বর্ষ (200-800)
+-- ১ম বর্ষ (roll_prefix=100), ইয়াদা (is_iyada=true), ২য়-৭ম বর্ষ (200-700); ৮ম বর্ষ বর্তমান স্কিমায় রাখা হবে না
 -- Seed data (মক্তব বিভাগ):
 -- ১ম-৫ম বর্ষ
 ```

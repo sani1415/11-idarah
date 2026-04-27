@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supabase ছাত্র ইমপোর্ট — মাদরাসাতুল মদীনা</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .review-card { background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:12px; }
+  .review-title { font-family:'Noto Serif Bengali',serif; font-size:17px; font-weight:800; color:var(--ink); margin-bottom:6px; }
+  .muted { font-size:12px; color:var(--ink3); line-height:1.7; }
+  .stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+  .stat-box { background:var(--cream); border:1px solid rgba(26,18,8,.08); border-radius:14px; padding:12px; text-align:center; }
+  .stat-num { font-size:21px; font-weight:900; color:var(--ink); }
+  .stat-label { font-size:11px; color:var(--ink3); margin-top:2px; }
+  .toolbar { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+  .toolbar .wide { grid-column:1 / -1; }
+  .student-list { display:grid; gap:8px; margin-top:12px; }
+  .student-row { border:1px solid rgba(26,18,8,.08); background:#fff; border-radius:14px; padding:12px; }
+  .student-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .student-name { font-size:14px; font-weight:800; color:var(--ink); }
+  .student-meta { font-size:11px; color:var(--ink3); line-height:1.6; margin-top:4px; }
+  .tag { display:inline-flex; align-items:center; border-radius:999px; padding:3px 8px; background:var(--cream2); color:var(--ink2); font-size:10px; font-weight:700; white-space:nowrap; }
+  .row-actions { display:flex; gap:6px; margin-top:10px; }
+  .mini-btn { flex:1; border:1px solid var(--cream3); background:#fff; color:var(--ink2); border-radius:10px; padding:8px; font-family:'Noto Sans Bengali',sans-serif; font-weight:800; font-size:11px; cursor:pointer; }
+  .mini-btn.primary { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
+  .mini-btn.danger { color:#8a2d19; background:#fff7f3; border-color:rgba(193,68,14,.18); }
+  .pager { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:12px; }
+  .empty-state { color:var(--ink3); text-align:center; font-size:13px; line-height:1.7; padding:18px 8px; }
+  .modal-note { background:var(--cream); border:1px solid rgba(26,18,8,.08); border-radius:12px; padding:10px; font-size:12px; color:var(--ink3); line-height:1.7; margin-bottom:10px; }
+  @media (max-width:420px) { .toolbar { grid-template-columns:1fr; } .toolbar .wide { grid-column:auto; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">Supabase ইমপোর্ট</div>
+    <div class="topbar-name">ছাত্র যাচাই ও অনুমোদন</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='madrasa-settings.html'">← সেটিংস</button>
+  </div>
+</div>
+
+<div class="content" style="padding-top:20px;">
+  <div class="review-card">
+    <div class="review-title">পুরনো backup থেকে pending ছাত্র</div>
+    <div class="muted">
+      এখানে ছাত্ররা এখনো final ছাত্র তালিকায় যায়নি। প্রতিটি ছাত্র দেখে স্থায়ী আইডি, শ্রেণি ও রোল ঠিক করে অনুমোদন করলে মূল ছাত্র তালিকায় যাবে।
+    </div>
+    <div class="toolbar">
+      <input class="form-input" id="admin-pin" type="password" maxlength="4" placeholder="জিম্মাদার PIN">
+      <button class="submit-btn" style="margin:0;" onclick="loadData()">ডাটা লোড করুন</button>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-num" id="stat-pending">—</div><div class="stat-label">Pending</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-students">—</div><div class="stat-label">Final ছাত্র</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-books">—</div><div class="stat-label">কিতাব</div></div>
+    </div>
+  </div>
+
+  <div class="review-card">
+    <div class="toolbar">
+      <select class="form-input form-select" id="source-filter" onchange="reloadCandidates()">
+        <option value="">সব backup</option>
+        <option value="madrasah_backup">কিতাব backup</option>
+        <option value="moktob_backup">মক্তব backup</option>
+      </select>
+      <select class="form-input form-select" id="class-filter" onchange="renderList()">
+        <option value="">সব বর্ষ/শ্রেণি</option>
+      </select>
+      <input class="form-input wide" id="search-box" placeholder="নাম, বাবার নাম, পুরনো ID বা রোল দিয়ে খুঁজুন" oninput="renderList()">
+    </div>
+    <div id="student-list" class="student-list"></div>
+    <div class="pager">
+      <button class="mini-btn" onclick="changePage(-1)">আগের পাতা</button>
+      <div class="muted" id="page-info">—</div>
+      <button class="mini-btn" onclick="changePage(1)">পরের পাতা</button>
+    </div>
+  </div>
+  <div class="pb-safe"></div>
+</div>
+
+<div class="modal-bg" id="modal-approve">
+  <div class="modal">
+    <div class="modal-title">ছাত্র অনুমোদন <button class="modal-close" onclick="closeApproveModal()">✕</button></div>
+    <div class="modal-note" id="approve-summary"></div>
+    <div class="form-group">
+      <label class="form-label">নতুন স্থায়ী আইডি</label>
+      <input class="form-input" id="student-id" placeholder="যেমন: ৪৭০০১ / ম৪৭০০১">
+    </div>
+    <div class="form-group">
+      <label class="form-label">বর্তমান বর্ষ/শ্রেণি</label>
+      <select class="form-input form-select" id="approve-class"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">বর্তমান রোল</label>
+      <input class="form-input" id="approve-roll" placeholder="যেমন: ১০১">
+    </div>
+    <div class="form-group">
+      <label class="form-label">হিজরী বর্ষ (ঐচ্ছিক)</label>
+      <input class="form-input" id="approve-hijri" placeholder="যেমন: ১৪৪৭">
+    </div>
+    <button class="submit-btn" onclick="approveCurrent()">অনুমোদন করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
+<script src="../api-mdr.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.isMainAdmin()) location.href = '../main-admin-madrasa.html';
+
+  const bn = (n) => String(n ?? 0).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[Number(d)]);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const state = { pin:'', classes:[], candidates:[], page:1, pageSize:35, current:null, bootstrap:null };
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  function className(code) {
+    const cls = state.classes.find(c => c.code === code);
+    return cls ? cls.name : code;
+  }
+
+  function sourceName(source) {
+    return source === 'moktob_backup' ? 'মক্তব' : 'কিতাব';
+  }
+
+  function setLoading(isLoading) {
+    document.querySelectorAll('button').forEach(btn => { btn.disabled = !!isLoading; });
+  }
+
+  async function loadData() {
+    const pin = document.getElementById('admin-pin').value.trim();
+    if (pin.length !== 4) { showToast('৪ সংখ্যার PIN দিন'); return; }
+    try {
+      setLoading(true);
+      state.pin = pin;
+      const boot = await MMMadrasaAPI.adminBootstrap(pin);
+      state.bootstrap = boot;
+      state.classes = boot.classes || [];
+      document.getElementById('stat-pending').textContent = bn(boot.import_pending_count || 0);
+      document.getElementById('stat-students').textContent = bn(boot.student_count || 0);
+      document.getElementById('stat-books').textContent = bn(boot.book_count || 0);
+      renderClassOptions();
+      await reloadCandidates();
+      showToast('ডাটা লোড হয়েছে');
+    } catch (err) {
+      showToast(err.message === 'invalid_pin' ? 'PIN সঠিক নয়' : 'ডাটা লোড করা যায়নি');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function renderClassOptions() {
+    const opts = ['<option value="">সব বর্ষ/শ্রেণি</option>'].concat(
+      state.classes.map(c => `<option value="${esc(c.code)}">${esc(c.name)}</option>`)
+    );
+    document.getElementById('class-filter').innerHTML = opts.join('');
+    document.getElementById('approve-class').innerHTML = state.classes
+      .map(c => `<option value="${esc(c.code)}">${esc(c.name)}</option>`).join('');
+  }
+
+  async function reloadCandidates() {
+    if (!state.pin) return;
+    try {
+      setLoading(true);
+      const source = document.getElementById('source-filter').value || null;
+      const res = await MMMadrasaAPI.importCandidates(state.pin, source);
+      state.candidates = res.items || [];
+      state.page = 1;
+      renderList();
+    } catch (err) {
+      showToast(err.message === 'invalid_pin' ? 'PIN সঠিক নয়' : 'তালিকা আনা যায়নি');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function getFiltered() {
+    const classCode = document.getElementById('class-filter').value;
+    const q = document.getElementById('search-box').value.trim().toLowerCase();
+    return state.candidates.filter(c => {
+      if (classCode && c.class_code !== classCode) return false;
+      if (!q) return true;
+      return [c.name, c.guardian_name, c.old_student_id, c.old_roll, c.old_class_name]
+        .some(v => String(v || '').toLowerCase().includes(q));
+    });
+  }
+
+  function renderList() {
+    const filtered = getFiltered();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
+    state.page = Math.min(Math.max(1, state.page), totalPages);
+    const start = (state.page - 1) * state.pageSize;
+    const rows = filtered.slice(start, start + state.pageSize);
+    document.getElementById('page-info').textContent = `${bn(state.page)} / ${bn(totalPages)} · ${bn(filtered.length)} জন`;
+    document.getElementById('student-list').innerHTML = rows.map(c => `
+      <div class="student-row">
+        <div class="student-top">
+          <div>
+            <div class="student-name">${esc(c.name)}</div>
+            <div class="student-meta">
+              পুরনো ID: ${esc(c.old_student_id)} · পিতা: ${esc(c.guardian_name || '—')}<br>
+              পুরনো শ্রেণি/রোল: ${esc(c.old_class_name || '—')} / ${esc(c.old_roll || '—')} · নতুন mapping: ${esc(className(c.class_code))}
+            </div>
+          </div>
+          <span class="tag">${sourceName(c.source)}</span>
+        </div>
+        <div class="row-actions">
+          <button class="mini-btn primary" onclick="openApproveModal('${esc(c.id)}')">ID দিয়ে অনুমোদন</button>
+          <button class="mini-btn danger" onclick="skipCandidate('${esc(c.id)}')">এখন বাদ</button>
+        </div>
+      </div>
+    `).join('') || '<div class="empty-state">এই filter-এ কোনো pending ছাত্র নেই।</div>';
+  }
+
+  function changePage(delta) {
+    state.page += delta;
+    renderList();
+  }
+
+  function openApproveModal(id) {
+    const c = state.candidates.find(x => x.id === id);
+    if (!c) return;
+    state.current = c;
+    document.getElementById('approve-summary').innerHTML =
+      `<b>${esc(c.name)}</b><br>পিতা: ${esc(c.guardian_name || '—')} · পুরনো রোল: ${esc(c.old_roll || '—')}`;
+    document.getElementById('student-id').value = '';
+    document.getElementById('approve-class').value = c.class_code;
+    document.getElementById('approve-roll').value = c.old_roll || '';
+    document.getElementById('approve-hijri').value = '';
+    document.getElementById('modal-approve').classList.add('open');
+  }
+
+  function closeApproveModal() {
+    document.getElementById('modal-approve').classList.remove('open');
+    state.current = null;
+  }
+
+  async function approveCurrent() {
+    if (!state.current) return;
+    const studentId = document.getElementById('student-id').value.trim();
+    const classCode = document.getElementById('approve-class').value;
+    const roll = document.getElementById('approve-roll').value.trim();
+    const hijriYear = document.getElementById('approve-hijri').value.trim();
+    if (!studentId) { showToast('স্থায়ী আইডি দিন'); return; }
+    if (!roll) { showToast('রোল দিন'); return; }
+    if (state.current.source === 'moktob_backup' && !studentId.startsWith('ম')) {
+      if (!confirm('মক্তব ছাত্রের ID সাধারণত “ম” দিয়ে শুরু হবে। তারপরও সংরক্ষণ করবেন?')) return;
+    }
+    try {
+      setLoading(true);
+      await MMMadrasaAPI.approveImportCandidate(state.pin, {
+        candidateId: state.current.id,
+        studentId,
+        classCode,
+        roll,
+        hijriYear,
+      });
+      state.candidates = state.candidates.filter(c => c.id !== state.current.id);
+      closeApproveModal();
+      showToast('ছাত্র অনুমোদন হয়েছে');
+      await refreshSummaryOnly();
+      renderList();
+    } catch (err) {
+      showToast(err.message === 'student_id_already_exists' ? 'এই স্থায়ী ID আগে থেকেই আছে' : 'অনুমোদন করা যায়নি');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function skipCandidate(id) {
+    if (!confirm('এই ছাত্রকে pending তালিকা থেকে বাদ দেবেন? পরে SQL দিয়ে ফিরিয়ে আনা যাবে।')) return;
+    try {
+      setLoading(true);
+      await MMMadrasaAPI.skipImportCandidate(state.pin, id);
+      state.candidates = state.candidates.filter(c => c.id !== id);
+      showToast('তালিকা থেকে বাদ দেওয়া হয়েছে');
+      await refreshSummaryOnly();
+      renderList();
+    } catch (err) {
+      showToast('বাদ দেওয়া যায়নি');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function refreshSummaryOnly() {
+    const boot = await MMMadrasaAPI.adminBootstrap(state.pin);
+    document.getElementById('stat-pending').textContent = bn(boot.import_pending_count || 0);
+    document.getElementById('stat-students').textContent = bn(boot.student_count || 0);
+    document.getElementById('stat-books').textContent = bn(boot.book_count || 0);
+  }
+</script>
+</body>
+</html>

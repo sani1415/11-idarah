@@ -276,14 +276,14 @@ const API = (() => {
      ══════════════════════════════ */
   const DEFAULT_CLASS_NEXT = {
     cls_k1: 'cls_ky', cls_ky: 'cls_k2', cls_k2: 'cls_k3', cls_k3: 'cls_k4',
-    cls_k4: 'cls_k5', cls_k5: 'cls_k6', cls_k6: 'cls_k7', cls_k7: 'cls_k8',
-    cls_k8: 'alumni_pass',
+    cls_k4: 'cls_k5', cls_k5: 'cls_k6', cls_k6: 'cls_k7',
+    cls_k7: 'alumni_pass',
     cls_m1: 'cls_m2', cls_m2: 'cls_m3', cls_m3: 'cls_m4', cls_m4: 'cls_m5',
     cls_m5: 'cls_k1',
   };
   const DEFAULT_CLASS_ORDER = {
     cls_k1: 10, cls_ky: 20, cls_k2: 30, cls_k3: 40, cls_k4: 50,
-    cls_k5: 60, cls_k6: 70, cls_k7: 80, cls_k8: 90,
+    cls_k5: 60, cls_k6: 70, cls_k7: 80,
     cls_m1: 10, cls_m2: 20, cls_m3: 30, cls_m4: 40, cls_m5: 50,
   };
   function normalizeClass(c) {
@@ -762,6 +762,29 @@ const API = (() => {
     if (changed) save(KEYS.classes, next);
   }
 
+  const OldMadrasaImport = {
+    summarize(pack) {
+      const data = pack || {};
+      return {
+        classes: Array.isArray(data.classes) ? data.classes.length : 0,
+        students: Array.isArray(data.students) ? data.students.length : 0,
+        kitabs: Array.isArray(data.kitabs) ? data.kitabs.length : 0,
+      };
+    },
+    replaceCoreData(pack) {
+      if (!pack || !Array.isArray(pack.classes) || !Array.isArray(pack.students) || !Array.isArray(pack.kitabs)) {
+        throw new Error('invalid import pack');
+      }
+      save(KEYS.classes, pack.classes);
+      save(KEYS.students, pack.students);
+      save(KEYS.kitabs, pack.kitabs);
+      save(KEYS.kitab_prog, Array.isArray(pack.kitab_progress) ? pack.kitab_progress : []);
+      [KEYS.attendance, KEYS.khuluk, KEYS.logs, KEYS.fees, KEYS.exams, KEYS.results].forEach((key) => save(key, []));
+      localStorage.removeItem('mm_withdrawals');
+      return this.summarize(pack);
+    },
+  };
+
   /* ── INIT ── */
   seedIfEmpty();
   migrateAttendanceStatus();
@@ -772,6 +795,7 @@ const API = (() => {
   return {
     Students, Classes, Teachers, Attendance, KitabProgress, Khuluk, Logs, Fees, Exams,
     Settings, Sessions, Holidays,
+    OldMadrasaImport,
     persistLoadArr, persistSaveArr,
     uid, today, now, esc,
   };
