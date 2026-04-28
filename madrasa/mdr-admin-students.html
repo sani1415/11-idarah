@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>বর্তমান ছাত্র — জিম্মাদার</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/main-admin-nav.css">
+<style>
+  .filter-card { background:#fff; border-radius:var(--radius); padding:12px; box-shadow:var(--shadow); margin:8px 0 12px; }
+  .filter-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .filter-row + .filter-row { margin-top:8px; }
+  .filter-row .wide { grid-column:1 / -1; }
+  .student-row { display:flex; align-items:flex-start; gap:10px; background:#fff; border-radius:12px; padding:11px 12px; box-shadow:0 1px 5px rgba(0,0,0,.06); margin-bottom:7px; }
+  .student-roll { min-width:36px; padding:4px 7px; border-radius:999px; background:var(--cream2); color:var(--ink3); text-align:center; font-size:11px; font-weight:700; }
+  .student-main { flex:1; min-width:0; }
+  .student-name { border:none; background:none; padding:0; margin:0; font:inherit; font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:800; color:var(--ink); cursor:pointer; text-align:right; }
+  .student-name:hover { color:var(--blue); text-decoration:underline; }
+  .student-meta { font-size:11px; color:var(--ink3); line-height:1.6; margin-top:3px; }
+  .student-class { font-size:10px; color:var(--ink2); background:var(--gold-light); border-radius:999px; padding:3px 8px; white-space:nowrap; }
+  .list-count { font-size:12px; color:var(--ink3); margin:4px 2px 10px; }
+  .empty-note { background:#fff; border-radius:var(--radius); padding:22px 12px; text-align:center; color:var(--ink3); box-shadow:var(--shadow); font-size:13px; }
+  @media (max-width:420px) { .filter-row { grid-template-columns:1fr; } .filter-row .wide { grid-column:auto; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">জিম্মাদার</div>
+    <div class="topbar-name">বর্তমান ছাত্র তালিকা</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='../main-admin-madrasa.html'">← এডমিন</button>
+  </div>
+</div>
+
+<div class="content" style="padding-bottom:var(--app-content-pad-bottom);">
+  <div class="filter-card">
+    <div class="filter-row">
+      <select class="form-input form-select" id="dept-filter" onchange="switchDept(this.value)"></select>
+      <select class="form-input form-select" id="class-filter" onchange="renderStudents()">
+        <option value="">সব বর্ষ/শ্রেণি</option>
+      </select>
+      <select class="form-input form-select" id="sort-filter" onchange="renderStudents()">
+        <option value="class_roll">বর্ষ ও রোল অনুযায়ী</option>
+        <option value="name">নাম অনুযায়ী</option>
+        <option value="id">স্থায়ী আইডি অনুযায়ী</option>
+      </select>
+    </div>
+    <div class="filter-row">
+      <input class="form-input wide" id="search-box" placeholder="নাম, স্থায়ী ID, রোল, অভিভাবক বা ফোন দিয়ে খুঁজুন" oninput="renderStudents()">
+    </div>
+  </div>
+
+  <div class="list-count" id="list-count">—</div>
+  <div id="student-list"></div>
+  <div class="pb-safe"></div>
+</div>
+
+<nav class="main-nav" role="navigation" aria-label="জিম্মাদার নেভিগেশন">
+  <a class="main-nav-btn is-active" href="../main-admin-madrasa.html" aria-label="মাদ্রাসা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span class="main-nav-lbl">মাদ্রাসা</span></a>
+  <a class="main-nav-btn" href="../main-admin-dept.html" aria-label="বিভাগ"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg><span class="main-nav-lbl">বিভাগ</span></a>
+  <a class="main-nav-btn" href="../main-admin-khedmat.html" aria-label="খেদমত"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span class="main-nav-lbl">খেদমত</span></a>
+  <a class="main-nav-btn" href="../chat.html" aria-label="বার্তা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg><span class="main-nav-lbl">বার্তা</span></a>
+  <a class="main-nav-btn" href="../main-admin-recent.html" aria-label="কার্যক্রম"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg><span class="main-nav-lbl">কার্যক্রম</span></a>
+</nav>
+
+<div class="toast" id="toast"></div>
+<script src="../js/mm-sample-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/mm-hijri.js"></script>
+<script src="../js/mm-student-modal.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  if (!MMSession.requireAdminPerm('dashboard', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
+  const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮۹'[d]);
+  const allowedDepts = MMSession.getAllowedMadrasaDepts();
+  const bnNum = n => String(n).replace(/[0-9]/g, d => String.fromCharCode(0x09E6 + Number(d)));
+  const params = new URLSearchParams(location.search);
+  let currentDept = readDept(params.get('dept'));
+
+  function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+  function deptLabel(dept) { return dept === 'maktab' ? 'মক্তব' : dept === 'kitab' ? 'কিতাব' : 'সামগ্রিক'; }
+  function readDept(raw) {
+    if (raw === 'all' && allowedDepts.length > 1) return 'all';
+    if ((raw === 'kitab' || raw === 'maktab') && allowedDepts.includes(raw)) return raw;
+    return allowedDepts.length > 1 ? 'all' : (allowedDepts[0] || 'kitab');
+  }
+  function scopeDepts() {
+    if (currentDept === 'kitab' || currentDept === 'maktab') return [currentDept];
+    return allowedDepts.filter(d => d === 'kitab' || d === 'maktab');
+  }
+  function classMap() {
+    return Object.fromEntries(API.Classes.getAll(true).map(c => [c.id, c]));
+  }
+  function activeStudents() {
+    const cMap = classMap();
+    const depts = new Set(scopeDepts());
+    return API.Students.getAll().filter(s => s.active && cMap[s.class_id] && depts.has(cMap[s.class_id].dept));
+  }
+  function renderDeptFilter() {
+    const opts = [];
+    if (allowedDepts.length > 1) opts.push(['all','সামগ্রিক']);
+    if (allowedDepts.includes('kitab')) opts.push(['kitab','কিতাব']);
+    if (allowedDepts.includes('maktab')) opts.push(['maktab','মক্তব']);
+    document.getElementById('dept-filter').innerHTML = opts.map(([key,label]) =>
+      `<option value="${key}">${label}</option>`
+    ).join('');
+    document.getElementById('dept-filter').value = currentDept;
+  }
+  function switchDept(dept) {
+    currentDept = readDept(dept);
+    const url = new URL(location.href);
+    url.searchParams.set('dept', currentDept);
+    history.replaceState(null, '', url.toString());
+    renderAll();
+  }
+  function renderClassFilter() {
+    const depts = new Set(scopeDepts());
+    const classes = API.Classes.getAll().filter(c => depts.has(c.dept));
+    document.getElementById('class-filter').innerHTML =
+      '<option value="">সব বর্ষ/শ্রেণি</option>' +
+      classes.map(c => `<option value="${API.esc(c.id)}">${currentDept==='all' ? deptLabel(c.dept)+' — ' : ''}${API.esc(c.name)}</option>`).join('');
+  }
+  function filteredStudents() {
+    const cMap = classMap();
+    const cid = document.getElementById('class-filter').value;
+    const q = document.getElementById('search-box').value.trim().toLowerCase();
+    const sort = document.getElementById('sort-filter').value;
+    let list = activeStudents().filter(s => !cid || s.class_id === cid);
+    if (q) {
+      list = list.filter(s => [s.name, s.permanent_id, s.roll, s.guardian, s.phone, s.district, s.upazila]
+        .some(v => String(v || '').toLowerCase().includes(q)));
+    }
+    list.sort((a,b) => {
+      if (sort === 'name') return String(a.name||'').localeCompare(String(b.name||''), 'bn');
+      if (sort === 'id') return String(a.permanent_id||'').localeCompare(String(b.permanent_id||''), 'bn');
+      const ca = cMap[a.class_id] || {}, cb = cMap[b.class_id] || {};
+      const byClass = (ca.sort_order || 999) - (cb.sort_order || 999);
+      return byClass || String(a.roll||'').localeCompare(String(b.roll||''), 'bn', { numeric:true });
+    });
+    return list;
+  }
+  function renderStudents() {
+    const cMap = classMap();
+    const list = filteredStudents();
+    document.getElementById('list-count').textContent = `${deptLabel(currentDept)} — ${bnNum(list.length)} জন বর্তমান ছাত্র`;
+    if (!list.length) {
+      document.getElementById('student-list').innerHTML = '<div class="empty-note">এই filter-এ কোনো ছাত্র নেই।</div>';
+      return;
+    }
+    document.getElementById('student-list').innerHTML = list.map(s => {
+      const cls = cMap[s.class_id] || {};
+      return `<div class="student-row">
+        <div class="student-roll">${API.esc(s.roll || '—')}</div>
+        <div class="student-main">
+          <button class="student-name" onclick="MMStudentModal.open('${API.esc(s.id)}')">${API.esc(s.name)}</button>
+          <div class="student-meta">আইডি: ${API.esc(s.permanent_id || '—')} · অভিভাবক: ${API.esc(s.guardian || '—')} · ফোন: ${API.esc(s.phone || '—')}</div>
+          <div class="student-meta">${API.esc([s.district, s.upazila].filter(Boolean).join(' · ') || 'ঠিকানা নেই')}</div>
+        </div>
+        <div class="student-class">${API.esc(currentDept === 'all' ? deptLabel(cls.dept) + ' · ' + cls.name : cls.name || '—')}</div>
+      </div>`;
+    }).join('');
+  }
+  function renderAll() {
+    renderDeptFilter();
+    renderClassFilter();
+    renderStudents();
+  }
+  renderAll();
+</script>
+</body>
+</html>

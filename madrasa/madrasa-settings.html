@@ -30,7 +30,8 @@
   .class-row-set { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--cream2); }
   .class-row-set:last-child { border-bottom:none; }
   .class-badge { font-size:10px; color:var(--ink3); background:var(--cream2); border-radius:999px; padding:2px 7px; }
-  .class-row-set.inactive { opacity:.55; }
+  .class-row-set.inactive,
+  .teacher-row.inactive { opacity:.55; }
   .secondary-btn { border:1px solid var(--cream3); background:#fff; color:var(--ink2); border-radius:12px; padding:12px; font-family:'Noto Sans Bengali',sans-serif; font-weight:800; cursor:pointer; }
 </style>
 </head>
@@ -133,7 +134,7 @@
       <div class="settings-title">👨‍🏫 শিক্ষক তালিকা</div>
       <div id="teacher-list"></div>
     </div>
-    <button class="add-btn" onclick="openModal('add-teacher')">＋ বর্ষ দায়িত্বশীল যোগ করুন</button>
+    <button class="add-btn" onclick="openTeacherModal(null)">＋ বর্ষ দায়িত্বশীল যোগ করুন</button>
     <button class="add-btn" style="background:var(--ink2);" onclick="openModal('add-staff')">＋ বিশেষ ভূমিকা যোগ করুন</button>
   </div>
 
@@ -170,10 +171,14 @@
 <!-- ADD TEACHER MODAL -->
 <div class="modal-bg" id="modal-add-teacher">
   <div class="modal">
-    <div class="modal-title">বর্ষ দায়িত্বশীল <button class="modal-close" onclick="closeModal('add-teacher')">✕</button></div>
+    <div class="modal-title"><span id="teacher-modal-title">বর্ষ দায়িত্বশীল</span> <button class="modal-close" onclick="closeModal('add-teacher')">✕</button></div>
     <div class="form-group">
       <label class="form-label">নাম</label>
       <input class="form-input" id="t-name" placeholder="উস্তাযের নাম">
+    </div>
+    <div class="form-group">
+      <label class="form-label">লগইন আইডি</label>
+      <input class="form-input" id="t-login-id" placeholder="যেমন: t1" autocomplete="off">
     </div>
     <div class="form-group">
       <label class="form-label">দায়িত্বের বর্ষ</label>
@@ -183,7 +188,8 @@
       <label class="form-label">পিন (৪ সংখ্যা)</label>
       <input class="form-input" id="t-pin" type="password" maxlength="4" value="0000">
     </div>
-    <button class="submit-btn" onclick="addTeacher()">যোগ করুন</button>
+    <label class="check-item" style="margin-bottom:12px;"><input type="checkbox" id="t-active" checked> সক্রিয় থাকবে</label>
+    <button class="submit-btn" id="teacher-save-btn" onclick="saveTeacher()">যোগ করুন</button>
   </div>
 </div>
 
@@ -289,6 +295,10 @@
   <div class="modal">
     <div class="modal-title">পিন পরিবর্তন <button class="modal-close" onclick="closeModal('edit-pin')">✕</button></div>
     <div style="font-size:13px;font-weight:600;margin-bottom:12px;" id="ep-name"></div>
+    <div class="form-group" id="ep-login-wrap">
+      <label class="form-label">লগইন আইডি</label>
+      <input class="form-input" id="ep-login-id" placeholder="যেমন: t1" autocomplete="off">
+    </div>
     <div class="form-group">
       <label class="form-label">নতুন পিন (৪ সংখ্যা)</label>
       <input class="form-input" id="ep-pin" type="password" maxlength="4" placeholder="নতুন পিন">
@@ -306,6 +316,7 @@
   document.getElementById('top-name').textContent = MMSession.getName()||'জিম্মাদার';
 
   let editingTeacherId = null;
+  let editingTeacherProfileId = null;
   let editingAdminId = null;
   let editingClassId = null;
 
@@ -516,13 +527,13 @@
     document.getElementById('teacher-list').innerHTML = teachers.map(t=>{
       const cls = t.class_id ? classes.find(c=>c.id===t.class_id) : null;
       const meta = cls ? API.esc(cls.name) : (t.role ? roleLabel[t.role]||t.role : '—');
-      return `<div class="teacher-row">
+      return `<div class="teacher-row ${t.is_active === false ? 'inactive' : ''}">
         <div style="flex:1;">
           <div class="t-name">${API.esc(t.name)}</div>
-          <div class="t-meta">${meta}</div>
+          <div class="t-meta">${meta}${t.class_id ? ' · আইডি: ' + API.esc(t.login_id || '—') : ''}${t.is_active === false ? ' · নিষ্ক্রিয়' : ''}</div>
         </div>
         <span class="pin-display">পিন: ${API.esc(t.pin||'—')}</span>
-        <button onclick="openEditPin('${t.id}','${API.esc(t.name)}')" style="background:var(--cream2);border:none;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11px;">✏️</button>
+        ${t.class_id ? `<button class="small-btn" onclick="openTeacherModal('${t.id}')">সম্পাদনা</button>` : `<button onclick="openEditPin('${t.id}','${API.esc(t.name)}')" style="background:var(--cream2);border:none;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11px;">✏️</button>`}
       </div>`;
     }).join('')||'<div style="font-size:13px;color:var(--ink3);">কোনো শিক্ষক নেই</div>';
 
@@ -531,30 +542,73 @@
 
   function openEditPin(id, name) {
     editingTeacherId = id;
+    const user = API.Teachers.getById(id);
     document.getElementById('ep-name').textContent = name;
+    document.getElementById('ep-login-wrap').style.display = user && user.class_id ? 'block' : 'none';
+    document.getElementById('ep-login-id').value = user && user.class_id ? (user.login_id || '') : '';
     document.getElementById('ep-pin').value = '';
     openModal('edit-pin');
   }
   function saveTeacherPin() {
     const pin = document.getElementById('ep-pin').value;
+    const user = API.Teachers.getById(editingTeacherId);
+    const login_id = document.getElementById('ep-login-id').value.trim();
+    if (user && user.class_id) {
+      if (!login_id) { showToast('লগইন আইডি দিন'); return; }
+      const duplicateLogin = API.Teachers.getAll().some(t =>
+        t.id !== editingTeacherId &&
+        String(t.login_id || '').trim().toLowerCase() === login_id.toLowerCase()
+      );
+      if (duplicateLogin) { showToast('এই লগইন আইডি আগে থেকেই আছে'); return; }
+    }
     if (pin.length !== 4) { showToast('৪ সংখ্যার পিন দিন'); return; }
-    API.Teachers.update(editingTeacherId, {pin});
+    API.Teachers.update(editingTeacherId, user && user.class_id ? {pin, login_id} : {pin});
     closeModal('edit-pin');
     showToast('পিন আপডেট হয়েছে ✓');
     renderTeachers();
   }
 
-  function addTeacher() {
+  function openTeacherModal(id) {
+    editingTeacherProfileId = id;
+    const t = id ? API.Teachers.getById(id) : null;
+    document.getElementById('teacher-modal-title').textContent = id ? 'বর্ষ দায়িত্বশীল সম্পাদনা' : 'বর্ষ দায়িত্বশীল';
+    document.getElementById('teacher-save-btn').textContent = id ? 'সংরক্ষণ করুন' : 'যোগ করুন';
+    document.getElementById('t-name').value = t ? (t.name || '') : '';
+    document.getElementById('t-login-id').value = t ? (t.login_id || '') : '';
+    document.getElementById('t-class').value = t ? (t.class_id || '') : (document.getElementById('t-class').value || '');
+    document.getElementById('t-pin').value = t ? (t.pin || '') : '0000';
+    document.getElementById('t-active').checked = t ? t.is_active !== false : true;
+    openModal('add-teacher');
+  }
+
+  function saveTeacher() {
     const name     = document.getElementById('t-name').value.trim();
+    const login_id = document.getElementById('t-login-id').value.trim();
     const class_id = document.getElementById('t-class').value;
     const pin      = document.getElementById('t-pin').value||'0000';
+    const is_active = document.getElementById('t-active').checked;
     if (!name) { showToast('নাম দিন'); return; }
-    const existing = API.Teachers.getByClassId(class_id);
+    if (!login_id) { showToast('লগইন আইডি দিন'); return; }
+    if (pin.length !== 4) { showToast('৪ সংখ্যার পিন দিন'); return; }
+    const existing = API.Teachers.getAll().find(t =>
+      t.id !== editingTeacherProfileId &&
+      t.class_id === class_id &&
+      t.is_active !== false
+    );
     if (existing) { showToast('এই বর্ষে আগে থেকেই একজন শিক্ষক নির্ধারিত আছে'); return; }
-    API.Teachers.add({name, class_id, pin, role:'teacher'});
+    const duplicateLogin = API.Teachers.getAll().some(t =>
+      t.id !== editingTeacherProfileId &&
+      String(t.login_id || '').trim().toLowerCase() === login_id.toLowerCase()
+    );
+    if (duplicateLogin) { showToast('এই লগইন আইডি আগে থেকেই আছে'); return; }
+    const data = { name, login_id, class_id, pin, role:'teacher', is_active };
+    if (editingTeacherProfileId) API.Teachers.update(editingTeacherProfileId, data);
+    else API.Teachers.add(data);
     document.getElementById('t-name').value='';
+    document.getElementById('t-login-id').value='';
+    editingTeacherProfileId = null;
     closeModal('add-teacher');
-    showToast('শিক্ষক যোগ হয়েছে ✓');
+    showToast('শিক্ষক সংরক্ষণ হয়েছে ✓');
     renderTeachers();
   }
 

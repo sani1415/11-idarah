@@ -76,6 +76,7 @@
     border-color: rgba(201,149,42,.42);
   }
   .pin-role-icon svg { width: 25px; height: 25px; }
+  .teacher-login-fields { display:none; margin-bottom:12px; }
 </style>
 </head>
 <body>
@@ -162,6 +163,10 @@
   </div>
 
   <div class="login-box">
+    <div class="teacher-login-fields" id="teacher-login-fields">
+      <span class="login-label">লগইন আইডি</span>
+      <input class="form-input" id="teacher-login-id" autocomplete="username" placeholder="যেমন: t1" style="margin-bottom:12px;text-align:center;font-weight:700;">
+    </div>
     <span class="login-label">পিন দিন</span>
     <div class="pin-dots">
       <div class="pin-dot" id="pd0"></div>
@@ -188,14 +193,6 @@
   <div class="login-back" onclick="backToRole()">← ভূমিকা পরিবর্তন করুন</div>
 </div>
 
-<!-- TEACHER SELECT (for teacher role) -->
-<div class="login-screen" id="teacher-select-screen" style="display:none;">
-  <div style="font-family:'Noto Serif Bengali',serif;font-size:20px;font-weight:700;color:var(--ink2);text-align:center;margin-bottom:4px;">বর্ষ নির্বাচন করুন</div>
-  <div class="login-subtitle">আপনার বর্ষ বেছে নিন</div>
-  <div class="role-grid" id="teacher-list"></div>
-  <div class="login-back" onclick="backToRole()">← ফিরুন</div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script src="js/mm-sample-data.js"></script>
@@ -203,7 +200,6 @@
 <script src="js/mm-session.js"></script>
 <script>
   let currentRole = '';
-  let selectedTeacher = null;
   let pinVal = '';
 
   const BN_MAP = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
@@ -236,7 +232,11 @@
   function selectRole(role) {
     currentRole = role;
     if (role === 'teacher') {
-      showTeacherSelect();
+      renderIcon(document.getElementById('pin-icon'), 'teacher');
+      document.getElementById('pin-title').textContent = 'বর্ষ দায়িত্বশীল লগইন';
+      document.getElementById('pin-sub').textContent = 'নিজের আইডি ও পিন দিন';
+      showScreen('pin-screen');
+      resetPin();
       return;
     }
     const info = {
@@ -256,43 +256,17 @@
     resetPin();
   }
 
-  function showTeacherSelect() {
-    const teachers = API.Teachers.getAll().filter(t => t.class_id);
-    const classes = API.Classes.getAll();
-    const list = document.getElementById('teacher-list');
-    list.innerHTML = teachers.map(t => {
-      const cls = classes.find(c => c.id === t.class_id);
-      return `<div class="role-btn" onclick="selectTeacher('${t.id}')">
-        <div class="role-icon">${iconSvg('teacher')}</div>
-        <div>
-          <div class="role-name">${API.esc(t.name)}</div>
-          <div class="role-desc">${cls ? API.esc(cls.name) : ''}</div>
-        </div>
-      </div>`;
-    }).join('');
-    showScreen('teacher-select-screen');
-  }
-
-  function selectTeacher(tid) {
-    selectedTeacher = API.Teachers.getById(tid);
-    const cls = API.Classes.getById(selectedTeacher.class_id);
-    renderIcon(document.getElementById('pin-icon'), 'teacher');
-    document.getElementById('pin-title').textContent = API.esc(selectedTeacher.name);
-    document.getElementById('pin-sub').textContent = cls ? API.esc(cls.name) : '';
-    showScreen('pin-screen');
-    resetPin();
-  }
-
   function backToRole() {
-    selectedTeacher = null;
     currentRole = '';
     showScreen('role-screen');
   }
 
   function showScreen(id) {
-    ['role-screen','pin-screen','teacher-select-screen'].forEach(s => {
+    ['role-screen','pin-screen'].forEach(s => {
       document.getElementById(s).style.display = s === id ? 'flex' : 'none';
     });
+    document.getElementById('teacher-login-fields').style.display = (id === 'pin-screen' && currentRole === 'teacher') ? 'block' : 'none';
+    if (id !== 'pin-screen' || currentRole !== 'teacher') document.getElementById('teacher-login-id').value = '';
   }
 
   function pressPin(n) {
@@ -317,6 +291,10 @@
     pinVal = '';
     updateDots();
     document.getElementById('pin-error').textContent = '';
+  }
+
+  function normalizeLoginId(v) {
+    return String(v || '').trim().toLowerCase();
   }
 
   function checkPin() {
@@ -378,12 +356,19 @@
         MMSession.setName(user.name);
         redirect = 'khedmat/khedmat-staff.html';
       }
-    } else if (currentRole === 'teacher' && selectedTeacher) {
-      if (pinVal === selectedTeacher.pin) {
+    } else if (currentRole === 'teacher') {
+      const loginId = normalizeLoginId(document.getElementById('teacher-login-id').value);
+      const teacher = API.Teachers.getAll().find(t =>
+        t.class_id &&
+        t.is_active !== false &&
+        normalizeLoginId(t.login_id) === loginId &&
+        String(t.pin || '') === pinVal
+      );
+      if (teacher) {
         ok = true;
         MMSession.setRole('teacher');
-        MMSession.setTeacherId(selectedTeacher.id);
-        MMSession.setName(selectedTeacher.name);
+        MMSession.setTeacherId(teacher.id);
+        MMSession.setName(teacher.name);
         redirect = 'madrasa/madrasa-class.html';
       }
     }
@@ -391,7 +376,7 @@
     if (ok) {
       window.location.href = redirect;
     } else {
-      document.getElementById('pin-error').textContent = 'পিন ভুল হয়েছে।';
+      document.getElementById('pin-error').textContent = currentRole === 'teacher' ? 'আইডি বা পিন ভুল হয়েছে।' : 'পিন ভুল হয়েছে।';
       pinVal = '';
       updateDots();
     }

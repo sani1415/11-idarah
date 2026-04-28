@@ -257,7 +257,7 @@ body.page-daftar .topbar-btn { padding:6px 10px; font-size:11px; }
     const pidInp = document.getElementById('add-pid');
     const hy = (API.Settings.get().hijri_year || '১৪৪৪৭').trim();
     if (dept === 'maktab') {
-      pidInp.placeholder = 'ম + বাংলা অঙ্ক (নম্বর স্বয়ংক্রিয় ধরা যায়)';
+      pidInp.placeholder = 'যেমন: 047101 (শুরুতে 0 থাকবে)';
       if (!String(pidInp.value || '').trim()) pidInp.value = API.Students.getNextPermanentId('maktab', hy);
     } else {
       pidInp.placeholder = 'যেমন: ৪৭০১২';

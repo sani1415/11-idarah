@@ -40,8 +40,7 @@ const API = (() => {
     localStorage.setItem(key, JSON.stringify(data));
   }
 
-  /** মক্তব: স্থায়ী আইডি শুধু `ম` + বাংলা/ইংরেজি অঙ্কের ধারা (৪/৫ অঙ্ক প্যাড) */
-  const MAKTAB_ID_PREFIX = 'ম';
+  /** মক্তব: স্থায়ী আইডি digit-only, leading zero সহ; রোল/পরিচিতি `ম` দিয়ে শুরু */
   function bnDigitsToInt(str) {
     if (!str) return 0;
     const t = String(str).trim().replace(/[০-৯]/g, (ch) => {
@@ -55,16 +54,27 @@ const API = (() => {
     const s = String(n).split('').map((c) => '০১২৩৪৫৬৭৮৯'[Number(c)]).join('');
     return s.length >= minLen ? s : '০'.repeat(minLen - s.length) + s;
   }
+  function intToAsciiPadded(n, minLen) {
+    return String(n || 0).padStart(minLen, '0');
+  }
   function parseMaktabPermanentIdToInt(pid) {
     const s = String(pid || '').trim();
-    if (!s.startsWith(MAKTAB_ID_PREFIX)) return 0;
-    return bnDigitsToInt(s.slice(MAKTAB_ID_PREFIX.length));
+    if (!/^0[0-9০-৯]+$/.test(s)) return 0;
+    return bnDigitsToInt(s);
   }
 
   /* ══════════════════════════════
      SEED DATA — প্রথম লোডে নমুনা ডেটা
      ══════════════════════════════ */
   function seedIfEmpty() {
+    function defaultTeacherLoginId(t) {
+      if (!t || !t.class_id) return t && t.login_id;
+      const id = String(t.id || '').trim();
+      const m = id.match(/^tch_(\d+)$/);
+      if (m) return 't' + m[1];
+      return id ? id.toLowerCase().replace(/[^a-z0-9_-]+/g, '-') : '';
+    }
+
     /* ── MIGRATION: force all PINs to 0000 ── */
     const allT = load(KEYS.teachers);
     if (allT.length && allT.some(t => t.pin !== '0000')) {
@@ -79,6 +89,12 @@ const API = (() => {
     const allT2 = load(KEYS.teachers);
     if (allT2.length && !allT2.find(t => t.id === 'usr_khedmat')) {
       save(KEYS.teachers, [...allT2, { id:'usr_khedmat', name:'খেদমত দায়িত্বশীল', class_id:null, pin:'0000', role:'khedmat' }]);
+    }
+
+    /* ── MIGRATION: বর্ষ দায়িত্বশীল direct login — login_id নিশ্চিত করুন ── */
+    const allT3 = load(KEYS.teachers);
+    if (allT3.length && allT3.some(t => t.class_id && !t.login_id)) {
+      save(KEYS.teachers, allT3.map(t => t.class_id && !t.login_id ? { ...t, login_id: defaultTeacherLoginId(t) } : t));
     }
 
     /* ── MIGRATION: ছাত্র — ভর্তি_বছর সরান; একক ঠিকানা → জেলা+উপজেলা (পুরনো পুরো লাইন উপজেলায়) ── */
@@ -118,7 +134,9 @@ const API = (() => {
       const extraT = globalThis.MMSampleData && globalThis.MMSampleData.getLegacyExtraTeachers
         ? globalThis.MMSampleData.getLegacyExtraTeachers()
         : [];
-      if (extraT.length) save(KEYS.teachers, [...existingTeachers, ...extraT]);
+      if (extraT.length) {
+        save(KEYS.teachers, [...existingTeachers, ...extraT.map(t => t.class_id && !t.login_id ? { ...t, login_id: defaultTeacherLoginId(t) } : t)]);
+      }
     }
 
     if (load(KEYS.classes).length) return;
@@ -130,6 +148,9 @@ const API = (() => {
     }
     const pack = buildM(today());
     if (!pack || !pack.mm_classes || !pack.mm_classes.length) return;
+    if (Array.isArray(pack.mm_teachers)) {
+      pack.mm_teachers = pack.mm_teachers.map(t => t.class_id && !t.login_id ? { ...t, login_id: defaultTeacherLoginId(t) } : t);
+    }
     Object.keys(pack).forEach((k) => {
       try {
         localStorage.setItem(k, JSON.stringify(pack[k]));
@@ -213,14 +234,17 @@ const API = (() => {
     getNextPermanentIdRespecting(virtualPids, dept, hijriYear) {
       if (dept === 'maktab') {
         const nums = [];
+        const classMap = Object.fromEntries(load(KEYS.classes).map((c) => [c.id, c]));
         load(KEYS.students).forEach((s) => {
-          if (s.permanent_id) nums.push(parseMaktabPermanentIdToInt(s.permanent_id));
+          if (s.permanent_id && classMap[s.class_id] && classMap[s.class_id].dept === 'maktab') {
+            nums.push(parseMaktabPermanentIdToInt(s.permanent_id));
+          }
         });
         if (virtualPids && virtualPids.forEach) {
           virtualPids.forEach((id) => nums.push(parseMaktabPermanentIdToInt(id)));
         }
         const next = nums.length ? Math.max(0, ...nums) + 1 : 1;
-        return MAKTAB_ID_PREFIX + intToBnPadded(next, 5);
+        return intToAsciiPadded(next, 6);
       }
       const yr = String(hijriYear).slice(-2);
       const head = yr;

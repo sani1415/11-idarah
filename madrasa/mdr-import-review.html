@@ -87,7 +87,7 @@
     <div class="modal-note" id="approve-summary"></div>
     <div class="form-group">
       <label class="form-label">নতুন স্থায়ী আইডি</label>
-      <input class="form-input" id="student-id" placeholder="যেমন: ৪৭০০১ / ম৪৭০০১">
+      <input class="form-input" id="student-id" placeholder="যেমন: 47101 / মক্তব: 047101">
     </div>
     <div class="form-group">
       <label class="form-label">বর্তমান বর্ষ/শ্রেণি</label>
@@ -95,7 +95,7 @@
     </div>
     <div class="form-group">
       <label class="form-label">বর্তমান রোল</label>
-      <input class="form-input" id="approve-roll" placeholder="যেমন: ১০১">
+      <input class="form-input" id="approve-roll" placeholder="যেমন: 101 / মক্তব: ম১০১">
     </div>
     <div class="form-group">
       <label class="form-label">হিজরী বর্ষ (ঐচ্ছিক)</label>
@@ -254,8 +254,11 @@
     const hijriYear = document.getElementById('approve-hijri').value.trim();
     if (!studentId) { showToast('স্থায়ী আইডি দিন'); return; }
     if (!roll) { showToast('রোল দিন'); return; }
-    if (state.current.source === 'moktob_backup' && !studentId.startsWith('ম')) {
-      if (!confirm('মক্তব ছাত্রের ID সাধারণত “ম” দিয়ে শুরু হবে। তারপরও সংরক্ষণ করবেন?')) return;
+    if (state.current.source === 'moktob_backup' && !/^0\d+$/.test(studentId)) {
+      if (!confirm('মক্তব ছাত্রের স্থায়ী ID সাধারণত 0 দিয়ে শুরু হবে। তারপরও সংরক্ষণ করবেন?')) return;
+    }
+    if (state.current.source === 'moktob_backup' && !roll.startsWith('ম')) {
+      if (!confirm('মক্তব ছাত্রের রোল সাধারণত “ম” দিয়ে শুরু হবে। তারপরও সংরক্ষণ করবেন?')) return;
     }
     try {
       setLoading(true);
