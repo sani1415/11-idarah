@@ -21,7 +21,7 @@ const MdrAccAPI = (() => {
   const ACCOUNT_LABELS = {
     matbakh:'মাতবাখ', madrasa:'মাদরাসা', tamirat:'তামিরাত', general:'সাধারণ',
   };
-  const DEFAULT_YEAR = '1447';
+  const OFFSET_KEY = 'mdr_acc_hijri_offset_days';
 
   const DEFAULT_CATS = [
     'বড় বাজার','কাঁচা বাজার','দস্তরখান ভবন','রান্নাঘর সরবরাহ',
@@ -36,7 +36,15 @@ const MdrAccAPI = (() => {
   const monthKey = (m) => MONTH_ALIAS[String(m || '').trim()] || String(m || '').trim();
   const monthNo = (m) => Math.max(0, HIJRI_MONTHS.indexOf(monthKey(m))) + 1;
   const monthFromNo = (m) => HIJRI_MONTHS[Math.max(1, Math.min(12, num(m))) - 1] || '';
-  const dateYear = (year, month) => year ? num(year) : (monthNo(month) <= 8 ? num(DEFAULT_YEAR) + 1 : num(DEFAULT_YEAR));
+  const systemHijriYear = () => {
+    try {
+      const settings = window.API && window.API.Settings && window.API.Settings.get ? window.API.Settings.get() : null;
+      const y = num(en(settings && settings.hijri_year));
+      if (y) return y;
+    } catch (e) {}
+    return todayHijri().year;
+  };
+  const dateYear = (year, month) => year ? num(en(year)) : (monthNo(month) <= 8 ? systemHijriYear() + 1 : systemHijriYear());
   const dateKey = (year, month, day) => String(dateYear(year, month)).padStart(4,'0') + '-' + String(monthNo(month)).padStart(2,'0') + '-' + String(num(day)).padStart(2,'0');
   const norm = (r) => ({ ...r, month: monthKey(r.month), hijriYear: String(dateYear(r.hijriYear || r.year, r.month)), dateKey: dateKey(r.hijriYear || r.year, r.month, r.day) });
   const bn = (s) => String(s || '').replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
@@ -174,13 +182,17 @@ const MdrAccAPI = (() => {
   function todayHijri() {
     try {
       const d = new Date();
+      d.setDate(d.getDate() + Settings.getHijriOffsetDays());
       const parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year:'numeric', month:'numeric', day:'numeric' }).formatToParts(d);
       const year = parseInt(parts.find(p=>p.type==='year').value);
       const m   = parseInt(parts.find(p=>p.type==='month').value);
       const day = parseInt(parts.find(p=>p.type==='day').value);
       return { year, month: monthFromNo(m), monthNo: m, day };
-    } catch { return { year: num(DEFAULT_YEAR), month: '', monthNo: 10, day: 1 }; }
+    } catch {
+      const y = new Date().getFullYear();
+      return { year: Math.max(1440, y - 579), month: monthFromNo(10), monthNo: 10, day: 1 };
+    }
   }
 
-  return { ensureSeed, Income, Expense, Dues, Summary, Categories, MONTHS, HIJRI_MONTHS, ACCOUNT_LABELS, esc, fa, clean, monthKey, monthFromNo, monthNo, dateKey, dateLabel, parseDateInput, toDateKey, inRange, num, todayHijri };
+  return { ensureSeed, Income, Expense, Dues, Summary, Categories, Settings, MONTHS, HIJRI_MONTHS, ACCOUNT_LABELS, esc, fa, clean, monthKey, monthFromNo, monthNo, dateKey, dateLabel, parseDateInput, toDateKey, inRange, num, todayHijri };
 })();

@@ -5,6 +5,8 @@
   var K = {
     role: 'mm_role',
     name: 'mm_name',
+    staffUserId: 'mm_staff_user_id',
+    staffPin: 'mm_staff_pin',
     teacherId: 'mm_teacher_id',
     adminUserId: 'mm_admin_user_id',
     adminPin: 'mm_admin_pin',
@@ -16,7 +18,7 @@
   };
 
   var ALL_APP_KEYS = [
-    K.role, K.name, K.teacherId, K.adminUserId, K.adminPin, K.adminPerms,
+    K.role, K.name, K.staffUserId, K.staffPin, K.teacherId, K.adminUserId, K.adminPin, K.adminPerms,
     K.deptRole, K.deptId, K.deptName, K.deptEmoji,
   ];
 
@@ -42,6 +44,8 @@
 
     getRole: function () { return sessionStorage.getItem(K.role); },
     getName: function () { return sessionStorage.getItem(K.name); },
+    getStaffUserId: function () { return sessionStorage.getItem(K.staffUserId); },
+    getStaffPin: function () { return sessionStorage.getItem(K.staffPin); },
     getTeacherId: function () { return sessionStorage.getItem(K.teacherId); },
     getAdminUserId: function () { return sessionStorage.getItem(K.adminUserId); },
     getAdminPin: function () { return sessionStorage.getItem(K.adminPin); },
@@ -53,10 +57,25 @@
 
     setRole: function (v) { sessionStorage.setItem(K.role, v); },
     setName: function (v) { sessionStorage.setItem(K.name, v); },
+    setStaffSession: function (role, name, userId, pin) {
+      sessionStorage.setItem(K.role, role);
+      sessionStorage.setItem(K.name, name || '');
+      if (userId) sessionStorage.setItem(K.staffUserId, userId);
+      else sessionStorage.removeItem(K.staffUserId);
+      if (pin) sessionStorage.setItem(K.staffPin, pin);
+      else sessionStorage.removeItem(K.staffPin);
+      if (role !== 'teacher') sessionStorage.removeItem(K.teacherId);
+      sessionStorage.removeItem(K.adminUserId);
+      sessionStorage.removeItem(K.adminPin);
+      sessionStorage.removeItem(K.adminPerms);
+    },
     setTeacherId: function (v) { sessionStorage.setItem(K.teacherId, v); },
     setAdminSession: function (name, perms, userId, pin) {
       sessionStorage.setItem(K.role, 'admin');
       sessionStorage.setItem(K.name, name || 'জিম্মাদার');
+      sessionStorage.removeItem(K.staffUserId);
+      sessionStorage.removeItem(K.staffPin);
+      sessionStorage.removeItem(K.teacherId);
       if (userId) sessionStorage.setItem(K.adminUserId, userId);
       else sessionStorage.removeItem(K.adminUserId);
       if (pin) sessionStorage.setItem(K.adminPin, pin);

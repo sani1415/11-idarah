@@ -75,6 +75,27 @@ create table if not exists public.mdr_book_progress (
   unique (book_id)
 );
 
+create table if not exists public.mdr_attendance (
+  id uuid primary key default gen_random_uuid(),
+  class_id uuid not null references public.mdr_classes(id) on delete cascade,
+  date date not null default current_date,
+  entered_by uuid references public.shared_users(id),
+  created_at timestamptz not null default now(),
+  unique (class_id, date)
+);
+
+create table if not exists public.mdr_attendance_details (
+  id uuid primary key default gen_random_uuid(),
+  attendance_id uuid not null references public.mdr_attendance(id) on delete cascade,
+  student_id uuid not null references public.mdr_students(id) on delete cascade,
+  status text not null default 'present' check (status in ('present', 'absent', 'holiday')),
+  absent_reason text,
+  hijri_year text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (attendance_id, student_id)
+);
+
 create table if not exists public.mdr_student_import_candidates (
   id uuid primary key default gen_random_uuid(),
   source text not null check (source in ('madrasah_backup', 'moktob_backup')),
@@ -102,6 +123,8 @@ create index if not exists idx_mdr_students_class on public.mdr_students(current
 create index if not exists idx_mdr_students_import_old on public.mdr_students(import_source, old_student_id);
 create index if not exists idx_mdr_import_candidates_status on public.mdr_student_import_candidates(candidate_status);
 create index if not exists idx_mdr_books_class on public.mdr_books(class_id);
+create index if not exists idx_mdr_attendance_date on public.mdr_attendance(date);
+create index if not exists idx_mdr_attendance_details_student on public.mdr_attendance_details(student_id);
 
 insert into public.mdr_divisions (name, code)
 values

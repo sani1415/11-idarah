@@ -394,6 +394,9 @@ const API = (() => {
       return a.present ? 'present' : 'absent';
     },
     getByDate: date => load(KEYS.attendance).filter(a => a.date === date),
+    replaceAll(list) {
+      save(KEYS.attendance, Array.isArray(list) ? list : []);
+    },
     /** ছাত্রের সকল হাজিরা রেকর্ড — নতুন থেকে পুরনো */
     getByStudent: sid =>
       load(KEYS.attendance)

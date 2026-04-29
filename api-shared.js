@@ -58,6 +58,21 @@ const MMSharedAPI = (() => {
         p_is_active: user.is_active !== false,
       });
     },
+    daftarBootstrap(actorId, pin) {
+      return rpc('mdr_rel_daftar_bootstrap', {
+        p_actor_id: actorId,
+        p_pin: pin,
+      });
+    },
+    saveAttendanceDay(actorId, pin, date, records, hijriYear) {
+      return rpc('mdr_rel_save_attendance_day', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_date: date,
+        p_records: records || [],
+        p_hijri_year: hijriYear || null,
+      });
+    },
   };
 })();
 

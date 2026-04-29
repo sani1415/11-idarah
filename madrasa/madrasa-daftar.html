@@ -715,8 +715,12 @@ body.page-daftar #modal-account-entry .modal {
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mdr-daftar-supabase.js"></script>
 <script src="../data/madrasa-accounts-seed.js"></script>
 <script src="../js/madrasa-accounts-api.js"></script>
 <script src="../js/madrasa-daftar-accounts.js"></script>
@@ -1286,7 +1290,7 @@ body.page-daftar #modal-account-entry .modal {
     renderAttendance();
   }
 
-  function saveAllAttendance() {
+  async function saveAllAttendance() {
     if (mmMutationBlocked(showToast)) return;
     const students = API.Students.getAll().filter(s => s.active);
     const existing = API.Attendance.getByDate(daftarAttDate);
@@ -1298,12 +1302,30 @@ body.page-daftar #modal-account-entry .modal {
       showToast('অনুপস্থিত কিন্তু কারণ বাকি: ' + needReason.slice(0, 2).map(s => s.name).join('، ') + (needReason.length > 2 ? '…' : ''));
       return;
     }
-    students.forEach(s => {
+    const rows = students.map(s => {
       const st = currentAttStatus(s.id, existing);
-      if (st === 'absent') API.Attendance.save(s.id, daftarAttDate, 'absent', getAbsentReason(s.id, existing));
-      else if (st === 'holiday') API.Attendance.save(s.id, daftarAttDate, 'holiday');
-      else API.Attendance.save(s.id, daftarAttDate, 'present');
+      return {
+        student_id: s.supabase_id || s.id,
+        status: st === 'absent' || st === 'holiday' ? st : 'present',
+        absent_reason: st === 'absent' ? getAbsentReason(s.id, existing) : null,
+      };
     });
+    if (window.MDRDaftarSupabase && window.MMSharedAPI) {
+      try {
+        const settings = API.Settings.get ? API.Settings.get() : {};
+        await MDRDaftarSupabase.saveDay(daftarAttDate, rows, settings.hijri_year || null);
+      } catch (e) {
+        showToast('Supabase-এ হাজিরা সেভ হয়নি');
+        return;
+      }
+    } else {
+      students.forEach(s => {
+        const st = currentAttStatus(s.id, existing);
+        if (st === 'absent') API.Attendance.save(s.id, daftarAttDate, 'absent', getAbsentReason(s.id, existing));
+        else if (st === 'holiday') API.Attendance.save(s.id, daftarAttDate, 'holiday');
+        else API.Attendance.save(s.id, daftarAttDate, 'present');
+      });
+    }
     showToast('সকল বর্ষের উপস্থিতি সংরক্ষিত হয়েছে ✓');
     attState = {};
     attReasonState = {};
@@ -1408,16 +1430,24 @@ body.page-daftar #modal-account-entry .modal {
   }
 
   /* ── INIT ── */
-  ensureDaftarSampleData();
-  populateClassFilter();
-  updateHero();
-  renderAttendance();
-  (function openPanelFromHash() {
+  async function initDaftarPage() {
+    if (window.MDRDaftarSupabase && window.MMSharedAPI) {
+      try {
+        await MDRDaftarSupabase.sync();
+      } catch (e) {
+        showToast('Supabase থেকে দফতর ডেটা লোড হয়নি');
+      }
+    }
+    ensureDaftarSampleData();
+    populateClassFilter();
+    updateHero();
+    renderAttendance();
     if (location.hash === '#fees' || location.hash === '#accounts') {
       switchPanel('fees');
       renderAccounts();
     }
-  })();
+  }
+  initDaftarPage();
 </script>
 </body>
 </html>

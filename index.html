@@ -386,8 +386,7 @@
       const su = await trySupabaseStaffLogin('daftar');
       if (su) {
         ok = true;
-        MMSession.setRole('daftar');
-        MMSession.setName(su.name);
+        MMSession.setStaffSession('daftar', su.name, su.id, pinVal);
         redirect = 'madrasa/madrasa-daftar.html';
       }
       const daftar = API.Teachers.getAll().find(t => t.role === 'daftar');
@@ -401,8 +400,7 @@
       const su = await trySupabaseStaffLogin('hifz');
       if (su) {
         ok = true;
-        MMSession.setRole('hifz');
-        MMSession.setName(su.name);
+        MMSession.setStaffSession('hifz', su.name, su.id, pinVal);
         redirect = 'madrasa/madrasa-hifz.html';
       }
       const user = API.Teachers.getAll().find(t => t.role === 'hifz');
@@ -416,8 +414,7 @@
       const su = await trySupabaseStaffLogin('library');
       if (su) {
         ok = true;
-        MMSession.setRole('library');
-        MMSession.setName(su.name);
+        MMSession.setStaffSession('library', su.name, su.id, pinVal);
         redirect = 'madrasa/madrasa-library.html';
       }
       const user = API.Teachers.getAll().find(t => t.role === 'library');
@@ -431,8 +428,7 @@
       const su = await trySupabaseStaffLogin('alumni');
       if (su) {
         ok = true;
-        MMSession.setRole('alumni');
-        MMSession.setName(su.name);
+        MMSession.setStaffSession('alumni', su.name, su.id, pinVal);
         redirect = 'madrasa/madrasa-alumni.html';
       }
       const user = API.Teachers.getAll().find(t => t.role === 'alumni');
@@ -446,8 +442,7 @@
       const su = await trySupabaseStaffLogin('khedmat');
       if (su) {
         ok = true;
-        MMSession.setRole('khedmat');
-        MMSession.setName(su.name);
+        MMSession.setStaffSession('khedmat', su.name, su.id, pinVal);
         redirect = 'khedmat/khedmat-staff.html';
       }
       const user = API.Teachers.getAll().find(t => t.role === 'khedmat');
@@ -463,9 +458,8 @@
       if (su) {
         ok = true;
         cacheSupabaseTeacher(su);
-        MMSession.setRole('teacher');
+        MMSession.setStaffSession('teacher', su.name, su.id, pinVal);
         MMSession.setTeacherId(su.id);
-        MMSession.setName(su.name);
         redirect = 'madrasa/madrasa-class.html';
       }
       const teacher = API.Teachers.getAll().find(t =>
