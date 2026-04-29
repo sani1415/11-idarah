@@ -308,6 +308,9 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
@@ -319,6 +322,92 @@
   let editingTeacherProfileId = null;
   let editingAdminId = null;
   let editingClassId = null;
+  let supabaseUsers = null;
+
+  const LOCAL_CLASS_TO_SUPA_CODE = {
+    cls_k1: 'kitab_y1',
+    cls_ky: 'kitab_iyada',
+    cls_k2: 'kitab_y2',
+    cls_k3: 'kitab_y3',
+    cls_k4: 'kitab_y4',
+    cls_k5: 'kitab_y5',
+    cls_k6: 'kitab_y6',
+    cls_k7: 'kitab_y7',
+    cls_kh: 'kitab_hifz',
+    cls_m1: 'maktab_y1',
+    cls_m2: 'maktab_y2',
+    cls_m3: 'maktab_y3',
+    cls_m4: 'maktab_y4',
+    cls_m5: 'maktab_y5',
+  };
+  const SUPA_CLASS_TO_LOCAL_ID = Object.keys(LOCAL_CLASS_TO_SUPA_CODE).reduce((out, id) => {
+    out[LOCAL_CLASS_TO_SUPA_CODE[id]] = id;
+    return out;
+  }, {});
+  const LOCAL_ROLE_TO_SUPA = {
+    teacher: 'madrasa_teacher',
+    daftar: 'daftar',
+    hifz: 'hifz',
+    library: 'library',
+    alumni: 'alumni_tracker',
+    khedmat: 'khedmat',
+  };
+  const SUPA_ROLE_TO_LOCAL = {
+    madrasa_teacher: 'teacher',
+    daftar: 'daftar',
+    hifz: 'hifz',
+    library: 'library',
+    alumni_tracker: 'alumni',
+    khedmat: 'khedmat',
+  };
+
+  function hasSupabaseAdminSession() {
+    return !!(window.MMSharedAPI && MMSession.getAdminPin && MMSession.getAdminPin());
+  }
+
+  function toLocalSharedUser(u) {
+    return {
+      id: u.id,
+      name: u.name || '',
+      login_id: u.login_id || '',
+      class_id: SUPA_CLASS_TO_LOCAL_ID[u.class_code] || '',
+      class_code: u.class_code || '',
+      pin: u.pin || '',
+      role: SUPA_ROLE_TO_LOCAL[u.role] || u.role,
+      is_active: u.is_active !== false,
+    };
+  }
+
+  async function loadSupabaseUsers(force) {
+    if (!hasSupabaseAdminSession()) return false;
+    if (supabaseUsers && !force) return true;
+    const res = await MMSharedAPI.adminUsers(MMSession.getAdminPin());
+    if (!res || !res.ok) throw new Error('user_load_failed');
+    supabaseUsers = (res.users || []).map(toLocalSharedUser);
+    return true;
+  }
+
+  function currentUserList() {
+    return supabaseUsers || API.Teachers.getAll();
+  }
+
+  function getManagedUser(id) {
+    return currentUserList().find(t => t.id === id) || API.Teachers.getById(id);
+  }
+
+  function userSaveErrorMessage(code) {
+    const labels = {
+      invalid_pin: 'জিম্মাদার পিন মিলছে না',
+      missing_required: 'নাম ও পিন দিন',
+      missing_login_id: 'লগইন আইডি দিন',
+      class_not_found: 'বর্ষ পাওয়া যায়নি',
+      login_id_taken: 'এই লগইন আইডি আগে থেকেই আছে',
+      class_teacher_exists: 'এই বর্ষে আগে থেকেই একজন সক্রিয় শিক্ষক আছে',
+      user_not_found: 'ব্যবহারকারী পাওয়া যায়নি',
+      invalid_role: 'ভূমিকা ঠিক নেই',
+    };
+    return labels[code] || 'সংরক্ষণ করা যায়নি';
+  }
 
   function switchTab(tab) {
     ['general','pin','admins','classes','teachers','kitab'].forEach(t=>{
@@ -520,8 +609,16 @@
   }
 
   /* TEACHERS */
-  function renderTeachers() {
-    const teachers = API.Teachers.getAll().filter(t => t.role !== 'restricted_admin');
+  async function renderTeachers() {
+    if (hasSupabaseAdminSession() && supabaseUsers === null) {
+      document.getElementById('teacher-list').innerHTML = '<div style="font-size:13px;color:var(--ink3);">তালিকা লোড হচ্ছে...</div>';
+      try {
+        await loadSupabaseUsers(true);
+      } catch (e) {
+        showToast('Supabase user তালিকা লোড হয়নি');
+      }
+    }
+    const teachers = currentUserList().filter(t => t.role !== 'restricted_admin' && t.role !== 'admin');
     const classes  = API.Classes.getAll();
     const roleLabel = { daftar:'দফতর', hifz:'হিফজ', library:'মাকতাবা', alumni:'পুরনো ছাত্র', khedmat:'খেদমত', restricted_admin:'সহকারী জিম্মাদার' };
     document.getElementById('teacher-list').innerHTML = teachers.map(t=>{
@@ -542,27 +639,42 @@
 
   function openEditPin(id, name) {
     editingTeacherId = id;
-    const user = API.Teachers.getById(id);
+    const user = getManagedUser(id);
     document.getElementById('ep-name').textContent = name;
     document.getElementById('ep-login-wrap').style.display = user && user.class_id ? 'block' : 'none';
     document.getElementById('ep-login-id').value = user && user.class_id ? (user.login_id || '') : '';
     document.getElementById('ep-pin').value = '';
     openModal('edit-pin');
   }
-  function saveTeacherPin() {
+  async function saveTeacherPin() {
     const pin = document.getElementById('ep-pin').value;
-    const user = API.Teachers.getById(editingTeacherId);
+    const user = getManagedUser(editingTeacherId);
     const login_id = document.getElementById('ep-login-id').value.trim();
+    if (!user) { showToast('ব্যবহারকারী পাওয়া যায়নি'); return; }
     if (user && user.class_id) {
       if (!login_id) { showToast('লগইন আইডি দিন'); return; }
-      const duplicateLogin = API.Teachers.getAll().some(t =>
+      const duplicateLogin = currentUserList().some(t =>
         t.id !== editingTeacherId &&
         String(t.login_id || '').trim().toLowerCase() === login_id.toLowerCase()
       );
       if (duplicateLogin) { showToast('এই লগইন আইডি আগে থেকেই আছে'); return; }
     }
     if (pin.length !== 4) { showToast('৪ সংখ্যার পিন দিন'); return; }
-    API.Teachers.update(editingTeacherId, user && user.class_id ? {pin, login_id} : {pin});
+    if (hasSupabaseAdminSession() && supabaseUsers !== null) {
+      const res = await MMSharedAPI.saveMadrasaUser(MMSession.getAdminPin(), {
+        id: user.id,
+        name: user.name,
+        role: LOCAL_ROLE_TO_SUPA[user.role] || user.role,
+        login_id: user.class_id ? login_id : null,
+        pin,
+        class_code: user.class_id ? LOCAL_CLASS_TO_SUPA_CODE[user.class_id] : null,
+        is_active: user.is_active !== false,
+      });
+      if (!res || !res.ok) { showToast(userSaveErrorMessage(res && res.error)); return; }
+      await loadSupabaseUsers(true);
+    } else {
+      API.Teachers.update(editingTeacherId, user && user.class_id ? {pin, login_id} : {pin});
+    }
     closeModal('edit-pin');
     showToast('পিন আপডেট হয়েছে ✓');
     renderTeachers();
@@ -570,7 +682,7 @@
 
   function openTeacherModal(id) {
     editingTeacherProfileId = id;
-    const t = id ? API.Teachers.getById(id) : null;
+    const t = id ? getManagedUser(id) : null;
     document.getElementById('teacher-modal-title').textContent = id ? 'বর্ষ দায়িত্বশীল সম্পাদনা' : 'বর্ষ দায়িত্বশীল';
     document.getElementById('teacher-save-btn').textContent = id ? 'সংরক্ষণ করুন' : 'যোগ করুন';
     document.getElementById('t-name').value = t ? (t.name || '') : '';
@@ -581,7 +693,7 @@
     openModal('add-teacher');
   }
 
-  function saveTeacher() {
+  async function saveTeacher() {
     const name     = document.getElementById('t-name').value.trim();
     const login_id = document.getElementById('t-login-id').value.trim();
     const class_id = document.getElementById('t-class').value;
@@ -590,19 +702,31 @@
     if (!name) { showToast('নাম দিন'); return; }
     if (!login_id) { showToast('লগইন আইডি দিন'); return; }
     if (pin.length !== 4) { showToast('৪ সংখ্যার পিন দিন'); return; }
-    const existing = API.Teachers.getAll().find(t =>
+    const existing = currentUserList().find(t =>
       t.id !== editingTeacherProfileId &&
       t.class_id === class_id &&
       t.is_active !== false
     );
     if (existing) { showToast('এই বর্ষে আগে থেকেই একজন শিক্ষক নির্ধারিত আছে'); return; }
-    const duplicateLogin = API.Teachers.getAll().some(t =>
+    const duplicateLogin = currentUserList().some(t =>
       t.id !== editingTeacherProfileId &&
       String(t.login_id || '').trim().toLowerCase() === login_id.toLowerCase()
     );
     if (duplicateLogin) { showToast('এই লগইন আইডি আগে থেকেই আছে'); return; }
     const data = { name, login_id, class_id, pin, role:'teacher', is_active };
-    if (editingTeacherProfileId) API.Teachers.update(editingTeacherProfileId, data);
+    if (hasSupabaseAdminSession()) {
+      const res = await MMSharedAPI.saveMadrasaUser(MMSession.getAdminPin(), {
+        id: editingTeacherProfileId || null,
+        name,
+        role: 'madrasa_teacher',
+        login_id,
+        pin,
+        class_code: LOCAL_CLASS_TO_SUPA_CODE[class_id],
+        is_active,
+      });
+      if (!res || !res.ok) { showToast(userSaveErrorMessage(res && res.error)); return; }
+      await loadSupabaseUsers(true);
+    } else if (editingTeacherProfileId) API.Teachers.update(editingTeacherProfileId, data);
     else API.Teachers.add(data);
     document.getElementById('t-name').value='';
     document.getElementById('t-login-id').value='';
@@ -612,12 +736,25 @@
     renderTeachers();
   }
 
-  function addStaff() {
+  async function addStaff() {
     const name = document.getElementById('st-name').value.trim();
     const role = document.getElementById('st-role').value;
     const pin  = document.getElementById('st-pin').value||'0000';
     if (!name) { showToast('নাম দিন'); return; }
-    API.Teachers.add({name, class_id:null, pin, role});
+    if (hasSupabaseAdminSession()) {
+      const res = await MMSharedAPI.saveMadrasaUser(MMSession.getAdminPin(), {
+        name,
+        role: LOCAL_ROLE_TO_SUPA[role],
+        login_id: null,
+        pin,
+        class_code: null,
+        is_active: true,
+      });
+      if (!res || !res.ok) { showToast(userSaveErrorMessage(res && res.error)); return; }
+      await loadSupabaseUsers(true);
+    } else {
+      API.Teachers.add({name, class_id:null, pin, role});
+    }
     document.getElementById('st-name').value='';
     closeModal('add-staff');
     showToast('যোগ হয়েছে ✓');

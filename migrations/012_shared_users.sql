@@ -7,6 +7,7 @@ create table if not exists public.shared_users (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   pin text not null,
+  login_id text,
   role text not null check (
     role in (
       'admin',
@@ -27,6 +28,13 @@ create table if not exists public.shared_users (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.shared_users
+add column if not exists login_id text;
+
+create unique index if not exists shared_users_login_id_key
+on public.shared_users (lower(login_id))
+where login_id is not null and btrim(login_id) <> '';
 
 alter table public.shared_users enable row level security;
 

@@ -7,6 +7,7 @@
     name: 'mm_name',
     teacherId: 'mm_teacher_id',
     adminUserId: 'mm_admin_user_id',
+    adminPin: 'mm_admin_pin',
     adminPerms: 'mm_admin_perms',
     deptRole: 'mm_dept_role',
     deptId: 'mm_dept_id',
@@ -15,7 +16,7 @@
   };
 
   var ALL_APP_KEYS = [
-    K.role, K.name, K.teacherId, K.adminUserId, K.adminPerms,
+    K.role, K.name, K.teacherId, K.adminUserId, K.adminPin, K.adminPerms,
     K.deptRole, K.deptId, K.deptName, K.deptEmoji,
   ];
 
@@ -26,6 +27,10 @@
     } catch (e) {
       return null;
     }
+  }
+
+  function isSuperAdminPerms(perms) {
+    return !!(perms && perms.super_admin === true);
   }
 
   var MMSession = {
@@ -39,6 +44,7 @@
     getName: function () { return sessionStorage.getItem(K.name); },
     getTeacherId: function () { return sessionStorage.getItem(K.teacherId); },
     getAdminUserId: function () { return sessionStorage.getItem(K.adminUserId); },
+    getAdminPin: function () { return sessionStorage.getItem(K.adminPin); },
     getAdminPerms: readPerms,
     getDeptRole: function () { return sessionStorage.getItem(K.deptRole); },
     getDeptId: function () { return sessionStorage.getItem(K.deptId); },
@@ -48,11 +54,13 @@
     setRole: function (v) { sessionStorage.setItem(K.role, v); },
     setName: function (v) { sessionStorage.setItem(K.name, v); },
     setTeacherId: function (v) { sessionStorage.setItem(K.teacherId, v); },
-    setAdminSession: function (name, perms, userId) {
+    setAdminSession: function (name, perms, userId, pin) {
       sessionStorage.setItem(K.role, 'admin');
       sessionStorage.setItem(K.name, name || 'জিম্মাদার');
       if (userId) sessionStorage.setItem(K.adminUserId, userId);
       else sessionStorage.removeItem(K.adminUserId);
+      if (pin) sessionStorage.setItem(K.adminPin, pin);
+      else sessionStorage.removeItem(K.adminPin);
       if (perms) sessionStorage.setItem(K.adminPerms, JSON.stringify(perms));
       else sessionStorage.removeItem(K.adminPerms);
     },
@@ -65,8 +73,14 @@
     },
 
     isAdmin: function () { return sessionStorage.getItem(K.role) === 'admin'; },
-    isRestrictedAdmin: function () { return this.isAdmin() && !!readPerms(); },
-    isMainAdmin: function () { return this.isAdmin() && !readPerms(); },
+    isRestrictedAdmin: function () {
+      var p = readPerms();
+      return this.isAdmin() && !!p && !isSuperAdminPerms(p);
+    },
+    isMainAdmin: function () {
+      var p = readPerms();
+      return this.isAdmin() && (!p || isSuperAdminPerms(p));
+    },
     getAllowedMadrasaDepts: function () {
       var p = readPerms();
       if (!p || !p.scope || !Array.isArray(p.scope.madrasa_depts) || !p.scope.madrasa_depts.length) {
@@ -80,6 +94,7 @@
     canAdmin: function (permKey) {
       var p = readPerms();
       if (!p) return true;
+      if (isSuperAdminPerms(p)) return true;
       if (!permKey) return true;
       if (permKey === 'dashboard') return true;
       if (p.permissions && Object.prototype.hasOwnProperty.call(p.permissions, permKey)) {

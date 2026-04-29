@@ -167,6 +167,9 @@ const API = (() => {
     getAll: () => load(KEYS.students),
     getById: id => load(KEYS.students).find(s => s.id === id),
     getByClass: cid => load(KEYS.students).filter(s => s.class_id === cid && s.active),
+    replaceAll(list) {
+      save(KEYS.students, Array.isArray(list) ? list : []);
+    },
     /** কিতাব বা মক্তব বিভাগের সক্রিয় ছাত্র সংখ্যা */
     countActiveByDept(dept) {
       const cids = new Set(load(KEYS.classes).filter((c) => c.dept === dept).map((c) => c.id));

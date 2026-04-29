@@ -66,11 +66,16 @@
 </nav>
 
 <div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
+<script src="../api-mdr.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mdr-supabase-sync.js"></script>
 <script>
   if (!MMSession.requireAdminPerm('dashboard', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮۹'[d]);
@@ -167,7 +172,16 @@
     renderClassFilter();
     renderStudents();
   }
-  renderAll();
+  async function initPage() {
+    try {
+      await MDRSupabaseSync.syncAdminStudents();
+    } catch (e) {
+      showToast('Supabase ছাত্র তালিকা আনা যায়নি');
+      console.warn('madrasa supabase sync failed', e);
+    }
+    renderAll();
+  }
+  initPage();
 </script>
 </body>
 </html>

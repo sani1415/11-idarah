@@ -63,10 +63,10 @@
 
 ## File Size Limits
 
-- যেকোনো API/মডিউল JS (`js/api.js`, `js/dept-api.js`, …) → max 400 lines, প্রয়োজনে module ভাগ করো
+- যেকোনো API/মডিউল JS (`js/api.js`, `js/dept-api.js`, …) → max 800 lines, প্রয়োজনে module ভাগ করো
 - `css/style.css` → max 500 lines
 - যেকোনো `.html` → max 600 lines
-- নতুন `.js` → max 400 lines
+- নতুন `.js` → max 800 lines
 
 ## Data Safety Rules (CRITICAL)
 

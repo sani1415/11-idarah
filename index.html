@@ -113,7 +113,7 @@
       <div class="role-icon" data-icon="daftar"></div>
       <div>
         <div class="role-name">দফতর দায়িত্বশীল</div>
-        <div class="role-desc">উপস্থিতি ও ওয়াযিফা সারসংক্ষেপ</div>
+        <div class="role-desc">উপস্থিতি ও হিসাব ব্যবস্থাপনা</div>
       </div>
     </div>
     <div class="role-btn" onclick="selectRole('hifz')">
@@ -195,6 +195,9 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="api-shared.js"></script>
 <script src="js/mm-sample-data.js"></script>
 <script src="js/api.js"></script>
 <script src="js/mm-session.js"></script>
@@ -297,60 +300,158 @@
     return String(v || '').trim().toLowerCase();
   }
 
-  function checkPin() {
+  const LOCAL_CLASS_BY_SUPA_CODE = {
+    kitab_y1: 'cls_k1',
+    kitab_iyada: 'cls_ky',
+    kitab_y2: 'cls_k2',
+    kitab_y3: 'cls_k3',
+    kitab_y4: 'cls_k4',
+    kitab_y5: 'cls_k5',
+    kitab_y6: 'cls_k6',
+    kitab_y7: 'cls_k7',
+    kitab_hifz: 'cls_kh',
+    maktab_y1: 'cls_m1',
+    maktab_y2: 'cls_m2',
+    maktab_y3: 'cls_m3',
+    maktab_y4: 'cls_m4',
+    maktab_y5: 'cls_m5',
+  };
+
+  const STAFF_ROLE_TO_DB = {
+    teacher: 'madrasa_teacher',
+    daftar: 'daftar',
+    hifz: 'hifz',
+    library: 'library',
+    alumni: 'alumni_tracker',
+    khedmat: 'khedmat',
+  };
+
+  function cacheSupabaseTeacher(user) {
+    if (!user || user.role !== 'madrasa_teacher') return;
+    const classId = LOCAL_CLASS_BY_SUPA_CODE[user.class_code] || '';
+    const existing = API.Teachers.getById(user.id);
+    const row = {
+      id: user.id,
+      name: user.name || 'বর্ষ দায়িত্বশীল',
+      login_id: user.login_id || '',
+      class_id: classId,
+      pin: pinVal,
+      role: 'teacher',
+      is_active: true,
+    };
+    if (existing) API.Teachers.update(user.id, row);
+    else API.Teachers.add(row);
+  }
+
+  async function trySupabaseStaffLogin(role, loginId) {
+    if (!window.MMSharedAPI || !STAFF_ROLE_TO_DB[role]) return null;
+    try {
+      const res = await MMSharedAPI.loginStaff(STAFF_ROLE_TO_DB[role], loginId || null, pinVal);
+      return res && res.ok ? res.user : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function checkPin() {
     const settings = API.Settings.get();
     let ok = false;
     let redirect = '';
 
-    if (currentRole === 'admin' && pinVal === settings.admin_pin) {
-      ok = true;
-      MMSession.setAdminSession('জিম্মাদার', null, null);
-      redirect = 'main-admin-madrasa.html';
+    if (currentRole === 'admin') {
+      try {
+        const res = window.MMSharedAPI ? await MMSharedAPI.loginAdmin(pinVal) : null;
+        if (res && res.ok && res.user) {
+          ok = true;
+          MMSession.setAdminSession(res.user.name || 'জিম্মাদার', res.user.admin_perms, res.user.id, pinVal);
+          redirect = 'main-admin-madrasa.html';
+        }
+      } catch (e) {}
+      if (!ok && pinVal === settings.admin_pin) {
+        ok = true;
+        MMSession.setAdminSession('জিম্মাদার', null, null, pinVal);
+        redirect = 'main-admin-madrasa.html';
+      }
     } else if (currentRole === 'restricted_admin') {
       const helper = API.Teachers.getAll().find(t =>
         t.role === 'restricted_admin' && t.is_active !== false && String(t.pin || '') === pinVal
       );
       if (helper) {
         ok = true;
-        MMSession.setAdminSession(helper.name || 'সহকারী জিম্মাদার', helper.admin_perms, helper.id);
+        MMSession.setAdminSession(helper.name || 'সহকারী জিম্মাদার', helper.admin_perms, helper.id, pinVal);
         const allowed = MMSession.getAllowedMadrasaDepts();
         redirect = 'main-admin-madrasa.html?dept=' + encodeURIComponent(allowed[0] || 'kitab');
       }
     } else if (currentRole === 'daftar') {
+      const su = await trySupabaseStaffLogin('daftar');
+      if (su) {
+        ok = true;
+        MMSession.setRole('daftar');
+        MMSession.setName(su.name);
+        redirect = 'madrasa/madrasa-daftar.html';
+      }
       const daftar = API.Teachers.getAll().find(t => t.role === 'daftar');
-      if (daftar && pinVal === daftar.pin) {
+      if (!ok && !window.MMSharedAPI && daftar && pinVal === daftar.pin) {
         ok = true;
         MMSession.setRole('daftar');
         MMSession.setName(daftar.name);
         redirect = 'madrasa/madrasa-daftar.html';
       }
     } else if (currentRole === 'hifz') {
+      const su = await trySupabaseStaffLogin('hifz');
+      if (su) {
+        ok = true;
+        MMSession.setRole('hifz');
+        MMSession.setName(su.name);
+        redirect = 'madrasa/madrasa-hifz.html';
+      }
       const user = API.Teachers.getAll().find(t => t.role === 'hifz');
-      if (user && pinVal === user.pin) {
+      if (!ok && !window.MMSharedAPI && user && pinVal === user.pin) {
         ok = true;
         MMSession.setRole('hifz');
         MMSession.setName(user.name);
         redirect = 'madrasa/madrasa-hifz.html';
       }
     } else if (currentRole === 'library') {
+      const su = await trySupabaseStaffLogin('library');
+      if (su) {
+        ok = true;
+        MMSession.setRole('library');
+        MMSession.setName(su.name);
+        redirect = 'madrasa/madrasa-library.html';
+      }
       const user = API.Teachers.getAll().find(t => t.role === 'library');
-      if (user && pinVal === user.pin) {
+      if (!ok && !window.MMSharedAPI && user && pinVal === user.pin) {
         ok = true;
         MMSession.setRole('library');
         MMSession.setName(user.name);
         redirect = 'madrasa/madrasa-library.html';
       }
     } else if (currentRole === 'alumni') {
+      const su = await trySupabaseStaffLogin('alumni');
+      if (su) {
+        ok = true;
+        MMSession.setRole('alumni');
+        MMSession.setName(su.name);
+        redirect = 'madrasa/madrasa-alumni.html';
+      }
       const user = API.Teachers.getAll().find(t => t.role === 'alumni');
-      if (user && pinVal === user.pin) {
+      if (!ok && !window.MMSharedAPI && user && pinVal === user.pin) {
         ok = true;
         MMSession.setRole('alumni');
         MMSession.setName(user.name);
         redirect = 'madrasa/madrasa-alumni.html';
       }
     } else if (currentRole === 'khedmat') {
+      const su = await trySupabaseStaffLogin('khedmat');
+      if (su) {
+        ok = true;
+        MMSession.setRole('khedmat');
+        MMSession.setName(su.name);
+        redirect = 'khedmat/khedmat-staff.html';
+      }
       const user = API.Teachers.getAll().find(t => t.role === 'khedmat');
-      if (user && pinVal === user.pin) {
+      if (!ok && !window.MMSharedAPI && user && pinVal === user.pin) {
         ok = true;
         MMSession.setRole('khedmat');
         MMSession.setName(user.name);
@@ -358,13 +459,22 @@
       }
     } else if (currentRole === 'teacher') {
       const loginId = normalizeLoginId(document.getElementById('teacher-login-id').value);
+      const su = await trySupabaseStaffLogin('teacher', loginId);
+      if (su) {
+        ok = true;
+        cacheSupabaseTeacher(su);
+        MMSession.setRole('teacher');
+        MMSession.setTeacherId(su.id);
+        MMSession.setName(su.name);
+        redirect = 'madrasa/madrasa-class.html';
+      }
       const teacher = API.Teachers.getAll().find(t =>
         t.class_id &&
         t.is_active !== false &&
         normalizeLoginId(t.login_id) === loginId &&
         String(t.pin || '') === pinVal
       );
-      if (teacher) {
+      if (!ok && !window.MMSharedAPI && teacher) {
         ok = true;
         MMSession.setRole('teacher');
         MMSession.setTeacherId(teacher.id);

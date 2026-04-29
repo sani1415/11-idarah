@@ -236,7 +236,6 @@
       (s.dept && (s.dept === 'kitab' || s.dept === 'maktab')
         ? kv('রেকর্ড অনুযায়ী বিভাগ', s.dept === 'kitab' ? 'কিতাব' : 'মক্তব')
         : '') +
-      kv('তালিকা লক', s.name_lock_pin ? 'সক্রিয় (দফতর › ছাত্র › লক বোতাম)। ফাঁকা পিনে সরান' : 'নেই') +
       '</div>';
 
     if (s.class_history && s.class_history.length) {

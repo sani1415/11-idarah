@@ -23,6 +23,9 @@ const MMMadrasaAPI = (() => {
     adminBootstrap(pin) {
       return rpc('mdr_rel_admin_bootstrap', { p_pin: pin }).then(requireOk);
     },
+    adminStudents(pin) {
+      return rpc('mdr_rel_admin_students', { p_pin: pin }).then(requireOk);
+    },
     importCandidates(pin, source) {
       return rpc('mdr_rel_import_candidates', {
         p_pin: pin,

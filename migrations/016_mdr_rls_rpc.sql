@@ -9,6 +9,13 @@ alter table public.mdr_books enable row level security;
 alter table public.mdr_book_progress enable row level security;
 alter table public.mdr_student_import_candidates enable row level security;
 
+alter table public.shared_users
+add column if not exists login_id text;
+
+create unique index if not exists shared_users_login_id_key
+on public.shared_users (lower(login_id))
+where login_id is not null and btrim(login_id) <> '';
+
 drop policy if exists "deny_all_mdr_divisions" on public.mdr_divisions;
 create policy "deny_all_mdr_divisions" on public.mdr_divisions for all using (false) with check (false);
 
@@ -100,6 +107,182 @@ begin
 end;
 $$;
 
+create or replace function public.mdr_rel_staff_login(p_role text, p_login_id text, p_pin text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+declare
+  v_user public.shared_users%rowtype;
+  v_class public.mdr_classes%rowtype;
+begin
+  select *
+  into v_user
+  from public.shared_users u
+  where u.role = p_role
+    and u.is_active = true
+    and u.pin = p_pin
+    and (
+      (p_login_id is not null and btrim(p_login_id) <> '' and lower(u.login_id) = lower(btrim(p_login_id)))
+      or (coalesce(p_login_id, '') = '' and u.login_id is null)
+    )
+  order by u.created_at
+  limit 1;
+
+  if v_user.id is null then
+    return jsonb_build_object('ok', false, 'error', 'invalid_login');
+  end if;
+
+  if v_user.class_id is not null then
+    select * into v_class from public.mdr_classes where id = v_user.class_id;
+  end if;
+
+  return jsonb_build_object('ok', true, 'user', jsonb_build_object(
+    'id', v_user.id,
+    'name', v_user.name,
+    'role', v_user.role,
+    'login_id', v_user.login_id,
+    'class_id', v_user.class_id,
+    'class_code', v_class.code,
+    'class_name', v_class.name,
+    'dept_code', v_user.dept_code,
+    'admin_perms', v_user.admin_perms
+  ));
+end;
+$$;
+
+create or replace function public.mdr_rel_admin_users(p_pin text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+begin
+  if not private.verify_admin_pin(p_pin) then
+    return jsonb_build_object('ok', false, 'error', 'invalid_pin');
+  end if;
+
+  return jsonb_build_object(
+    'ok', true,
+    'users', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+        'id', u.id,
+        'name', u.name,
+        'pin', u.pin,
+        'role', u.role,
+        'login_id', u.login_id,
+        'module_access', u.module_access,
+        'admin_perms', u.admin_perms,
+        'dept_code', u.dept_code,
+        'class_id', u.class_id,
+        'class_code', c.code,
+        'class_name', c.name,
+        'is_active', u.is_active,
+        'created_at', u.created_at
+      ) order by u.role, c.sort_order, u.name), '[]'::jsonb)
+      from public.shared_users u
+      left join public.mdr_classes c on c.id = u.class_id
+      where u.role <> 'admin'
+    )
+  );
+end;
+$$;
+
+create or replace function public.mdr_rel_save_user(
+  p_pin text,
+  p_user_id uuid,
+  p_name text,
+  p_role text,
+  p_login_id text,
+  p_user_pin text,
+  p_class_code text default null,
+  p_admin_perms jsonb default '{}'::jsonb,
+  p_is_active boolean default true
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+declare
+  v_class_id uuid;
+  v_user_id uuid;
+  v_login_id text := nullif(btrim(coalesce(p_login_id, '')), '');
+begin
+  if not private.verify_admin_pin(p_pin) then
+    return jsonb_build_object('ok', false, 'error', 'invalid_pin');
+  end if;
+
+  if p_role not in ('madrasa_teacher','daftar','library','alumni_tracker','hifz','khedmat') then
+    return jsonb_build_object('ok', false, 'error', 'invalid_role');
+  end if;
+
+  if btrim(coalesce(p_name, '')) = '' or btrim(coalesce(p_user_pin, '')) = '' then
+    return jsonb_build_object('ok', false, 'error', 'missing_required');
+  end if;
+
+  if p_role = 'madrasa_teacher' then
+    if v_login_id is null then
+      return jsonb_build_object('ok', false, 'error', 'missing_login_id');
+    end if;
+    select id into v_class_id from public.mdr_classes where code = p_class_code and is_active = true;
+    if v_class_id is null then
+      return jsonb_build_object('ok', false, 'error', 'class_not_found');
+    end if;
+  end if;
+
+  if v_login_id is not null and exists (
+    select 1 from public.shared_users u
+    where lower(u.login_id) = lower(v_login_id)
+      and (p_user_id is null or u.id <> p_user_id)
+  ) then
+    return jsonb_build_object('ok', false, 'error', 'login_id_taken');
+  end if;
+
+  if p_role = 'madrasa_teacher' and p_is_active and exists (
+    select 1 from public.shared_users u
+    where u.role = 'madrasa_teacher'
+      and u.class_id = v_class_id
+      and u.is_active = true
+      and (p_user_id is null or u.id <> p_user_id)
+  ) then
+    return jsonb_build_object('ok', false, 'error', 'class_teacher_exists');
+  end if;
+
+  if p_user_id is null then
+    insert into public.shared_users (name, pin, role, login_id, module_access, admin_perms, class_id, is_active)
+    values (
+      btrim(p_name), btrim(p_user_pin), p_role, v_login_id,
+      case when p_role = 'khedmat' then array['khedmat'] else array['madrasa'] end,
+      coalesce(p_admin_perms, '{}'::jsonb), v_class_id, p_is_active
+    )
+    returning id into v_user_id;
+  else
+    update public.shared_users
+    set name = btrim(p_name),
+        pin = btrim(p_user_pin),
+        role = p_role,
+        login_id = v_login_id,
+        module_access = case when p_role = 'khedmat' then array['khedmat'] else array['madrasa'] end,
+        admin_perms = coalesce(p_admin_perms, '{}'::jsonb),
+        class_id = v_class_id,
+        is_active = p_is_active,
+        updated_at = now()
+    where id = p_user_id and role <> 'admin'
+    returning id into v_user_id;
+  end if;
+
+  if v_user_id is null then
+    return jsonb_build_object('ok', false, 'error', 'user_not_found');
+  end if;
+
+  return jsonb_build_object('ok', true, 'id', v_user_id);
+exception when unique_violation then
+  return jsonb_build_object('ok', false, 'error', 'login_id_taken');
+end;
+$$;
+
 create or replace function public.mdr_rel_admin_bootstrap(p_pin text)
 returns jsonb
 language plpgsql
@@ -121,6 +304,57 @@ begin
       select count(*)
       from public.mdr_student_import_candidates
       where candidate_status = 'pending'
+    )
+  );
+end;
+$$;
+
+create or replace function public.mdr_rel_admin_students(p_pin text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+begin
+  if not private.verify_admin_pin(p_pin) then
+    return jsonb_build_object('ok', false, 'error', 'invalid_pin');
+  end if;
+
+  return jsonb_build_object(
+    'ok', true,
+    'classes', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+        'id', c.id,
+        'code', c.code,
+        'name', c.name,
+        'roll_prefix', c.roll_prefix,
+        'sort_order', c.sort_order,
+        'division_code', d.code
+      ) order by d.code, c.sort_order), '[]'::jsonb)
+      from public.mdr_classes c
+      join public.mdr_divisions d on d.id = c.division_id
+      where c.is_active = true
+    ),
+    'students', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+        'id', s.id,
+        'student_id', s.student_id,
+        'name', s.name,
+        'guardian_name', s.guardian_name,
+        'guardian_phone', s.guardian_phone,
+        'district', s.district,
+        'upazila', s.upazila,
+        'class_code', c.code,
+        'class_name', c.name,
+        'division_code', d.code,
+        'current_roll', s.current_roll,
+        'status', s.status,
+        'is_hifz', s.is_hifz
+      ) order by d.code, c.sort_order, s.current_roll, s.name), '[]'::jsonb)
+      from public.mdr_students s
+      join public.mdr_classes c on c.id = s.current_class_id
+      join public.mdr_divisions d on d.id = s.division_id
+      where s.status = 'active'
     )
   );
 end;
@@ -271,7 +505,11 @@ $$;
 
 grant execute on function public.mdr_rel_admin_login(text) to anon;
 grant execute on function public.mdr_rel_user_login(uuid, text) to anon;
+grant execute on function public.mdr_rel_staff_login(text, text, text) to anon;
+grant execute on function public.mdr_rel_admin_users(text) to anon;
+grant execute on function public.mdr_rel_save_user(text, uuid, text, text, text, text, text, jsonb, boolean) to anon;
 grant execute on function public.mdr_rel_admin_bootstrap(text) to anon;
+grant execute on function public.mdr_rel_admin_students(text) to anon;
 grant execute on function public.mdr_rel_import_candidates(text, text) to anon;
 grant execute on function public.mdr_rel_approve_import_candidate(text, uuid, text, text, text, text) to anon;
 grant execute on function public.mdr_rel_skip_import_candidate(text, uuid) to anon;

@@ -92,7 +92,7 @@
   </div>
 
   <div class="mtd-card">
-    <h3>ওয়াযিফা ও আর্থিক নোট</h3>
+    <h3>হিসাব ও আর্থিক নোট</h3>
     <div id="mtd-salary-block"></div>
   </div>
 
@@ -143,14 +143,14 @@
         ['ঠিকানা', t.address || '—'],
         ['যোগাযোগ', t.phone || '—'],
         ['নিয়োজিত শ্রেণি', cls ? cls.name : (t.class_id ? '—' : 'ক্লাসবিহীন দায়িত্ব')],
-        ['চলমান ওয়াযিফা (মাসিক)', t.salary != null && t.salary !== '' ? fmtAmt(t.salary) : '—'],
+        ['চলমান হিসাব (মাসিক)', t.salary != null && t.salary !== '' ? fmtAmt(t.salary) : '—'],
       ];
       basic.innerHTML = rows.map(([k, v]) => `<div><span>${esc(k)}</span>${esc(v)}</div>`).join('');
 
       const salBlock = document.getElementById('mtd-salary-block');
       const hist = Array.isArray(t.salary_history) ? t.salary_history : [];
       if (!hist.length) {
-        salBlock.innerHTML = '<p class="mtd-miss">ওয়াযিফা ইতিহাস এখনো লিপিবদ্ধ নেই।</p>';
+        salBlock.innerHTML = '<p class="mtd-miss">হিসাব ইতিহাস এখনো লিপিবদ্ধ নেই।</p>';
       } else {
         salBlock.innerHTML = hist
           .slice()
