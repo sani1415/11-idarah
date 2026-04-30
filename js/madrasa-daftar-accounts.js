@@ -131,6 +131,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
 .acc-detail-table th:nth-child(5),.acc-detail-table td:nth-child(5){min-width:74px}
 .acc-detail-table th:nth-child(6),.acc-detail-table td:nth-child(6){min-width:78px}
 .acc-detail-table th:nth-child(7),.acc-detail-table td:nth-child(7){min-width:64px}
+.acc-detail-table th:nth-child(8),.acc-detail-table td:nth-child(8){min-width:58px}
 @media (min-width:520px){.acc-detail-tools{grid-template-columns:1fr 1fr 1fr 1.4fr 1fr auto}}
 .acc-expense-wrap{overflow:auto;border:1px solid rgba(26,18,8,.07);border-radius:17px;background:#fff;max-height:60vh;box-shadow:0 10px 24px rgba(26,18,8,.055)}
 .acc-expense-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
@@ -184,6 +185,10 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
 .acc-cal-days{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 @keyframes accCalIn{from{transform:translateY(16px);opacity:.7}to{transform:none;opacity:1}}
 .acc-del-btn{background:none;border:none;color:var(--ink3);cursor:pointer;font-size:14px;padding:0 4px;line-height:1}
+.acc-row-actions{display:flex;align-items:center;justify-content:center;gap:2px}
+.acc-icon-btn{border:1px solid rgba(26,18,8,.08);background:#fff;color:var(--ink3);border-radius:7px;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-family:inherit;padding:0}
+.acc-icon-btn.edit{color:#7a5118;background:#fff8e8}
+.acc-icon-btn.del{color:var(--red);background:#fff5f2}
 .acc-pay-btn{font-size:11px;border:1px solid var(--gold);color:var(--gold);background:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-family:inherit}
 .acc-empty{text-align:center;padding:30px;color:var(--ink3);font-size:13px}
 .acc-cat-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:6px;background:#fff;margin-bottom:4px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
@@ -585,6 +590,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
           '<td>' + qInfo + '</td>' +
           '<td>' + esc(supplier || 'উল্লেখ নেই') + '</td>' +
           '<td class="acc-ledger-amt">৳' + fa(r.amount) + '</td>' +
+          '<td><div class="acc-row-actions"><button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'expense\',\'' + esc(r.id) + '\')">✎</button><button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button></div></td>' +
           '</tr>';
       }).join('');
       var filters =
@@ -603,8 +609,8 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
         '</div>';
       root.innerHTML =
         filters +
-        '<div class="acc-table-wrap"><table class="acc-detail-table"><thead><tr><th>তারিখ</th><th>মাস</th><th>খাত</th><th>বিবরণ</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>টাকা</th></tr></thead><tbody>' +
-        (body || '<tr><td colspan="7" style="text-align:center;color:var(--ink3)">এই হিসাব বইতে তথ্য নেই</td></tr>') +
+        '<div class="acc-table-wrap"><table class="acc-detail-table"><thead><tr><th>তারিখ</th><th>মাস</th><th>খাত</th><th>বিবরণ</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>টাকা</th><th></th></tr></thead><tbody>' +
+        (body || '<tr><td colspan="8" style="text-align:center;color:var(--ink3)">এই হিসাব বইতে তথ্য নেই</td></tr>') +
         '</tbody></table></div>';
     }
   }
@@ -659,7 +665,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
       return '<div class="acc-list-item"><div class="acc-list-top">' +
         '<div class="acc-list-desc">' + esc(desc) + '</div>' +
         '<div class="acc-list-amt inc">৳' + fa(r.amount) + '</div>' +
-        '<button class="acc-del-btn" onclick="delAccEntry(\'income\',\'' + esc(r.id) + '\')">✕</button>' +
+        '<div class="acc-row-actions"><button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'income\',\'' + esc(r.id) + '\')">✎</button><button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'income\',\'' + esc(r.id) + '\')">✕</button></div>' +
         '</div><div class="acc-list-meta">' + esc(A.monthKey(r.month) || '') + (r.day ? ' · ' + bn(r.day) : '') + '</div></div>';
     }).join('');
     return '<div class="acc-filter-bar"><select class="acc-sel" onchange="_monF=this.value;renderAccounts()">' + monOpts + '</select></div>' +
@@ -699,7 +705,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
         '<td>' + qInfo + '</td>' +
         '<td>' + esc(supplier || 'উল্লেখ নেই') + '</td>' +
         '<td class="acc-ledger-amt">৳' + fa(r.amount) + '</td>' +
-        '<td><button class="acc-del-btn" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">মুছুন</button></td>' +
+        '<td><div class="acc-row-actions"><button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'expense\',\'' + esc(r.id) + '\')">✎</button><button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button></div></td>' +
         '</tr>';
     }
     var items = rows.map(rowHtml).join('');
@@ -776,6 +782,117 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     A.Categories.del(name); window.renderAccounts();
   };
 
+  function isAdminSession() {
+    return !!(typeof MMSession !== 'undefined' && MMSession && MMSession.isAdmin && MMSession.isAdmin());
+  }
+
+  function entryAgeHours(entry) {
+    var at = Number(entry && entry._at);
+    if (!at) return Infinity;
+    return (Date.now() - at) / 36e5;
+  }
+
+  function describeEntry(type, entry) {
+    if (!entry) return '';
+    if (type === 'income') {
+      return 'ধরন: আয়\nতারিখ: ' + A.dateLabel(entry) + '\nপরিমাণ: ৳' + fa(entry.amount) + '\nবিবরণ: ' + (A.clean(entry.note, '') || A.clean(entry.source, '') || 'আয়');
+    }
+    return 'ধরন: ব্যয়\nহিসাব বই: ' + (A.ACCOUNT_LABELS[entry.account] || entry.account || '—') +
+      '\nতারিখ: ' + A.dateLabel(entry) +
+      '\nখাত: ' + (A.clean(entry.category, '') || 'অন্যান্য') +
+      '\nবিবরণ: ' + (A.clean(entry.description, '') || 'ব্যয়') +
+      '\nপরিমাণ: ৳' + fa(entry.amount) +
+      '\nসরবরাহকারী: ' + (A.clean(entry.supplier, '') || 'উল্লেখ নেই');
+  }
+
+  function sessionActorId() {
+    if (typeof MMSession === 'undefined' || !MMSession) return null;
+    return isAdminSession()
+      ? (MMSession.getAdminUserId && MMSession.getAdminUserId())
+      : (MMSession.getStaffUserId && MMSession.getStaffUserId());
+  }
+
+  function sessionPin() {
+    if (typeof MMSession === 'undefined' || !MMSession) return null;
+    return isAdminSession()
+      ? (MMSession.getAdminPin && MMSession.getAdminPin())
+      : (MMSession.getStaffPin && MMSession.getStaffPin());
+  }
+
+  async function requestEntryChange(action, type, entry, reason, proposed) {
+    var fromName = (typeof MMSession !== 'undefined' && MMSession && MMSession.getName && MMSession.getName()) || 'দফতর দায়িত্বশীল';
+    var isEdit = action === 'edit';
+    var text = 'হিসাব সংশোধন অনুরোধ\nঅ্যাকশন: এন্ট্রি ' + (isEdit ? 'এডিট করতে চান' : 'মুছতে চান') + '\n' + describeEntry(type, entry);
+    if (isEdit) text += '\n\nপ্রস্তাবিত পরিবর্তন\n' + describeEntry(type, proposed);
+    text += '\nকারণ: ' + reason;
+    var request = {
+      kind: isEdit ? 'account_entry_edit' : 'account_entry_delete',
+      status: 'pending',
+      entryType: type,
+      entryId: entry.id,
+      snapshot: entry,
+      proposed: proposed || null,
+      reason: reason,
+      requestedAt: new Date().toISOString(),
+    };
+    if (typeof ChatAPI !== 'undefined' && ChatAPI && ChatAPI.send) {
+      if (ChatAPI.sendRemote && sessionPin()) {
+        try {
+          var res = await ChatAPI.sendRemote(sessionActorId(), sessionPin(), 'daftar', text, isAdminSession(), { request: request });
+          if (!res || !res.ok) throw new Error((res && res.error) || 'chat_request_send_failed');
+          var savedMsg = ChatAPI.send('daftar', 'daftar', fromName, text, { request: request });
+          if (res.id && ChatAPI.updateMessage && savedMsg && savedMsg.id) {
+            ChatAPI.updateMessage(savedMsg.id, function (m) {
+              return { ...m, id: String(res.id) };
+            });
+          }
+        } catch (e) {
+          console.warn('Account approval request remote send failed', e);
+          return false;
+        }
+      } else {
+        ChatAPI.send('daftar', 'daftar', fromName, text, { request: request });
+      }
+      return true;
+    }
+    return false;
+  }
+
+  function collectEntryEdit(type, entry) {
+    if (type === 'income') {
+      var amount = prompt('আয়ের পরিমাণ:', entry.amount || '');
+      if (amount === null) return null;
+      amount = parseFloat(amount);
+      if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return null; }
+      var note = prompt('উৎস / বিবরণ:', A.clean(entry.note, '') || A.clean(entry.source, '') || '');
+      if (note === null) return null;
+      return { ...entry, amount: amount, note: note.trim() };
+    }
+    var category = prompt('খাত:', A.clean(entry.category, '') || 'অন্যান্য');
+    if (category === null) return null;
+    var description = prompt('বিবরণ:', A.clean(entry.description, '') || '');
+    if (description === null) return null;
+    var supplier = prompt('সরবরাহকারী:', A.clean(entry.supplier, '') || '');
+    if (supplier === null) return null;
+    var expAmount = prompt('মোট টাকা:', entry.amount || '');
+    if (expAmount === null) return null;
+    expAmount = parseFloat(expAmount);
+    if (!expAmount || expAmount <= 0) { showToast('সঠিক পরিমাণ দিন'); return null; }
+    return { ...entry, category: category.trim(), description: description.trim(), supplier: supplier.trim(), amount: expAmount };
+  }
+
+  function applyEntryEdit(type, id, proposed) {
+    if (type === 'income') A.Income.update(id, proposed);
+    else A.Expense.update(id, proposed);
+  }
+
+  function refreshAccountsViews() {
+    window.renderAccounts();
+    if (_detailAccount && document.getElementById('account-details-root')) {
+      renderAccAccountDetails(_detailAccount);
+    }
+  }
+
   /* ══════════════ MAIN RENDER ══════════════ */
   window.renderAccounts = function () {
     A.ensureSeed();
@@ -812,10 +929,36 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
   };
 
   /* ══════════════ HELPERS ══════════════ */
-  window.delAccEntry = function (type, id) {
+  window.delAccEntry = async function (type, id) {
+    var entry = type === 'income' ? A.Income.getById(id) : A.Expense.getById(id);
+    if (!entry) { showToast('এন্ট্রি পাওয়া যায়নি'); return; }
+    if (!isAdminSession() && entryAgeHours(entry) > 24) {
+      var reason = prompt('২৪ ঘণ্টার বেশি পুরনো এন্ট্রি মুছতে জিম্মাদারের অনুমতি লাগবে। কারণ লিখুন:');
+      if (!reason || !reason.trim()) return;
+      if (await requestEntryChange('delete', type, entry, reason.trim())) showToast('সংশোধন অনুরোধ বার্তায় পাঠানো হয়েছে');
+      else showToast('অনুরোধ পাঠানো যায়নি');
+      return;
+    }
     if (!confirm('এই এন্ট্রি মুছে ফেলবেন?')) return;
     if (type === 'income') A.Income.del(id); else A.Expense.del(id);
-    window.renderAccounts();
+    refreshAccountsViews();
+  };
+
+  window.editAccEntry = async function (type, id) {
+    var entry = type === 'income' ? A.Income.getById(id) : A.Expense.getById(id);
+    if (!entry) { showToast('এন্ট্রি পাওয়া যায়নি'); return; }
+    var proposed = collectEntryEdit(type, entry);
+    if (!proposed) return;
+    if (!isAdminSession() && entryAgeHours(entry) > 24) {
+      var reason = prompt('২৪ ঘণ্টার বেশি পুরনো এন্ট্রি এডিট করতে জিম্মাদারের অনুমতি লাগবে। কারণ লিখুন:');
+      if (!reason || !reason.trim()) return;
+      if (await requestEntryChange('edit', type, entry, reason.trim(), proposed)) showToast('এডিট অনুরোধ বার্তায় পাঠানো হয়েছে');
+      else showToast('অনুরোধ পাঠানো যায়নি');
+      return;
+    }
+    applyEntryEdit(type, id, proposed);
+    showToast('এন্ট্রি আপডেট হয়েছে');
+    refreshAccountsViews();
   };
 
   window.payDue = function (dueId) {

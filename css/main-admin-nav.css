@@ -25,6 +25,7 @@
 
 .main-nav-btn,
 .hub-bottom-nav .hub-nav-btn {
+  position: relative;
   flex: 1;
   min-width: 0;
   display: flex;

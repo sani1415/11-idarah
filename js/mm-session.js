@@ -196,9 +196,52 @@
   };
 
   global.MMSession = MMSession;
+  function chatThreadForSession() {
+    if (MMSession.getDeptRole() === 'dept') return 'dept-' + (MMSession.getDeptId() || 'x');
+    var role = MMSession.getRole();
+    if (role === 'teacher') return 'teacher-' + (MMSession.getTeacherId() || 'x');
+    if (['daftar', 'hifz', 'library', 'alumni', 'khedmat'].indexOf(role) >= 0) return role;
+    return null;
+  }
+  function readChatUnreadCount() {
+    var msgs = [];
+    try { msgs = JSON.parse(localStorage.getItem('mm_chat_messages') || '[]') || []; } catch (e) { msgs = []; }
+    if (MMSession.isAdmin()) return msgs.filter(function (m) { return m && m.from_role !== 'admin' && !m.read_admin; }).length;
+    var thread = chatThreadForSession();
+    if (!thread) return 0;
+    return msgs.filter(function (m) { return m && m.thread_id === thread && m.from_role === 'admin' && !m.read_staff; }).length;
+  }
+  function bnNum(n) {
+    return String(n || 0).replace(/[0-9]/g, function (d) { return '০১২৩৪৫৬৭৮৯'[d]; });
+  }
+  function applyChatBadges() {
+    if (typeof document === 'undefined') return;
+    var count = readChatUnreadCount();
+    var nodes = document.querySelectorAll('a[href$="chat.html"], a[href*="/chat.html"], [onclick*="chat.html"]');
+    nodes.forEach(function (node) {
+      var badge = node.querySelector('.mm-chat-badge');
+      if (!count) {
+        if (badge) badge.remove();
+        return;
+      }
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'mm-chat-badge';
+        badge.setAttribute('aria-label', 'অপঠিত বার্তা');
+        node.appendChild(badge);
+      }
+      badge.textContent = count > 99 ? '৯৯+' : bnNum(count);
+    });
+  }
+  global.MMRefreshChatBadges = applyChatBadges;
+  global.addEventListener && global.addEventListener('storage', function (e) {
+    if (!e || e.key === 'mm_chat_messages') applyChatBadges();
+  });
+  global.addEventListener && global.addEventListener('mm-chat-updated', applyChatBadges);
   function autoRestrictNav() { if (global.MMSession) global.MMSession.applyAdminNavRestrictions(); }
   if (typeof document !== 'undefined') {
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoRestrictNav);
-    else setTimeout(autoRestrictNav, 0);
+    var onReady = function () { autoRestrictNav(); applyChatBadges(); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', onReady);
+    else setTimeout(onReady, 0);
   }
 })(typeof window !== 'undefined' ? window : globalThis);

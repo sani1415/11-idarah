@@ -19,6 +19,14 @@ const DeptAPI = (() => {
 
   function load(key) { try { return JSON.parse(localStorage.getItem(key))||[]; } catch { return []; } }
   function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+  function purgeKnownSampleData() {
+    const sample = row => /^(dept|txn|inv)_\d+$/.test(String(row && row.id || ''));
+    [KEYS.departments, KEYS.transactions, KEYS.inventory].forEach(key => {
+      const rows = load(key);
+      const next = rows.filter(row => !sample(row));
+      if (next.length !== rows.length) save(key, next);
+    });
+  }
 
   /* ── SEED ── */
   function seedIfEmpty() {
@@ -35,13 +43,7 @@ const DeptAPI = (() => {
       if (changed) save(KEYS.departments, existing);
       return;
     }
-    const b = globalThis.MMSampleData && globalThis.MMSampleData.buildDeptSample;
-    if (!b) { console.warn('[MMSampleData] mm-sample-data.js dept-api.js-এর আগে লোড করুন।'); return; }
-    const pack = b();
-    if (!pack || !Object.keys(pack).length) return;
-    Object.keys(pack).forEach((k) => {
-      try { localStorage.setItem(k, JSON.stringify(pack[k])); } catch (e) { console.warn('dept seed ' + k, e); }
-    });
+    save(KEYS.departments, []);
   }
 
   /* ── DEPARTMENTS ── */
@@ -188,6 +190,7 @@ const DeptAPI = (() => {
   };
 
   seedIfEmpty();
+  purgeKnownSampleData();
   return { Departments, Transactions, Inventory, EditRequests, ExtraFields, getSubdeptFields, uid, today, esc };
 
 })();

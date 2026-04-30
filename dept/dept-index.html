@@ -128,14 +128,10 @@
   let selectedDept = null;
   let pinVal = '';
 
-  /* যদি dept data version পুরানো থাকে, force re-seed */
+  /* sample data re-seed বন্ধ: existing local data মুছবে না */
   const DEPT_DATA_VER = 2;
   if (Number(localStorage.getItem('mm_dept_data_ver')||0) < DEPT_DATA_VER) {
-    localStorage.removeItem('mm_dept_departments');
-    localStorage.removeItem('mm_dept_transactions');
-    localStorage.removeItem('mm_dept_inventory');
     localStorage.setItem('mm_dept_data_ver', DEPT_DATA_VER);
-    location.reload();
   }
 
   function init() {

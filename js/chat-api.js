@@ -12,7 +12,13 @@ const ChatAPI = (() => {
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
   function load() { try { return JSON.parse(localStorage.getItem(KEY))||[]; } catch { return []; } }
-  function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
+  function save(data) {
+    localStorage.setItem(KEY, JSON.stringify(data));
+    if (typeof window !== 'undefined') {
+      if (typeof window.MMRefreshChatBadges === 'function') window.MMRefreshChatBadges();
+      window.dispatchEvent(new Event('mm-chat-updated'));
+    }
+  }
 
   const THREAD_LABELS = {
     daftar:  { name:'দফতর দায়িত্বশীল',      icon:'📋' },
@@ -31,11 +37,7 @@ const ChatAPI = (() => {
 
   /* ── SEED ── */
   function seedIfEmpty() {
-    if (load().length) return;
-    const b = globalThis.MMSampleData && globalThis.MMSampleData.buildChatSample;
-    if (!b) { console.warn('[MMSampleData] mm-sample-data.js chat-api.js-এর আগে লোড করুন।'); return; }
-    const seed = b();
-    if (seed && seed.length) save(seed);
+    /* Production prototype: do not auto-create sample chat messages. */
   }
 
   /* ── API ── */
@@ -61,17 +63,29 @@ const ChatAPI = (() => {
     return load().filter(m => m.thread_id === thread_id).sort((a,b) => a.ts.localeCompare(b.ts));
   }
 
-  function send(thread_id, from_role, from_name, text) {
+  function send(thread_id, from_role, from_name, text, extra) {
     const msgs = load();
     const m = {
       id: uid(), thread_id, from_role, from_name, text,
       ts: new Date().toISOString(),
       read_admin: from_role === 'admin',
       read_staff: from_role === 'admin',
+      ...(extra || {}),
     };
     msgs.push(m);
     save(msgs);
     return m;
+  }
+
+  function updateMessage(id, updater) {
+    let updated = null;
+    const msgs = load().map(m => {
+      if (m.id !== id) return m;
+      updated = typeof updater === 'function' ? updater({ ...m }) : { ...m, ...(updater || {}) };
+      return updated;
+    });
+    save(msgs);
+    return updated;
   }
 
   function markReadAdmin(thread_id) {
@@ -94,7 +108,8 @@ const ChatAPI = (() => {
     if (!globalThis.MMSharedAPI || !pin) return false;
     const res = await MMSharedAPI.chatBootstrap(actorId || null, pin, !!isAdmin);
     if (!res || !res.ok) return false;
-    save((res.messages || []).map(m => ({
+    const localMsgs = load();
+    const remoteMsgs = (res.messages || []).map(m => ({
       id: String(m.id || ''),
       thread_id: m.thread_id || '',
       from_role: m.from_role || '',
@@ -103,13 +118,22 @@ const ChatAPI = (() => {
       ts: m.ts || new Date().toISOString(),
       read_admin: !!m.read_admin,
       read_staff: !!m.read_staff,
-    })));
+      request: m.request || null,
+    }));
+    const ids = new Set(remoteMsgs.map(m => m.id));
+    localMsgs.forEach(m => { if (!ids.has(m.id)) remoteMsgs.push(m); });
+    save(remoteMsgs);
     return true;
   }
 
-  async function sendRemote(actorId, pin, threadId, text, isAdmin) {
+  async function sendRemote(actorId, pin, threadId, text, isAdmin, extra) {
     if (!globalThis.MMSharedAPI || !pin) return null;
-    return MMSharedAPI.chatSend(actorId || null, pin, threadId, text, !!isAdmin);
+    return MMSharedAPI.chatSend(actorId || null, pin, threadId, text, !!isAdmin, extra && extra.request ? extra.request : null);
+  }
+
+  async function updateRequestRemote(actorId, pin, messageId, status) {
+    if (!globalThis.MMSharedAPI || !pin || !messageId) return null;
+    return MMSharedAPI.chatUpdateRequest(actorId || null, pin, messageId, status);
   }
 
   async function markReadRemote(actorId, pin, threadId, isAdmin) {
@@ -119,6 +143,6 @@ const ChatAPI = (() => {
   }
 
   seedIfEmpty();
-  return { getThreads, getThread, send, markReadAdmin, markReadStaff, countUnreadStaff, countUnreadAdmin, getLabel, esc, syncRemote, sendRemote, markReadRemote };
+  return { getThreads, getThread, send, updateMessage, markReadAdmin, markReadStaff, countUnreadStaff, countUnreadAdmin, getLabel, esc, syncRemote, sendRemote, updateRequestRemote, markReadRemote };
 
 })();

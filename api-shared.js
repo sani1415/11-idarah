@@ -111,12 +111,29 @@ const MMSharedAPI = (() => {
         p_reason: reason || '',
       });
     },
+    updateAkhlaq(actorId, pin, akhlaqId, score, reason) {
+      return rpc('mdr_rel_update_akhlaq', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_akhlaq_id: akhlaqId,
+        p_score: Number(score),
+        p_reason: reason || '',
+      });
+    },
     saveTeacherLog(actorId, pin, type, studentId, content) {
       return rpc('mdr_rel_save_teacher_log', {
         p_actor_id: actorId,
         p_pin: pin,
         p_type: type,
         p_student_id: studentId || null,
+        p_content: content || '',
+      });
+    },
+    updateTeacherLog(actorId, pin, logId, content) {
+      return rpc('mdr_rel_update_teacher_log', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_log_id: logId,
         p_content: content || '',
       });
     },
@@ -136,13 +153,23 @@ const MMSharedAPI = (() => {
         p_is_admin: !!isAdmin,
       });
     },
-    chatSend(actorId, pin, threadId, text, isAdmin) {
-      return rpc('mdr_rel_chat_send', {
+    async chatSend(actorId, pin, threadId, text, isAdmin, request) {
+      const params = {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_thread_id: threadId,
         p_text: text,
         p_is_admin: !!isAdmin,
+        p_request: request || null,
+      };
+      return rpc('mdr_rel_chat_send', params);
+    },
+    chatUpdateRequest(actorId, pin, messageId, status) {
+      return rpc('mdr_rel_chat_update_request', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_message_id: messageId,
+        p_status: status,
       });
     },
     chatMarkRead(actorId, pin, threadId, isAdmin) {

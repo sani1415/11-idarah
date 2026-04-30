@@ -724,6 +724,7 @@ body.page-daftar #modal-account-entry .modal {
 <script src="../data/madrasa-accounts-seed.js"></script>
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/madrasa-accounts-api.js"></script>
+<script src="../js/chat-api.js"></script>
 <script src="../js/madrasa-daftar-accounts.js"></script>
 <script src="../js/madrasa-accounts-reports.js"></script>
 <script src="../js/mm-student-modal.js"></script>
@@ -867,9 +868,7 @@ body.page-daftar #modal-account-entry .modal {
       if (!missingDays.length) {
         lineEl.innerHTML = 'শিক্ষাবর্ষ শুরু থেকে আজ পর্যন্ত <strong>সব দিনেই</strong> হাজিরা আছে';
       } else {
-        const sample = missingDays.slice(0, 5).map(ddmmyyBn).join(', ');
-        const extra = missingDays.length > 5 ? '…' : '';
-        lineEl.innerHTML = 'শিক্ষাবর্ষ শুরু থেকে আজ পর্যন্ত বাকি <strong>' + toBn(missingDays.length) + '</strong> দিন · ' + sample + extra;
+        lineEl.innerHTML = 'শিক্ষাবর্ষ শুরু থেকে আজ পর্যন্ত বাকি <strong>' + toBn(missingDays.length) + '</strong> দিনের হাজিরা নেই';
       }
     }
     summary.style.display = 'block';

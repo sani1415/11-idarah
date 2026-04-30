@@ -40,6 +40,30 @@ const API = (() => {
     localStorage.setItem(key, JSON.stringify(data));
   }
 
+  function purgeKnownSampleData() {
+    const filterKey = (key, isSample) => {
+      const rows = load(key);
+      if (!rows.length) return;
+      const next = rows.filter((row) => !isSample(row));
+      if (next.length !== rows.length) save(key, next);
+    };
+    const sampleStudent = (row) => /^std_([1-9]|[12][0-9]|3[01])$/.test(String(row && row.id || '')) && !row.supabase_id;
+    const sampleTeacher = (row) => /^(tch_([1-8]|1[0-4])|daftar|usr_(hifz|lib|alumni|khedmat))$/.test(String(row && row.id || '')) && !row.supabase_id;
+    const sampleRef = (row) => {
+      const id = String(row && row.id || '');
+      return /^(att_d|mm_ex|exam_|r|ktb_|kp_|kh_|log_|fee_|bk_|grp_|al_)_?\d+/.test(id) ||
+        /^mm_ex_/.test(id) ||
+        sampleStudent({ id: row && row.student_id }) ||
+        sampleStudent({ id: row && row.ref_id }) ||
+        /^(ktb_|grp_|bk_|al_)\d+/.test(String(row && (row.kitab_id || row.book_id || row.group_id || row.alumni_id) || ''));
+    };
+
+    filterKey(KEYS.students, sampleStudent);
+    filterKey(KEYS.teachers, sampleTeacher);
+    [KEYS.attendance, KEYS.kitabs, KEYS.kitab_prog, KEYS.khuluk, KEYS.exams, KEYS.results, KEYS.logs, KEYS.fees].forEach((key) => filterKey(key, sampleRef));
+    ['mm_lib_books', 'mm_lib_issues', 'mm_hifz_groups', 'mm_hifz_progress', 'mm_hifz_members', 'mm_hifz_activity', 'mm_alumni', 'mm_alumni_contacts'].forEach((key) => filterKey(key, sampleRef));
+  }
+
   /** মক্তব: স্থায়ী আইডি digit-only, leading zero সহ; রোল/পরিচিতি `ম` দিয়ে শুরু */
   function bnDigitsToInt(str) {
     if (!str) return 0;
@@ -64,7 +88,7 @@ const API = (() => {
   }
 
   /* ══════════════════════════════
-     SEED DATA — প্রথম লোডে নমুনা ডেটা
+     LEGACY LOCAL MIGRATIONS
      ══════════════════════════════ */
   function seedIfEmpty() {
     function defaultTeacherLoginId(t) {
@@ -117,28 +141,6 @@ const API = (() => {
       }
     }
 
-    /* ── MIGRATION: exam — ডেটা: js/mm-sample-data.js ── */
-    if (!load(KEYS.exams).length && load(KEYS.students).length) {
-      const M = globalThis.MMSampleData && globalThis.MMSampleData.getLegacyExamsForMigration
-        ? globalThis.MMSampleData.getLegacyExamsForMigration()
-        : null;
-      if (M) {
-        save(KEYS.exams, M.exams);
-        save(KEYS.results, M.results);
-      }
-    }
-
-    /* ── MIGRATION: পুরনো সিডে অতিরিক্ত শিক্ষক — ডেটা: js/mm-sample-data.js ── */
-    const existingTeachers = load(KEYS.teachers);
-    if (existingTeachers.length && !existingTeachers.find(t => t.id === 'tch_5')) {
-      const extraT = globalThis.MMSampleData && globalThis.MMSampleData.getLegacyExtraTeachers
-        ? globalThis.MMSampleData.getLegacyExtraTeachers()
-        : [];
-      if (extraT.length) {
-        save(KEYS.teachers, [...existingTeachers, ...extraT.map(t => t.class_id && !t.login_id ? { ...t, login_id: defaultTeacherLoginId(t) } : t)]);
-      }
-    }
-
     if (load(KEYS.classes).length) return;
 
     const buildM = globalThis.MMSampleData && globalThis.MMSampleData.buildMadrasaSample;
@@ -148,16 +150,8 @@ const API = (() => {
     }
     const pack = buildM(today());
     if (!pack || !pack.mm_classes || !pack.mm_classes.length) return;
-    if (Array.isArray(pack.mm_teachers)) {
-      pack.mm_teachers = pack.mm_teachers.map(t => t.class_id && !t.login_id ? { ...t, login_id: defaultTeacherLoginId(t) } : t);
-    }
-    Object.keys(pack).forEach((k) => {
-      try {
-        localStorage.setItem(k, JSON.stringify(pack[k]));
-      } catch (e) {
-        console.warn('seed ' + k, e);
-      }
-    });
+    save(KEYS.classes, pack.mm_classes);
+    if (!localStorage.getItem(KEYS.settings)) save(KEYS.settings, pack.mm_settings || {});
   }
 
   /* ══════════════════════════════
@@ -599,6 +593,10 @@ const API = (() => {
       save(KEYS.khuluk, list);
       return entry;
     },
+    update(id, data) {
+      const list = load(KEYS.khuluk).map(k => k.id === id ? { ...k, ...data } : k);
+      save(KEYS.khuluk, list);
+    },
     getClassAvg(cid) {
       const sids = Students.getByClass(cid).map(s => s.id);
       const scores = sids.map(sid => { const k = Khuluk.getLatest(sid); return k ? k.score : null; }).filter(s => s !== null);
@@ -642,6 +640,10 @@ const API = (() => {
       list.push(entry);
       save(KEYS.logs, list);
       return entry;
+    },
+    update(id, data) {
+      const list = load(KEYS.logs).map(l => l.id === id ? { ...l, ...data } : l);
+      save(KEYS.logs, list);
     },
     getAll: () => load(KEYS.logs).sort((a,b) => b.date.localeCompare(a.date))
   };
@@ -863,6 +865,7 @@ const API = (() => {
 
   /* ── INIT ── */
   seedIfEmpty();
+  purgeKnownSampleData();
   migrateAttendanceStatus();
   migrateMaktabClassNames();
   Sessions.ensureInitialized();

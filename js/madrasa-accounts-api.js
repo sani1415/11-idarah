@@ -95,27 +95,7 @@ const MdrAccAPI = (() => {
 
   /* ── Seed loader ── */
   function ensureSeed() {
-    const seed = window.MM_ACCOUNTS_SEED;
-    if (!seed) return;
-    const sv = parseInt(localStorage.getItem(SV_KEY) || '0');
-    if (sv >= seed.version) return;
-
-    const incs = load(INC_KEY);
-    const incIds = new Set(incs.map(x => x.id));
-    (seed.incomes || []).forEach(r => { if (!incIds.has(r.id)) incs.push({ ...r }); });
-    store(INC_KEY, incs);
-
-    const exps = load(EXP_KEY);
-    const expIds = new Set(exps.map(x => x.id));
-    (seed.expenses || []).forEach(r => { if (!expIds.has(r.id)) exps.push({ ...r }); });
-    store(EXP_KEY, exps);
-
-    const dues = load(DUE_KEY);
-    const dueIds = new Set(dues.map(x => x.id));
-    (seed.dues || []).forEach(r => { if (!dueIds.has(r.id)) dues.push({ ...r }); });
-    store(DUE_KEY, dues);
-
-    localStorage.setItem(SV_KEY, String(seed.version));
+    /* Production prototype: do not auto-create sample account entries. */
   }
 
   /* ── Categories ── */
@@ -129,10 +109,18 @@ const MdrAccAPI = (() => {
   /* ── Income ── */
   const Income = {
     getAll()          { return load(INC_KEY).map(norm); },
+    getById(id)       { const r = load(INC_KEY).find(x => x.id === id); return r ? norm(r) : null; },
     getByAccount(acc) { return load(INC_KEY).filter(x => x.account === acc); },
     getByMonth(m)     { const mm = monthKey(m); return load(INC_KEY).filter(x => monthKey(x.month) === mm); },
     total()           { return Income.getAll().reduce((s,x) => s + num(x.amount), 0); },
     add(data)         { const a = load(INC_KEY); const e = norm({ id: uid('inc-'), ...data, _at: Date.now() }); a.push(e); store(INC_KEY, a); return e; },
+    update(id, patch) {
+      const a = load(INC_KEY);
+      const idx = a.findIndex(x => x.id === id);
+      if (idx < 0) return null;
+      const e = norm({ ...a[idx], ...(patch || {}), id, _updatedAt: Date.now() });
+      a[idx] = e; store(INC_KEY, a); return e;
+    },
     del(id)           { store(INC_KEY, load(INC_KEY).filter(x => x.id !== id)); },
     months()          { return [...new Set(load(INC_KEY).map(x => monthKey(x.month)).filter(Boolean))]; },
   };
@@ -140,12 +128,20 @@ const MdrAccAPI = (() => {
   /* ── Expense ── */
   const Expense = {
     getAll()            { return load(EXP_KEY).map(norm); },
+    getById(id)         { const r = load(EXP_KEY).find(x => x.id === id); return r ? norm(r) : null; },
     getByAccount(acc)   { return load(EXP_KEY).filter(x => x.account === acc); },
     getByMonth(m)       { const mm = monthKey(m); return load(EXP_KEY).filter(x => monthKey(x.month) === mm); },
     getByItem(desc)     { return load(EXP_KEY).filter(x => x.description === desc); },
     total()             { return Expense.getAll().reduce((s,x) => s + num(x.amount), 0); },
     totalByAccount(acc) { return Expense.getByAccount(acc).reduce((s,x) => s + num(x.amount), 0); },
     add(data)           { const a = load(EXP_KEY); const e = norm({ id: uid('exp-'), ...data, _at: Date.now() }); a.push(e); store(EXP_KEY, a); return e; },
+    update(id, patch) {
+      const a = load(EXP_KEY);
+      const idx = a.findIndex(x => x.id === id);
+      if (idx < 0) return null;
+      const e = norm({ ...a[idx], ...(patch || {}), id, _updatedAt: Date.now() });
+      a[idx] = e; store(EXP_KEY, a); return e;
+    },
     del(id)             { store(EXP_KEY, load(EXP_KEY).filter(x => x.id !== id)); },
     itemNames()         { const nm = new Set(); load(EXP_KEY).forEach(x => { if (x.description && num(x.quantity) > 0) nm.add(x.description); }); return [...nm].sort((a,b) => a.localeCompare(b,'bn')); },
     months()            { return [...new Set(load(EXP_KEY).map(x => monthKey(x.month)).filter(Boolean))]; },

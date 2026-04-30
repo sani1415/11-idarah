@@ -19,17 +19,20 @@ const KhAPI = (() => {
 
   function load(key) { try { return JSON.parse(localStorage.getItem(key))||[]; } catch { return []; } }
   function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+  function purgeKnownSampleData() {
+    const sample = row => /^(bn|act|lg|fn|at)_\d+$/.test(String(row && row.id || '')) ||
+      /^(bn|act)_\d+$/.test(String(row && (row.beneficiary_id || row.activity_id) || ''));
+    [KEYS.beneficiaries, KEYS.activity_types, KEYS.activities, KEYS.daily_logs, KEYS.finance].forEach(key => {
+      const rows = load(key);
+      const next = rows.filter(row => !sample(row));
+      if (next.length !== rows.length) save(key, next);
+    });
+  }
 
   /* ── SEED ── */
   function seedIfEmpty() {
     if (load(KEYS.beneficiaries).length) return;
-    const b = globalThis.MMSampleData && globalThis.MMSampleData.buildKhedmatSample;
-    if (!b) { console.warn('[MMSampleData] mm-sample-data.js khedmat-api.js-এর আগে লোড করুন।'); return; }
-    const pack = b();
-    if (!pack || !Object.keys(pack).length) return;
-    Object.keys(pack).forEach((k) => {
-      try { localStorage.setItem(k, JSON.stringify(pack[k])); } catch (e) { console.warn('kh seed ' + k, e); }
-    });
+    save(KEYS.beneficiaries, []);
   }
 
   /* ── BENEFICIARIES ── */
@@ -121,6 +124,7 @@ const KhAPI = (() => {
   };
 
   seedIfEmpty();
+  purgeKnownSampleData();
   return { Beneficiaries, ActivityTypes, Activities, DailyLogs, Finance, uid, today, esc };
 
 })();

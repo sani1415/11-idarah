@@ -116,7 +116,8 @@
   const AL_KEY = 'mm_alumni', AL_CONTACT_KEY = 'mm_alumni_contacts';
   function toBn(n) { return String(n).replace(/[0-9]/g, d=>'০১২৩৪৫৬৭৮৯'[d]); }
 
-  if (!API.persistLoadArr(AL_KEY).length) {
+  /* production prototype: no sample alumni data */
+  if (false && !API.persistLoadArr(AL_KEY).length) {
     API.persistSaveArr(AL_KEY, [
       { id:'al_1', name:'মাওলানা আব্দুল বাসিত', permanent_id:'৪৫০০১', phone:'০১৭১১-০০০০০১', year:'২০২০', reason:'সম্পন্ন করে', location:'স্থানীয় মসজিদে ইমামতি করছেন', status:'সম্পন্ন' },
       { id:'al_2', name:'মুহাম্মাদ রাশেদ', permanent_id:'৪৬০০৩', phone:'০১৮২২-০০০০০২', year:'২০২১', reason:'মাঝপথে বিদায়', location:'ব্যবসা করছেন', status:'মাঝপথে' },

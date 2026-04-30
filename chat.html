@@ -59,9 +59,17 @@
   .msg-row.me   .msg-bubble { background:linear-gradient(145deg,#4a3d2a,#3d3220); color:#fff; border-bottom-right-radius:4px; }
   .msg-row.other .msg-bubble { background:#fff; color:var(--ink); border-bottom-left-radius:4px; box-shadow:var(--shadow); }
   .msg-time { font-size:10px; margin-top:3px; }
-  .msg-row.me   .msg-time { color:rgba(255,255,255,0.5); text-align:right; }
+  .msg-row.me   .msg-time { color:var(--ink3); text-align:right; }
   .msg-row.other .msg-time { color:var(--ink3); }
   .msg-read { font-size:10px; color:rgba(255,255,255,0.4); }
+  .msg-request-card { margin-top:8px; background:rgba(255,248,232,.78); border:1px solid rgba(154,106,33,.18); border-radius:12px; padding:8px; color:var(--ink2); }
+  .msg-request-status { display:inline-block; font-size:10px; font-weight:800; border-radius:999px; padding:2px 7px; margin-bottom:6px; background:#fff4d9; color:#9a6a21; }
+  .msg-request-status.approved { background:#dcfce7; color:#065f46; }
+  .msg-request-status.rejected { background:#fee2e2; color:#991b1b; }
+  .msg-request-actions { display:flex; gap:6px; margin-top:8px; }
+  .msg-request-btn { flex:1; border:none; border-radius:9px; padding:7px 8px; font-family:inherit; font-size:11px; font-weight:800; cursor:pointer; }
+  .msg-request-btn.approve { background:#dcfce7; color:#065f46; }
+  .msg-request-btn.reject { background:#fee2e2; color:#991b1b; }
 
   .day-sep { text-align:center; font-size:10px; color:var(--ink3); padding:8px 0; letter-spacing:.5px; }
 
@@ -162,6 +170,7 @@
 <script src="js/api.js"></script>
 <script src="js/mm-session.js"></script>
 <script src="js/dept-api.js"></script>
+<script src="js/madrasa-accounts-api.js"></script>
 <script src="js/chat-api.js"></script>
 <script>
   /* ── IDENTITY ── */
@@ -344,6 +353,26 @@
   }
 
   /* ── RENDER MESSAGES ── */
+  function renderRequestHtml(m) {
+    const req = m.request;
+    if (!req || !['account_entry_delete', 'account_entry_edit'].includes(req.kind)) return '';
+    const status = req.status || 'pending';
+    const statusLabel = status === 'approved' ? 'অনুমোদিত' : status === 'rejected' ? 'রিজেক্টেড' : 'অপেক্ষমান';
+    const actionLabel = req.kind === 'account_entry_edit' ? 'এডিট অনুরোধ' : 'ডিলিট অনুরোধ';
+    const buttons = isAdmin && status === 'pending'
+      ? `<div class="msg-request-actions">
+          <button type="button" class="msg-request-btn approve" onclick="decideAccountRequest('${ChatAPI.esc(m.id)}','approved')">অনুমোদন</button>
+          <button type="button" class="msg-request-btn reject" onclick="decideAccountRequest('${ChatAPI.esc(m.id)}','rejected')">রিজেক্ট</button>
+        </div>`
+      : '';
+    return `<div class="msg-request-card">
+      <span class="msg-request-status ${status}">${statusLabel}</span>
+      <div style="font-size:11px;font-weight:800;margin-bottom:3px;">${actionLabel}</div>
+      <div style="font-size:11px;line-height:1.55;">${ChatAPI.esc(req.reason ? 'কারণ: ' + req.reason : 'সংশোধন অনুরোধ')}</div>
+      ${buttons}
+    </div>`;
+  }
+
   function renderMsgs() {
     const msgs = ChatAPI.getThread(activeThread);
     const el   = document.getElementById('chat-msgs');
@@ -360,10 +389,62 @@
       return sep + `
         <div class="msg-row ${fromMe?'me':'other'}">
           ${!fromMe ? `<div class="msg-sender">${ChatAPI.esc(m.from_name)}</div>` : ''}
-          <div class="msg-bubble">${ChatAPI.esc(m.text)}</div>
+          <div class="msg-bubble">${ChatAPI.esc(m.text).replace(/\n/g, '<br>')}${renderRequestHtml(m)}</div>
           <div class="msg-time">${fmtTime(m.ts)}${fromMe && m.read_staff ? ' ✓✓' : fromMe ? ' ✓' : ''}</div>
         </div>`;
     }).join('');
+  }
+
+  async function decideAccountRequest(messageId, decision) {
+    if (!isAdmin) return;
+    const msg = ChatAPI.getThread(activeThread).find(m => m.id === messageId);
+    const req = msg && msg.request;
+    if (!req || req.status !== 'pending') return;
+    if (decision === 'approved') {
+      const entryType = req.entryType;
+      const entryId = req.entryId;
+      if (req.kind === 'account_entry_edit') {
+        if (entryType === 'income') MdrAccAPI.Income.update(entryId, req.proposed || {});
+        else if (entryType === 'expense') MdrAccAPI.Expense.update(entryId, req.proposed || {});
+      } else {
+        if (entryType === 'income') MdrAccAPI.Income.del(entryId);
+        else if (entryType === 'expense') MdrAccAPI.Expense.del(entryId);
+      }
+    }
+    const reviewedRequest = {
+      ...req,
+      status: decision,
+      reviewedAt: new Date().toISOString(),
+      reviewedBy: 'জিম্মাদার',
+    };
+    if (ChatAPI.updateRequestRemote) {
+      try {
+        await ChatAPI.updateRequestRemote(chatActorId(), chatPin(), messageId, decision);
+      } catch (e) {
+        console.warn('Chat request remote update failed', e);
+      }
+    }
+    ChatAPI.updateMessage(messageId, (m) => ({
+      ...m,
+      request: reviewedRequest,
+      read_staff: false,
+    }));
+    const reply = decision === 'approved'
+      ? 'হিসাব সংশোধন অনুরোধ অনুমোদন করা হয়েছে।'
+      : 'হিসাব সংশোধন অনুরোধ রিজেক্ট করা হয়েছে।';
+    const localReply = ChatAPI.send(activeThread, 'admin', 'জিম্মাদার', reply);
+    if (ChatAPI.sendRemote) {
+      try {
+        const res = await ChatAPI.sendRemote(chatActorId(), chatPin(), activeThread, reply, true);
+        if (res && res.ok && res.id && localReply && localReply.id) {
+          ChatAPI.updateMessage(localReply.id, (m) => ({ ...m, id: String(res.id) }));
+        }
+      } catch (e) {
+        console.warn('Chat request reply remote send failed', e);
+      }
+    }
+    renderMsgs();
+    scrollEnd();
   }
 
   /* ── SEND ── */
@@ -373,11 +454,14 @@
     if (!text || !activeThread) return;
     const fromRole = isAdmin ? 'admin' : (myRole || myDeptRole || 'staff');
     const fromName = isAdmin ? 'জিম্মাদার' : myName;
-    ChatAPI.send(activeThread, fromRole, fromName, text);
+    const localMsg = ChatAPI.send(activeThread, fromRole, fromName, text);
     if (ChatAPI.sendRemote) {
       try {
         const res = await ChatAPI.sendRemote(chatActorId(), chatPin(), activeThread, text, isAdmin);
         if (!res || !res.ok) throw new Error((res && res.error) || 'chat_send_failed');
+        if (res.id && localMsg && localMsg.id) {
+          ChatAPI.updateMessage(localMsg.id, (m) => ({ ...m, id: String(res.id) }));
+        }
         await syncChatRemote();
       } catch (e) {
         console.warn('Chat Supabase send failed', e);

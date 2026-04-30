@@ -213,23 +213,10 @@
 
   function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
 
-  /* seed */
+  /* production prototype: no sample library data */
   if (!API.persistLoadArr(LIB_BOOKS).length) {
-    API.persistSaveArr(LIB_BOOKS, [
-      { id: 'bk_1', title: 'হেদায়া', author: 'বুরহানুদ্দীন মারগীনানী', category: 'ফিকহ', copies: 3, rack: 'A-1' },
-      { id: 'bk_2', title: 'বুখারী শরীফ', author: 'ইমাম বুখারী', category: 'হাদীস', copies: 2, rack: 'B-1' },
-      { id: 'bk_3', title: 'তাফসীরে মাআরেফুল কুরআন', author: 'মুফতী শফী', category: 'তাফসীর', copies: 2, rack: 'C-1' },
-      { id: 'bk_4', title: 'সীরাতুন নবী', author: 'শিবলী নুমানী', category: 'সীরাত', copies: 4, rack: 'D-1' },
-      { id: 'bk_5', title: 'আলফিয়া ইবনে মালিক', author: 'ইবনে মালিক', category: 'আরবী সাহিত্য', copies: 5, rack: 'A-2' },
-    ]);
-    const today = API.today();
-    const due = new Date(); due.setDate(due.getDate() + 14);
-    const overdue = new Date(); overdue.setDate(overdue.getDate() - 3);
-    API.persistSaveArr(LIB_ISSUES, [
-      { id: API.uid(), book_id: 'bk_1', student_id: 'std_1', issued: today, due: due.toISOString().split('T')[0], returned: null },
-      { id: API.uid(), book_id: 'bk_2', student_id: 'std_2', issued: '2025-03-01', due: overdue.toISOString().split('T')[0], returned: null },
-      { id: API.uid(), book_id: 'bk_3', student_id: 'std_3', issued: '2025-02-01', due: '2025-02-15', returned: '2025-02-14' },
-    ]);
+    API.persistSaveArr(LIB_BOOKS, []);
+    API.persistSaveArr(LIB_ISSUES, []);
   }
 
   let currentCat = 'সব';
