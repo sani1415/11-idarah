@@ -149,6 +149,12 @@ const MdrAccAPI = (() => {
     },
   };
 
+  /* ── Hijri date settings ── */
+  const Settings = {
+    getHijriOffsetDays() { return num(localStorage.getItem(OFFSET_KEY)); },
+    setHijriOffsetDays(days) { localStorage.setItem(OFFSET_KEY, String(Math.max(-3, Math.min(3, num(days))))); },
+  };
+
   /* ── Summary ── */
   const Summary = {
     get(filterMonth) {

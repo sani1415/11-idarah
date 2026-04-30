@@ -11,22 +11,10 @@
   .dars-tabs { display:flex; gap:8px; margin-bottom:10px; }
   .dars-tab { flex:1; padding:10px 6px; background:#fff; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-size:12px; color:var(--ink3); }
   .dars-tab.active { border-color:var(--ink); background:var(--ink); color:var(--gold2); font-weight:600; }
-  .dars-class-strip-wrap { margin:0 -4px 12px; padding:0 4px; }
-  .dars-class-strip {
-    display:flex; flex-wrap:nowrap; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch;
-    scroll-snap-type:x mandatory; padding-bottom:4px; scrollbar-width:thin;
-  }
-  .dars-class-strip::-webkit-scrollbar { height:4px; }
-  .dars-class-strip::-webkit-scrollbar-thumb { background:var(--cream3); border-radius:4px; }
-  .dars-class-chip {
-    flex:0 0 auto; scroll-snap-align:start;
-    padding:8px 14px; border-radius:999px; border:1.5px solid var(--cream3);
-    background:#fff; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink3);
-    cursor:pointer; white-space:nowrap; -webkit-tap-highlight-color:transparent; transition:background .12s,border-color .12s,color .12s;
-  }
-  .dars-class-chip:hover { border-color:rgba(201,149,42,.45); }
-  .dars-class-chip.is-active { border-color:var(--ink); background:var(--ink); color:var(--gold2); font-weight:600; }
-  .dars-class-chip--section { cursor:default; background:var(--cream2); color:var(--ink2); font-weight:700; }
+  .dars-class-select-wrap { margin:0 0 12px; }
+  .dars-class-select-label { display:block; font-size:11px; color:var(--ink3); margin-bottom:5px; }
+  .dars-book-btn { display:inline; border:0; background:none; padding:0; margin:0; font:inherit; font-family:'Noto Serif Bengali',serif; color:var(--ink); text-align:left; cursor:pointer; }
+  .dars-book-btn:hover { color:var(--gold); text-decoration:underline; }
   .dars-panel { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; border:1px solid rgba(26,18,8,.06); }
   .dars-class-h { padding:10px 12px; background:var(--cream2); font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; color:var(--ink2); }
   .dars-class-sub { font-size:10px; font-weight:500; color:var(--ink3); margin-top:2px; font-family:'Noto Sans Bengali',sans-serif; }
@@ -38,6 +26,11 @@
   .dars-bar { height:6px; background:var(--cream2); border-radius:3px; overflow:hidden; margin-top:6px; }
   .dars-fill { height:100%; background:var(--green); border-radius:3px; transition:width .3s; }
   .dars-empty { text-align:center; color:var(--ink3); padding:20px; font-size:12px; }
+  .hist-row { padding:10px 0; border-bottom:1px solid var(--cream2); }
+  .hist-row:last-child { border-bottom:none; }
+  .hist-date { font-size:11px; color:var(--ink3); margin-bottom:3px; }
+  .hist-main { font-size:13px; color:var(--ink2); font-weight:700; }
+  .hist-note { font-size:12px; color:var(--ink3); margin-top:4px; line-height:1.45; }
   .content { padding-bottom:var(--app-content-pad-bottom); }
 </style>
 </head>
@@ -53,16 +46,24 @@
 </div>
 
 <div class="content" style="max-width:640px; margin:0 auto;">
-  <p class="dars-lead">উপরে <strong>বর্ষ</strong> বেছে নিন (বাঁদিকে স্লাইড করুন)—নিচে ওই বর্ষের কিতাবের পড়া দেখাবে। শিক্ষকরা <strong>বর্ষ ড্যাশবোর্ড</strong> থেকে হালনাগাদ করেন।</p>
+  <p class="dars-lead">উপরে <strong>বর্ষ</strong> বেছে নিন—নিচে ওই বর্ষের কিতাবের পড়া দেখাবে। বইয়ের নামে ক্লিক করলে হালনাগাদের বিস্তারিত ইতিহাস দেখা যাবে।</p>
   <div class="dars-tabs">
     <button type="button" class="dars-tab active" id="dtab-a" onclick="setDept('all')">সামগ্রিক</button>
     <button type="button" class="dars-tab" id="dtab-k" onclick="setDept('kitab')">কিতাব বিভাগ</button>
     <button type="button" class="dars-tab" id="dtab-m" onclick="setDept('maktab')">মক্তব বিভাগ</button>
   </div>
-  <div class="dars-class-strip-wrap">
-    <div class="dars-class-strip" id="dars-class-strip" role="tablist" aria-label="বর্ষ নির্বাচন"></div>
+  <div class="dars-class-select-wrap">
+    <label class="dars-class-select-label" for="dars-class-select">বর্ষ নির্বাচন করুন</label>
+    <select class="form-input form-select" id="dars-class-select" onchange="selectClass(this.value)" aria-label="বর্ষ নির্বাচন"></select>
   </div>
   <div id="dars-detail"></div>
+</div>
+
+<div class="modal-bg" id="modal-dars-history">
+  <div class="modal">
+    <div class="modal-title"><span id="hist-title">কিতাবের ইতিহাস</span> <button class="modal-close" onclick="closeHistoryModal()">✕</button></div>
+    <div id="hist-body"></div>
+  </div>
 </div>
 
 <nav class="main-nav" role="navigation" aria-label="জিম্মাদার নেভিগেশন">
@@ -143,7 +144,7 @@
 
   function selectClass(cid) {
     selectedClassId = cid;
-    renderClassStrip();
+    renderClassSelect();
     renderDetail();
   }
 
@@ -167,28 +168,21 @@
     return m;
   }
 
-  function renderClassStrip() {
+  function renderClassSelect() {
     const classes = currentClasses();
-    const strip = document.getElementById('dars-class-strip');
+    const sel = document.getElementById('dars-class-select');
     if (!classes.length) {
       selectedClassId = null;
-      strip.innerHTML = '';
+      sel.innerHTML = '';
       return;
     }
     if (!selectedClassId || !classes.some(c => c.id === selectedClassId)) selectedClassId = classes[0].id;
+    sel.innerHTML = classes.map(c => `<option value="${API.esc(c.id)}">${dept === 'all' ? API.esc(deptLabel(c.dept)) + ' — ' : ''}${API.esc(c.name)}</option>`).join('');
+    sel.value = selectedClassId;
+  }
 
-    let lastDept = '';
-    strip.innerHTML = classes.map(c => {
-      const active = c.id === selectedClassId;
-      const idJs = String(c.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      const section = dept === 'all' && c.dept !== lastDept ? `<span class="dars-class-chip dars-class-chip--section">${deptLabel(c.dept)}</span>` : '';
-      lastDept = c.dept;
-      return section + `<button type="button" class="dars-class-chip${active ? ' is-active' : ''}" role="tab" aria-selected="${active ? 'true' : 'false'}" onclick="selectClass('${idJs}')">${API.esc(c.name)}</button>`;
-    }).join('');
-    requestAnimationFrame(() => {
-      const a = strip.querySelector('.dars-class-chip.is-active');
-      if (a) a.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-    });
+  function jsArg(v) {
+    return String(v || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   }
 
   function renderDetail() {
@@ -217,7 +211,7 @@
       const pctInt = Math.round(pct);
       return `<div class="dars-book">
         <div class="dars-book-t">
-          <div><div class="dars-book-n">${API.esc(k.name || '—')}</div>
+          <div><div class="dars-book-n"><button type="button" class="dars-book-btn" onclick="openHistoryModal('${jsArg(k.id)}')">${API.esc(k.name || '—')}</button></div>
             <div class="dars-book-meta">সর্বশেষ হালনাগাদ: ${fmtDate(k.last_updated)}</div></div>
           <div class="dars-pct">${toBn(pctInt)}%</div>
         </div>
@@ -233,8 +227,31 @@
   }
 
   function renderAll() {
-    renderClassStrip();
+    renderClassSelect();
     renderDetail();
+  }
+
+  function openHistoryModal(bookId) {
+    const cls = currentClasses().find(c => c.id === selectedClassId);
+    const book = (cls ? API.KitabProgress.getByClass(cls.id) : []).find(k => k.id === bookId);
+    if (!book) return;
+    document.getElementById('hist-title').textContent = (book.name || 'কিতাব') + ' — হালনাগাদ ইতিহাস';
+    const hist = Array.isArray(book.history) ? book.history : [];
+    document.getElementById('hist-body').innerHTML = hist.length ? hist.map(h => {
+      const done = Number(h.pages_done) || 0;
+      const total = Number(book.total_pages) || 0;
+      const pct = Math.round(barPct(done, total));
+      return `<div class="hist-row">
+        <div class="hist-date">${fmtDate(h.date)}</div>
+        <div class="hist-main">${toBn(done)} পৃষ্ঠা${total ? ' / ' + toBn(total) : ''} · ${toBn(pct)}%</div>
+        ${h.note ? `<div class="hist-note">${API.esc(h.note)}</div>` : ''}
+      </div>`;
+    }).join('') : '<div class="dars-empty">এ বইয়ের কোনো হালনাগাদ ইতিহাস নেই।</div>';
+    document.getElementById('modal-dars-history').classList.add('open');
+  }
+
+  function closeHistoryModal() {
+    document.getElementById('modal-dars-history').classList.remove('open');
   }
   setDept(dept);
 </script>

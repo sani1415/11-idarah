@@ -77,15 +77,15 @@
       <div style="font-size:13px;opacity:.6;margin-bottom:10px;">হিফজ বিভাগ · সামগ্রিক</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
         <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-hifz">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">হাফেজ ছাত্র</div></div>
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-groups">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">সক্রিয় গ্রুপ</div></div>
+        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-groups">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">সক্রিয় ফরিক</div></div>
         <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="avg-para">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">গড় পারা</div></div>
       </div>
     </div>
 
-    <button class="add-btn" style="background:var(--purple);" onclick="openModal('add-group')">＋ নতুন গ্রুপ তৈরি করুন</button>
+    <button class="add-btn" style="background:var(--purple);" onclick="openModal('add-group')">＋ নতুন ফরিক তৈরি করুন</button>
 
     <div class="sec-header">
-      <span class="sec-title">সক্রিয় গ্রুপসমূহ</span>
+      <span class="sec-title">সক্রিয় ফরিকসমূহ</span>
     </div>
     <div id="group-list"></div>
 
@@ -95,7 +95,7 @@
   <!-- GROUP DETAIL -->
   <div class="panel" id="panel-group">
     <div class="sec-header" style="margin-top:8px;">
-      <span class="sec-title" id="group-detail-name">গ্রুপের বিবরণ</span>
+      <span class="sec-title" id="group-detail-name">ফরিকের বিবরণ</span>
       <span class="sec-link" onclick="switchPanel('home');renderHome()">← ফিরুন</span>
     </div>
 
@@ -169,10 +169,10 @@
 <!-- MODALS -->
 <div class="modal-bg" id="modal-add-group">
   <div class="modal">
-    <div class="modal-title">নতুন গ্রুপ <button class="modal-close" onclick="closeModal('add-group')">✕</button></div>
+    <div class="modal-title">নতুন ফরিক <button class="modal-close" onclick="closeModal('add-group')">✕</button></div>
     <div class="form-group">
-      <label class="form-label">গ্রুপের নাম</label>
-      <input class="form-input" id="grp-name" placeholder="যেমন: গ্রুপ আলিফ">
+      <label class="form-label">ফরিকের নাম</label>
+      <input class="form-input" id="grp-name" placeholder="যেমন: ফরিক আলিফ">
     </div>
     <div class="form-group">
       <label class="form-label">শুরুর তারিখ</label>
@@ -182,7 +182,7 @@
       <label class="form-label">মন্তব্য</label>
       <input class="form-input" id="grp-note" placeholder="যেকোনো তথ্য">
     </div>
-    <button class="submit-btn" style="background:var(--purple);" onclick="addGroup()">গ্রুপ তৈরি করুন</button>
+    <button class="submit-btn" style="background:var(--purple);" onclick="addGroup()">ফরিক তৈরি করুন</button>
   </div>
 </div>
 
@@ -275,8 +275,8 @@
   /* seed */
   if (!API.persistLoadArr(HIFZ_KEY).length) {
     const groups = [
-      { id: 'grp_1', name: 'গ্রুপ আলিফ', start: '2025-01-01', note: 'প্রথম গ্রুপ', active: true },
-      { id: 'grp_2', name: 'গ্রুপ বা', start: '2025-02-01', note: '', active: true },
+      { id: 'grp_1', name: 'ফরিক আলিফ', start: '2025-01-01', note: 'প্রথম ফরিক', active: true },
+      { id: 'grp_2', name: 'ফরিক বা', start: '2025-02-01', note: '', active: true },
     ];
     API.persistSaveArr(HIFZ_KEY, groups);
     API.persistSaveArr(HIFZ_PROG_KEY, [
@@ -357,7 +357,7 @@
           <span style="color:var(--gold);">চলছে: ${toBn(latest.current_para)} নং পারা</span>
         </div>` : ''}
       </div>`;
-    }).join('') || '<div class="empty-state"><span class="empty-icon">📿</span><div class="empty-text">কোনো গ্রুপ নেই</div></div>';
+    }).join('') || '<div class="empty-state"><span class="empty-icon">📿</span><div class="empty-text">কোনো ফরিক নেই</div></div>';
   }
 
   function openGroup(gid) {
@@ -505,12 +505,12 @@
     const name = document.getElementById('grp-name').value.trim();
     const start = document.getElementById('grp-start').value || API.today();
     const note = document.getElementById('grp-note').value;
-    if (!name) { showToast('গ্রুপের নাম দিন'); return; }
+    if (!name) { showToast('ফরিকের নাম দিন'); return; }
     const list = API.persistLoadArr(HIFZ_KEY);
     list.push({ id: 'grp_' + API.uid(), name, start, note, active: true });
     API.persistSaveArr(HIFZ_KEY, list);
     closeModal('add-group');
-    showToast('গ্রুপ তৈরি হয়েছে ✓');
+    showToast('ফরিক তৈরি হয়েছে ✓');
     renderHome();
   }
 

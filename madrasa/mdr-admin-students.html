@@ -7,20 +7,25 @@
 <link rel="stylesheet" href="../css/style.css">
 <link rel="stylesheet" href="../css/main-admin-nav.css">
 <style>
-  .filter-card { background:#fff; border-radius:var(--radius); padding:12px; box-shadow:var(--shadow); margin:8px 0 12px; }
-  .filter-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
-  .filter-row + .filter-row { margin-top:8px; }
-  .filter-row .wide { grid-column:1 / -1; }
-  .student-row { display:flex; align-items:flex-start; gap:10px; background:#fff; border-radius:12px; padding:11px 12px; box-shadow:0 1px 5px rgba(0,0,0,.06); margin-bottom:7px; }
+  .filter-card { background:#fff; border-radius:var(--radius); padding:10px; box-shadow:var(--shadow); margin:8px 0 12px; }
+  .filter-line { display:grid; grid-template-columns:.78fr 1.05fr .9fr 1.35fr; gap:6px; align-items:center; }
+  .filter-line .form-input { min-width:0; font-size:11px; padding:8px 8px; }
+  .filter-line .form-select { padding-right:22px; }
+  .student-row { display:flex; align-items:center; gap:10px; background:#fff; border-radius:12px; padding:9px 10px; box-shadow:0 1px 5px rgba(0,0,0,.06); margin-bottom:7px; }
   .student-roll { min-width:36px; padding:4px 7px; border-radius:999px; background:var(--cream2); color:var(--ink3); text-align:center; font-size:11px; font-weight:700; }
-  .student-main { flex:1; min-width:0; }
-  .student-name { border:none; background:none; padding:0; margin:0; font:inherit; font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:800; color:var(--ink); cursor:pointer; text-align:right; }
+  .student-main { flex:1; min-width:0; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+  .student-name { border:none; background:none; padding:0; margin:0; font:inherit; font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:800; color:var(--ink); cursor:pointer; text-align:left; }
   .student-name:hover { color:var(--blue); text-decoration:underline; }
-  .student-meta { font-size:11px; color:var(--ink3); line-height:1.6; margin-top:3px; }
+  .student-id { font-size:10px; color:var(--ink3); white-space:nowrap; }
+  .student-id::before { content:'·'; margin-right:5px; opacity:.55; }
   .student-class { font-size:10px; color:var(--ink2); background:var(--gold-light); border-radius:999px; padding:3px 8px; white-space:nowrap; }
   .list-count { font-size:12px; color:var(--ink3); margin:4px 2px 10px; }
   .empty-note { background:#fff; border-radius:var(--radius); padding:22px 12px; text-align:center; color:var(--ink3); box-shadow:var(--shadow); font-size:13px; }
-  @media (max-width:420px) { .filter-row { grid-template-columns:1fr; } .filter-row .wide { grid-column:auto; } }
+  @media (max-width:420px) {
+    .filter-card { padding:8px; }
+    .filter-line { gap:4px; grid-template-columns:.72fr 1fr .78fr 1.15fr; }
+    .filter-line .form-input { font-size:10px; padding:7px 5px; }
+  }
 </style>
 </head>
 <body>
@@ -36,7 +41,7 @@
 
 <div class="content" style="padding-bottom:var(--app-content-pad-bottom);">
   <div class="filter-card">
-    <div class="filter-row">
+    <div class="filter-line">
       <select class="form-input form-select" id="dept-filter" onchange="switchDept(this.value)"></select>
       <select class="form-input form-select" id="class-filter" onchange="renderStudents()">
         <option value="">সব বর্ষ/শ্রেণি</option>
@@ -46,9 +51,7 @@
         <option value="name">নাম অনুযায়ী</option>
         <option value="id">স্থায়ী আইডি অনুযায়ী</option>
       </select>
-    </div>
-    <div class="filter-row">
-      <input class="form-input wide" id="search-box" placeholder="নাম, স্থায়ী ID, রোল, অভিভাবক বা ফোন দিয়ে খুঁজুন" oninput="renderStudents()">
+      <input class="form-input" id="search-box" placeholder="নাম / ID / রোল" oninput="renderStudents()">
     </div>
   </div>
 
@@ -160,10 +163,9 @@
         <div class="student-roll">${API.esc(s.roll || '—')}</div>
         <div class="student-main">
           <button class="student-name" onclick="MMStudentModal.open('${API.esc(s.id)}')">${API.esc(s.name)}</button>
-          <div class="student-meta">আইডি: ${API.esc(s.permanent_id || '—')} · অভিভাবক: ${API.esc(s.guardian || '—')} · ফোন: ${API.esc(s.phone || '—')}</div>
-          <div class="student-meta">${API.esc([s.district, s.upazila].filter(Boolean).join(' · ') || 'ঠিকানা নেই')}</div>
+          <span class="student-id">${API.esc(s.permanent_id || '—')}</span>
         </div>
-        <div class="student-class">${API.esc(currentDept === 'all' ? deptLabel(cls.dept) + ' · ' + cls.name : cls.name || '—')}</div>
+        ${currentDept === 'all' ? `<div class="student-class">${API.esc(deptLabel(cls.dept) + ' · ' + (cls.name || '—'))}</div>` : ''}
       </div>`;
     }).join('');
   }

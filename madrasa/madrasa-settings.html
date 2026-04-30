@@ -33,6 +33,8 @@
   .class-row-set.inactive,
   .teacher-row.inactive { opacity:.55; }
   .secondary-btn { border:1px solid var(--cream3); background:#fff; color:var(--ink2); border-radius:12px; padding:12px; font-family:'Noto Sans Bengali',sans-serif; font-weight:800; cursor:pointer; }
+  .teacher-actionbar { position:sticky; bottom:calc(70px + env(safe-area-inset-bottom)); z-index:20; display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:8px; margin-top:8px; background:rgba(250,246,239,.92); border:1px solid rgba(26,18,8,.08); border-radius:16px; backdrop-filter:blur(8px); box-shadow:0 8px 24px rgba(26,18,8,.10); }
+  .teacher-actionbar .add-btn { margin:0; padding:11px 8px; font-size:12px; border-radius:12px; }
 </style>
 </head>
 <body>
@@ -134,8 +136,10 @@
       <div class="settings-title">👨‍🏫 শিক্ষক তালিকা</div>
       <div id="teacher-list"></div>
     </div>
-    <button class="add-btn" onclick="openTeacherModal(null)">＋ বর্ষ দায়িত্বশীল যোগ করুন</button>
-    <button class="add-btn" style="background:var(--ink2);" onclick="openModal('add-staff')">＋ বিশেষ ভূমিকা যোগ করুন</button>
+    <div class="teacher-actionbar">
+      <button class="add-btn" onclick="openTeacherModal(null)">＋ বর্ষ দায়িত্বশীল</button>
+      <button class="add-btn" style="background:var(--ink2);" onclick="openStaffModal(null)">＋ বিশেষ ভূমিকা</button>
+    </div>
   </div>
 
   <!-- KITAB -->
@@ -196,7 +200,7 @@
 <!-- ADD SPECIAL STAFF MODAL -->
 <div class="modal-bg" id="modal-add-staff">
   <div class="modal">
-    <div class="modal-title">বিশেষ ভূমিকা <button class="modal-close" onclick="closeModal('add-staff')">✕</button></div>
+    <div class="modal-title"><span id="staff-modal-title">বিশেষ ভূমিকা</span> <button class="modal-close" onclick="closeModal('add-staff')">✕</button></div>
     <div class="form-group">
       <label class="form-label">নাম</label>
       <input class="form-input" id="st-name" placeholder="দায়িত্বশীলের নাম">
@@ -215,7 +219,8 @@
       <label class="form-label">পিন (৪ সংখ্যা)</label>
       <input class="form-input" id="st-pin" type="password" maxlength="4" value="0000">
     </div>
-    <button class="submit-btn" onclick="addStaff()">যোগ করুন</button>
+    <label class="check-item" style="margin-bottom:12px;"><input type="checkbox" id="st-active" checked> সক্রিয় থাকবে</label>
+    <button class="submit-btn" id="staff-save-btn" onclick="saveStaff()">যোগ করুন</button>
   </div>
 </div>
 
@@ -320,6 +325,7 @@
 
   let editingTeacherId = null;
   let editingTeacherProfileId = null;
+  let editingStaffId = null;
   let editingAdminId = null;
   let editingClassId = null;
   let supabaseUsers = null;
@@ -630,7 +636,7 @@
           <div class="t-meta">${meta}${t.class_id ? ' · আইডি: ' + API.esc(t.login_id || '—') : ''}${t.is_active === false ? ' · নিষ্ক্রিয়' : ''}</div>
         </div>
         <span class="pin-display">পিন: ${API.esc(t.pin||'—')}</span>
-        ${t.class_id ? `<button class="small-btn" onclick="openTeacherModal('${t.id}')">সম্পাদনা</button>` : `<button onclick="openEditPin('${t.id}','${API.esc(t.name)}')" style="background:var(--cream2);border:none;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11px;">✏️</button>`}
+        ${t.class_id ? `<button class="small-btn" onclick="openTeacherModal('${t.id}')">সম্পাদনা</button>` : `<button class="small-btn" onclick="openStaffModal('${t.id}')">সম্পাদনা</button>`}
       </div>`;
     }).join('')||'<div style="font-size:13px;color:var(--ink3);">কোনো শিক্ষক নেই</div>';
 
@@ -736,28 +742,46 @@
     renderTeachers();
   }
 
-  async function addStaff() {
+  function openStaffModal(id) {
+    editingStaffId = id;
+    const user = id ? getManagedUser(id) : null;
+    document.getElementById('staff-modal-title').textContent = id ? 'বিশেষ ভূমিকা সম্পাদনা' : 'বিশেষ ভূমিকা';
+    document.getElementById('staff-save-btn').textContent = id ? 'সংরক্ষণ করুন' : 'যোগ করুন';
+    document.getElementById('st-name').value = user ? (user.name || '') : '';
+    document.getElementById('st-role').value = user ? (user.role || 'daftar') : 'daftar';
+    document.getElementById('st-pin').value = user ? (user.pin || '') : '0000';
+    document.getElementById('st-active').checked = user ? user.is_active !== false : true;
+    openModal('add-staff');
+  }
+
+  async function saveStaff() {
     const name = document.getElementById('st-name').value.trim();
     const role = document.getElementById('st-role').value;
     const pin  = document.getElementById('st-pin').value||'0000';
+    const is_active = document.getElementById('st-active').checked;
     if (!name) { showToast('নাম দিন'); return; }
+    if (pin.length !== 4) { showToast('৪ সংখ্যার পিন দিন'); return; }
     if (hasSupabaseAdminSession()) {
       const res = await MMSharedAPI.saveMadrasaUser(MMSession.getAdminPin(), {
+        id: editingStaffId || null,
         name,
         role: LOCAL_ROLE_TO_SUPA[role],
         login_id: null,
         pin,
         class_code: null,
-        is_active: true,
+        is_active,
       });
       if (!res || !res.ok) { showToast(userSaveErrorMessage(res && res.error)); return; }
       await loadSupabaseUsers(true);
+    } else if (editingStaffId) {
+      API.Teachers.update(editingStaffId, { name, class_id:null, pin, role, is_active });
     } else {
-      API.Teachers.add({name, class_id:null, pin, role});
+      API.Teachers.add({name, class_id:null, pin, role, is_active});
     }
     document.getElementById('st-name').value='';
+    editingStaffId = null;
     closeModal('add-staff');
-    showToast('যোগ হয়েছে ✓');
+    showToast('বিশেষ ভূমিকা সংরক্ষণ হয়েছে ✓');
     renderTeachers();
   }
 

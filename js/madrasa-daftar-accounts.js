@@ -11,6 +11,7 @@ var _dueAccF  = 'all';
 var _fromKey  = 'all';
 var _toKey    = 'all';
 var _sumMonth = 'all';
+var _accDefaulted = false;
 
 (function () {
   var A   = MdrAccAPI;
@@ -19,6 +20,15 @@ var _sumMonth = 'all';
   var bn  = function (s) { return String(s || '').replace(/[0-9]/g, function (d) { return '০১২৩৪৫৬৭৮৯'[d]; }); };
 
   /* ── inject CSS once ── */
+
+  function ensureCurrentMonthDefault() {
+    if (_accDefaulted) return;
+    var current = A.todayHijri().month;
+    _sumMonth = current || 'all';
+    _monF = current || 'all';
+    _accDefaulted = true;
+  }
+
   if (!document.getElementById('acc-style')) {
     var cs = document.createElement('style');
     cs.id = 'acc-style';
@@ -51,6 +61,9 @@ var _sumMonth = 'all';
 .acc-sum-tbl td{padding:8px;border-bottom:1px solid rgba(26,18,8,.06);text-align:right;background:#fff}
 .acc-sum-tbl tbody tr:nth-child(even) td{background:#fffaf2}
 .acc-sum-tbl tfoot td{font-weight:800;border-top:1px solid var(--cream3);background:#f8eddc}
+.acc-sum-row{cursor:pointer}
+.acc-sum-row:hover td{background:#fff4d9}
+.acc-sum-row:focus{outline:2px solid rgba(154,106,33,.32);outline-offset:-2px}
 .acc-money-hero{background:linear-gradient(145deg,#fff,#fff4d9);border:1px solid rgba(184,134,45,.18);border-radius:22px;padding:14px;margin-bottom:10px;box-shadow:0 14px 32px rgba(154,106,33,.1);position:relative;overflow:hidden}
 .acc-money-hero:after{content:"";position:absolute;left:-30px;top:-45px;width:120px;height:120px;border-radius:50%;background:rgba(184,134,45,.12)}
 .acc-money-label{font-size:11px;color:var(--ink3);font-weight:800;position:relative}
@@ -69,6 +82,21 @@ var _sumMonth = 'all';
 .acc-ledger-amt{font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:900;color:var(--red);white-space:nowrap}
 .acc-ledger-table{margin-top:8px;border-top:1px dashed rgba(26,18,8,.12);padding-top:7px;display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:10px;color:var(--ink3)}
 .acc-ledger-table b{color:var(--ink2);font-size:11px}
+.acc-table-wrap{overflow:auto;border:1px solid rgba(26,18,8,.07);border-radius:16px;background:#fff;max-height:58vh}
+.acc-detail-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.acc-detail-total{font-family:'Noto Serif Bengali',serif;font-weight:900;color:var(--red);background:#fff4d9;border:1px solid rgba(154,106,33,.16);border-radius:999px;padding:6px 10px;white-space:nowrap}
+.acc-detail-table{width:100%;min-width:760px;border-collapse:separate;border-spacing:0;font-size:12px}
+.acc-detail-table th{position:sticky;top:0;background:#faf3e8;color:var(--ink3);font-size:10px;font-weight:900;text-align:right;padding:9px 8px;border-bottom:1px solid rgba(26,18,8,.08);z-index:1}
+.acc-detail-table td{padding:9px 8px;border-bottom:1px solid rgba(26,18,8,.06);white-space:nowrap;text-align:right;background:#fff}
+.acc-detail-table tbody tr:nth-child(even) td{background:#fffaf2}
+.acc-detail-table .acc-desc-cell{white-space:normal;min-width:170px;color:var(--ink2);font-weight:800}
+.acc-expense-wrap{overflow:auto;border:1px solid rgba(26,18,8,.07);border-radius:17px;background:#fff;max-height:60vh;box-shadow:0 10px 24px rgba(26,18,8,.055)}
+.acc-expense-table{width:100%;min-width:820px;border-collapse:separate;border-spacing:0;font-size:12px}
+.acc-expense-table th{position:sticky;top:0;background:#faf3e8;color:var(--ink3);font-size:10px;font-weight:900;text-align:right;padding:9px 8px;border-bottom:1px solid rgba(26,18,8,.08);z-index:1}
+.acc-expense-table td{padding:9px 8px;border-bottom:1px solid rgba(26,18,8,.06);white-space:nowrap;text-align:right;background:#fff}
+.acc-expense-table tbody tr:nth-child(even) td{background:#fffaf2}
+.acc-expense-table .acc-desc-cell{white-space:normal;min-width:170px;color:var(--ink2);font-weight:800}
+.acc-expense-table .acc-ledger-amt{font-size:13px}
 .acc-filter-bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .acc-sel{font-size:12px;border:1px solid var(--cream2);border-radius:8px;padding:6px 10px;background:#fff;color:var(--ink1);flex:1;min-width:90px;font-family:inherit}
 .acc-list-item{background:#fff;border-radius:8px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:6px}
@@ -286,6 +314,7 @@ var _sumMonth = 'all';
   };
   window.openAccFilterSheet = function () {
     var months = A.Expense.months();
+    if (_monF !== 'all' && months.indexOf(_monF) < 0) months.push(_monF);
     var monOpts = '<option value="all">সব মাস</option>' + months.map(function (m) { return '<option value="' + esc(m) + '"' + (_monF === m ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('');
     var dayOpts = '<option value="all">সব দিন</option>' + Array.from({ length: 30 }, function (_, i) { var d = String(i + 1); return '<option value="' + d + '"' + (String(_dayF) === d ? ' selected' : '') + '>' + bn(d) + ' তারিখ</option>'; }).join('') +
       '<option value="__none"' + (_dayF === '__none' ? ' selected' : '') + '>দিন নেই</option>';
@@ -384,7 +413,7 @@ var _sumMonth = 'all';
   window.saveAccountEntry = function () {
     var type  = document.getElementById('account-entry-type').value;
     var parsed = A.parseDateInput((document.getElementById('acc-date') || {}).value);
-    if (!parsed || !parsed.year || !parsed.month || !parsed.day) { showToast('তারিখ লিখুন: 1447-10-09'); return; }
+    if (!parsed || !parsed.year || !parsed.month || !parsed.day) { showToast('তারিখ লিখুন: সন-মাস-দিন'); return; }
     if (type === 'income') {
       var amt  = parseFloat(document.getElementById('acc-inc-amount').value) || 0;
       var note = (document.getElementById('acc-inc-note').value || '').trim();
@@ -410,6 +439,7 @@ var _sumMonth = 'all';
   function buildSummary() {
     var months = [];
     A.Income.months().concat(A.Expense.months()).forEach(function (m) { m = A.monthKey(m); if (months.indexOf(m) < 0) months.push(m); });
+    if (_sumMonth !== 'all' && months.indexOf(_sumMonth) < 0) months.push(_sumMonth);
     var mo = A.MONTHS;
     months.sort(function (a, b) { return mo.indexOf(a) - mo.indexOf(b); });
     var monOpts = '<option value="all">সব মাস</option>' + months.map(function (m) {
@@ -423,10 +453,10 @@ var _sumMonth = 'all';
       var accRows = allExp.filter(function (r) { return r.account === acc; });
       var exp = accRows.reduce(function (sum, r) { return sum + A.num(r.amount); }, 0);
       if (!exp) return null;
-      return { label: AL[acc], exp: exp, count: accRows.length, pct: s.te ? Math.round(exp / s.te * 100) : 0 };
+      return { id: acc, label: AL[acc], exp: exp, count: accRows.length, pct: s.te ? Math.round(exp / s.te * 100) : 0 };
     }).filter(Boolean);
     var tblRows = rows.map(function (r) {
-      return '<tr><td><div class="acc-break-name">' + esc(r.label) + '</div><div class="acc-pct-track"><div class="acc-pct-fill" style="width:' + r.pct + '%"></div></div></td>' +
+      return '<tr class="acc-sum-row" role="button" tabindex="0" onclick="openAccAccountDetails(\'' + esc(r.id) + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openAccAccountDetails(\'' + esc(r.id) + '\')}"><td><div class="acc-break-name">' + esc(r.label) + '</div><div class="acc-pct-track"><div class="acc-pct-fill" style="width:' + r.pct + '%"></div></div></td>' +
         '<td style="color:var(--red);font-weight:800">৳' + fa(r.exp) + '</td>' +
         '<td>' + r.pct + '%</td>' +
         '<td>' + r.count + ' টি</td></tr>';
@@ -436,17 +466,17 @@ var _sumMonth = 'all';
     var periodLabel = _sumMonth === 'all' ? 'সব মাসের হিসাব' : _sumMonth + ' মাস';
     var balCls = tb >= 0 ? 'good' : 'bad';
     var metrics = '<div class="acc-metrics">' +
-      '<div class="acc-metric good"><div class="acc-metric-lbl">অর্থ এসেছে</div><div class="acc-metric-val">৳' + fa(s.ti) + '</div></div>' +
-      '<div class="acc-metric bad"><div class="acc-metric-lbl">ব্যবহার হয়েছে</div><div class="acc-metric-val">৳' + fa(s.te) + '</div></div>' +
-      '<div class="acc-metric good"><div class="acc-metric-lbl">পরিশোধ হয়েছে</div><div class="acc-metric-val">৳' + fa(paid) + '</div></div>' +
-      '<div class="acc-metric warn"><div class="acc-metric-lbl">বাকি / বকেয়া</div><div class="acc-metric-val">৳' + fa(s.td) + '</div></div>' +
+      '<div class="acc-metric good"><div class="acc-metric-lbl">আয়</div><div class="acc-metric-val">৳' + fa(s.ti) + '</div></div>' +
+      '<div class="acc-metric bad"><div class="acc-metric-lbl">ব্যয়</div><div class="acc-metric-val">৳' + fa(s.te) + '</div></div>' +
+      '<div class="acc-metric good"><div class="acc-metric-lbl">পরিশোধ</div><div class="acc-metric-val">৳' + fa(paid) + '</div></div>' +
+      '<div class="acc-metric warn"><div class="acc-metric-lbl">বকেয়া</div><div class="acc-metric-val">৳' + fa(s.td) + '</div></div>' +
       '</div>';
     var tfoot = '<tr><td><strong>সর্বমোট</strong></td>' +
       '<td style="color:var(--red);font-weight:700">৳' + fa(s.te) + '</td>' +
       '<td>100%</td><td>' + allExp.length + ' টি</td></tr>';
     return '<div class="acc-dashboard">' +
       '<div class="acc-topline"><div><div class="acc-period">' + esc(periodLabel) + '</div></div><select class="acc-sel" onchange="_sumMonth=this.value;renderAccounts()">' + monOpts + '</select></div>' +
-      '<div class="acc-money-hero"><div class="acc-money-label">' + (tb >= 0 ? 'বর্তমানে হাতে আছে' : 'বর্তমানে ঘাটতি') + '</div><div class="acc-money-main ' + balCls + '">' + (tb < 0 ? '−' : '') + '৳' + fa(Math.abs(tb)) + '</div><div class="sub" style="position:relative">অর্থ এসেছে − ব্যবহার হয়েছে</div></div>' +
+      '<div class="acc-money-hero"><div class="acc-money-label">বর্তমান অবস্থা</div><div class="acc-money-main ' + balCls + '">' + (tb < 0 ? '−' : '+') + '৳' + fa(Math.abs(tb)) + '</div><div class="sub" style="position:relative">আয় − ব্যয়</div></div>' +
       metrics +
       '<div class="acc-ledger-card"><div class="acc-ledger-title"><span>ব্যয়ের বই অনুযায়ী</span>' + (s.td ? '<span style="color:var(--red)">বকেয়া ৳' + fa(s.td) + '</span>' : '<span style="color:var(--green)">বকেয়া নেই</span>') + '</div>' +
       '<div style="overflow-x:auto"><table class="acc-sum-tbl"><thead><tr><th>খাত / হিসাব বই</th><th>ব্যবহার</th><th>শতকরা</th><th>এন্ট্রি</th></tr></thead>' +
@@ -455,9 +485,46 @@ var _sumMonth = 'all';
       '</div>';
   }
 
+  window.openAccAccountDetails = function (account) {
+    var label = A.ACCOUNT_LABELS[account] || account || 'হিসাব';
+    var rows = A.Expense.getAll().filter(function (r) {
+      return r.account === account && (_sumMonth === 'all' || A.monthKey(r.month) === _sumMonth);
+    }).sort(function (a, b) {
+      return String(a.dateKey).localeCompare(String(b.dateKey));
+    });
+    var total = rows.reduce(function (sum, r) { return sum + A.num(r.amount); }, 0);
+    var title = document.getElementById('account-details-title');
+    var root = document.getElementById('account-details-root');
+    if (title) title.textContent = label + ' হিসাবের বিস্তারিত';
+    if (root) {
+      var body = rows.map(function (r) {
+        var category = A.clean(r.category, '');
+        var supplier = A.clean(r.supplier, '');
+        var desc = A.clean(r.description, '') || category || 'ব্যয়';
+        var qInfo = r.quantity ? A.num(r.quantity) + (r.unit ? ' ' + esc(r.unit) : '') + (r.unitPrice ? ' × ৳' + fa(r.unitPrice) : '') : 'উল্লেখ নেই';
+        return '<tr>' +
+          '<td>' + esc(A.dateLabel(r)) + '</td>' +
+          '<td>' + esc(A.monthKey(r.month) || '') + '</td>' +
+          '<td>' + esc(category || 'অন্যান্য') + '</td>' +
+          '<td class="acc-desc-cell">' + esc(desc) + '</td>' +
+          '<td>' + qInfo + '</td>' +
+          '<td>' + esc(supplier || 'উল্লেখ নেই') + '</td>' +
+          '<td class="acc-ledger-amt">৳' + fa(r.amount) + '</td>' +
+          '</tr>';
+      }).join('');
+      root.innerHTML =
+        '<div class="acc-detail-head"><div style="font-size:12px;color:var(--ink3);font-weight:800">' + esc(_sumMonth === 'all' ? 'সব মাস' : _sumMonth + ' মাস') + ' · মোট সংখ্যা: ' + rows.length + ' টি</div><div class="acc-detail-total">মোট ৳' + fa(total) + '</div></div>' +
+        '<div class="acc-table-wrap"><table class="acc-detail-table"><thead><tr><th>তারিখ</th><th>মাস</th><th>খাত</th><th>বিবরণ</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>টাকা</th></tr></thead><tbody>' +
+        (body || '<tr><td colspan="7" style="text-align:center;color:var(--ink3)">এই হিসাব বইতে তথ্য নেই</td></tr>') +
+        '</tbody></table></div>';
+    }
+    openModal('account-details');
+  };
+
   /* ══════════════ INCOME LIST ══════════════ */
   function buildIncomeList() {
     var months  = A.Income.months();
+    if (_monF !== 'all' && months.indexOf(_monF) < 0) months.push(_monF);
     var monOpts = '<option value="all">সব মাস</option>' + months.map(function (m) {
       return '<option value="' + esc(m) + '"' + (_monF === m ? ' selected' : '') + '>' + esc(m) + '</option>';
     }).join('');
@@ -496,32 +563,23 @@ var _sumMonth = 'all';
       return _sortF === 'date_desc' ? String(b.dateKey).localeCompare(String(a.dateKey)) : String(a.dateKey).localeCompare(String(b.dateKey));
     });
     var total = rows.reduce(function (s, r) { return s + A.num(r.amount); }, 0);
-    var grouped = {};
-    rows.forEach(function (r) {
-      var key = (A.monthKey(r.month) || 'মাস নেই') + '|' + (r.day || 'দিন নেই');
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(r);
-    });
     function rowHtml(r) {
       var category = A.clean(r.category, '');
       var supplier = A.clean(r.supplier, '');
       var desc = A.clean(r.description, '') || category || 'ব্যয়';
-      var qInfo = r.quantity ? A.num(r.quantity) + (r.unit ? ' ' + esc(r.unit) : '') + (r.unitPrice ? ' × ৳' + fa(r.unitPrice) : '') : '';
-      return '<div class="acc-ledger-row"><div class="acc-ledger-grid">' +
-        '<div class="acc-ledger-date">' + esc(A.dateLabel(r)) + '</div>' +
-        '<div><div class="acc-ledger-desc">' + esc(desc) + '</div><div class="acc-ledger-meta">' + esc(A.ACCOUNT_LABELS[r.account] || r.account || '') + (category ? ' · ' + esc(category) : '') + '</div></div>' +
-        '<div class="acc-ledger-amt">৳' + fa(r.amount) + '</div></div>' +
-        '<div class="acc-ledger-table">' +
-        '<span>পরিমাণ<br><b>' + (qInfo ? qInfo : 'উল্লেখ নেই') + '</b></span>' +
-        '<span>সরবরাহকারী<br><b>' + esc(supplier || 'উল্লেখ নেই') + '</b></span>' +
-        '</div><button class="acc-del-btn" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')" style="margin-top:6px">মুছুন</button></div>';
+      var qInfo = r.quantity ? A.num(r.quantity) + (r.unit ? ' ' + esc(r.unit) : '') + (r.unitPrice ? ' × ৳' + fa(r.unitPrice) : '') : 'উল্লেখ নেই';
+      return '<tr>' +
+        '<td>' + esc(A.dateLabel(r)) + '</td>' +
+        '<td>' + esc(A.ACCOUNT_LABELS[r.account] || r.account || '') + '</td>' +
+        '<td>' + esc(category || 'অন্যান্য') + '</td>' +
+        '<td class="acc-desc-cell">' + esc(desc) + '</td>' +
+        '<td>' + qInfo + '</td>' +
+        '<td>' + esc(supplier || 'উল্লেখ নেই') + '</td>' +
+        '<td class="acc-ledger-amt">৳' + fa(r.amount) + '</td>' +
+        '<td><button class="acc-del-btn" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">মুছুন</button></td>' +
+        '</tr>';
     }
-    var items = (_sortF === 'date_asc' || _sortF === 'date_desc') ? Object.keys(grouped).map(function (key) {
-      var groupRows = grouped[key];
-      var groupTotal = groupRows.reduce(function (s, r) { return s + A.num(r.amount); }, 0);
-      var groupItems = groupRows.map(rowHtml).join('');
-      return '<div class="acc-day-group"><div class="acc-day-head"><span>' + esc(A.dateLabel(groupRows[0])) + '</span><span>৳' + fa(groupTotal) + '</span></div><div class="acc-ledger-list">' + groupItems + '</div></div>';
-    }).join('') : rows.map(rowHtml).join('');
+    var items = rows.map(rowHtml).join('');
     var filterOn = _monF !== 'all' || _dayF !== 'all' || _accF !== 'all';
     var rangeOn = _fromKey !== 'all' || _toKey !== 'all';
     var sortNames = { date_asc:'পুরাতন আগে', date_desc:'নতুন আগে', amount_desc:'বেশি টাকা', amount_asc:'কম টাকা', newest:'নতুন এন্ট্রি', oldest:'পুরাতন এন্ট্রি' };
@@ -530,13 +588,15 @@ var _sumMonth = 'all';
       rangeOn ? ((_fromKey !== 'all' ? A.dateLabel({ dateKey: _fromKey, day: 1 }) : 'শুরু নেই') + ' - ' + (_toKey !== 'all' ? A.dateLabel({ dateKey: _toKey, day: 1 }) : 'শেষ নেই')) : 'তারিখ সীমা নেই',
       sortNames[_sortF] || 'সাজানো',
     ].map(function (x) { return '<span class="acc-chip">' + esc(x) + '</span>'; }).join('');
-    return '<div class="acc-money-hero" style="margin-bottom:8px"><div class="acc-money-label">নির্বাচিত ব্যয়</div><div class="acc-money-main" style="color:var(--red)">৳' + fa(total) + '</div><div class="sub" style="position:relative">' + rows.length + ' টি ledger entry</div></div>' +
+    return '<div class="acc-money-hero" style="margin-bottom:8px"><div class="acc-money-label">ব্যয়</div><div class="acc-money-main" style="color:var(--red)">৳' + fa(total) + '</div><div class="sub" style="position:relative">মোট সংখ্যা: ' + rows.length + ' টি</div></div>' +
       '<div class="acc-toolbar">' +
       '<button type="button" class="acc-tool-btn' + (filterOn ? ' is-on' : '') + '" onclick="openAccFilterSheet()">ফিল্টার</button>' +
       '<button type="button" class="acc-tool-btn' + (rangeOn ? ' is-on' : '') + '" onclick="openAccRangeSheet()">তারিখ সীমা</button>' +
       '<button type="button" class="acc-tool-btn acc-sort-btn" onclick="openAccSortSheet()" title="সাজান">⇅</button>' +
       '</div><div class="acc-chipline">' + chips + '</div>' +
-      (items || '<div class="acc-empty">কোনো ব্যয়ের রেকর্ড নেই</div>');
+      '<div class="acc-expense-wrap"><table class="acc-expense-table"><thead><tr><th>তারিখ</th><th>হিসাব বই</th><th>খাত</th><th>বিবরণ</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>টাকা</th><th></th></tr></thead><tbody>' +
+      (items || '<tr><td colspan="8" style="text-align:center;color:var(--ink3)">কোনো ব্যয়ের রেকর্ড নেই</td></tr>') +
+      '</tbody></table></div>';
   }
 
   /* ══════════════ DUES (compact table) ══════════════ */
@@ -568,12 +628,22 @@ var _sumMonth = 'all';
   /* ══════════════ SETTINGS ══════════════ */
   function buildSettings() {
     var cats = A.Categories.getAll();
+    var offset = A.Settings.getHijriOffsetDays();
+    var today = A.todayHijri();
+    var offsetOpts = [-2,-1,0,1,2].map(function (d) {
+      var label = d === 0 ? 'সমন্বয় নেই' : (d > 0 ? '+' + d + ' দিন' : d + ' দিন');
+      return '<option value="' + d + '"' + (offset === d ? ' selected' : '') + '>' + label + '</option>';
+    }).join('');
     var catRows = cats.map(function (c) {
       var isDef = A.Categories.isDefault(c);
       return '<div class="acc-cat-row"><span>' + esc(c) + (isDef ? ' <span style="font-size:9px;color:var(--ink3)">(ডিফল্ট)</span>' : '') + '</span>' +
         (isDef ? '' : '<button class="acc-del-btn" onclick="delAccCategory(\'' + esc(c) + '\')">✕</button>') + '</div>';
     }).join('');
-    return '<div style="font-family:\'Noto Serif Bengali\',serif;font-weight:700;font-size:14px;margin-bottom:8px">ব্যয়ের খাত ব্যবস্থাপনা</div>' +
+    return '<div style="font-family:\'Noto Serif Bengali\',serif;font-weight:700;font-size:14px;margin-bottom:8px">হিজরী তারিখ সেটিংস</div>' +
+      '<div class="acc-ledger-card" style="padding:10px;margin-bottom:12px"><div class="acc-filter-bar" style="margin-bottom:6px">' +
+      '<select class="acc-sel" onchange="setAccHijriOffset(this.value)">' + offsetOpts + '</select>' +
+      '</div><div style="font-size:11px;color:var(--ink3)">আজকের হিসাব তারিখ: <strong>' + esc(A.dateLabel({ hijriYear: today.year, month: today.month, day: today.day })) + '</strong><br>চাঁদ দেখার কারণে ১-২ দিন এদিক-সেদিক হলে এখান থেকে সমন্বয় করুন।</div></div>' +
+      '<div style="font-family:\'Noto Serif Bengali\',serif;font-weight:700;font-size:14px;margin-bottom:8px">ব্যয়ের খাত ব্যবস্থাপনা</div>' +
       '<div style="margin-bottom:10px">' + catRows + '</div>' +
       '<div class="acc-filter-bar">' +
       '<input class="acc-sel" id="acc-new-cat" placeholder="নতুন খাত লিখুন" style="flex:3;border-radius:8px;padding:6px 10px;border:1px solid var(--cream2)">' +
@@ -592,10 +662,17 @@ var _sumMonth = 'all';
     if (!confirm('"' + name + '" খাত মুছবেন?')) return;
     A.Categories.del(name); window.renderAccounts();
   };
+  window.setAccHijriOffset = function (value) {
+    A.Settings.setHijriOffsetDays(value);
+    _accDefaulted = false;
+    showToast('হিজরী তারিখ সমন্বয় সংরক্ষিত');
+    window.renderAccounts();
+  };
 
   /* ══════════════ MAIN RENDER ══════════════ */
   window.renderAccounts = function () {
     A.ensureSeed();
+    ensureCurrentMonthDefault();
     var root = document.getElementById('accounts-root');
     if (!root) return;
     var TABS = [
