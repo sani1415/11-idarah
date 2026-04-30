@@ -119,29 +119,36 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/dept-api.js"></script>
+<script src="../js/dept-supabase-sync.js"></script>
 <script>
   const BN = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
   let selectedDept = null;
   let pinVal = '';
 
   /* sample data re-seed বন্ধ: existing local data মুছবে না */
-  const DEPT_DATA_VER = 2;
-  if (Number(localStorage.getItem('mm_dept_data_ver')||0) < DEPT_DATA_VER) {
-    localStorage.setItem('mm_dept_data_ver', DEPT_DATA_VER);
-  }
-
   function init() {
     const depts = DeptAPI.Departments.getAll();
-    document.getElementById('dept-list').innerHTML = depts.map(d=>
-      `<div class="role-btn" onclick="selectDept('${d.id}')">
-        <div class="role-icon">${d.emoji}</div>
-        <div><div class="role-name">${DeptAPI.esc(d.name)}</div><div class="role-desc">স্টাফ লগইন</div></div>
-      </div>`
-    ).join('');
+    const el = document.getElementById('dept-list');
+    el.innerHTML = depts.length
+      ? depts.map(d=>
+          `<div class="role-btn" onclick="selectDept('${d.id}')">
+            <div class="role-icon">${d.emoji}</div>
+            <div><div class="role-name">${DeptAPI.esc(d.name)}</div><div class="role-desc">স্টাফ লগইন</div></div>
+          </div>`
+        ).join('')
+      : '<div style="text-align:center;color:var(--ink3);padding:32px 0;font-size:13px;">কোনো বিভাগ পাওয়া যায়নি।</div>';
+  }
+
+  async function startPage() {
+    try { await DeptSync.bootstrap(); } catch (e) { /* localStorage fallback */ }
+    init();
   }
 
   function selectDept(id) {
@@ -176,11 +183,20 @@
   function updateDots() { for(let i=0;i<4;i++) document.getElementById('pd'+i).classList.toggle('filled',i<pinVal.length); }
   function resetPin() { pinVal=''; updateDots(); document.getElementById('pin-error').textContent=''; }
 
-  function checkPin() {
-    if (DeptAPI.Departments.verifyPin(selectedDept.id, pinVal)) {
+  async function checkPin() {
+    let remoteUser = null;
+    if (window.MMSharedAPI) {
+      try {
+        const res = await MMSharedAPI.loginStaff('dept_head', selectedDept.id, pinVal);
+        remoteUser = res && res.ok ? res.user : null;
+      } catch (e) {
+        remoteUser = null;
+      }
+    }
+    if (remoteUser) {
       /* বিভাগ স্টাফ: আগের জিম্মাদার/মাদ্রাসা সেশন থাকলে সরিয়ে শুধু বিভাগ সেশন */
       MMSession.clearAppSession();
-      MMSession.setDeptSession(selectedDept.id, selectedDept.name, selectedDept.emoji);
+      MMSession.setDeptSession(selectedDept.id, selectedDept.name, selectedDept.emoji, remoteUser.id, pinVal);
       location.href = 'dept-staff.html';
     } else { showError(); }
   }
@@ -190,7 +206,7 @@
     pinVal=''; updateDots();
   }
 
-  init();
+  startPage();
 </script>
 </body>
 </html>

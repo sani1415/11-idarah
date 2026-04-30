@@ -687,6 +687,13 @@ const API = (() => {
     },
     getResults: exam_id => load(KEYS.results).filter(r => r.exam_id === exam_id),
     getStudentResults: sid => load(KEYS.results).filter(r => r.student_id === sid),
+    update(exam_id, data) {
+      save(KEYS.exams, load(KEYS.exams).map(e => e.id === exam_id ? { ...e, ...data } : e));
+    },
+    delete(exam_id) {
+      save(KEYS.exams, load(KEYS.exams).filter(e => e.id !== exam_id));
+      save(KEYS.results, load(KEYS.results).filter(r => r.exam_id !== exam_id));
+    },
   };
 
   /* ══════════════════════════════

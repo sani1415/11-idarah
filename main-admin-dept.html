@@ -163,11 +163,7 @@
   <div class="modal">
     <div class="modal-title">নতুন বিভাগ <button class="modal-close" onclick="closeModal('modal-add-dept')">✕</button></div>
     <div class="form-group"><label class="form-label">বিভাগের নাম</label><input class="form-input" id="nd-name" placeholder="যেমন: মৎস্য বিভাগ"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">ইমোজি</label><input class="form-input" id="nd-emoji" placeholder="🏢" maxlength="2"></div>
-      <div class="form-group"><label class="form-label">পিন (৪ সংখ্যা)</label><input class="form-input" id="nd-pin" type="number" placeholder="0000" maxlength="4"></div>
-    </div>
-    <div class="form-group"><label class="form-label">বিবরণ (ঐচ্ছিক)</label><input class="form-input" id="nd-desc" placeholder="সংক্ষিপ্ত বিবরণ"></div>
+    <div class="form-group"><label class="form-label">ইমোজি</label><input class="form-input" id="nd-emoji" placeholder="🏢" maxlength="2"></div>
     <button class="submit-btn" onclick="saveDept()">সংরক্ষণ করুন</button>
   </div>
 </div>
@@ -190,21 +186,22 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="api-shared.js"></script>
 <script src="js/mm-sample-data.js"></script>
 <script src="js/mm-session.js"></script>
 <script src="js/monitor-mode.js"></script>
 <script src="js/dept-api.js"></script>
+<script src="js/dept-supabase-sync.js"></script>
 <script>
   if (!MMSession.isAdmin() || MMSession.isRestrictedAdmin()) { location.href = 'main-admin-madrasa.html'; }
   mmInsertMonitorBanner();
 
-  const DEPT_DATA_VER = 2;
+  /* data version check — no longer clears departments (now from Supabase) */
+  const DEPT_DATA_VER = 3;
   if (Number(localStorage.getItem('mm_dept_data_ver')||0) < DEPT_DATA_VER) {
-    localStorage.removeItem('mm_dept_departments');
-    localStorage.removeItem('mm_dept_transactions');
-    localStorage.removeItem('mm_dept_inventory');
     localStorage.setItem('mm_dept_data_ver', DEPT_DATA_VER);
-    location.reload();
   }
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
@@ -256,7 +253,7 @@
           <div class="dept-emoji">${d.emoji}</div>
           <div class="dept-info">
             <div class="dept-name">${DeptAPI.esc(d.name)}</div>
-            <div class="dept-pin-info">পিন: ${d.pin} · ${DeptAPI.esc(d.description||'')}</div>
+            <div class="dept-pin-info">${DeptAPI.esc(d.description||'')}</div>
           </div>
         </div>
         <div class="dept-fin">
@@ -299,19 +296,23 @@
   function rejectReq(id)  { DeptAPI.EditRequests.reject(id);  renderRequests(); showToast('প্রত্যাখ্যান করা হয়েছে'); }
 
   function openAddDept() {
-    ['nd-name','nd-emoji','nd-pin','nd-desc'].forEach(id => document.getElementById(id).value='');
+    ['nd-name','nd-emoji','nd-desc'].forEach(id => document.getElementById(id) && (document.getElementById(id).value=''));
     openModal('modal-add-dept');
   }
-  function saveDept() {
+  async function saveDept() {
     if (mmMutationBlocked(showToast)) return;
-    const name = document.getElementById('nd-name').value.trim();
+    const name  = document.getElementById('nd-name').value.trim();
     const emoji = document.getElementById('nd-emoji').value.trim() || '🏢';
-    const pin  = document.getElementById('nd-pin').value.trim();
-    const desc = document.getElementById('nd-desc').value.trim();
+    const desc  = document.getElementById('nd-desc') ? document.getElementById('nd-desc').value.trim() : '';
     if (!name) { showToast('নাম দিন'); return; }
-    if (!/^\d{4}$/.test(pin)) { showToast('৪ সংখ্যার পিন দিন'); return; }
-    DeptAPI.Departments.add({ name, emoji, pin, description:desc });
-    closeModal('modal-add-dept'); renderOverview(); showToast('বিভাগ যোগ হয়েছে');
+    const pin = MMSession.getAdminPin();
+    if (!pin) { showToast('সেশন মেয়াদ শেষ, আবার লগইন করুন।'); return; }
+    try {
+      await DeptSync.saveDepartment(pin, null, name, emoji);
+      closeModal('modal-add-dept'); renderOverview(); showToast('বিভাগ যোগ হয়েছে');
+    } catch (e) {
+      showToast('ত্রুটি: ' + (e.message || 'সংরক্ষণ ব্যর্থ'));
+    }
   }
 
   function openDeptDetail(id) {
@@ -357,11 +358,21 @@
     document.getElementById('ds-view-config').style.display = 'none';
   }
 
+  async function toggleDeptActive(dbId, makeActive) {
+    const pin = MMSession.getAdminPin();
+    if (!pin) { showToast('সেশন শেষ, আবার লগইন করুন।'); return; }
+    try {
+      await DeptSync.toggleDepartment(pin, dbId, makeActive);
+      openDeptSettings(); renderOverview();
+    } catch (e) { showToast('ত্রুটি: ' + (e.message || 'আপডেট ব্যর্থ')); }
+  }
+
   function openDeptSettings() {
     const list = document.getElementById('dept-settings-list');
     const depts = DeptAPI.Departments.getAll_();
     list.innerHTML = depts.length ? depts.map(d => {
       const inactive = d.is_active === false;
+      const dbId = d.db_id || '';
       return `<div class="ds-dept-row">
         <span class="ds-dept-ico">${d.emoji||'🏢'}</span>
         <span class="ds-dept-name" style="${inactive?'opacity:.5;':''}">
@@ -370,7 +381,7 @@
         <div style="display:flex;gap:5px;flex-shrink:0;">
           <button class="ds-btn" onclick="openDeptConfig('${d.id}')">⚙</button>
           <button class="ds-btn" style="${inactive?'color:var(--green)':'color:var(--red)'}"
-            onclick="DeptAPI.Departments.update('${d.id}',{is_active:${inactive}});openDeptSettings();renderOverview();">
+            onclick="toggleDeptActive('${dbId}',${inactive})">
             ${inactive?'সক্রিয়':'নিষ্ক্রিয়'}
           </button>
         </div>
@@ -430,7 +441,12 @@
     renderDeptFields(deptId);
   }
 
-  renderOverview();
+  async function initPage() {
+    try { await DeptSync.bootstrap(); } catch (e) { /* localStorage fallback */ }
+    renderOverview();
+  }
+
+  initPage();
 </script>
 </body>
 </html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>মাদ্রাসা — দফতর</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body.page-daftar .content { padding:10px 12px; }
+body.page-daftar .pb-safe { height:80px; }
+body.page-daftar .topbar { padding:9px 12px 7px; }
+body.page-daftar .topbar-name { font-size:16px; }
+body.page-daftar .topbar-btn { padding:6px 10px; font-size:11px; }
+.mdr-hero {
+  background:linear-gradient(145deg,#fff,#fff4d9);
+  border:1px solid rgba(184,134,45,.18);
+  border-radius:18px;
+  box-shadow:0 8px 18px rgba(154,106,33,.08);
+  padding:14px 13px;
+  margin-bottom:10px;
+}
+.mdr-kicker { font-size:11px; color:var(--ink3); font-weight:800; margin-bottom:4px; }
+.mdr-title { font-family:'Noto Serif Bengali',serif; font-size:20px; font-weight:900; color:var(--ink2); line-height:1.25; }
+.mdr-sub { font-size:12px; color:var(--ink3); line-height:1.65; margin-top:6px; }
+.mdr-metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:10px 0; }
+.mdr-metric {
+  background:#fff; border:1px solid rgba(26,18,8,.06); border-radius:14px;
+  box-shadow:0 5px 13px rgba(26,18,8,.055); padding:9px 5px; text-align:center; min-width:0;
+}
+.mdr-metric strong { display:block; font-family:'Noto Serif Bengali',serif; font-size:16px; color:var(--ink2); line-height:1.1; }
+.mdr-metric span { display:block; font-size:9px; color:var(--ink3); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mdr-section-title { font-size:13px; font-weight:900; color:var(--ink2); margin:12px 2px 8px; }
+.mdr-plan-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.mdr-plan-card {
+  background:#fff; border:1px solid rgba(26,18,8,.07); border-radius:16px; padding:12px 11px;
+  box-shadow:var(--shadow); min-height:96px;
+}
+.mdr-plan-card strong { display:block; font-size:13px; color:var(--ink); margin-bottom:5px; }
+.mdr-plan-card span { display:block; font-size:11px; color:var(--ink3); line-height:1.5; }
+.mdr-link-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:8px; }
+.mdr-link {
+  border:none; border-radius:14px; background:var(--ink); color:var(--gold2);
+  font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:900;
+  padding:11px 8px; cursor:pointer;
+}
+.mdr-link.light { background:#fff; color:var(--ink2); border:1px solid var(--cream3); }
+@media(max-width:420px){
+  .mdr-metrics { grid-template-columns:repeat(2,1fr); }
+  .mdr-plan-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body class="page-daftar">
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">দফতর বিভাগ</div>
+    <div class="topbar-name">মাদ্রাসা</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../main-admin-madrasa.html'">এডমিন</button>
+    <button type="button" class="topbar-btn" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')">লগআউট</button>
+  </div>
+</div>
+
+<div class="content">
+  <section class="mdr-hero">
+    <div class="mdr-kicker">মাদ্রাসা কেন্দ্র</div>
+    <div class="mdr-title">এখানে থাকবে মাদ্রাসার মূল পরিকল্পনা ও সামগ্রিক চিত্র</div>
+    <div class="mdr-sub">হাজিরা, হিসাব, বর্ষ উন্নীতকরণ—এগুলো আলাদা কাজের পেজ। এই পেজটা রাখা হলো মাদ্রাসার বড় সিদ্ধান্ত, সতর্কতা, পরিকল্পনা ও দ্রুত প্রবেশপথের জন্য।</div>
+  </section>
+
+  <div class="mdr-metrics">
+    <div class="mdr-metric"><strong id="m-total">—</strong><span>মোট ছাত্র</span></div>
+    <div class="mdr-metric"><strong id="m-classes">—</strong><span>বর্ষ/শ্রেণি</span></div>
+    <div class="mdr-metric"><strong id="m-teachers">—</strong><span>শ্রেণি শিক্ষক</span></div>
+    <div class="mdr-metric"><strong id="m-hifz">—</strong><span>হিফজ</span></div>
+  </div>
+
+  <div class="mdr-section-title">প্রস্তাবিত অংশ</div>
+  <div class="mdr-plan-grid">
+    <div class="mdr-plan-card"><strong>সামগ্রিক সতর্কতা</strong><span>কোন বর্ষে ছাত্র কম/বেশি, কোথায় হাজিরা বা বকেয়া নজর দরকার—এসব summary।</span></div>
+    <div class="mdr-plan-card"><strong>শিক্ষা পরিকল্পনা</strong><span>বর্ষভিত্তিক লক্ষ্য, কিতাব অগ্রগতি, পরীক্ষা প্রস্তুতি ও বিশেষ নোট।</span></div>
+    <div class="mdr-plan-card"><strong>দ্রুত কাজ</strong><span>ছাত্র তালিকা, নতুন ভর্তি, CSV, হাজিরা, হিসাব—সব গুরুত্বপূর্ণ shortcut।</span></div>
+    <div class="mdr-plan-card"><strong>জিম্মাদার নোট</strong><span>দফতরের দৈনিক পর্যবেক্ষণ, follow-up, ও করণীয় তালিকা।</span></div>
+  </div>
+
+  <div class="mdr-section-title">দ্রুত প্রবেশ</div>
+  <div class="mdr-link-row">
+    <button type="button" class="mdr-link" onclick="location.href='madrasa-daftar.html'">হাজিরা খুলুন</button>
+    <button type="button" class="mdr-link light" onclick="location.href='madrasa-daftar.html#students'">ছাত্র ব্যবস্থাপনা</button>
+    <button type="button" class="mdr-link light" onclick="location.href='madrasa-daftar.html#fees'">হিসাব</button>
+    <button type="button" class="mdr-link light" onclick="location.href='madrasa-yearend.html'">বর্ষ উন্নীতকরণ</button>
+  </div>
+  <div class="pb-safe"></div>
+</div>
+
+<nav class="bottom-nav" aria-label="নিচের নেভিগেশন">
+  <div class="nav-item active" aria-current="page">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">মাদ্রাসা</span>
+  </div>
+  <div class="nav-item" onclick="location.href='madrasa-daftar.html'">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+    <span class="nav-label">হাজিরা</span>
+  </div>
+  <div class="nav-item" onclick="location.href='madrasa-daftar.html#fees'">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 9v1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">হিসাব</span>
+  </div>
+  <div class="nav-item" onclick="location.href='madrasa-yearend.html'">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">বর্ষ</span>
+  </div>
+  <div class="nav-item" onclick="location.href='../chat.html'">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">বার্তা</span>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
+<script src="../js/mm-sample-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/mdr-daftar-supabase.js"></script>
+<script src="../js/mm-session.js"></script>
+<script src="../js/monitor-mode.js"></script>
+<script>
+  if (!MMSession.requireStaffRoleOrAdminPerm('daftar', 'daftar', '../main-admin-madrasa.html')) { throw new Error('daftar permission denied'); }
+  mmInsertMonitorBanner();
+  MMSession.configureTopbarHubAndLockout();
+  function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
+  async function initMadrasaHome() {
+    if (window.MDRDaftarSupabase && window.MMSharedAPI) {
+      try { await MDRDaftarSupabase.sync(); } catch (e) {}
+    }
+    const students = API.Students.getAll().filter(s => s.active);
+    document.getElementById('m-total').textContent = toBn(students.length);
+    document.getElementById('m-classes').textContent = toBn(API.Classes.getAll().length);
+    document.getElementById('m-teachers').textContent = toBn(API.Teachers.getAll().length);
+    document.getElementById('m-hifz').textContent = toBn(students.filter(s => s.hifz).length);
+  }
+  initMadrasaHome();
+</script>
+</body>
+</html>

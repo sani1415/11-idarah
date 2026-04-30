@@ -180,6 +180,56 @@ const MMSharedAPI = (() => {
         p_is_admin: !!isAdmin,
       });
     },
+    examBootstrap(actorId, pin) {
+      return rpc('mdr_rel_exam_bootstrap', { p_actor_id: actorId, p_pin: pin });
+    },
+    saveExam(actorId, pin, name, type, subjects) {
+      return rpc('mdr_rel_save_exam', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_name: name,
+        p_type: type,
+        p_subjects: subjects,
+      });
+    },
+    updateExam(actorId, pin, examId, name, type, subjects) {
+      return rpc('mdr_rel_update_exam', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_exam_id: examId,
+        p_name: name,
+        p_type: type,
+        p_subjects: subjects || null,
+      });
+    },
+    deleteExam(actorId, pin, examId) {
+      return rpc('mdr_rel_delete_exam', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_exam_id: examId,
+      });
+    },
+    saveExamResults(actorId, pin, examId, results) {
+      return rpc('mdr_rel_save_exam_results', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_exam_id: examId,
+        p_results: results,
+      });
+    },
+    listDepartments() {
+      return rpc('dept_rel_list_departments', {});
+    },
+    saveDepartment(pin, id, name, emoji, code, isActive) {
+      return rpc('dept_rel_save_department', {
+        p_pin: pin,
+        p_id: id || null,
+        p_name: name,
+        p_emoji: emoji || '🏢',
+        p_code: code || null,
+        p_is_active: isActive !== false,
+      });
+    },
   };
 })();
 

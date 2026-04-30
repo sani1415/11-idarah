@@ -195,10 +195,10 @@
   let remoteStaffUsers = [];
 
   function chatActorId() {
-    return isAdmin ? (MMSession.getAdminUserId && MMSession.getAdminUserId()) : (MMSession.getStaffUserId && MMSession.getStaffUserId());
+    return MMSession.getChatActorId ? MMSession.getChatActorId() : (isAdmin ? (MMSession.getAdminUserId && MMSession.getAdminUserId()) : (MMSession.getStaffUserId && MMSession.getStaffUserId()));
   }
   function chatPin() {
-    return isAdmin ? (MMSession.getAdminPin && MMSession.getAdminPin()) : (MMSession.getStaffPin && MMSession.getStaffPin());
+    return MMSession.getChatPin ? MMSession.getChatPin() : (isAdmin ? (MMSession.getAdminPin && MMSession.getAdminPin()) : (MMSession.getStaffPin && MMSession.getStaffPin()));
   }
   async function syncChatRemote() {
     if (!window.MMSharedAPI || !ChatAPI.syncRemote) return false;
@@ -432,17 +432,19 @@
     const reply = decision === 'approved'
       ? 'হিসাব সংশোধন অনুরোধ অনুমোদন করা হয়েছে।'
       : 'হিসাব সংশোধন অনুরোধ রিজেক্ট করা হয়েছে।';
-    const localReply = ChatAPI.send(activeThread, 'admin', 'জিম্মাদার', reply);
+    let remoteId = '';
     if (ChatAPI.sendRemote) {
       try {
         const res = await ChatAPI.sendRemote(chatActorId(), chatPin(), activeThread, reply, true);
-        if (res && res.ok && res.id && localReply && localReply.id) {
-          ChatAPI.updateMessage(localReply.id, (m) => ({ ...m, id: String(res.id) }));
-        }
+        if (!res || !res.ok) throw new Error((res && res.error) || 'chat_send_failed');
+        remoteId = res.id ? String(res.id) : '';
       } catch (e) {
         console.warn('Chat request reply remote send failed', e);
+        alert('বার্তা পাঠানো যায়নি। ইন্টারনেট সংযোগ/ডাটাবেজ সংযোগ চেক করুন।');
+        return;
       }
     }
+    ChatAPI.send(activeThread, 'admin', 'জিম্মাদার', reply, remoteId ? { id: remoteId } : null);
     renderMsgs();
     scrollEnd();
   }
@@ -454,19 +456,23 @@
     if (!text || !activeThread) return;
     const fromRole = isAdmin ? 'admin' : (myRole || myDeptRole || 'staff');
     const fromName = isAdmin ? 'জিম্মাদার' : myName;
-    const localMsg = ChatAPI.send(activeThread, fromRole, fromName, text);
+    let remoteId = '';
     if (ChatAPI.sendRemote) {
       try {
         const res = await ChatAPI.sendRemote(chatActorId(), chatPin(), activeThread, text, isAdmin);
         if (!res || !res.ok) throw new Error((res && res.error) || 'chat_send_failed');
-        if (res.id && localMsg && localMsg.id) {
-          ChatAPI.updateMessage(localMsg.id, (m) => ({ ...m, id: String(res.id) }));
-        }
-        await syncChatRemote();
+        remoteId = res.id ? String(res.id) : '';
       } catch (e) {
         console.warn('Chat Supabase send failed', e);
+        alert('বার্তা পাঠানো যায়নি। ইন্টারনেট সংযোগ/ডাটাবেজ সংযোগ চেক করুন।');
+        return;
       }
+    } else {
+      alert('ডাটাবেজ সংযোগ নেই। সংযোগ না থাকলে বার্তা পাঠানো যাবে না।');
+      return;
     }
+    ChatAPI.send(activeThread, fromRole, fromName, text, remoteId ? { id: remoteId } : null);
+    await syncChatRemote();
     inp.value = '';
     resize(inp);
     renderMsgs();

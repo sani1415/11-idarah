@@ -54,6 +54,19 @@
     getDeptId: function () { return sessionStorage.getItem(K.deptId); },
     getDeptName: function () { return sessionStorage.getItem(K.deptName); },
     getDeptEmoji: function () { return sessionStorage.getItem(K.deptEmoji); },
+    getChatActorId: function () {
+      return this.isAdmin() ? this.getAdminUserId() : this.getStaffUserId();
+    },
+    getChatPin: function () {
+      return this.isAdmin() ? this.getAdminPin() : this.getStaffPin();
+    },
+    getChatThread: function () {
+      if (this.getDeptRole() === 'dept') return 'dept-' + (this.getDeptId() || 'x');
+      var role = this.getRole();
+      if (role === 'teacher') return 'teacher-' + (this.getTeacherId() || 'x');
+      if (['daftar', 'hifz', 'library', 'alumni', 'khedmat'].indexOf(role) >= 0) return role;
+      return null;
+    },
 
     setRole: function (v) { sessionStorage.setItem(K.role, v); },
     setName: function (v) { sessionStorage.setItem(K.name, v); },
@@ -84,11 +97,20 @@
       else sessionStorage.removeItem(K.adminPerms);
     },
 
-    setDeptSession: function (id, name, emoji) {
+    setDeptSession: function (id, name, emoji, userId, pin) {
       sessionStorage.setItem(K.deptRole, 'dept');
       sessionStorage.setItem(K.deptId, id);
       sessionStorage.setItem(K.deptName, name);
       sessionStorage.setItem(K.deptEmoji, emoji);
+      sessionStorage.setItem(K.role, 'dept_head');
+      sessionStorage.setItem(K.name, name || 'বিভাগ দায়িত্বশীল');
+      if (userId) sessionStorage.setItem(K.staffUserId, userId);
+      else sessionStorage.removeItem(K.staffUserId);
+      if (pin) sessionStorage.setItem(K.staffPin, pin);
+      else sessionStorage.removeItem(K.staffPin);
+      sessionStorage.removeItem(K.adminUserId);
+      sessionStorage.removeItem(K.adminPin);
+      sessionStorage.removeItem(K.adminPerms);
     },
 
     isAdmin: function () { return sessionStorage.getItem(K.role) === 'admin'; },
@@ -196,21 +218,8 @@
   };
 
   global.MMSession = MMSession;
-  function chatThreadForSession() {
-    if (MMSession.getDeptRole() === 'dept') return 'dept-' + (MMSession.getDeptId() || 'x');
-    var role = MMSession.getRole();
-    if (role === 'teacher') return 'teacher-' + (MMSession.getTeacherId() || 'x');
-    if (['daftar', 'hifz', 'library', 'alumni', 'khedmat'].indexOf(role) >= 0) return role;
-    return null;
-  }
-  function readChatUnreadCount() {
-    var msgs = [];
-    try { msgs = JSON.parse(localStorage.getItem('mm_chat_messages') || '[]') || []; } catch (e) { msgs = []; }
-    if (MMSession.isAdmin()) return msgs.filter(function (m) { return m && m.from_role !== 'admin' && !m.read_admin; }).length;
-    var thread = chatThreadForSession();
-    if (!thread) return 0;
-    return msgs.filter(function (m) { return m && m.thread_id === thread && m.from_role === 'admin' && !m.read_staff; }).length;
-  }
+  var chatUnreadCount = 0;
+  function readChatUnreadCount() { return chatUnreadCount; }
   function bnNum(n) {
     return String(n || 0).replace(/[0-9]/g, function (d) { return '০১২৩৪৫৬৭৮৯'[d]; });
   }
@@ -233,14 +242,30 @@
       badge.textContent = count > 99 ? '৯৯+' : bnNum(count);
     });
   }
+  async function syncChatBadgeRemote() {
+    if (!global.MMSharedAPI || !MMSession.getChatPin()) {
+      chatUnreadCount = 0;
+      applyChatBadges();
+      return false;
+    }
+    try {
+      var res = await MMSharedAPI.chatBootstrap(MMSession.getChatActorId() || null, MMSession.getChatPin(), MMSession.isAdmin());
+      if (!res || !res.ok) throw new Error((res && res.error) || 'chat_bootstrap_failed');
+      chatUnreadCount = MMSession.isAdmin() ? Number(res.unread_admin || 0) : Number(res.unread_staff || 0);
+      applyChatBadges();
+      return true;
+    } catch (e) {
+      chatUnreadCount = 0;
+      applyChatBadges();
+      return false;
+    }
+  }
   global.MMRefreshChatBadges = applyChatBadges;
-  global.addEventListener && global.addEventListener('storage', function (e) {
-    if (!e || e.key === 'mm_chat_messages') applyChatBadges();
-  });
+  global.MMSyncChatBadges = syncChatBadgeRemote;
   global.addEventListener && global.addEventListener('mm-chat-updated', applyChatBadges);
   function autoRestrictNav() { if (global.MMSession) global.MMSession.applyAdminNavRestrictions(); }
   if (typeof document !== 'undefined') {
-    var onReady = function () { autoRestrictNav(); applyChatBadges(); };
+    var onReady = function () { autoRestrictNav(); syncChatBadgeRemote(); };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', onReady);
     else setTimeout(onReady, 0);
   }

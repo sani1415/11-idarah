@@ -6,14 +6,13 @@
 
 const ChatAPI = (() => {
 
-  const KEY = 'mm_chat_messages';
+  let messages = [];
 
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-  function load() { try { return JSON.parse(localStorage.getItem(KEY))||[]; } catch { return []; } }
   function save(data) {
-    localStorage.setItem(KEY, JSON.stringify(data));
+    messages = Array.isArray(data) ? data.slice() : [];
     if (typeof window !== 'undefined') {
       if (typeof window.MMRefreshChatBadges === 'function') window.MMRefreshChatBadges();
       window.dispatchEvent(new Event('mm-chat-updated'));
@@ -43,7 +42,7 @@ const ChatAPI = (() => {
   /* ── API ── */
 
   function getThreads() {
-    const msgs = load();
+    const msgs = messages;
     const threads = {};
     msgs.forEach(m => {
       if (!threads[m.thread_id]) threads[m.thread_id] = { thread_id:m.thread_id, staff_name:'', msgs:[] };
@@ -60,11 +59,10 @@ const ChatAPI = (() => {
   }
 
   function getThread(thread_id) {
-    return load().filter(m => m.thread_id === thread_id).sort((a,b) => a.ts.localeCompare(b.ts));
+    return messages.filter(m => m.thread_id === thread_id).sort((a,b) => a.ts.localeCompare(b.ts));
   }
 
   function send(thread_id, from_role, from_name, text, extra) {
-    const msgs = load();
     const m = {
       id: uid(), thread_id, from_role, from_name, text,
       ts: new Date().toISOString(),
@@ -72,14 +70,13 @@ const ChatAPI = (() => {
       read_staff: from_role === 'admin',
       ...(extra || {}),
     };
-    msgs.push(m);
-    save(msgs);
+    save(messages.concat(m));
     return m;
   }
 
   function updateMessage(id, updater) {
     let updated = null;
-    const msgs = load().map(m => {
+    const msgs = messages.map(m => {
       if (m.id !== id) return m;
       updated = typeof updater === 'function' ? updater({ ...m }) : { ...m, ...(updater || {}) };
       return updated;
@@ -89,26 +86,25 @@ const ChatAPI = (() => {
   }
 
   function markReadAdmin(thread_id) {
-    save(load().map(m => m.thread_id===thread_id && m.from_role!=='admin' ? {...m,read_admin:true} : m));
+    save(messages.map(m => m.thread_id===thread_id && m.from_role!=='admin' ? {...m,read_admin:true} : m));
   }
 
   function markReadStaff(thread_id) {
-    save(load().map(m => m.thread_id===thread_id && m.from_role==='admin' ? {...m,read_staff:true} : m));
+    save(messages.map(m => m.thread_id===thread_id && m.from_role==='admin' ? {...m,read_staff:true} : m));
   }
 
   function countUnreadStaff(thread_id) {
-    return load().filter(m => m.thread_id===thread_id && m.from_role==='admin' && !m.read_staff).length;
+    return messages.filter(m => m.thread_id===thread_id && m.from_role==='admin' && !m.read_staff).length;
   }
 
   function countUnreadAdmin() {
-    return load().filter(m => m.from_role!=='admin' && !m.read_admin).length;
+    return messages.filter(m => m.from_role!=='admin' && !m.read_admin).length;
   }
 
   async function syncRemote(actorId, pin, isAdmin) {
     if (!globalThis.MMSharedAPI || !pin) return false;
     const res = await MMSharedAPI.chatBootstrap(actorId || null, pin, !!isAdmin);
     if (!res || !res.ok) return false;
-    const localMsgs = load();
     const remoteMsgs = (res.messages || []).map(m => ({
       id: String(m.id || ''),
       thread_id: m.thread_id || '',
@@ -120,8 +116,6 @@ const ChatAPI = (() => {
       read_staff: !!m.read_staff,
       request: m.request || null,
     }));
-    const ids = new Set(remoteMsgs.map(m => m.id));
-    localMsgs.forEach(m => { if (!ids.has(m.id)) remoteMsgs.push(m); });
     save(remoteMsgs);
     return true;
   }

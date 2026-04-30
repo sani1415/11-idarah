@@ -21,10 +21,21 @@
   .rank-2 { color:var(--ink2); }
   .rank-3 { color:var(--red); }
   .subj-row { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; margin-bottom:10px; }
-  .mark-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--cream2); }
-  .mark-row:last-child { border-bottom:none; }
-  .mark-input { width:70px; border:1.5px solid var(--cream3); border-radius:8px; padding:8px; text-align:center; font-size:14px; font-family:'Noto Sans Bengali',sans-serif; outline:none; }
-  .mark-input:focus { border-color:var(--gold); }
+  .mark-sheet-scroll { overflow:auto; -webkit-overflow-scrolling:touch; height:calc(100vh - 268px); border-radius:var(--radius); box-shadow:var(--shadow); background:#fff; }
+  .mark-grid { border-collapse:collapse; width:100%; }
+  .mark-grid th,.mark-grid td { padding:6px 4px; text-align:center; border-bottom:1px solid var(--cream2); white-space:nowrap; font-size:12px; }
+  .mark-grid th { background:var(--ink); color:var(--gold2); font-size:11px; font-weight:600; position:sticky; top:0; z-index:2; }
+  .mark-grid td:first-child,.mark-grid th:first-child { position:sticky; left:0; text-align:left; min-width:80px; max-width:110px; white-space:normal; z-index:3; }
+  .mark-grid td:first-child { background:var(--cream); }
+  .mark-grid th:first-child { background:var(--ink); z-index:5; }
+  .mark-grid td:last-child { position:sticky; right:0; background:var(--cream); font-family:'Noto Serif Bengali',serif; font-weight:700; min-width:62px; z-index:3; }
+  .mark-grid th:last-child { background:var(--ink); z-index:5; }
+  .mark-cell { width:52px; border:1.5px solid var(--cream3); border-radius:6px; padding:5px 2px; text-align:center; font-size:13px; font-family:'Noto Sans Bengali',sans-serif; outline:none; }
+  .mark-cell:focus { border-color:var(--gold); }
+  .row-done { background:rgba(34,197,94,.07); }
+  .exam-actions { display:flex; gap:5px; align-items:center; flex-shrink:0; }
+  .exam-act-btn { background:none; border:1.5px solid var(--cream3); border-radius:8px; padding:4px 8px; font-size:12px; cursor:pointer; line-height:1; color:var(--ink2); font-family:'Noto Sans Bengali',sans-serif; }
+  .exam-act-btn:active { opacity:.7; }
   .grade-badge { font-size:12px; font-weight:700; padding:3px 8px; border-radius:8px; }
   .g-mumtaz { background:#d4efdf; color:#1e8449; }
   .g-jayyid2 { background:var(--blue-light); color:var(--blue); }
@@ -60,7 +71,6 @@
 </div>
 
 <div class="content" style="padding-bottom: var(--app-content-pad-bottom); max-width:520px; margin:0 auto;">
-  <p style="font-size:12px;color:var(--ink3);line-height:1.55;margin:0 0 12px;">এই বর্ষের <strong>নির্ধারিত বই</strong> থেকে বিষয় বেছে নিয়ে পরীক্ষা তৈরি করুন, তারপর <strong>মার্ক এন্ট্রি</strong> দিন। জিম্মাদারের পরীক্ষা পেজে ফলাফল দেখেন।</p>
   <div class="panel active" id="panel-home">
     <button class="add-btn" onclick="prepareExamModal();openModal('add-exam')">＋ নতুন পরীক্ষা তৈরি করুন</button>
     <div class="sec-header" style="margin-top:4px;">
@@ -72,7 +82,7 @@
   </div>
 
   <div class="panel" id="panel-exam">
-    <div class="sec-header" style="margin-top:8px;">
+    <div class="sec-header" style="margin-top:0;">
       <span class="sec-title" id="exam-detail-name">পরীক্ষা</span>
       <span class="sec-link" onclick="goHome()">← ফিরুন</span>
     </div>
@@ -134,7 +144,29 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modal-edit-exam">
+  <div class="modal">
+    <div class="modal-title">পরীক্ষা সম্পাদনা <button class="modal-close" onclick="closeModal('edit-exam')">✕</button></div>
+    <div class="form-group"><label class="form-label">পরীক্ষার নাম</label><input class="form-input" id="edit-ex-name" placeholder="পরীক্ষার নাম"></div>
+    <div class="form-group">
+      <label class="form-label">ধরন</label>
+      <select class="form-input form-select" id="edit-ex-type">
+        <option value="weekly">সাপ্তাহিক</option>
+        <option value="monthly">মাসিক</option>
+        <option value="half_yearly">ষান্মাসিক</option>
+        <option value="yearly">বার্ষিক</option>
+        <option value="test">সংক্ষিপ্ত টেস্ট</option>
+      </select>
+    </div>
+    <div id="edit-subject-area"></div>
+    <button class="submit-btn" type="button" onclick="updateExam()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
@@ -142,6 +174,7 @@
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mam-overlay.js"></script>
 <script src="../js/madrasa-exams-analytics.js"></script>
+<script src="../js/mdr-exams-supabase.js"></script>
 <script>
   if (MMSession.getRole() !== 'teacher') { location.href = '../index.html'; }
   const tid = MMSession.getTeacherId();
@@ -164,6 +197,8 @@
 
   let currentExamId = null;
   let subjectIdx = 0;
+  let editExamId = null;
+  let editSubjectIdx = 0;
 
   function goHome() { switchPanel('home'); renderHome(); }
   function switchPanel(name) {
@@ -215,7 +250,13 @@
       '<button type="button" onclick="document.getElementById(\'sr-'+i+'\').remove()" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;width:40px;height:44px;cursor:pointer;flex-shrink:0;font-size:16px">✕</button>';
     document.getElementById('subject-rows').appendChild(div);
   }
-  function saveExam() {
+  function setBusy(on) {
+    document.body.style.pointerEvents = on ? 'none' : '';
+    const t = document.getElementById('toast');
+    if (on) { t.textContent = 'অপেক্ষা করুন…'; t.classList.add('show'); }
+    else if (t.textContent === 'অপেক্ষা করুন…') t.classList.remove('show');
+  }
+  async function saveExam() {
     const name = document.getElementById('ex-name').value.trim();
     const type = document.getElementById('ex-type').value;
     if (!name) { showToast('পরীক্ষার নাম দিন'); return; }
@@ -227,9 +268,8 @@
       const sm = parseInt(document.getElementById('sm-'+k).value, 10) || 100;
       if (!sel || !sel.value) return;
       if (sel.value.indexOf('k:') === 0) {
-        const kid = sel.value.slice(2);
-        const bk = kitabList.find(x => x.id === kid);
-        if (bk) subjects.push({ name: bk.name, max: sm, kitab_id: bk.id });
+        const bk = kitabList.find(x => 'k:'+x.id === sel.value);
+        if (bk) subjects.push({ name: bk.name, max: sm });
       } else if (sel.value === 'custom') {
         const nm = (document.getElementById('sn-'+k).value || '').trim();
         if (nm) subjects.push({ name: nm, max: sm });
@@ -239,14 +279,115 @@
       showToast(kitabList.length ? 'কমপক্ষে একটি বই বেছে নিন' : 'কোনো বই নেই; সেটিংসে বই যোগ করুন, অথবা «অন্যান্য»');
       return;
     }
-    API.Exams.add({ name, type, class_id: classId, subjects });
-    document.getElementById('ex-name').value = '';
-    closeModal('add-exam');
-    showToast('পরীক্ষা তৈরি হয়েছে ✓');
-    renderHome();
+    setBusy(true);
+    try {
+      await MDRExamsSync.saveExam(name, type, subjects);
+      document.getElementById('ex-name').value = '';
+      closeModal('add-exam');
+      showToast('পরীক্ষা তৈরি হয়েছে ✓');
+      renderHome();
+    } catch(err) {
+      showToast('ত্রুটি: ' + (err.message || 'সংরক্ষণ ব্যর্থ'));
+    } finally { setBusy(false); }
   }
   function openModal(id) { document.getElementById('modal-'+id).classList.add('open'); }
   function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
+
+  function openEditExamModal(e, eid) {
+    e.stopPropagation();
+    const ex = API.Exams.getAll().find(x => x.id === eid);
+    if (!ex) return;
+    editExamId = eid;
+    document.getElementById('edit-ex-name').value = ex.name || '';
+    document.getElementById('edit-ex-type').value = ex.type || 'monthly';
+    const hasResults = API.Exams.getResults(eid).length > 0;
+    const subjArea = document.getElementById('edit-subject-area');
+    if (hasResults) {
+      subjArea.innerHTML = '<div style="background:var(--gold-light);border-radius:8px;padding:10px;font-size:12px;color:var(--gold);margin-bottom:8px;">মার্ক জমা আছে — বিষয় পরিবর্তন করা যাবে না।</div>'+
+        '<div class="card-static" style="font-size:12px;margin-bottom:8px;">'+(ex.subjects||[]).map(s=>'<div style="padding:5px 0;border-bottom:1px solid var(--cream2);">'+API.esc(s.name)+'<span style="float:right;color:var(--ink3)">পূর্ণমান: '+toBn(s.max)+'</span></div>').join('')+'</div>';
+    } else {
+      editSubjectIdx = 0;
+      subjArea.innerHTML = '<div id="edit-subject-rows"></div>'+
+        '<button type="button" onclick="addEditSubjectRow()" style="background:var(--cream2);border:none;border-radius:8px;padding:9px;font-family:\'Noto Sans Bengali\',sans-serif;font-size:12px;cursor:pointer;width:100%;margin-bottom:14px;">＋ আরেকটি বই/বিষয়</button>';
+      (ex.subjects||[]).forEach(s => addEditSubjectRow(s));
+      if (!(ex.subjects||[]).length) addEditSubjectRow();
+    }
+    openModal('edit-exam');
+  }
+  function addEditSubjectRow(preset) {
+    const i = editSubjectIdx++;
+    const div = document.createElement('div');
+    div.id = 'esr-'+i; div.className = 'subj-row';
+    let selVal = preset && preset.kitab_id ? 'k:'+preset.kitab_id : (preset ? 'custom' : '');
+    const customName = (preset && !preset.kitab_id) ? (preset.name||'') : '';
+    div.innerHTML = '<select class="form-input form-select" id="eks-'+i+'" style="flex:1;min-width:140px" onchange="toggleEditSubjCustom('+i+')">'+kitabOptionsHtml()+'</select>'+
+      '<input class="form-input" id="esn-'+i+'" placeholder="বিষয়ের নাম" style="flex:1;min-width:100px;display:'+(selVal==='custom'?'block':'none')+'" value="'+API.esc(customName)+'" />'+
+      '<input class="form-input" type="number" id="esm-'+i+'" placeholder="মান" min="1" value="'+(preset?preset.max:100)+'" style="width:72px" />'+
+      '<button type="button" onclick="document.getElementById(\'esr-'+i+'\').remove()" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;width:40px;height:44px;cursor:pointer;flex-shrink:0;font-size:16px">✕</button>';
+    const rows = document.getElementById('edit-subject-rows');
+    if (rows) {
+      rows.appendChild(div);
+      if (selVal) { const s = document.getElementById('eks-'+i); if(s) s.value = selVal; }
+    }
+  }
+  function toggleEditSubjCustom(i) {
+    const sel = document.getElementById('eks-'+i);
+    const inp = document.getElementById('esn-'+i);
+    if (sel && inp) inp.style.display = sel.value === 'custom' ? 'block' : 'none';
+  }
+  async function updateExam() {
+    const name = document.getElementById('edit-ex-name').value.trim();
+    const type = document.getElementById('edit-ex-type').value;
+    if (!name) { showToast('পরীক্ষার নাম দিন'); return; }
+    const hasResults = API.Exams.getResults(editExamId).length > 0;
+    let subjects = null;
+    if (!hasResults) {
+      const kitabList = API.KitabProgress.getKitabsByClass(classId);
+      subjects = [];
+      (document.getElementById('edit-subject-rows')||{querySelectorAll:()=>[]}).querySelectorAll('[id^="esr-"]').forEach(function(row) {
+        const k = row.id.replace('esr-','');
+        const sel = document.getElementById('eks-'+k);
+        const sm = parseInt((document.getElementById('esm-'+k)||{}).value,10)||100;
+        if (!sel||!sel.value) return;
+        if (sel.value.indexOf('k:')===0) {
+          const bk = kitabList.find(x=>'k:'+x.id===sel.value);
+          if (bk) subjects.push({name:bk.name,max:sm});
+        } else if (sel.value==='custom') {
+          const nm=((document.getElementById('esn-'+k)||{}).value||'').trim();
+          if (nm) subjects.push({name:nm,max:sm});
+        }
+      });
+      if (!subjects.length) { showToast('কমপক্ষে একটি বিষয় রাখুন'); return; }
+    }
+    setBusy(true);
+    try {
+      await MDRExamsSync.updateExam(editExamId, name, type, subjects);
+      closeModal('edit-exam');
+      showToast('পরীক্ষা আপডেট হয়েছে ✓');
+      renderHome();
+    } catch(err) {
+      showToast('ত্রুটি: ' + (err.message || 'আপডেট ব্যর্থ'));
+    } finally { setBusy(false); }
+  }
+  async function deleteExam(e, eid) {
+    e.stopPropagation();
+    const ex = API.Exams.getAll().find(x => x.id === eid);
+    if (!ex) return;
+    const rc = API.Exams.getResults(eid).length;
+    const msg = rc
+      ? '"'+ex.name+'" মুছলে '+toBn(rc)+' জনের ফলাফলও মুছবে। নিশ্চিত?'
+      : '"'+ex.name+'" পরীক্ষা মুছে ফেলবেন?';
+    if (!confirm(msg)) return;
+    setBusy(true);
+    try {
+      await MDRExamsSync.deleteExam(eid);
+      showToast('পরীক্ষা মুছে গেছে');
+      renderHome();
+    } catch(err) {
+      showToast('ত্রুটি: ' + (err.message || 'মুছতে ব্যর্থ'));
+    } finally { setBusy(false); }
+  }
+
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg; t.classList.add('show');
@@ -260,9 +401,11 @@
       const results = API.Exams.getResults(ex.id);
       const students = API.Students.getByClass(ex.class_id);
       return '<div class="exam-card" onclick="openExam(\''+ex.id+'\')"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'+
-        '<div><div style="font-family:\'Noto Serif Bengali\',serif;font-size:15px;font-weight:700;">'+API.esc(ex.name)+'</div>'+
+        '<div style="min-width:0;flex:1;margin-right:6px;"><div style="font-family:\'Noto Serif Bengali\',serif;font-size:15px;font-weight:700;">'+API.esc(ex.name)+'</div>'+
         '<div style="font-size:11px;color:var(--ink3);margin-top:3px;">'+API.esc(ex.created||'')+'</div></div>'+
-        '<span class="exam-type '+(TYPE_CLS[ex.type]||'')+'">'+(TYPE_LABEL[ex.type]||ex.type||'')+'</span></div>'+
+        '<div class="exam-actions"><span class="exam-type '+(TYPE_CLS[ex.type]||'')+'">'+(TYPE_LABEL[ex.type]||ex.type||'')+'</span>'+
+        '<button class="exam-act-btn" onclick="openEditExamModal(event,\''+ex.id+'\')" title="সম্পাদনা">✏</button>'+
+        '<button class="exam-act-btn" style="color:var(--red);border-color:var(--red-light)" onclick="deleteExam(event,\''+ex.id+'\')" title="মুছুন">🗑</button></div></div>'+
         '<div style="display:flex;gap:12px;font-size:12px;color:var(--ink3);"><span>📚 '+toBn((ex.subjects||[]).length)+' বিষয়</span>'+
         '<span>✍️ '+toBn(results.length)+'/'+toBn(students.length)+' জমা</span></div></div>';
     }).join('') : '<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-text">কোনো পরীক্ষা তৈরি করুন</div></div>';
@@ -300,51 +443,91 @@
   function renderEntry() {
     const ex = API.Exams.getAll().find(e=>e.id===currentExamId);
     const students = API.Students.getByClass(ex && ex.class_id || classId);
-    const done = API.Exams.getResults(currentExamId).map(r=>r.student_id);
     const el = document.getElementById('etab-content-entry');
-    el.innerHTML = '<div class="form-group"><label class="form-label">ছাত্র</label><select class="form-input form-select" id="mark-student" onchange="renderMarkForm()">'+
-      students.map(s=>'<option value="'+s.id+'">'+API.esc(s.name)+(done.indexOf(s.id)>=0?' ✓':'')+'</option>').join('')+'</select></div><div id="mark-form"></div>';
-    renderMarkForm();
+    if (!ex || !ex.subjects || !ex.subjects.length) {
+      el.innerHTML = '<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-text">পরীক্ষায় কোনো বিষয় নেই</div></div>';
+      return;
+    }
+    const prevMap = {};
+    API.Exams.getResults(currentExamId).forEach(r=>{ prevMap[r.student_id]=r; });
+    const maxTotal = ex.subjects.reduce((a,s)=>a+s.max,0);
+    let thead = '<tr><th>ছাত্র</th>';
+    ex.subjects.forEach(s=>{
+      thead += '<th>'+API.esc(s.name)+'<div style="font-weight:400;opacity:.7;font-size:10px">'+toBn(s.max)+'</div></th>';
+    });
+    thead += '<th>মোট</th></tr>';
+    let tbody = '';
+    students.forEach(st=>{
+      const prev = prevMap[st.id];
+      tbody += '<tr'+(prev?' class="row-done"':'')+' id="mgr-'+st.id+'">';
+      tbody += '<td><div style="font-size:12px;font-weight:600;">'+API.esc(st.name)+'</div><div style="font-size:10px;color:var(--ink3)">'+API.esc(st.roll||'')+'</div></td>';
+      ex.subjects.forEach((s,i)=>{
+        const pv = prev ? rowMarksPrev(prev,ex,i) : '';
+        tbody += '<td><input class="mark-cell" type="number" min="0" max="'+s.max+'" value="'+(pv!=null&&pv!==''?pv:'')+'" data-sid="'+st.id+'" data-subj="'+i+'" data-subject-id="'+(s.id||'')+'" oninput="updateRowTotal(\''+st.id+'\')" onkeydown="cellKeyDown(event,this)"></td>';
+      });
+      const t = prev && prev.total!=null ? prev.total : null;
+      tbody += '<td id="tot-'+st.id+'">'+(t!=null?toBn(t)+'/'+toBn(maxTotal):'—')+'</td>';
+      tbody += '</tr>';
+    });
+    el.innerHTML = '<button class="submit-btn" style="margin-bottom:8px" type="button" onclick="saveAllMarks()">সব সংরক্ষণ করুন</button>'+
+      '<div class="mark-sheet-scroll"><table class="mark-grid"><thead>'+thead+'</thead><tbody>'+tbody+'</tbody></table></div>';
   }
   function rowMarksPrev(prev, ex, i) {
     if (!prev || !prev.subjects || !ex.subjects[i]) return '';
-    const want = (ex.subjects[i].name || '') + '|' + (ex.subjects[i].max || 0);
+    const want = (ex.subjects[i].name||'')+'|'+(ex.subjects[i].max||0);
     for (var j=0;j<prev.subjects.length;j++) {
-      if (((prev.subjects[j].name||'')+'|'+(prev.subjects[j].max||0)) === want) return prev.subjects[j].marks;
+      if (((prev.subjects[j].name||'')+'|'+(prev.subjects[j].max||0))===want) return prev.subjects[j].marks;
     }
-    if (prev.subjects[i] && prev.subjects[i].marks != null) return prev.subjects[i].marks;
+    if (prev.subjects[i] && prev.subjects[i].marks!=null) return prev.subjects[i].marks;
     return '';
   }
-  function renderMarkForm() {
-    const ex  = API.Exams.getAll().find(e=>e.id===currentExamId);
-    const sid = document.getElementById('mark-student') && document.getElementById('mark-student').value;
-    const prev= sid ? API.Exams.getResults(currentExamId).find(r=>r.student_id===sid) : null;
-    const mf  = document.getElementById('mark-form');
-    if (!ex || !ex.subjects || !ex.subjects.length) { mf.innerHTML = '<div style="color:var(--ink3);font-size:13px;">বিষয় নেই।</div>'; return; }
-    mf.innerHTML = '<div class="card-static">'+ex.subjects.map((s, i) => {
-      const pv = rowMarksPrev(prev, ex, i);
-      const pvs = (pv==null || pv==='') ? '' : pv;
-      return '<div class="mark-row"><div><div style="font-size:13px;font-weight:600;">'+API.esc(s.name)+'</div><div style="font-size:11px;color:var(--ink3);">পূর্ণমান: '+toBn(s.max)+'</div></div>'+
-        '<input class="mark-input" id="mk-'+i+'" type="number" min="0" max="'+s.max+'" value="'+pvs+'"></div>';
-    }).join('')+'</div>'+
-      '<button class="submit-btn" style="margin-top:8px" type="button" onclick="saveMarks()">মার্ক সংরক্ষণ করুন</button>';
-  }
-  function saveMarks() {
-    const ex  = API.Exams.getAll().find(e=>e.id===currentExamId);
-    const sid = document.getElementById('mark-student') && document.getElementById('mark-student').value;
-    if (!ex || !sid) return;
-    var total = 0, maxTotal = 0;
-    const subjects = ex.subjects.map((s, i) => {
-      const m = parseFloat(document.getElementById('mk-'+i).value) || 0;
-      total += m; maxTotal += s.max;
-      const row = { name: s.name, max: s.max, marks: m };
-      if (s.kitab_id) row.kitab_id = s.kitab_id;
-      return row;
+  function updateRowTotal(sid) {
+    const ex = API.Exams.getAll().find(e=>e.id===currentExamId);
+    if (!ex) return;
+    let total=0, max=0;
+    ex.subjects.forEach((s,i)=>{
+      const inp = document.querySelector('.mark-cell[data-sid="'+sid+'"][data-subj="'+i+'"]');
+      if(inp) total += parseFloat(inp.value)||0;
+      max += s.max;
     });
-    const pct = maxTotal ? Math.round(total / maxTotal * 1000) / 10 : 0;
-    API.Exams.addResult({ exam_id: currentExamId, student_id: sid, subjects, total, max_total: maxTotal, percentage: pct, grade: getGrade(pct).label });
-    showToast('মার্ক সংরক্ষিত ✓');
-    renderEntry();
+    const el = document.getElementById('tot-'+sid);
+    if(el) el.textContent = toBn(total)+'/'+toBn(max);
+  }
+  function cellKeyDown(e,el) {
+    if(e.key==='Enter') {
+      e.preventDefault();
+      const ex = API.Exams.getAll().find(x=>x.id===currentExamId);
+      const students = API.Students.getByClass(ex&&ex.class_id||classId);
+      const idx = students.findIndex(s=>s.id===el.dataset.sid);
+      const nextSt = students[idx+1];
+      if(nextSt) {
+        const next = document.querySelector('.mark-cell[data-sid="'+nextSt.id+'"][data-subj="'+el.dataset.subj+'"]');
+        if(next){next.focus();next.select();}
+      }
+    }
+  }
+  async function saveAllMarks() {
+    const ex = API.Exams.getAll().find(e=>e.id===currentExamId);
+    const students = API.Students.getByClass(ex&&ex.class_id||classId);
+    if(!ex||!students.length) return;
+    const resultsArr = [];
+    students.forEach(st=>{
+      ex.subjects.forEach((s,i)=>{
+        const inp = document.querySelector('.mark-cell[data-sid="'+st.id+'"][data-subj="'+i+'"]');
+        if(!inp || inp.value==='' || !s.id) return;
+        resultsArr.push({student_id:st.id, subject_id:s.id, marks:parseFloat(inp.value)||0});
+      });
+    });
+    if(!resultsArr.length) { showToast('কোনো মার্ক পাওয়া যায়নি'); return; }
+    setBusy(true);
+    try {
+      await MDRExamsSync.saveResults(currentExamId, resultsArr);
+      const uniqueStudents = new Set(resultsArr.map(r=>r.student_id)).size;
+      showToast(toBn(uniqueStudents)+' জনের মার্ক সংরক্ষিত ✓');
+      renderEntry();
+    } catch(err) {
+      showToast('ত্রুটি: ' + (err.message || 'সংরক্ষণ ব্যর্থ'));
+    } finally { setBusy(false); }
   }
   function renderHistory() {
     const ex = API.Exams.getAll().find(e=>e.id===currentExamId);
@@ -368,8 +551,17 @@
         '</div>';
     }).join('') : '<div class="empty-state"><span class="empty-icon">📊</span><div class="empty-text">কোনো ফলাফল নেই</div></div>';
   }
-  switchPanel('home');
-  renderHome();
+  async function initPage() {
+    setBusy(true);
+    try {
+      if (window.MDRExamsSync) await MDRExamsSync.bootstrap();
+    } catch(err) {
+      console.warn('Exam bootstrap failed, using local data:', err.message);
+    } finally { setBusy(false); }
+    switchPanel('home');
+    renderHome();
+  }
+  initPage();
 </script>
 
 <div class="cls-overlay" id="cls-overlay">

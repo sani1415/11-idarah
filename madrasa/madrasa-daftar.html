@@ -353,6 +353,74 @@ body.page-daftar .add-btn { padding: 11px 14px; font-size: 14px; margin-bottom: 
 /* .bottom-nav — ../css/style.css (পেজ ওভাররাইড নেই; নিচে সটিক + একই উচ্চতা) */
 body.page-daftar .card-static { padding: 10px 12px; }
 body.page-daftar .att-card .empty-state { padding: 18px 8px; }
+.madrasa-tabs {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+  background:#fff; border-radius:var(--radius); box-shadow:var(--shadow);
+  overflow:hidden; margin:0 0 8px; position:sticky; top:0; z-index:20;
+}
+.madrasa-tabs.hidden { display:none; }
+.madrasa-tab {
+  border:none; border-left:1px solid var(--cream2); background:#fff; color:var(--ink3);
+  padding:10px 4px; font-family:'Noto Sans Bengali',sans-serif; font-size:11px;
+  font-weight:800; cursor:pointer;
+}
+.madrasa-tab:first-child { border-left:none; }
+.madrasa-tab.active { background:var(--ink); color:var(--gold2); }
+.hero-metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:0 0 10px; }
+.hero-metric { background:#fff; border:1px solid rgba(26,18,8,.06); border-radius:14px; box-shadow:0 5px 13px rgba(26,18,8,.055); padding:9px 5px; text-align:center; min-width:0; }
+.hero-metric .hm-val { display:block; font-family:'Noto Serif Bengali',serif; font-size:16px; font-weight:900; color:var(--ink2); line-height:1.1; white-space:nowrap; }
+.hero-metric .hm-lbl { display:block; font-size:9px; color:var(--ink3); margin-top:3px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hero-metric.good .hm-val { color:var(--green); }
+.hero-metric.bad .hm-val { color:var(--red); }
+.hero-metric.gold .hm-val { color:var(--gold); }
+.class-summary-wrap { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin:8px 0 12px; overflow:hidden; }
+.class-summary-head { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 11px; border-bottom:1px solid var(--cream2); }
+.class-summary-title { font-size:13px; font-weight:800; color:var(--ink2); }
+.class-summary-date { font-size:10px; color:var(--ink3); white-space:nowrap; }
+.class-summary-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.class-summary-table { width:100%; min-width:430px; border-collapse:collapse; font-size:11px; }
+.class-summary-table th { background:var(--ink); color:var(--gold2); padding:7px 5px; text-align:left; white-space:nowrap; font-size:10px; font-weight:700; }
+.class-summary-table td { padding:7px 5px; border-bottom:1px solid var(--cream2); color:var(--ink2); vertical-align:middle; }
+.class-summary-table tbody tr:last-child td { border-bottom:none; }
+.class-summary-table tbody tr:nth-child(even) td { background:#fffaf2; }
+.class-summary-table tbody tr { cursor:pointer; }
+.class-summary-table tbody tr:hover td { background:#fff4d9; }
+.class-summary-table .td-class { font-family:'Noto Serif Bengali',serif; font-size:12px; font-weight:800; white-space:nowrap; }
+.class-summary-table .td-teacher { color:var(--ink3); max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.class-summary-table .td-num { font-family:'Noto Serif Bengali',serif; font-size:12px; font-weight:800; text-align:center; white-space:nowrap; }
+.class-summary-table .n-present { color:var(--green); }
+.class-summary-table .n-absent { color:var(--red); }
+.class-summary-empty { padding:18px; color:var(--ink3); text-align:center; font-size:12px; }
+.student-tools { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin:0 0 10px; overflow:hidden; }
+.student-tools-title { padding:10px 12px; border-bottom:1px solid var(--cream2); font-size:13px; font-weight:800; color:var(--ink2); }
+.student-tools-tabs { display:grid; grid-template-columns:repeat(3,1fr); background:#fff; }
+.student-tools-tab { border:none; border-left:1px solid var(--cream2); background:#fff; padding:10px 4px; font-family:'Noto Sans Bengali',sans-serif; font-size:11px; font-weight:800; color:var(--ink3); cursor:pointer; }
+.student-tools-tab:first-child { border-left:none; }
+.student-tools-tab.active { background:var(--ink); color:var(--gold2); }
+.student-section { display:none; }
+.student-section.active { display:block; }
+.stu-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); margin-bottom:6px; }
+.stu-roll { font-size:11px; color:var(--ink3); min-width:28px; text-align:center; }
+.stu-info { flex:1; min-width:0; }
+.stu-name { font-size:13px; font-weight:600; color:var(--ink); }
+.s-name-btn { display:inline; text-align:left; background:none; border:none; font:inherit; font-weight:600; color:var(--ink); font-family:'Noto Sans Bengali',sans-serif; padding:0; margin:0; cursor:pointer; max-width:100%; }
+.s-name-btn:hover { text-decoration:underline; color:var(--blue); }
+.stu-meta { font-size:11px; color:var(--ink3); margin-top:2px; }
+.cls-label { display:inline-block; font-size:10px; padding:1px 8px; border-radius:20px; background:var(--cream2); color:var(--ink3); margin-bottom:6px; }
+.csv-box { border:2px dashed var(--cream3); border-radius:var(--radius); padding:24px 16px; text-align:center; cursor:pointer; transition:border-color .2s; margin-bottom:12px; background:#fff; }
+.csv-box:hover, .csv-box.drag-over { border-color:var(--gold); }
+.csv-box input { display:none; }
+.csv-icon { font-size:32px; margin-bottom:8px; }
+.csv-hint { font-size:12px; color:var(--ink3); line-height:1.6; }
+.csv-preview { overflow-x:auto; margin-bottom:12px; }
+.csv-table { width:100%; border-collapse:collapse; font-size:11px; }
+.csv-table th { background:var(--ink); color:var(--gold2); padding:6px 8px; text-align:right; white-space:nowrap; }
+.csv-table td { padding:6px 8px; border-bottom:1px solid var(--cream2); white-space:nowrap; }
+.csv-table tr:last-child td { border-bottom:none; }
+.csv-table tr.row-err td { color:var(--red); background:var(--red-light); }
+.err-tag { font-size:10px; color:var(--red); background:var(--red-light); border-radius:4px; padding:1px 5px; margin-right:4px; }
+.dl-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:var(--cream2); border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink2); cursor:pointer; margin-bottom:12px; text-decoration:none; }
+.dl-btn:hover { background:var(--cream3); }
 .acct-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
 .acct-filters input { grid-column: 1 / -1; }
 .acct-section-title {
@@ -497,6 +565,12 @@ body.page-daftar #modal-account-entry .modal {
 
 <div class="content">
 
+  <div class="madrasa-tabs" id="madrasa-tabs" aria-label="হাজিরা মেনু">
+    <button type="button" class="madrasa-tab active" id="mtab-home" onclick="switchMadrasaTab('home')">আজকের হাজিরা</button>
+    <button type="button" class="madrasa-tab" id="mtab-summary" onclick="switchMadrasaTab('summary')">বর্ষ সারাংশ</button>
+    <button type="button" class="madrasa-tab" id="mtab-students" onclick="switchMadrasaTab('students')">ছাত্র</button>
+  </div>
+
   <!-- HOME PANEL -->
   <div class="panel active" id="panel-home">
 
@@ -596,6 +670,124 @@ body.page-daftar #modal-account-entry .modal {
     <div class="pb-safe"></div>
   </div>
 
+  <!-- CLASS SUMMARY PANEL -->
+  <div class="panel" id="panel-summary">
+    <div class="hero-metrics">
+      <div class="hero-metric"><span class="hm-val" id="hm-total">—</span><span class="hm-lbl">মোট ছাত্র</span></div>
+      <div class="hero-metric good"><span class="hm-val" id="hm-present">—</span><span class="hm-lbl">আজ উপস্থিত</span></div>
+      <div class="hero-metric bad"><span class="hm-val" id="hm-absent">—</span><span class="hm-lbl">আজ অনুপস্থিত</span></div>
+      <div class="hero-metric gold"><span class="hm-val" id="hm-classes">—</span><span class="hm-lbl">সক্রিয় বর্ষ</span></div>
+    </div>
+
+    <div class="class-summary-wrap">
+      <div class="class-summary-head">
+        <div class="class-summary-title">বর্ষভিত্তিক হাজিরা</div>
+        <div class="class-summary-date" id="class-summary-date">আজ</div>
+      </div>
+      <div class="class-summary-scroll">
+        <table class="class-summary-table">
+          <thead>
+            <tr>
+              <th>বর্ষ</th>
+              <th>শ্রেণি শিক্ষক</th>
+              <th>মোট</th>
+              <th>উপস্থিত</th>
+              <th>অনুপস্থিত</th>
+            </tr>
+          </thead>
+          <tbody id="class-summary-body">
+            <tr><td colspan="5" class="class-summary-empty">লোড হচ্ছে…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="pb-safe"></div>
+  </div>
+
+  <!-- STUDENTS PANEL -->
+  <div class="panel" id="panel-students">
+    <div class="student-tools">
+      <div class="student-tools-title">ছাত্র ব্যবস্থাপনা</div>
+      <div class="student-tools-tabs">
+        <button type="button" class="student-tools-tab active" id="ttab-list" onclick="switchStudentToolTab('list')">তালিকা</button>
+        <button type="button" class="student-tools-tab" id="ttab-add" onclick="switchStudentToolTab('add')">নতুন ছাত্র</button>
+        <button type="button" class="student-tools-tab" id="ttab-csv" onclick="switchStudentToolTab('csv')">CSV আপলোড</button>
+      </div>
+    </div>
+
+    <div class="student-section active" id="panel-list">
+      <div class="form-group" style="margin:8px 0 10px;">
+        <select class="form-input form-select" id="list-class-sel" onchange="renderStudentList()">
+          <option value="all">সব বর্ষ</option>
+        </select>
+      </div>
+      <div id="stu-count" style="font-size:11px;color:var(--ink3);margin-bottom:8px;"></div>
+      <div id="stu-list"></div>
+      <div class="pb-safe"></div>
+    </div>
+
+    <div class="student-section" id="panel-add">
+      <div style="margin-top:8px;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">বিভাগ</label>
+            <select class="form-input form-select" id="add-dept" onchange="onDeptChange()">
+              <option value="kitab">কিতাব বিভাগ</option>
+              <option value="maktab">মক্তব বিভাগ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">বর্ষ</label>
+            <select class="form-input form-select" id="add-class"></select>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">পূর্ণ নাম <span style="color:var(--red)">*</span></label><input class="form-input" id="add-name" placeholder="ছাত্রের পূর্ণ নাম"></div>
+        <div class="form-group"><label class="form-label">রোল নম্বর <span style="color:var(--red)">*</span></label><input class="form-input" id="add-roll" placeholder="যেমন: ১০১"></div>
+        <div class="form-group"><label class="form-label">স্থায়ী আইডি <span style="color:var(--red)">*</span></label><input class="form-input" id="add-pid" placeholder="যেমন: ৪৭০১২" autocomplete="off"></div>
+        <div class="form-group"><label class="form-label">অভিভাবকের নাম</label><input class="form-input" id="add-guardian" placeholder="অভিভাবকের নাম"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">পেশা</label><input class="form-input" id="add-job" placeholder="চাষাবাদ, ব্যবসা…"></div>
+          <div class="form-group"><label class="form-label">ফোন</label><input class="form-input" id="add-phone" placeholder="০১৭XX-XXXXXX" type="tel"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">জেলা</label><input class="form-input" id="add-district" placeholder="জেলা"></div>
+          <div class="form-group"><label class="form-label">উপজেলা</label><input class="form-input" id="add-upazila" placeholder="উপজেলা"></div>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="add-hifz" style="width:18px;height:18px;accent-color:var(--gold);">
+          <label for="add-hifz" class="form-label" style="margin:0;cursor:pointer;">হিফজ বিভাগে নির্বাচিত</label>
+        </div>
+        <button class="submit-btn gold" onclick="addStudent()">ছাত্র ভর্তি করুন</button>
+        <div class="pb-safe"></div>
+      </div>
+    </div>
+
+    <div class="student-section" id="panel-csv">
+      <div style="margin-top:8px;">
+        <div style="background:var(--cream2);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;font-size:12px;color:var(--ink2);line-height:1.7;">
+          <strong>CSV ফরম্যাট:</strong> প্রথম সারি হেডার।<br>
+          <strong>নয় কলাম:</strong> <code style="background:#fff;padding:1px 5px;border-radius:4px;">নাম, বর্ষ, রোল, অভিভাবক, পেশা, ফোন, জেলা, উপজেলা, স্থায়ী_আইডি</code><br>
+          <em style="font-size:11px;">সেভ: Excel এ “CSV UTF-8 (Comma delimited)”, বা Google Sheets → CSV.</em>
+        </div>
+        <button class="dl-btn" onclick="downloadTemplate()">⬇ নমুনা CSV ডাউনলোড</button>
+        <div class="csv-box" id="csv-drop" onclick="document.getElementById('csv-file').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+          <input type="file" id="csv-file" accept=".csv,text/csv" onchange="onFileChange(event)">
+          <div class="csv-icon">📄</div>
+          <div class="csv-hint">CSV ফাইল ট্যাপ করে বেছে নিন বা এখানে ড্র্যাগ করুন</div>
+        </div>
+        <div id="csv-preview-wrap" style="display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:13px;font-weight:600;color:var(--ink);" id="csv-count-lbl">—</span>
+            <button type="button" class="topbar-btn" style="background:var(--cream2);color:var(--ink);" onclick="clearCsv()">✕ বাতিল</button>
+          </div>
+          <div class="csv-preview"><table class="csv-table" id="csv-table"></table></div>
+          <button class="submit-btn gold" id="csv-confirm-btn" onclick="confirmCsvImport()">সকল ছাত্র ভর্তি করুন</button>
+        </div>
+      </div>
+      <div class="pb-safe"></div>
+    </div>
+  </div>
+
   <!-- ACCOUNTS PANEL -->
   <div class="panel" id="panel-fees">
     <div id="accounts-root"></div>
@@ -606,13 +798,13 @@ body.page-daftar #modal-account-entry .modal {
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav" aria-label="নিচের নেভিগেশন">
-  <div class="nav-item active" id="nav-home" onclick="switchPanel('home')">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="nav-label">উপস্থিতি</span>
+  <div class="nav-item" onclick="location.href='madrasa-home.html'">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">মাদ্রাসা</span>
   </div>
-  <div class="nav-item" onclick="location.href='madrasa-students.html'">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="nav-label">ছাত্র</span>
+  <div class="nav-item active" id="nav-madrasa" onclick="switchMadrasaTab('home')">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">হাজিরা</span>
   </div>
   <div class="nav-item" id="nav-fees" onclick="switchPanel('fees');renderAccounts()">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -1381,9 +1573,16 @@ body.page-daftar #modal-account-entry .modal {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + name).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('nav-' + name)?.classList.add('active');
+    const madrasaNames = ['home', 'summary', 'students'];
+    const isMadrasaPanel = madrasaNames.includes(name);
+    document.getElementById(isMadrasaPanel ? 'nav-madrasa' : 'nav-' + name)?.classList.add('active');
+    document.getElementById('madrasa-tabs')?.classList.toggle('hidden', !isMadrasaPanel);
+    madrasaNames.forEach(t => document.getElementById('mtab-' + t)?.classList.toggle('active', t === name));
+    if (name === 'summary') renderClassSummary();
+    if (name === 'students') renderStudentList();
     window.scrollTo(0, 0);
   }
+  function switchMadrasaTab(name) { switchPanel(name || 'home'); }
 
   /* ── UTILS ── */
   function openModal(id)  { if (mmMutationBlocked(showToast)) return; document.getElementById('modal-' + id).classList.add('open'); }
@@ -1394,6 +1593,225 @@ body.page-daftar #modal-account-entry .modal {
     setTimeout(() => t.classList.remove('show'), 2200);
   }
   function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
+
+  /* ── CLASS SUMMARY + STUDENT TOOLS ── */
+  function dateLabel(iso) {
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('bn-BD', { day:'numeric', month:'long' });
+  }
+  function renderClassSummary() {
+    const iso = daftarAttDate || API.today();
+    const dateEl = document.getElementById('class-summary-date');
+    if (dateEl) dateEl.textContent = dateLabel(iso);
+    const allStudents = API.Students.getAll().filter(s => s.active);
+    const allClasses = API.Classes.getAll();
+    const teachers = {};
+    API.Teachers.getAll().forEach(t => { if (t.class_id) teachers[t.class_id] = t.name; });
+    let totalPresent = 0;
+    let totalAbsent = 0;
+    const rows = allClasses.map(cls => {
+      const students = API.Students.getByClass(cls.id);
+      const attRecs = API.Attendance.getByClassDate(cls.id, iso);
+      const present = attRecs.filter(a => API.Attendance.statusOf(a) === 'present').length;
+      const absent = attRecs.filter(a => API.Attendance.statusOf(a) === 'absent').length;
+      totalPresent += present;
+      totalAbsent += absent;
+      return `<tr onclick="filterClassFromSummary('${cls.id}')" title="এই বর্ষের ছাত্র দেখুন">
+        <td class="td-class">${API.esc(cls.name)}</td>
+        <td class="td-teacher">${API.esc(teachers[cls.id] || '—')}</td>
+        <td class="td-num">${toBn(students.length)}</td>
+        <td class="td-num n-present">${toBn(present)}</td>
+        <td class="td-num n-absent">${toBn(absent)}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('class-summary-body').innerHTML = rows ||
+      '<tr><td colspan="5" class="class-summary-empty">কোনো বর্ষ নেই</td></tr>';
+    document.getElementById('hm-total').textContent = toBn(allStudents.length);
+    document.getElementById('hm-present').textContent = toBn(totalPresent);
+    document.getElementById('hm-absent').textContent = toBn(totalAbsent);
+    document.getElementById('hm-classes').textContent = toBn(allClasses.length);
+  }
+  function filterClassFromSummary(classId) {
+    switchPanel('students');
+    switchStudentToolTab('list', true);
+    const sel = document.getElementById('list-class-sel');
+    if (sel) {
+      sel.value = classId;
+      renderStudentList();
+    }
+  }
+  function populateStudentListFilter() {
+    const sel = document.getElementById('list-class-sel');
+    if (!sel || sel.dataset.ready === '1') return;
+    API.Classes.getAll().forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.id; o.textContent = c.name; sel.appendChild(o);
+    });
+    sel.dataset.ready = '1';
+  }
+  function switchStudentToolTab(name, skipScroll) {
+    ['list','add','csv'].forEach(t => {
+      document.getElementById('ttab-' + t)?.classList.toggle('active', t === name);
+      document.getElementById('panel-' + t)?.classList.toggle('active', t === name);
+    });
+    if (name === 'list') renderStudentList();
+    if (name === 'add') populateAddForm();
+    if (!skipScroll) window.scrollTo(0,0);
+  }
+  function renderStudentList() {
+    populateStudentListFilter();
+    const sel = document.getElementById('list-class-sel');
+    if (!sel) return;
+    const cid = sel.value;
+    const all = API.Students.getAll().filter(s => s.active);
+    const filtered = cid === 'all' ? all : all.filter(s => s.class_id === cid);
+    document.getElementById('stu-count').textContent = 'মোট ' + toBn(filtered.length) + ' জন সক্রিয় ছাত্র';
+    if (!filtered.length) {
+      document.getElementById('stu-list').innerHTML = '<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো ছাত্র নেই</div></div>';
+      return;
+    }
+    const clsMap = Object.fromEntries(API.Classes.getAll().map(c => [c.id, c.name]));
+    let html = '', lastCls = '';
+    filtered.sort((a,b)=>(a.class_id===b.class_id?(a.roll||'').localeCompare(b.roll||'','bn'):0));
+    filtered.forEach(s => {
+      if (cid === 'all' && clsMap[s.class_id] !== lastCls) {
+        lastCls = clsMap[s.class_id] || '—';
+        html += `<div class="cls-label">${API.esc(lastCls)}</div>`;
+      }
+      html += `<div class="stu-row">
+        <div class="stu-roll">${API.esc(s.roll||'—')}</div>
+        <div class="stu-info">
+          <div class="stu-name"><button type="button" class="s-name-btn" onclick="MMStudentModal.open('${s.id}')">${API.esc(s.name)}</button></div>
+          <div class="stu-meta">${API.esc(s.permanent_id||'—')} · ${API.esc(s.guardian||'—')} · ${API.esc(s.phone||'—')}</div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('stu-list').innerHTML = html;
+  }
+  function populateAddForm() { onDeptChange(); }
+  function onDeptChange() {
+    const dept = document.getElementById('add-dept').value;
+    const sel = document.getElementById('add-class');
+    sel.innerHTML = API.Classes.getAll().filter(c=>c.dept===dept).map(c=>`<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
+    const pidInp = document.getElementById('add-pid');
+    const hy = (API.Settings.get().hijri_year || '১৪۴۷').trim();
+    if (dept === 'maktab') {
+      pidInp.placeholder = 'যেমন: 047101 (শুরুতে 0 থাকবে)';
+      if (!String(pidInp.value || '').trim()) pidInp.value = API.Students.getNextPermanentId('maktab', hy);
+    } else {
+      pidInp.placeholder = 'যেমন: ۴۷۰۱۲';
+    }
+  }
+  function addStudent() {
+    const name = document.getElementById('add-name').value.trim();
+    const roll = document.getElementById('add-roll').value.trim();
+    const classId = document.getElementById('add-class').value;
+    if (!name) { showToast('নাম আবশ্যক'); return; }
+    if (!roll) { showToast('রোল নম্বর আবশ্যক'); return; }
+    if (!classId) { showToast('বর্ষ নির্বাচন করুন'); return; }
+    const pid = document.getElementById('add-pid').value.trim();
+    if (!pid) { showToast('স্থায়ী আইডি আবশ্যক'); return; }
+    if (API.Students.isPermanentIdTaken(pid)) { showToast('এই স্থায়ী আইডি ইতিমধ্যে কারো আছে'); return; }
+    API.Students.add({
+      name, roll, class_id: classId, permanent_id: pid,
+      guardian: document.getElementById('add-guardian').value.trim(),
+      guardian_job: document.getElementById('add-job').value.trim(),
+      phone: document.getElementById('add-phone').value.trim(),
+      district: document.getElementById('add-district').value.trim(),
+      upazila: document.getElementById('add-upazila').value.trim(),
+      dept: document.getElementById('add-dept').value,
+      hifz: document.getElementById('add-hifz').checked,
+    });
+    showToast(name + ' — ভর্তি সম্পন্ন ✓');
+    ['add-name','add-roll','add-pid','add-guardian','add-job','add-phone','add-district','add-upazila'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('add-hifz').checked = false;
+    renderClassSummary();
+    renderStudentList();
+  }
+  let csvRows = [];
+  function downloadTemplate() {
+    const clsNames = API.Classes.getAll().map(c=>c.name).join(', ');
+    const header = 'নাম,বর্ষ,রোল,অভিভাবক,পেশা,ফোন,জেলা,উপজেলা,স্থায়ী_আইডি';
+    const sample = 'মুহাম্মাদ আব্দুল্লাহ,১ম বর্ষ,১০۱,আব্দুর রহীম,চাষাবাদ,۰۱۷۰۰-۰۰۰۰۰۰,ঢাকা,দোহার,۴۷۰۱۲';
+    const blob = new Blob(['\uFEFF# বর্ষের নাম: ' + clsNames + '\n' + header + '\n' + sample], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'ছাত্র_নমুনা.csv'; a.click();
+  }
+  function onDragOver(e) { e.preventDefault(); document.getElementById('csv-drop').classList.add('drag-over'); }
+  function onDragLeave() { document.getElementById('csv-drop').classList.remove('drag-over'); }
+  function onDrop(e) { e.preventDefault(); onDragLeave(); parseFile(e.dataTransfer.files[0]); }
+  function onFileChange(e) { parseFile(e.target.files[0]); }
+  function clearCsv() {
+    csvRows = [];
+    document.getElementById('csv-preview-wrap').style.display = 'none';
+    document.getElementById('csv-file').value = '';
+  }
+  function applyCsvPermanentIds() {
+    const inBatch = new Set();
+    csvRows.forEach((r) => {
+      r.resolved_pid = '';
+      r.err = (r._baseErr || '').trim() ? r._baseErr : '';
+      if (String(r._baseErr || '').trim() || !r.cls) return;
+      const manual = (r.manual_pid || '').trim();
+      if (!manual) { r.err = 'স্থায়ী আইডি বাধ্যতামূলক'; return; }
+      if (inBatch.has(manual) || API.Students.isPermanentIdTaken(manual)) {
+        r.err = 'স্থায়ী আইডি ডুপ্লিকেট/ব্যবহৃত';
+      } else {
+        inBatch.add(manual);
+        r.resolved_pid = manual;
+      }
+    });
+  }
+  function renderCsvPreview() {
+    if (!csvRows || !csvRows.length) return;
+    applyCsvPermanentIds();
+    const validN = csvRows.filter((r) => !r.err).length, errN = csvRows.length - validN;
+    document.getElementById('csv-count-lbl').textContent = toBn(validN) + ' টি সঠিক, ' + toBn(errN) + ' টিতে সমস্যা';
+    const thead = '<thead><tr><th>#</th><th>নাম</th><th>বর্ষ</th><th>রোল</th><th>জেলা</th><th>উপজেলা</th><th>স্থায়ী আইডি</th><th>অভিভাবক</th><th>ফোন</th><th>অবস্থা</th></tr></thead>';
+    const tbody = '<tbody>' + csvRows.map((r) => {
+      const st = r.err ? ('<span class="err-tag">' + API.esc(r.err) + '</span>') : '✓';
+      const idCell = r.err ? '—' : API.esc(r.resolved_pid || '—');
+      return `<tr class="${r.err ? 'row-err' : ''}"><td>${toBn(r.idx)}</td><td>${API.esc(r.name)}</td><td>${API.esc(r.clsName)}</td><td>${API.esc(r.roll)}</td><td>${API.esc(r.district || '—')}</td><td>${API.esc(r.upazila || '—')}</td><td>${idCell}</td><td>${API.esc(r.guardian)}</td><td>${API.esc(r.phone)}</td><td>${st}</td></tr>`;
+    }).join('') + '</tbody>';
+    document.getElementById('csv-table').innerHTML = thead + tbody;
+    document.getElementById('csv-confirm-btn').textContent = toBn(validN) + ' জন ছাত্র ভর্তি করুন';
+    document.getElementById('csv-confirm-btn').disabled = validN === 0;
+  }
+  function parseFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const lines = e.target.result.split(/\r?\n/).filter(l=>l.trim()&&!l.startsWith('#'));
+      if (lines.length < 2) { showToast('CSV ফাইলে ডেটা নেই'); return; }
+      const clsMap = Object.fromEntries(API.Classes.getAll().map(c=>[c.name.trim(),c]));
+      csvRows = lines.slice(1).filter(l=>l.trim()).map((line,i) => {
+        const cols = line.split(',').map(s=>s.trim());
+        const [name, clsName, roll, guardian, job, phone, district, upazila, manualPid] = cols;
+        const cls = clsMap[clsName];
+        let baseErr = (!name ? 'নাম নেই ' : '') + ((!cls && clsName) ? 'বর্ষ খুঁজে পাওয়া যায়নি ' : '') + (!roll ? 'রোল নেই ' : '') + (!manualPid ? 'স্থায়ী আইডি আবশ্যক' : '');
+        if (cols.length < 8) baseErr += (baseErr.trim() ? ' ' : '') + 'কমপক্ষে ৮ কলাম লাগবে।';
+        return { idx:i+1, name:name||'', clsName:clsName||'', cls, roll:roll||'', guardian:guardian||'', job:job||'', phone:phone||'', district:district||'', upazila:upazila||'', manual_pid:(manualPid||'').trim(), _baseErr:baseErr, err:baseErr, resolved_pid:'' };
+      });
+      renderCsvPreview();
+      document.getElementById('csv-preview-wrap').style.display = 'block';
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+  function confirmCsvImport() {
+    applyCsvPermanentIds();
+    const ok = csvRows.filter((r) => !r.err && r.cls);
+    if (!ok.length) { showToast('কোনো সঠিক সারি নেই'); return; }
+    ok.forEach((r) => API.Students.add({ name:r.name, roll:r.roll, class_id:r.cls.id, permanent_id:r.resolved_pid, guardian:r.guardian, guardian_job:r.job, phone:r.phone, district:(r.district||'').trim(), upazila:(r.upazila||'').trim(), dept:r.cls.dept }));
+    showToast(toBn(ok.length) + ' জন ছাত্র ভর্তি সম্পন্ন ✓');
+    clearCsv();
+    switchStudentToolTab('list');
+    renderClassSummary();
+  }
+
+  window.addEventListener('mm:student-status-changed', function () {
+    renderClassSummary();
+    renderStudentList();
+  });
 
   /* ── SAMPLE DATA ── */
   function ensureDaftarSampleData() {
@@ -1431,11 +1849,21 @@ body.page-daftar #modal-account-entry .modal {
     }
     ensureDaftarSampleData();
     populateClassFilter();
+    populateStudentListFilter();
+    populateAddForm();
     updateHero();
     renderAttendance();
-    if (location.hash === '#fees' || location.hash === '#accounts') {
+    const navType = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0] && performance.getEntriesByType('navigation')[0].type) || '';
+    if (navType === 'reload') {
+      if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+      switchPanel('home');
+    } else if (location.hash === '#fees' || location.hash === '#accounts') {
       switchPanel('fees');
       renderAccounts();
+    } else if (location.hash === '#summary') {
+      switchPanel('summary');
+    } else if (location.hash === '#students') {
+      switchPanel('students');
     }
   }
   initDaftarPage();
