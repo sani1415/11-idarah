@@ -11,6 +11,7 @@ const DeptAPI = (() => {
     inventory:     'mm_dept_inventory',
     edit_requests: 'mm_dept_edit_requests',
     extra_fields:  'mm_dept_extra_fields',
+    products:      'mm_dept_products',
   };
 
   const uid  = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
@@ -189,8 +190,28 @@ const DeptAPI = (() => {
     },
   };
 
+  /* ── PRODUCTS (পণ্য তালিকা) ── */
+  const Products = {
+    getByDept: id => load(KEYS.products).filter(p => p.dept_id === id && p.is_active !== false),
+    getAll: () => load(KEYS.products),
+    getById: id => load(KEYS.products).find(p => p.id === id),
+    add(data) {
+      const list = load(KEYS.products);
+      const p = { id: 'prd_' + uid(), is_active: true, unit: 'পিস', price: 0, ...data };
+      list.push(p);
+      save(KEYS.products, list);
+      return p;
+    },
+    update(id, data) {
+      save(KEYS.products, load(KEYS.products).map(p => p.id === id ? { ...p, ...data } : p));
+    },
+    remove(id) {
+      save(KEYS.products, load(KEYS.products).map(p => p.id === id ? { ...p, is_active: false } : p));
+    },
+  };
+
   seedIfEmpty();
   purgeKnownSampleData();
-  return { Departments, Transactions, Inventory, EditRequests, ExtraFields, getSubdeptFields, uid, today, esc };
+  return { Departments, Transactions, Inventory, EditRequests, ExtraFields, Products, getSubdeptFields, uid, today, esc };
 
 })();

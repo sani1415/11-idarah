@@ -319,7 +319,7 @@
 }
 .s-name-btn {
   display: inline; text-align: left; background: none; border: none;
-  font-size: 13px; font-weight: 500; color: var(--ink);
+  font-size: 13px; font-weight: 400; color: var(--ink);
   font-family: 'Noto Sans Bengali', sans-serif; padding: 0; margin: 0; cursor: pointer; vertical-align: baseline;
   max-width: 100%;
 }
@@ -354,7 +354,7 @@ body.page-daftar .add-btn { padding: 11px 14px; font-size: 14px; margin-bottom: 
 body.page-daftar .card-static { padding: 10px 12px; }
 body.page-daftar .att-card .empty-state { padding: 18px 8px; }
 .madrasa-tabs {
-  display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+  display:none; grid-template-columns:repeat(3,1fr); gap:0;
   background:#fff; border-radius:var(--radius); box-shadow:var(--shadow);
   overflow:hidden; margin:0 0 8px; position:sticky; top:0; z-index:20;
 }
@@ -402,8 +402,8 @@ body.page-daftar .att-card .empty-state { padding: 18px 8px; }
 .stu-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); margin-bottom:6px; }
 .stu-roll { font-size:11px; color:var(--ink3); min-width:28px; text-align:center; }
 .stu-info { flex:1; min-width:0; }
-.stu-name { font-size:13px; font-weight:600; color:var(--ink); }
-.s-name-btn { display:inline; text-align:left; background:none; border:none; font:inherit; font-weight:600; color:var(--ink); font-family:'Noto Sans Bengali',sans-serif; padding:0; margin:0; cursor:pointer; max-width:100%; }
+.stu-name { font-size:13px; font-weight:400; color:var(--ink); }
+.s-name-btn { display:inline; text-align:left; background:none; border:none; font:inherit; font-weight:400; color:var(--ink); font-family:'Noto Sans Bengali',sans-serif; padding:0; margin:0; cursor:pointer; max-width:100%; }
 .s-name-btn:hover { text-decoration:underline; color:var(--blue); }
 .stu-meta { font-size:11px; color:var(--ink3); margin-top:2px; }
 .cls-label { display:inline-block; font-size:10px; padding:1px 8px; border-radius:20px; background:var(--cream2); color:var(--ink3); margin-bottom:6px; }
@@ -1573,7 +1573,7 @@ body.page-daftar #modal-account-entry .modal {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + name).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const madrasaNames = ['home', 'summary', 'students'];
+    const madrasaNames = ['home'];
     const isMadrasaPanel = madrasaNames.includes(name);
     document.getElementById(isMadrasaPanel ? 'nav-madrasa' : 'nav-' + name)?.classList.add('active');
     document.getElementById('madrasa-tabs')?.classList.toggle('hidden', !isMadrasaPanel);
@@ -1599,14 +1599,23 @@ body.page-daftar #modal-account-entry .modal {
     const d = new Date(iso + 'T12:00:00');
     return d.toLocaleDateString('bn-BD', { day:'numeric', month:'long' });
   }
+  function teachersByClassId() {
+    if (window.MDRDaftarSupabase && typeof MDRDaftarSupabase.classTeachersMergedMap === 'function') {
+      return MDRDaftarSupabase.classTeachersMergedMap();
+    }
+    const m = {};
+    API.Teachers.getAll().forEach(t => {
+      if (t.class_id && t.is_active !== false) m[t.class_id] = t.name;
+    });
+    return m;
+  }
   function renderClassSummary() {
     const iso = daftarAttDate || API.today();
     const dateEl = document.getElementById('class-summary-date');
     if (dateEl) dateEl.textContent = dateLabel(iso);
     const allStudents = API.Students.getAll().filter(s => s.active);
     const allClasses = API.Classes.getAll();
-    const teachers = {};
-    API.Teachers.getAll().forEach(t => { if (t.class_id) teachers[t.class_id] = t.name; });
+    const teachers = teachersByClassId();
     let totalPresent = 0;
     let totalAbsent = 0;
     const rows = allClasses.map(cls => {
@@ -1694,12 +1703,12 @@ body.page-daftar #modal-account-entry .modal {
     const sel = document.getElementById('add-class');
     sel.innerHTML = API.Classes.getAll().filter(c=>c.dept===dept).map(c=>`<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
     const pidInp = document.getElementById('add-pid');
-    const hy = (API.Settings.get().hijri_year || '১৪۴۷').trim();
+    const hy = (API.Settings.get().hijri_year || '১৪৪৭').trim();
     if (dept === 'maktab') {
       pidInp.placeholder = 'যেমন: 047101 (শুরুতে 0 থাকবে)';
       if (!String(pidInp.value || '').trim()) pidInp.value = API.Students.getNextPermanentId('maktab', hy);
     } else {
-      pidInp.placeholder = 'যেমন: ۴۷۰۱۲';
+      pidInp.placeholder = 'যেমন: ৪৭০১২';
     }
   }
   function addStudent() {
@@ -1732,7 +1741,7 @@ body.page-daftar #modal-account-entry .modal {
   function downloadTemplate() {
     const clsNames = API.Classes.getAll().map(c=>c.name).join(', ');
     const header = 'নাম,বর্ষ,রোল,অভিভাবক,পেশা,ফোন,জেলা,উপজেলা,স্থায়ী_আইডি';
-    const sample = 'মুহাম্মাদ আব্দুল্লাহ,১ম বর্ষ,১০۱,আব্দুর রহীম,চাষাবাদ,۰۱۷۰۰-۰۰۰۰۰۰,ঢাকা,দোহার,۴۷۰۱۲';
+    const sample = 'মুহাম্মাদ আব্দুল্লাহ,১ম বর্ষ,১০১,আব্দুর রহীম,চাষাবাদ,০১৭০০-০০০০০০,ঢাকা,দোহার,৪৭০১২';
     const blob = new Blob(['\uFEFF# বর্ষের নাম: ' + clsNames + '\n' + header + '\n' + sample], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = 'ছাত্র_নমুনা.csv'; a.click();
@@ -1860,10 +1869,8 @@ body.page-daftar #modal-account-entry .modal {
     } else if (location.hash === '#fees' || location.hash === '#accounts') {
       switchPanel('fees');
       renderAccounts();
-    } else if (location.hash === '#summary') {
-      switchPanel('summary');
     } else if (location.hash === '#students') {
-      switchPanel('students');
+      location.replace('madrasa-home.html#students');
     }
   }
   initDaftarPage();

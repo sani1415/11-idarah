@@ -61,6 +61,32 @@
     return out;
   }
 
+  /** বর্ষ id (prototype) → শিক্ষকের নাম; Supabase বুটস্ট্র্যাপ থেকে পূরণ */
+  var _classTeacherByLocalId = {};
+
+  function applyClassTeachers(rows) {
+    _classTeacherByLocalId = {};
+    (rows || []).forEach(function (row) {
+      var lid = CLASS_CODE_TO_LOCAL_ID[row.class_code] || '';
+      var nm = row.name != null ? String(row.name) : '';
+      if (lid && nm) _classTeacherByLocalId[lid] = nm;
+    });
+  }
+
+  /** প্রোটোটাইপ localStorage + সর্বশেষ সফল সিঙ্কের শিক্ষক (DB প্রাধান্য) */
+  function classTeachersMergedMap() {
+    var map = {};
+    if (global.API && API.Teachers && API.Teachers.getAll) {
+      API.Teachers.getAll().forEach(function (t) {
+        if (t.class_id && t.is_active !== false) map[t.class_id] = t.name;
+      });
+    }
+    Object.keys(_classTeacherByLocalId).forEach(function (lid) {
+      map[lid] = _classTeacherByLocalId[lid];
+    });
+    return map;
+  }
+
   async function sync() {
     if (!global.MMSharedAPI || !global.API) return false;
     var a = actor();
@@ -71,6 +97,7 @@
     if (API.Attendance && API.Attendance.replaceAll) {
       API.Attendance.replaceAll((res.attendance || []).map(toLocalAttendance));
     }
+    if (Array.isArray(res.class_teachers)) applyClassTeachers(res.class_teachers);
     return true;
   }
 
@@ -89,5 +116,6 @@
   global.MDRDaftarSupabase = {
     sync: sync,
     saveDay: saveDay,
+    classTeachersMergedMap: classTeachersMergedMap,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
