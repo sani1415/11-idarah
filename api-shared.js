@@ -73,6 +73,86 @@ const MMSharedAPI = (() => {
         p_hijri_year: hijriYear || null,
       });
     },
+    teacherClassBootstrap(actorId, pin) {
+      return rpc('mdr_rel_teacher_class_bootstrap', {
+        p_actor_id: actorId,
+        p_pin: pin,
+      });
+    },
+    setSpecialWatch(actorId, pin, studentId, specialWatch) {
+      return rpc('mdr_rel_set_special_watch', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_student_id: studentId,
+        p_special_watch: !!specialWatch,
+      });
+    },
+    setStudentStatus(actorId, pin, studentId, status, reason) {
+      return rpc('mdr_rel_set_student_status', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_student_id: studentId,
+        p_status: status,
+        p_reason: reason || null,
+      });
+    },
+    alumniBootstrap(actorId, pin) {
+      return rpc('mdr_rel_alumni_bootstrap', {
+        p_actor_id: actorId,
+        p_pin: pin,
+      });
+    },
+    saveAkhlaq(actorId, pin, studentId, score, reason) {
+      return rpc('mdr_rel_save_akhlaq', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_student_id: studentId,
+        p_score: Number(score),
+        p_reason: reason || '',
+      });
+    },
+    saveTeacherLog(actorId, pin, type, studentId, content) {
+      return rpc('mdr_rel_save_teacher_log', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_type: type,
+        p_student_id: studentId || null,
+        p_content: content || '',
+      });
+    },
+    saveBookProgress(actorId, pin, bookId, pagesDone, note) {
+      return rpc('mdr_rel_save_book_progress', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_book_id: bookId,
+        p_pages_done: Number(pagesDone),
+        p_note: note || null,
+      });
+    },
+    chatBootstrap(actorId, pin, isAdmin) {
+      return rpc('mdr_rel_chat_bootstrap', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_is_admin: !!isAdmin,
+      });
+    },
+    chatSend(actorId, pin, threadId, text, isAdmin) {
+      return rpc('mdr_rel_chat_send', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_thread_id: threadId,
+        p_text: text,
+        p_is_admin: !!isAdmin,
+      });
+    },
+    chatMarkRead(actorId, pin, threadId, isAdmin) {
+      return rpc('mdr_rel_chat_mark_read', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_thread_id: threadId,
+        p_is_admin: !!isAdmin,
+      });
+    },
   };
 })();
 

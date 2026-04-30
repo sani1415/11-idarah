@@ -39,8 +39,12 @@
       phone: row.guardian_phone || '',
       district: row.district || '',
       upazila: row.upazila || '',
+      status: row.status || 'active',
       active: row.status !== 'dropped' && row.status !== 'alumni',
       hifz: !!row.is_hifz,
+      special_watch: !!row.special_watch,
+      left_date: row.left_date || '',
+      left_reason: row.left_reason || '',
       supabase_id: row.id || '',
     };
   }

@@ -155,6 +155,9 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="api-shared.js"></script>
 <script src="js/mm-sample-data.js"></script>
 <script src="js/api.js"></script>
 <script src="js/mm-session.js"></script>
@@ -180,44 +183,75 @@
 
   const myThread = getMyThread();
   let activeThread = null, activePeerName = '', activePeerIcon = '👤';
+  let remoteStaffUsers = [];
+
+  function chatActorId() {
+    return isAdmin ? (MMSession.getAdminUserId && MMSession.getAdminUserId()) : (MMSession.getStaffUserId && MMSession.getStaffUserId());
+  }
+  function chatPin() {
+    return isAdmin ? (MMSession.getAdminPin && MMSession.getAdminPin()) : (MMSession.getStaffPin && MMSession.getStaffPin());
+  }
+  async function syncChatRemote() {
+    if (!window.MMSharedAPI || !ChatAPI.syncRemote) return false;
+    try {
+      await ChatAPI.syncRemote(chatActorId(), chatPin(), isAdmin);
+      return true;
+    } catch (e) {
+      console.warn('Chat Supabase sync failed', e);
+      return false;
+    }
+  }
+  async function syncRemoteStaffUsers() {
+    if (!isAdmin || !window.MMSharedAPI || !MMSession.getAdminPin) return;
+    try {
+      const res = await MMSharedAPI.adminUsers(MMSession.getAdminPin());
+      remoteStaffUsers = res && res.ok && Array.isArray(res.users) ? res.users : [];
+    } catch (e) {
+      console.warn('Chat staff list sync failed', e);
+    }
+  }
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
   /* ── INIT ── */
-  document.getElementById('view-loading').style.display = 'none';
-
   const urlParams = new URLSearchParams(location.search);
 
-  if (isAdmin) {
-    document.body.classList.add('chat-admin');
-    const hubNav = document.getElementById('chat-page-hub-nav');
-    if (hubNav) hubNav.style.display = 'flex';
-    const inboxBack = document.getElementById('inbox-back-btn');
-    if (inboxBack) inboxBack.onclick = () => { location.href = 'chat.html'; };
+  async function initChatPage() {
+    await syncChatRemote();
+    await syncRemoteStaffUsers();
+    document.getElementById('view-loading').style.display = 'none';
 
-    if (urlParams.get('compose') === '1') {
-      document.getElementById('view-inbox').style.display = 'none';
-      setTimeout(() => openCompose(), 120);
-    } else if (urlParams.get('thread')) {
-      const tid = urlParams.get('thread');
-      const threads = ChatAPI.getThreads();
-      const t = threads.find((x) => x.thread_id === tid);
-      const lbl = ChatAPI.getLabel(tid);
-      const staffName = t ? t.staff_name : lbl.name;
-      openChat(tid, staffName, lbl.icon, lbl.name);
+    if (isAdmin) {
+      document.body.classList.add('chat-admin');
+      const hubNav = document.getElementById('chat-page-hub-nav');
+      if (hubNav) hubNav.style.display = 'flex';
+      const inboxBack = document.getElementById('inbox-back-btn');
+      if (inboxBack) inboxBack.onclick = () => { location.href = 'chat.html'; };
+
+      if (urlParams.get('compose') === '1') {
+        document.getElementById('view-inbox').style.display = 'none';
+        setTimeout(() => openCompose(), 120);
+      } else if (urlParams.get('thread')) {
+        const tid = urlParams.get('thread');
+        const threads = ChatAPI.getThreads();
+        const t = threads.find((x) => x.thread_id === tid);
+        const lbl = ChatAPI.getLabel(tid);
+        const staffName = t ? t.staff_name : lbl.name;
+        openChat(tid, staffName, lbl.icon, lbl.name);
+      } else {
+        showInbox();
+      }
+    } else if (myThread) {
+      const inp0 = document.getElementById('chat-inp');
+      if (inp0) inp0.placeholder = 'বার্তা লিখুন…';
+      const lbl = ChatAPI.getLabel(myThread);
+      openChat(myThread, myName, lbl.icon, lbl.name);
     } else {
-      showInbox();
+      document.getElementById('view-loading').style.display = 'flex';
+      document.getElementById('view-loading').innerHTML =
+        '<div style="color:rgba(255,255,255,0.4);font-size:14px;text-align:center;padding:20px;">লগইন করুন প্রথমে।</div>';
+      setTimeout(() => location.href='index.html', 2000);
     }
-  } else if (myThread) {
-    const inp0 = document.getElementById('chat-inp');
-    if (inp0) inp0.placeholder = 'বার্তা লিখুন…';
-    const lbl = ChatAPI.getLabel(myThread);
-    openChat(myThread, myName, lbl.icon, lbl.name);
-  } else {
-    document.getElementById('view-loading').style.display = 'flex';
-    document.getElementById('view-loading').innerHTML =
-      '<div style="color:rgba(255,255,255,0.4);font-size:14px;text-align:center;padding:20px;">লগইন করুন প্রথমে।</div>';
-    setTimeout(() => location.href='index.html', 2000);
   }
 
   /* ── INBOX ── */
@@ -260,7 +294,7 @@
   }
 
   /* ── OPEN CHAT ── */
-  function openChat(thread_id, peerName, peerIcon, peerRole) {
+  async function openChat(thread_id, peerName, peerIcon, peerRole) {
     activeThread   = thread_id;
     activePeerName = peerName;
     activePeerIcon = peerIcon || '👤';
@@ -275,6 +309,14 @@
 
     if (isAdmin) ChatAPI.markReadAdmin(thread_id);
     else         ChatAPI.markReadStaff(thread_id);
+    if (ChatAPI.markReadRemote) {
+      try {
+        await ChatAPI.markReadRemote(chatActorId(), chatPin(), thread_id, isAdmin);
+        await syncChatRemote();
+      } catch (e) {
+        console.warn('Chat mark read failed', e);
+      }
+    }
 
     renderMsgs();
     setTimeout(scrollEnd, 60);
@@ -325,13 +367,22 @@
   }
 
   /* ── SEND ── */
-  function sendMsg() {
+  async function sendMsg() {
     const inp  = document.getElementById('chat-inp');
     const text = inp.value.trim();
     if (!text || !activeThread) return;
     const fromRole = isAdmin ? 'admin' : (myRole || myDeptRole || 'staff');
     const fromName = isAdmin ? 'জিম্মাদার' : myName;
     ChatAPI.send(activeThread, fromRole, fromName, text);
+    if (ChatAPI.sendRemote) {
+      try {
+        const res = await ChatAPI.sendRemote(chatActorId(), chatPin(), activeThread, text, isAdmin);
+        if (!res || !res.ok) throw new Error((res && res.error) || 'chat_send_failed');
+        await syncChatRemote();
+      } catch (e) {
+        console.warn('Chat Supabase send failed', e);
+      }
+    }
     inp.value = '';
     resize(inp);
     renderMsgs();
@@ -369,6 +420,27 @@
 
   function buildStaffList() {
     const list = [];
+    const seen = new Set();
+    function pushStaff(item) {
+      if (!item || !item.thread_id || seen.has(item.thread_id)) return;
+      seen.add(item.thread_id);
+      list.push(item);
+    }
+    remoteStaffUsers.forEach(u => {
+      if (u.role === 'madrasa_teacher') {
+        pushStaff({ thread_id:'teacher-' + u.id, name:u.name, icon:'📖', role:u.class_name || 'বর্ষ দায়িত্বশীল' });
+      } else if (u.role === 'daftar') {
+        pushStaff({ thread_id:'daftar', name:u.name, icon:'📋', role:'দফতর দায়িত্বশীল' });
+      } else if (u.role === 'hifz') {
+        pushStaff({ thread_id:'hifz', name:u.name, icon:'📿', role:'হিফজ দায়িত্বশীল' });
+      } else if (u.role === 'library') {
+        pushStaff({ thread_id:'library', name:u.name, icon:'📚', role:'মাকতাবা দায়িত্বশীল' });
+      } else if (u.role === 'alumni_tracker') {
+        pushStaff({ thread_id:'alumni', name:u.name, icon:'🎓', role:'পুরনো ছাত্র দায়িত্বশীল' });
+      } else if (u.role === 'khedmat') {
+        pushStaff({ thread_id:'khedmat', name:u.name, icon:'🤝', role:'খেদমত দায়িত্বশীল' });
+      }
+    });
     // Fixed-role staff
     const fixedRoles = [
       { role:'daftar',  lbl:'দফতর দায়িত্বশীল',      icon:'📋' },
@@ -379,16 +451,16 @@
     ];
     fixedRoles.forEach(r => {
       const user = API.Teachers.getAll().find(t => t.role === r.role);
-      list.push({ thread_id:r.role, name: user?.name||r.lbl, icon:r.icon, role:r.lbl });
+      pushStaff({ thread_id:r.role, name: user?.name||r.lbl, icon:r.icon, role:r.lbl });
     });
     // Class teachers
     API.Teachers.getAll().filter(t=>t.class_id).forEach(t => {
       const cls = API.Classes.getById(t.class_id);
-      list.push({ thread_id:'teacher-'+t.id, name:t.name, icon:'📖', role: cls?cls.name:'বর্ষ দায়িত্বশীল' });
+      pushStaff({ thread_id:'teacher-'+t.id, name:t.name, icon:'📖', role: cls?cls.name:'বর্ষ দায়িত্বশীল' });
     });
     // Dept heads
     DeptAPI.Departments.getAll().forEach(d => {
-      list.push({ thread_id:'dept-'+d.id, name:d.name+' দায়িত্বশীল', icon:d.emoji, role:'বিভাগ দায়িত্বশীল' });
+      pushStaff({ thread_id:'dept-'+d.id, name:d.name+' দায়িত্বশীল', icon:d.emoji, role:'বিভাগ দায়িত্বশীল' });
     });
     return list;
   }
@@ -414,6 +486,7 @@
       return toBn(p[2]+'/'+p[1]+'/'+p[0]);
     } catch { return dateStr; }
   }
+  initChatPage();
 </script>
 </body>
 </html>

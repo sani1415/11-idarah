@@ -9,10 +9,35 @@ const MdrAccAPI = (() => {
   const CAT_KEY = 'mdr_acc_cats';
 
   /* MONTHS in academic-year order (Ramadan = start) */
-  const MONTHS = ['রামাযান','শাওয়াল','যিলকদ','যিলহাজ','মুহাররম','সফর',
-    'রবিউল আঃ','রবিউস সানিঃ','জুমাদাল উলা','জুমাদাল আখেরা','রজব','শাবান'];
-  const HIJRI_MONTHS = ['মুহাররম','সফর','রবিউল আঃ','রবিউস সানিঃ','জুমাদাল উলা','জুমাদাল আখেরা','রজব','শাবান','রামাযান','শাওয়াল','যিলকদ','যিলহাজ'];
-  const MONTH_ALIAS = { 'শাওয়াল':'শাওয়াল', 'জিলকাদ':'যিলকদ', 'যিলক্বদ':'যিলকদ', 'মুহার্রম':'মুহাররম' };
+  const MONTHS = ['রমজান','শাওয়াল','জিলকদ','জিলহজ','মুহাররম','সফর',
+    'রবিউল আউয়াল','রবিউস সানি','জুমাদাল উলা','জুমাদাল উখরা','রজব','শাবান'];
+  const HIJRI_MONTHS = ['মুহাররম','সফর','রবিউল আউয়াল','রবিউস সানি','জুমাদাল উলা','জুমাদাল উখরা','রজব','শাবান','রমজান','শাওয়াল','জিলকদ','জিলহজ'];
+  const MONTH_ALIAS = {
+    'রামাযান':'রমজান',
+    'রমাযান':'রমজান',
+    'শাওয়াল':'শাওয়াল',
+    'যিলকদ':'জিলকদ',
+    'যিলক্বদ':'জিলকদ',
+    'যুলকদ':'জিলকদ',
+    'জিলকাদ':'জিলকদ',
+    'জিলক্বদ':'জিলকদ',
+    'জুলকদ':'জিলকদ',
+    'যিলহাজ':'জিলহজ',
+    'যিলহজ':'জিলহজ',
+    'যুলহজ':'জিলহজ',
+    'জিলহাজ':'জিলহজ',
+    'জুলহজ':'জিলহজ',
+    'মুহার্রম':'মুহাররম',
+    'রবিউল আঃ':'রবিউল আউয়াল',
+    'রবিউল আওয়াল':'রবিউল আউয়াল',
+    'রবিউস সানিঃ':'রবিউস সানি',
+    'জুমাদাল আখেরা':'জুমাদাল উখরা',
+    'জুমাদাল উখরা':'জুমাদাল উখরা',
+    'জমাদাল উলা':'জুমাদাল উলা',
+    'জমাদাল উখরা':'জুমাদাল উখরা',
+    'জমাদিউল আউয়াল':'জুমাদাল উলা',
+    'জমাদিউস সানি':'জুমাদাল উখরা',
+  };
 
   /* Islamic calendar month index: Intl month 1–12 → MONTHS index
      Intl 9=Ramadan → idx 0; formula: (intlMonth + 3) % 12 */
@@ -21,7 +46,6 @@ const MdrAccAPI = (() => {
   const ACCOUNT_LABELS = {
     matbakh:'মাতবাখ', madrasa:'মাদরাসা', tamirat:'তামিরাত', general:'সাধারণ',
   };
-  const OFFSET_KEY = 'mdr_acc_hijri_offset_days';
 
   const DEFAULT_CATS = [
     'বড় বাজার','কাঁচা বাজার','দস্তরখান ভবন','রান্নাঘর সরবরাহ',
@@ -34,7 +58,10 @@ const MdrAccAPI = (() => {
   const load  = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch { return []; } };
   const store = (k,a) => localStorage.setItem(k, JSON.stringify(a));
   const monthKey = (m) => MONTH_ALIAS[String(m || '').trim()] || String(m || '').trim();
-  const monthNo = (m) => Math.max(0, HIJRI_MONTHS.indexOf(monthKey(m))) + 1;
+  const monthNo = (m) => {
+    const idx = HIJRI_MONTHS.indexOf(monthKey(m));
+    return idx >= 0 ? idx + 1 : 0;
+  };
   const monthFromNo = (m) => HIJRI_MONTHS[Math.max(1, Math.min(12, num(m))) - 1] || '';
   const systemHijriYear = () => {
     try {
@@ -151,8 +178,15 @@ const MdrAccAPI = (() => {
 
   /* ── Hijri date settings ── */
   const Settings = {
-    getHijriOffsetDays() { return num(localStorage.getItem(OFFSET_KEY)); },
-    setHijriOffsetDays(days) { localStorage.setItem(OFFSET_KEY, String(Math.max(-3, Math.min(3, num(days))))); },
+    getHijriOffsetDays() {
+      if (window.MMHijri && window.MMHijri.getOffsetDays) return window.MMHijri.getOffsetDays();
+      try { return num(localStorage.getItem('mdr_acc_hijri_offset_days')); } catch (e) { return 0; }
+    },
+    setHijriOffsetDays(days) {
+      if (window.MMHijri && window.MMHijri.setOffsetDays) return window.MMHijri.setOffsetDays(days);
+      try { localStorage.setItem('mdr_acc_hijri_offset_days', String(Math.max(-3, Math.min(3, num(days))))); } catch (e) {}
+      return Math.max(-3, Math.min(3, num(days)));
+    },
   };
 
   /* ── Summary ── */
@@ -178,7 +212,9 @@ const MdrAccAPI = (() => {
 
   /* ── Public format helpers ── */
   function esc(s) { const d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
-  function fa(n)  { return String(Math.round(num(n))).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function fa(n)  { return bn(String(Math.round(num(n))).replace(/\B(?=(\d{3})+(?!\d))/g, ',')); }
+  function pct(n) { return bn(num(n)) + '%'; }
+  function count(n, label) { return bn(num(n)) + (label ? ' ' + label : ''); }
   function clean(s, fallback) {
     const v = String(s || '').trim();
     return /�|\?{2,}/.test(v) ? (fallback || '') : v;
@@ -186,6 +222,10 @@ const MdrAccAPI = (() => {
 
   /* Today's hijri month name and day number */
   function todayHijri() {
+    if (window.MMHijri && window.MMHijri.todayHijri) {
+      const h = window.MMHijri.todayHijri();
+      return { year: h.year, month: monthFromNo(h.monthNo), monthNo: h.monthNo, day: h.day };
+    }
     try {
       const d = new Date();
       d.setDate(d.getDate() + Settings.getHijriOffsetDays());
@@ -200,5 +240,5 @@ const MdrAccAPI = (() => {
     }
   }
 
-  return { ensureSeed, Income, Expense, Dues, Summary, Categories, Settings, MONTHS, HIJRI_MONTHS, ACCOUNT_LABELS, esc, fa, clean, monthKey, monthFromNo, monthNo, dateKey, dateLabel, parseDateInput, toDateKey, inRange, num, todayHijri };
+  return { ensureSeed, Income, Expense, Dues, Summary, Categories, Settings, MONTHS, HIJRI_MONTHS, ACCOUNT_LABELS, esc, bn, fa, pct, count, clean, monthKey, monthFromNo, monthNo, dateKey, dateLabel, parseDateInput, toDateKey, inRange, num, todayHijri };
 })();

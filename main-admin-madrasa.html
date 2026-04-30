@@ -343,6 +343,31 @@
     return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'dept=' + encodeURIComponent(dept);
   }
 
+  async function syncMadrasaSettings() {
+    if (!window.MMMadrasaAPI || !MMSession.getAdminPin()) return;
+    try {
+      const res = await MMMadrasaAPI.getSettings(MMSession.getAdminPin());
+      const db = res.settings || {};
+      if (!db || (!db.institution && !db.hijri_year && !db.session_start_date && db.hijri_offset_days == null)) return;
+      const local = API.Settings.get();
+      const next = {
+        ...local,
+        institution: db.institution || local.institution,
+        hijri_year: db.hijri_year || local.hijri_year,
+        session_start_date: db.session_start_date || local.session_start_date,
+        hijri_offset_days: db.hijri_offset_days != null ? Number(db.hijri_offset_days) || 0 : Number(local.hijri_offset_days) || 0,
+      };
+      API.Settings.save(next);
+      if (window.MMHijri) MMHijri.setOffsetDays(next.hijri_offset_days);
+      if (next.session_start_date) {
+        if (API.Sessions.getCurrent()) API.Sessions.setCurrentStartDate(next.session_start_date);
+        else API.Sessions.ensureInitialized();
+      }
+    } catch (err) {
+      console.warn('madrasa settings sync skipped', err);
+    }
+  }
+
   function getScopeDepts() {
     const allowed = MMSession.getAllowedMadrasaDepts();
     if (currentDept === 'kitab' || currentDept === 'maktab') return allowed.includes(currentDept) ? [currentDept] : [];
@@ -618,6 +643,7 @@
 
   async function initDashboard() {
     applyAdminPermissions();
+    await syncMadrasaSettings();
     try {
       await MDRSupabaseSync.syncAdminStudents();
     } catch (e) {

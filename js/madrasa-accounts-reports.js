@@ -10,6 +10,9 @@ var _rptSearch = '';
   var A   = MdrAccAPI;
   var esc = function (s) { return A.esc(s); };
   var fa  = function (n) { return A.fa(n); };
+  var bn  = function (s) { return A.bn ? A.bn(s) : String(s || '').replace(/[0-9]/g, function (d) { return '\u09E6\u09E7\u09E8\u09E9\u09EA\u09EB\u09EC\u09ED\u09EE\u09EF'[d]; }); };
+  var pct = function (n) { return A.pct ? A.pct(n) : bn(n) + '%'; };
+  var count = function (n, label) { return A.count ? A.count(n, label) : bn(n) + (label ? ' ' + label : ''); };
   var num = function (n) { return A.num(n); };
 
   /* ── inject CSS once ── */
@@ -96,7 +99,7 @@ var _rptSearch = '';
       byMonth[m].amt += num(r.amount);
     });
     var maxQty = Math.max.apply(null, Object.keys(byMonth).map(function (m) { return byMonth[m].qty; }).concat([1]));
-    var monthBars = Object.keys(byMonth).map(function (m) {
+    var monthBars = A.MONTHS.filter(function (m) { return byMonth[m]; }).map(function (m) {
       var v = byMonth[m];
       return '<div class="rpt-bar-row"><div class="rpt-bar-lbl">' + esc(m) + '</div>' +
         '<div class="rpt-bar-wrap"><div class="rpt-bar-fill" style="width:' + Math.round(v.qty / maxQty * 100) + '%;background:var(--gold)"></div></div>' +
@@ -107,7 +110,7 @@ var _rptSearch = '';
       var isHigh = num(r.unitPrice) === maxP && prices.length > 1;
       var isLow  = num(r.unitPrice) === minP && prices.length > 1;
       var chip = isHigh ? '<span class="rpt-chip rpt-chip-hi">সর্বোচ্চ</span>' : isLow ? '<span class="rpt-chip rpt-chip-lo">সর্বনিম্ন</span>' : '';
-      return '<tr><td>' + esc(A.monthKey(r.month) || '') + (r.day ? ' ' + r.day : '') + '</td>' +
+      return '<tr><td>' + esc(A.monthKey(r.month) || '') + (r.day ? ' ' + bn(r.day) : '') + '</td>' +
         '<td>' + fa(num(r.quantity)) + '</td>' +
         '<td>' + (num(r.unitPrice) ? '৳' + fa(r.unitPrice) + chip : '—') + '</td>' +
         '<td><strong>৳' + fa(r.amount) + '</strong></td>' +
@@ -124,11 +127,7 @@ var _rptSearch = '';
      মাসিক সারসংক্ষেপ
   ════════════════════════════════════════ */
   function buildMonthlyReport() {
-    var allMonths = [];
-    A.Income.months().concat(A.Expense.months()).forEach(function (m) { if (allMonths.indexOf(m) < 0) allMonths.push(m); });
-    var mo = A.MONTHS;
-    allMonths.sort(function (a, b) { return mo.indexOf(a) - mo.indexOf(b); });
-    if (!allMonths.length) return '<div class="rpt-empty">তথ্য নেই</div>';
+    var allMonths = A.MONTHS.slice();
     var AL = A.ACCOUNT_LABELS;
     var data = allMonths.map(function (m) {
       return {
@@ -173,7 +172,7 @@ var _rptSearch = '';
       sorted.map(function (e) {
         return '<div class="rpt-bar-row"><div class="rpt-bar-lbl">' + esc(e[0]) + '</div>' +
           '<div class="rpt-bar-wrap"><div class="rpt-bar-fill" style="width:' + Math.round(e[1].amt / maxAmt * 100) + '%;background:#3b82f6"></div></div>' +
-          '<div class="rpt-bar-val">৳' + fa(e[1].amt) + ' <span style="font-size:9px;color:var(--ink3)">(' + Math.round(e[1].amt / total * 100) + '%)</span></div></div>';
+          '<div class="rpt-bar-val">৳' + fa(e[1].amt) + ' <span style="font-size:9px;color:var(--ink3)">(' + pct(Math.round(e[1].amt / total * 100)) + ')</span></div></div>';
       }).join('');
   }
 
@@ -203,7 +202,7 @@ var _rptSearch = '';
         '<div class="rpt-card-row"><span>বকেয়া</span><span style="color:' + (num(due.due) > 0 ? 'var(--red)' : 'var(--green)') + '">' + (num(due.due) > 0 ? '' : '✓ ') + '৳' + fa(Math.abs(num(due.due))) + '</span></div></div>' : '';
       return '<div class="rpt-card"><div class="rpt-card-title">' + esc(sup) + '</div>' +
         '<div class="rpt-card-row"><span>মোট কেনা</span><span style="font-weight:700">৳' + fa(v.totalAmt) + '</span></div>' +
-        '<div class="rpt-card-row" style="color:var(--ink3)"><span>এন্ট্রি</span><span>' + v.cnt + ' টি</span></div>' +
+        '<div class="rpt-card-row" style="color:var(--ink3)"><span>এন্ট্রি</span><span>' + count(v.cnt, 'টি') + '</span></div>' +
         topItems + dueRow + '</div>';
     }).join('');
   }

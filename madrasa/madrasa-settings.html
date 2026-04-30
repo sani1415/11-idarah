@@ -73,10 +73,22 @@
       </div>
       <div class="form-group">
         <label class="form-label">চলতি শিক্ষাবর্ষ শুরুর তারিখ</label>
-        <input class="form-input" type="date" id="session-start">
+        <input class="form-input" type="date" id="session-start" onchange="updateDatePreviews()" oninput="updateDatePreviews()">
+        <div id="session-start-preview" style="font-size:11px;color:var(--ink2);margin-top:6px;line-height:1.6;"></div>
         <div style="font-size:11px;color:var(--ink3);margin-top:4px;">
-          প্রথমবার সেটআপ করুন। বর্ষ উন্নীতকরণে স্বয়ংক্রিয় আপডেট হয়।
+          ডাটাবেজে খ্রিস্টাব্দ ISO তারিখ থাকে; দেখানোর সময় হিজরী তারিখ আগে দেখানো হবে।
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">হিজরী তারিখ সমন্বয়</label>
+        <select class="form-input form-select" id="hijri-offset" onchange="updateDatePreviews()">
+          <option value="-2">২ দিন আগে</option>
+          <option value="-1">১ দিন আগে</option>
+          <option value="0">সমন্বয় নেই</option>
+          <option value="1">১ দিন পরে</option>
+          <option value="2">২ দিন পরে</option>
+        </select>
+        <div id="hijri-offset-preview" style="font-size:11px;color:var(--ink3);margin-top:6px;line-height:1.6;"></div>
       </div>
       <button class="submit-btn" onclick="saveGeneral()">সংরক্ষণ করুন</button>
     </div>
@@ -316,8 +328,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../supabase-config.js"></script>
 <script src="../api-shared.js"></script>
+<script src="../api-mdr.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mm-hijri.js"></script>
 <script src="../js/mm-session.js"></script>
 <script>
   if (!MMSession.isMainAdmin()) location.href='../main-admin-madrasa.html';
@@ -329,6 +343,7 @@
   let editingAdminId = null;
   let editingClassId = null;
   let supabaseUsers = null;
+  let settingsLoadedFromDb = false;
 
   const LOCAL_CLASS_TO_SUPA_CODE = {
     cls_k1: 'kitab_y1',
@@ -428,25 +443,109 @@
   }
 
   /* GENERAL */
+  function toEnDigits(v) {
+    return String(v || '').replace(/[\u09E6-\u09EF\u0660-\u0669\u06F0-\u06F9]/g, d => {
+      const b = '\u09E6\u09E7\u09E8\u09E9\u09EA\u09EB\u09EC\u09ED\u09EE\u09EF'.indexOf(d); if (b >= 0) return b;
+      const a = '٠١٢٣٤٥٦٧٨٩'.indexOf(d); if (a >= 0) return a;
+      return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+    });
+  }
+  function getOffsetInputValue() {
+    const el = document.getElementById('hijri-offset');
+    return Math.max(-3, Math.min(3, Number(toEnDigits(el && el.value)) || 0));
+  }
+  function setOffsetInputValue(value) {
+    const el = document.getElementById('hijri-offset');
+    if (el) el.value = String(Math.max(-2, Math.min(2, Number(value) || 0)));
+  }
+  function formatDatePreview(iso, offset) {
+    if (!iso || !window.MMHijri) return '';
+    const d = MMHijri.dualLine(iso, { offsetDays: offset });
+    return '<strong>হিজরী:</strong> ' + API.esc(d.primary) + '<br><span style="color:var(--ink3)">' + API.esc(d.secondary || ('খ্রিস্টাব্দ: ' + MMHijri.gregorianLongBn(iso))) + '</span>';
+  }
+  function updateDatePreviews() {
+    const offset = getOffsetInputValue();
+    const start = document.getElementById('session-start').value;
+    const startPreview = document.getElementById('session-start-preview');
+    const offsetPreview = document.getElementById('hijri-offset-preview');
+    if (startPreview) startPreview.innerHTML = formatDatePreview(start, offset) || 'তারিখ দিলে এখানে হিজরী ও খ্রিস্টাব্দ দেখা যাবে।';
+    if (offsetPreview) {
+      const today = API.today ? API.today() : new Date().toISOString().split('T')[0];
+      offsetPreview.innerHTML = 'আজকের কার্যকর হিজরী তারিখ: <strong>' + API.esc(MMHijri.hijriOrFallback(today, { offsetDays: offset }) || '—') + '</strong>';
+    }
+  }
   function loadGeneral() {
     const s = API.Settings.get();
     document.getElementById('inst-name').value    = s.institution||'';
     document.getElementById('hijri-year').value   = s.hijri_year||'';
+    setOffsetInputValue(s.hijri_offset_days);
     const cur = API.Sessions.getCurrent();
     /* সেটিংস-এর তারিখই প্রাধান্য, যেন ব্রাউজার রিফ্রেশে সেশন-রো-এর পুরনো 'আজ' লুকিয়ে সেটিংস মুছে না দেখায় */
     document.getElementById('session-start').value = (s.session_start_date && String(s.session_start_date).trim()) || (cur && cur.start_date) || '';
+    updateDatePreviews();
+    loadGeneralFromSupabase();
   }
-  function saveGeneral() {
+  async function loadGeneralFromSupabase() {
+    if (settingsLoadedFromDb) return;
+    if (!window.MMMadrasaAPI || !MMSession.getAdminPin()) return;
+    try {
+      const res = await MMMadrasaAPI.getSettings(MMSession.getAdminPin());
+      const db = res.settings || {};
+      settingsLoadedFromDb = true;
+      if (!db || (!db.institution && !db.hijri_year && !db.session_start_date && db.hijri_offset_days == null)) return;
+      const local = API.Settings.get();
+      const next = {
+        ...local,
+        institution: db.institution || local.institution,
+        hijri_year: db.hijri_year || local.hijri_year,
+        session_start_date: db.session_start_date || local.session_start_date,
+        hijri_offset_days: db.hijri_offset_days != null ? Number(db.hijri_offset_days) || 0 : (Number(local.hijri_offset_days) || 0),
+      };
+      API.Settings.save(next);
+      if (window.MMHijri) MMHijri.setOffsetDays(next.hijri_offset_days);
+      if (next.session_start_date) {
+        if (API.Sessions.getCurrent()) API.Sessions.setCurrentStartDate(next.session_start_date);
+        else API.Sessions.ensureInitialized();
+      }
+      document.getElementById('inst-name').value = next.institution || '';
+      document.getElementById('hijri-year').value = next.hijri_year || '';
+      document.getElementById('session-start').value = next.session_start_date || '';
+      setOffsetInputValue(next.hijri_offset_days);
+      updateDatePreviews();
+    } catch (err) {
+      console.warn('settings load skipped', err);
+    }
+  }
+  async function saveGeneral() {
     const s = API.Settings.get();
     s.institution = document.getElementById('inst-name').value.trim()||s.institution;
     const hy = document.getElementById('hijri-year').value.trim();
     const sd = document.getElementById('session-start').value;
+    s.hijri_offset_days = getOffsetInputValue();
     if (hy) s.hijri_year = hy;
     if (sd) s.session_start_date = sd;
     API.Settings.save(s);
+    if (window.MMHijri) MMHijri.setOffsetDays(s.hijri_offset_days);
     if (sd) {
       if (API.Sessions.getCurrent()) API.Sessions.setCurrentStartDate(sd);
       else API.Sessions.ensureInitialized();
+    }
+    if (window.MMMadrasaAPI && MMSession.getAdminPin()) {
+      try {
+        await MMMadrasaAPI.saveSettings(MMSession.getAdminPin(), {
+          institution: s.institution || '',
+          hijri_year: s.hijri_year || '',
+          session_start_date: s.session_start_date || '',
+          hijri_offset_days: s.hijri_offset_days || 0,
+        });
+        settingsLoadedFromDb = true;
+        showToast('সংরক্ষণ হয়েছে ✓ ডাটাবেজেও সেভ হয়েছে');
+        return;
+      } catch (err) {
+        console.warn('settings save failed', err);
+        showToast('লোকাল সেভ হয়েছে, ডাটাবেজে সেভ হয়নি');
+        return;
+      }
     }
     showToast('সংরক্ষণ হয়েছে ✓');
   }

@@ -102,8 +102,9 @@
     </div>
     <div class="form-group">
       <label class="form-label">নতুন শিক্ষাবর্ষ শুরুর তারিখ (গ্রিগরিয়ান)</label>
-      <input class="form-input" type="date" id="inp-start-date">
-      <div style="font-size:11px;color:var(--ink3);margin-top:4px;">ফাঁকা রাখলে আজকের তারিখ ধরা হবে</div>
+      <input class="form-input" type="date" id="inp-start-date" onchange="updateYearStartPreview()" oninput="updateYearStartPreview()">
+      <div id="year-start-preview" style="font-size:11px;color:var(--ink2);margin-top:6px;line-height:1.6;"></div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:4px;">ফাঁকা রাখলে আজকের তারিখ ধরা হবে। সংরক্ষণে খ্রিস্টাব্দ ISO date থাকবে, দেখানো হবে হিজরী আগে।</div>
     </div>
     <div class="form-group" style="margin-top:16px;">
       <label class="form-label">কোন বিভাগের উন্নীতকরণ করবেন?</label>
@@ -239,6 +240,14 @@
 
   /* ── helpers ── */
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  function updateYearStartPreview() {
+    const input = document.getElementById('inp-start-date');
+    const el = document.getElementById('year-start-preview');
+    if (!input || !el || !window.MMHijri) return;
+    const iso = input.value || API.today();
+    const d = MMHijri.dualLine(iso);
+    el.innerHTML = '<strong>হিজরী:</strong> ' + API.esc(d.primary) + '<br><span style="color:var(--ink3)">' + API.esc(d.secondary || ('খ্রিস্টাব্দ: ' + MMHijri.gregorianLongBn(iso))) + '</span>';
+  }
   function showToast(msg) {
     const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2200);
@@ -264,6 +273,7 @@
     if (!y) { showToast('হিজরী বর্ষ দিন'); return; }
     newYear = y;
     newSessionStartDate = document.getElementById('inp-start-date').value || API.today();
+    updateYearStartPreview();
     buildTeacherGrid();
     goStep(2);
   }
@@ -436,7 +446,7 @@
     API.Students.bulkYearEnd(changes, newYear);
     /* update settings hijri year */
     const s = API.Settings.get();
-    API.Settings.save({ ...s, hijri_year: newYear });
+    API.Settings.save({ ...s, hijri_year: newYear, session_start_date: newSessionStartDate });
     /* session: end current → start new */
     API.Sessions.startNew(newYear, newSessionStartDate);
     document.getElementById('success-sub').textContent = newYear + ' হিজরী শিক্ষাবর্ষ শুরু হয়েছে।';
@@ -462,6 +472,7 @@
   }
 
   goStep(1);
+  updateYearStartPreview();
 </script>
 </body>
 </html>

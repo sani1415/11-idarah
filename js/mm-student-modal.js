@@ -152,6 +152,67 @@
     open(_openSid);
   }
 
+  function canChangeStatus() {
+    try {
+      if (!global.MMSession) return false;
+      var role = global.MMSession.getRole && global.MMSession.getRole();
+      return role === 'admin' || role === 'daftar';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function statusActor() {
+    if (!global.MMSession) return null;
+    if (global.MMSession.getRole && global.MMSession.getRole() === 'admin') {
+      return {
+        id: global.MMSession.getAdminUserId && global.MMSession.getAdminUserId(),
+        pin: global.MMSession.getAdminPin && global.MMSession.getAdminPin(),
+      };
+    }
+    return {
+      id: global.MMSession.getStaffUserId && global.MMSession.getStaffUserId(),
+      pin: global.MMSession.getStaffPin && global.MMSession.getStaffPin(),
+    };
+  }
+
+  async function submitStatusChange() {
+    var API = getApi();
+    var reasonEl = document.getElementById('st-status-reason');
+    if (!API || !_openSid || !reasonEl) return;
+    var s = API.Students.getById(_openSid);
+    if (!s) {
+      toast('ছাত্র পাওয়া যায়নি');
+      return;
+    }
+    var reason = String(reasonEl.value || '').trim();
+    if (!reason) {
+      toast('বিদায়ের কারণ লিখুন');
+      return;
+    }
+    if (!confirm('এই ছাত্রকে সক্রিয় তালিকা থেকে সরিয়ে বিদায়/ইনঅ্যাকটিভ করবেন?')) return;
+
+    var previous = { active: s.active, status: s.status, left_date: s.left_date, left_reason: s.left_reason };
+    API.Students.markInactive(_openSid, reason, API.today());
+    if (global.MMSharedAPI) {
+      try {
+        var a = statusActor();
+        if (a && a.id && a.pin) {
+          var res = await global.MMSharedAPI.setStudentStatus(a.id, a.pin, s.supabase_id || s.id, 'dropped', reason);
+          if (!res || !res.ok) throw new Error((res && res.error) || 'status_failed');
+        }
+      } catch (e) {
+        API.Students.update(_openSid, previous);
+        toast('ডাটাবেজে স্ট্যাটাস সংরক্ষণ হয়নি');
+        open(_openSid);
+        return;
+      }
+    }
+    toast('ছাত্র ইনঅ্যাকটিভ/বিদায় করা হয়েছে');
+    try { global.dispatchEvent(new CustomEvent('mm:student-status-changed', { detail: { student_id: _openSid } })); } catch (e2) {}
+    open(_openSid);
+  }
+
   function close() {
     _openSid = null;
     var el = document.getElementById(MODAL_ID);
@@ -266,6 +327,23 @@
       } catch (err) {
         console.warn('mmStudentModalExtraInfo', err);
       }
+    }
+
+    if (canChangeStatus() && s.active) {
+      infoBlock +=
+        '<div class="st-block">' +
+        '<h4>স্ট্যাটাস পরিবর্তন</h4>' +
+        '<p class="st-note" style="margin:0 0 8px">ছাত্র মাদ্রাসায় আর সক্রিয় না থাকলে এখানে কারণ লিখে ইনঅ্যাকটিভ করুন। এতে হাজিরা/শিক্ষক তালিকা থেকে বাদ যাবে এবং পুরনো ছাত্র তালিকায় যুক্ত হবে।</p>' +
+        '<textarea class="form-input" id="st-status-reason" rows="3" placeholder="বিদায়ের কারণ লিখুন..." style="width:100%;box-sizing:border-box;font-size:13px;resize:vertical"></textarea>' +
+        '<button type="button" class="submit-btn" style="margin-top:10px;padding:11px 16px;font-size:13px;width:100%;background:var(--red,#c1440e);color:#fff" onclick="MMStudentModal.submitStatusChange()">ইনঅ্যাকটিভ / বিদায় করুন</button>' +
+        '</div>';
+    } else if (!s.active) {
+      infoBlock +=
+        '<div class="st-block">' +
+        '<h4>বিদায় তথ্য</h4>' +
+        '<div class="st-logline">' + API.esc(s.left_reason || 'কারণ সংরক্ষিত নেই') +
+        '<small>' + API.esc(s.left_date || '') + '</small></div>' +
+        '</div>';
     }
 
     var attRows = API.Attendance.getByStudent(sid).slice(0, 60);
@@ -462,7 +540,7 @@
     if (modal) modal.classList.add('open');
   }
 
-  global.MMStudentModal = { open: open, close: close, switchTab: switchTab, submitStudentLog: submitStudentLog };
+  global.MMStudentModal = { open: open, close: close, switchTab: switchTab, submitStudentLog: submitStudentLog, submitStatusChange: submitStatusChange };
   global.switchStudentTab = switchTab;
   global.openStudentDetail = function (sid) {
     return open(sid);

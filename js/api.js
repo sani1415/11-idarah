@@ -168,7 +168,16 @@ const API = (() => {
     getById: id => load(KEYS.students).find(s => s.id === id),
     getByClass: cid => load(KEYS.students).filter(s => s.class_id === cid && s.active),
     replaceAll(list) {
-      save(KEYS.students, Array.isArray(list) ? list : []);
+      const existing = load(KEYS.students);
+      const byId = new Map();
+      existing.forEach((s) => {
+        [s.id, s.supabase_id, s.permanent_id].filter(Boolean).forEach((k) => byId.set(String(k), s));
+      });
+      const next = (Array.isArray(list) ? list : []).map((s) => {
+        const prev = byId.get(String(s.id || '')) || byId.get(String(s.supabase_id || '')) || byId.get(String(s.permanent_id || ''));
+        return prev && prev.special_watch && s.special_watch == null ? { ...s, special_watch: true } : s;
+      });
+      save(KEYS.students, next);
     },
     /** কিতাব বা মক্তব বিভাগের সক্রিয় ছাত্র সংখ্যা */
     countActiveByDept(dept) {
@@ -185,6 +194,43 @@ const API = (() => {
     update(id, data) {
       const list = load(KEYS.students).map(s => s.id === id ? { ...s, ...data } : s);
       save(KEYS.students, list);
+    },
+    markInactive(id, reason, date) {
+      const leftDate = date || today();
+      const student = load(KEYS.students).find(s => s.id === id);
+      if (!student) return null;
+      this.update(id, { active: false, status: 'dropped', left_date: leftDate, left_reason: reason || '' });
+      const withdrawals = persistLoadArr('mm_withdrawals');
+      if (!withdrawals.some(w => w.student_id === id)) {
+        withdrawals.push({
+          id: 'wd_' + uid(),
+          student_id: id,
+          student_name: student.name,
+          permanent_id: student.permanent_id,
+          last_class_id: student.class_id,
+          last_roll: student.roll,
+          reason: reason || 'বিদায়',
+          note: reason || '',
+          date: leftDate,
+        });
+        persistSaveArr('mm_withdrawals', withdrawals);
+      }
+      const alumni = persistLoadArr('mm_alumni');
+      if (!alumni.some(a => a.student_id === id || a.permanent_id === student.permanent_id)) {
+        alumni.push({
+          id: 'al_' + uid(),
+          student_id: id,
+          name: student.name,
+          permanent_id: student.permanent_id,
+          phone: student.phone,
+          year: leftDate.slice(0, 4),
+          reason: reason || 'মাঝপথে বিদায়',
+          location: '',
+          status: 'মাঝপথে',
+        });
+        persistSaveArr('mm_alumni', alumni);
+      }
+      return { ...student, active: false, status: 'dropped', left_date: leftDate, left_reason: reason || '' };
     },
     promoteClass(id, new_class_id) {
       const list = load(KEYS.students).map(s => {

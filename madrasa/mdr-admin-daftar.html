@@ -21,10 +21,43 @@
   .att-table .pct-cell { text-align:center; }
   .pct-bar { height:5px; background:var(--cream2); border-radius:3px; overflow:hidden; margin-top:3px; }
   .pct-fill { height:100%; border-radius:3px; }
-  .date-nav { display:flex; align-items:center; gap:8px; margin-bottom:12px; background:#fff; border-radius:var(--radius-sm); padding:10px 12px; box-shadow:var(--shadow); }
-  .date-nav-btn { background:none; border:1px solid var(--cream3); border-radius:8px; padding:6px 12px; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink2); }
-  .date-nav-btn:hover { background:var(--cream2); }
-  .date-label { flex:1; text-align:center; font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; color:var(--ink); }
+  .hero-date-card { background:#fff; border-radius:var(--radius-sm); box-shadow:var(--shadow); overflow:hidden; margin-bottom:12px; }
+  .date-nav { display:flex; align-items:center; background:var(--ink); color:#fff; }
+  .date-nav-btn { flex:0 0 42px; height:42px; background:none; border:none; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; font-size:18px; color:rgba(255,255,255,.68); }
+  .date-nav-btn:hover { background:rgba(255,255,255,.07); color:#fff; }
+  .date-nav-btn:disabled { opacity:.35; cursor:not-allowed; }
+  .date-label { flex:1; text-align:center; font-family:'Noto Serif Bengali',serif; font-size:12px; font-weight:700; line-height:1.3; padding:6px 4px; cursor:pointer; user-select:none; }
+  .date-label .date-sub { display:block; font-family:'Noto Sans Bengali',sans-serif; font-size:10px; font-weight:500; color:rgba(255,255,255,.7); margin-top:2px; }
+  .today-dot { display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--gold2); margin-right:4px; vertical-align:middle; }
+  .cal-chev { display:inline-block; margin-left:4px; color:rgba(255,255,255,.55); transition:transform .15s ease; }
+  .date-nav.is-cal-open .cal-chev { transform:rotate(180deg); color:rgba(255,255,255,.85); }
+  .audit-strip { padding:7px 10px; border-bottom:1px solid var(--cream2); background:#fff; }
+  .audit-panel { background:#fff; padding:8px 10px 10px; border-top:1px solid var(--cream2); }
+  .audit-panel[hidden] { display:none !important; }
+  .audit-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+  .audit-mnav { width:32px; height:30px; border:none; border-radius:8px; background:rgba(26,18,8,.05); color:var(--ink2); font-size:16px; line-height:1; cursor:pointer; flex-shrink:0; }
+  .audit-mnav:disabled { opacity:.3; cursor:not-allowed; }
+  .audit-month { flex:1; text-align:center; min-width:0; font-size:12px; font-weight:700; color:var(--ink2); }
+  .audit-legend { display:flex; align-items:center; justify-content:center; gap:6px; font-size:10px; color:var(--ink3); margin-bottom:6px; }
+  .audit-legend .lg { width:10px; height:10px; border-radius:4px; border:1px solid var(--cream2); display:inline-block; }
+  .audit-legend .lg-taken { border-color:rgba(45,106,79,.35); background:rgba(45,106,79,.18); }
+  .audit-legend .lg-miss { border-color:rgba(220,53,69,.35); background:rgba(220,53,69,.18); }
+  .audit-dow, .audit-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+  .audit-dow { margin-bottom:5px; }
+  .ad-dow { height:18px; font-size:10px; color:var(--ink3); display:flex; align-items:center; justify-content:center; }
+  .audit-line { font-size:11px; color:var(--ink2); margin:0; line-height:1.45; }
+  .audit-line strong { color:var(--ink); }
+  .ad-day { height:24px; border-radius:8px; border:1px solid var(--cream2); background:#fff; font-size:11px; font-family:'Noto Sans Bengali',sans-serif; color:var(--ink2); cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; }
+  .ad-day:hover { background:var(--cream); }
+  .ad-day:disabled { opacity:.45; cursor:default; background:#fff; }
+  .ad-taken { border-color:rgba(45,106,79,.35); background:rgba(45,106,79,.10); color:var(--green); }
+  .ad-miss { border-color:rgba(220,53,69,.35); background:rgba(220,53,69,.10); color:var(--red); }
+  .ad-out { opacity:.22; cursor:default; }
+  .ad-sel { box-shadow:0 0 0 2px rgba(201,149,42,.35); border-color:rgba(201,149,42,.55); }
+  .ad-pad { height:24px; }
+  .audit-date-jump { margin-top:8px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .audit-date-jump label { font-size:10px; color:var(--ink3); }
+  .audit-date-jump .form-input { padding:6px 8px; font-size:12px; max-width:100%; }
   .dept-tab { display:flex; gap:6px; margin-bottom:14px; }
   .dept-tab-btn { flex:1; padding:10px; border:1px solid var(--cream3); border-radius:var(--radius-sm); text-align:center; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:600; cursor:pointer; background:#fff; color:var(--ink3); transition:all .15s; }
   .dept-tab-btn.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
@@ -74,10 +107,32 @@
 
 <div class="content" style="padding-bottom: var(--app-content-pad-bottom);">
 
-  <div class="date-nav">
-    <button class="date-nav-btn" onclick="changeDate(-1)">‹ আগে</button>
-    <div class="date-label" id="date-label">—</div>
-    <button class="date-nav-btn" id="btn-next" onclick="changeDate(1)">পরে ›</button>
+  <div class="hero-date-card">
+    <div class="date-nav" id="date-nav" aria-expanded="false">
+      <button class="date-nav-btn" onclick="changeDate(-1)" aria-label="আগের দিন">‹</button>
+      <div class="date-label" id="date-label" role="button" tabindex="0" onclick="toggleAuditCalendar()" onkeydown="onDateLabelKeydown(event)">—</div>
+      <button class="date-nav-btn" id="btn-next" onclick="changeDate(1)" aria-label="পরের দিন">›</button>
+    </div>
+    <div class="audit-strip" id="audit-summary" style="display:none" aria-live="polite">
+      <div class="audit-line" id="audit-line"></div>
+    </div>
+    <div class="audit-panel" id="audit-panel" role="region" aria-label="হাজিরা ক্যালেন্ডার" hidden>
+      <div class="audit-meta">
+        <button type="button" class="audit-mnav" id="audit-m-prev" onclick="shiftAuditMonth(-1)" aria-label="আগের মাস">‹</button>
+        <div class="audit-month" id="audit-month"></div>
+        <button type="button" class="audit-mnav" id="audit-m-next" onclick="shiftAuditMonth(1)" aria-label="পরের মাস">›</button>
+      </div>
+      <div class="audit-legend" aria-hidden="true">
+        <span class="lg lg-taken"></span><span>হাজিরা আছে</span>
+        <span class="lg lg-miss"></span><span>নেই</span>
+      </div>
+      <div class="audit-dow" id="audit-dow"></div>
+      <div class="audit-grid" id="audit-grid" aria-label="এই মাসের হাজিরা অবস্থা"></div>
+      <div class="audit-date-jump">
+        <label for="admin-daftar-date">দ্রুত তারিখ</label>
+        <input class="form-input" type="date" id="admin-daftar-date" onchange="onAdminDateInput()" tabindex="0" title="অন্য দিন">
+      </div>
+    </div>
   </div>
 
   <div class="att-summary-row">
@@ -130,8 +185,12 @@
   <div class="cls-ov-body" id="cls-ov-body"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mdr-daftar-supabase.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/mm-student-modal.js"></script>
@@ -139,8 +198,10 @@
 <script>
   if (!MMSession.requireAdminPerm('daftar', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
-  let currentDate = new Date().toISOString().split('T')[0];
+  let currentDate = API.today();
   let currentDept = 'all';
+  let auditExpanded = false;
+  let auditView = { y: new Date(currentDate + 'T12:00:00').getFullYear(), m: new Date(currentDate + 'T12:00:00').getMonth() };
   (function() {
     const allowed = MMSession.getAllowedMadrasaDepts();
     try {
@@ -152,12 +213,34 @@
     if (currentDept === 'all' && allowed.length <= 1) currentDept = allowed[0] || 'kitab';
   })();
 
+  function isoAddDays(iso, delta) {
+    const d = new Date(iso + 'T12:00:00');
+    d.setDate(d.getDate() + delta);
+    return d.toISOString().split('T')[0];
+  }
+  function ddmmyyBn(iso) {
+    const d = new Date(iso + 'T12:00:00');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yy = String(d.getFullYear()).slice(-2);
+    return toBn(dd) + '/' + toBn(mm) + '/' + toBn(yy);
+  }
+  function getSessionStartISO() {
+    try {
+      const s = API.Settings && API.Settings.get ? API.Settings.get() : null;
+      const fromSet = s && s.session_start_date != null && String(s.session_start_date).trim() !== '' ? String(s.session_start_date).trim() : '';
+      if (fromSet) return fromSet;
+    } catch (e) {}
+    try {
+      if (API.Sessions && API.Sessions.getCurrent) {
+        const cur = API.Sessions.getCurrent();
+        if (cur && cur.start_date) return String(cur.start_date);
+      }
+    } catch (e) {}
+    return null;
+  }
   function changeDate(dir) {
-    const d = new Date(currentDate);
-    d.setDate(d.getDate() + dir);
-    currentDate = d.toISOString().split('T')[0];
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('btn-next').disabled = currentDate >= today;
+    currentDate = isoAddDays(currentDate, dir);
     render();
   }
 
@@ -178,6 +261,190 @@
   function getScopedClasses() {
     return getScopeDepts().flatMap(dept => API.Classes.getByDept(dept).map(cls => ({ ...cls, dept })));
   }
+  function scopeStudentIds() {
+    const ids = new Set();
+    getScopedClasses().forEach(cls => {
+      API.Students.getByClass(cls.id).forEach(s => {
+        ids.add(String(s.id));
+        if (s.supabase_id) ids.add(String(s.supabase_id));
+      });
+    });
+    return ids;
+  }
+  function hasAttendanceForScope(iso) {
+    const ids = scopeStudentIds();
+    return API.Attendance.getByDate(iso).some(a => ids.has(String(a.student_id)));
+  }
+  function syncAuditViewFromDate() {
+    const d = new Date(currentDate + 'T12:00:00');
+    auditView = { y: d.getFullYear(), m: d.getMonth() };
+  }
+  function ymcmp(a, b) {
+    if (a.y !== b.y) return a.y - b.y;
+    return a.m - b.m;
+  }
+  function getAuditMinYM() {
+    const s = getSessionStartISO();
+    if (!s) return null;
+    const d = new Date(s + 'T12:00:00');
+    return { y: d.getFullYear(), m: d.getMonth() };
+  }
+  function getAuditMaxYM() {
+    const d = new Date(API.today() + 'T12:00:00');
+    return { y: d.getFullYear(), m: d.getMonth() };
+  }
+  function setAuditMonthNavDisabled() {
+    const minA = getAuditMinYM();
+    const maxA = getAuditMaxYM();
+    const prevB = document.getElementById('audit-m-prev');
+    const nextB = document.getElementById('audit-m-next');
+    if (prevB) prevB.disabled = !!(minA && ymcmp(auditView, minA) <= 0);
+    if (nextB) nextB.disabled = !!(maxA && ymcmp(auditView, maxA) >= 0);
+  }
+  function toggleAuditCalendar() {
+    setAuditExpanded(!auditExpanded);
+  }
+  function onDateLabelKeydown(ev) {
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      toggleAuditCalendar();
+    }
+  }
+  function setAuditExpanded(next) {
+    auditExpanded = !!next;
+    const nav = document.getElementById('date-nav');
+    const panel = document.getElementById('audit-panel');
+    if (nav) {
+      nav.classList.toggle('is-cal-open', auditExpanded);
+      nav.setAttribute('aria-expanded', auditExpanded ? 'true' : 'false');
+    }
+    if (panel) {
+      panel.hidden = !auditExpanded;
+      panel.setAttribute('aria-hidden', auditExpanded ? 'false' : 'true');
+    }
+    if (auditExpanded) {
+      syncAuditViewFromDate();
+      renderAttendanceAudit(true);
+    }
+  }
+  function shiftAuditMonth(delta) {
+    const d = new Date(auditView.y, auditView.m + delta, 1, 12, 0, 0);
+    auditView = { y: d.getFullYear(), m: d.getMonth() };
+    const minA = getAuditMinYM();
+    const maxA = getAuditMaxYM();
+    if (minA && ymcmp(auditView, minA) < 0) auditView = { y: minA.y, m: minA.m };
+    if (maxA && ymcmp(auditView, maxA) > 0) auditView = { y: maxA.y, m: maxA.m };
+    renderAttendanceAudit(true);
+  }
+  function trySetCurrentDate(iso) {
+    const today = API.today();
+    const start = getSessionStartISO();
+    if (iso > today) return;
+    if (start && iso < start) return;
+    currentDate = iso;
+    render();
+    if (auditExpanded) {
+      syncAuditViewFromDate();
+      renderAttendanceAudit(true);
+    }
+  }
+  function onAdminDateInput() {
+    const inp = document.getElementById('admin-daftar-date');
+    if (inp && inp.value) trySetCurrentDate(inp.value);
+  }
+  function renderDateHeader() {
+    const isToday = currentDate === API.today();
+    const d0 = new Date(currentDate + 'T12:00:00');
+    const BN_D_SHORT = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহস্পতি', 'শুক্র', 'শনি'];
+    const weekday = BN_D_SHORT[d0.getDay()];
+    const greg = ddmmyyBn(currentDate);
+    const hijri = window.MMHijri && MMHijri.shortHijriBn ? MMHijri.shortHijriBn(currentDate) : '';
+    const label = document.getElementById('date-label');
+    if (label) {
+      const dot = isToday ? '<span class="today-dot"></span>' : '';
+      label.innerHTML = dot + weekday + (hijri ? ' · হি: ' + hijri : '') + '<span class="cal-chev">⌄</span><span class="date-sub">খ্রি: ' + greg + '</span>';
+    }
+    const nextBtn = document.getElementById('btn-next');
+    if (nextBtn) nextBtn.disabled = currentDate >= API.today();
+    const inp = document.getElementById('admin-daftar-date');
+    if (inp) {
+      inp.value = currentDate;
+      inp.max = API.today();
+      const start = getSessionStartISO();
+      if (start) inp.min = start; else inp.removeAttribute('min');
+    }
+  }
+  function renderAttendanceAudit(forceGrid) {
+    const startISO = getSessionStartISO();
+    const todayISO = API.today();
+    const summary = document.getElementById('audit-summary');
+    const panel = document.getElementById('audit-panel');
+    if (!summary || !startISO || startISO > todayISO) {
+      if (summary) summary.style.display = 'none';
+      if (panel) panel.hidden = true;
+      return;
+    }
+
+    const missingDays = [];
+    for (let cur = startISO; cur <= todayISO; cur = isoAddDays(cur, 1)) {
+      if (!hasAttendanceForScope(cur)) missingDays.push(cur);
+    }
+    const lineEl = document.getElementById('audit-line');
+    if (lineEl) {
+      if (!missingDays.length) {
+        lineEl.innerHTML = 'নির্বাচিত অংশে শিক্ষাবর্ষ শুরু থেকে আজ পর্যন্ত <strong>সব দিনেই</strong> হাজিরা আছে';
+      } else {
+        const sample = missingDays.slice(0, 5).map(ddmmyyBn).join(', ');
+        const extra = missingDays.length > 5 ? '…' : '';
+        lineEl.innerHTML = 'নির্বাচিত অংশে বাকি <strong>' + toBn(missingDays.length) + '</strong> দিন · ' + sample + extra;
+      }
+    }
+    summary.style.display = 'block';
+
+    if (!forceGrid && !auditExpanded) return;
+
+    const y = auditView.y;
+    const m = auditView.m;
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const firstDow = new Date(y, m, 1).getDay();
+    const grid = document.getElementById('audit-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const MON_BN = ['জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগ', 'সেপ', 'অক্টো', 'নভে', 'ডিসে'];
+    const monthEl = document.getElementById('audit-month');
+    if (monthEl) monthEl.textContent = MON_BN[m] + ' ' + toBn(y);
+    const dowEl = document.getElementById('audit-dow');
+    if (dowEl) {
+      const DOW = ['রবি','সোম','মঙ্গল','বুধ','বৃহ','শুক্র','শনি'];
+      dowEl.innerHTML = DOW.map(d0 => '<div class="ad-dow">' + d0 + '</div>').join('');
+    }
+
+    for (let i = 0; i < firstDow; i++) {
+      const pad = document.createElement('div');
+      pad.className = 'ad-pad';
+      grid.appendChild(pad);
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const iso = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ad-day';
+      btn.textContent = toBn(day);
+      const outOfSession = iso < startISO;
+      const future = iso > todayISO;
+      if (outOfSession) btn.classList.add('ad-out');
+      if (iso === currentDate) btn.classList.add('ad-sel');
+      if (outOfSession || future) {
+        btn.disabled = true;
+      } else {
+        btn.classList.add(hasAttendanceForScope(iso) ? 'ad-taken' : 'ad-miss');
+        btn.addEventListener('click', () => trySetCurrentDate(iso));
+      }
+      grid.appendChild(btn);
+    }
+    setAuditMonthNavDisabled();
+  }
   function syncDeptTabs() {
     const allowed = MMSession.getAllowedMadrasaDepts();
     document.getElementById('dtab-all').classList.toggle('active', currentDept === 'all');
@@ -189,8 +456,7 @@
   }
 
   function render() {
-    const d = new Date(currentDate);
-    document.getElementById('date-label').textContent = toBn(d.getFullYear()) + '–' + toBn(String(d.getMonth()+1).padStart(2,'0')) + '–' + toBn(String(d.getDate()).padStart(2,'0'));
+    renderDateHeader();
 
     const allClasses = getScopedClasses();
     let totalStudents = 0, totalPresent = 0, totalAbsent = 0;
@@ -222,10 +488,22 @@
     document.getElementById('s-absent').textContent   = toBn(totalAbsent);
     const overallPct = totalStudents ? Math.round(totalPresent / totalStudents * 100) : 0;
     document.getElementById('s-pct').textContent = toBn(overallPct) + '%';
+    renderAttendanceAudit(auditExpanded);
   }
 
-  syncDeptTabs();
-  render();
+  async function initAdminDaftar() {
+    syncDeptTabs();
+    if (window.MDRDaftarSupabase && window.MMSharedAPI) {
+      try {
+        await MDRDaftarSupabase.sync();
+      } catch (e) {
+        console.warn('Admin daftar Supabase sync failed', e);
+      }
+    }
+    render();
+  }
+
+  initAdminDaftar();
 </script>
 </body>
 </html>

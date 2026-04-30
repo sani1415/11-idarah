@@ -26,6 +26,18 @@ const MMMadrasaAPI = (() => {
     adminStudents(pin) {
       return rpc('mdr_rel_admin_students', { p_pin: pin }).then(requireOk);
     },
+    getSettings(pin) {
+      return rpc('mdr_rel_get_settings', { p_pin: pin }).then(requireOk);
+    },
+    saveSettings(pin, settings) {
+      return rpc('mdr_rel_save_settings', {
+        p_pin: pin,
+        p_institution: settings.institution || null,
+        p_hijri_year: settings.hijri_year || null,
+        p_session_start_date: settings.session_start_date || null,
+        p_hijri_offset_days: Number(settings.hijri_offset_days) || 0,
+      }).then(requireOk);
+    },
     importCandidates(pin, source) {
       return rpc('mdr_rel_import_candidates', {
         p_pin: pin,

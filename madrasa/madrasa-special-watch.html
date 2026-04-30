@@ -62,8 +62,13 @@
   <div id="sw-list"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
+<script src="../api-mdr.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mdr-supabase-sync.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script>
@@ -104,7 +109,17 @@
       })
       .join('');
   }
-  render();
+  async function initSpecialWatch() {
+    if (window.MDRSupabaseSync && window.MMMadrasaAPI) {
+      try {
+        await MDRSupabaseSync.syncAdminStudents();
+      } catch (e) {
+        console.warn('Special watch Supabase sync failed', e);
+      }
+    }
+    render();
+  }
+  initSpecialWatch();
 </script>
 </body>
 </html>

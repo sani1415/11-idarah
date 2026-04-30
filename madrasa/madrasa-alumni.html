@@ -213,8 +213,12 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mdr-supabase-sync.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script>
@@ -392,7 +396,24 @@
   function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
   function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
 
-  renderHome();
+  async function initAlumniPage() {
+    if (window.MDRSupabaseSync && window.MMSharedAPI) {
+      try {
+        const role = MMSession.getRole && MMSession.getRole();
+        const actorId = role === 'admin'
+          ? (MMSession.getAdminUserId && MMSession.getAdminUserId())
+          : (MMSession.getStaffUserId && MMSession.getStaffUserId());
+        const pin = role === 'admin'
+          ? (MMSession.getAdminPin && MMSession.getAdminPin())
+          : (MMSession.getStaffPin && MMSession.getStaffPin());
+        await MDRSupabaseSync.syncAlumni(actorId, pin);
+      } catch (e) {
+        console.warn('Alumni Supabase sync failed', e);
+      }
+    }
+    renderHome();
+  }
+  initAlumniPage();
 </script>
 </body>
 </html>

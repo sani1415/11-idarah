@@ -75,7 +75,7 @@
   .log-date { font-size:10px; color:var(--ink3); margin-bottom:4px; }
   .log-text { font-size:13px; color:var(--ink); line-height:1.55; }
   /* লগ — নেভ/ট্যাবের মতো ক্রিম বর্ডার, আন্ডারলাইন নয় */
-  .std-log-link {
+  .std-log-link, .std-watch-link {
     flex-shrink: 0;
     font-family: 'Noto Sans Bengali', sans-serif;
     font-size: 11px;
@@ -98,6 +98,7 @@
     outline: none;
   }
   .std-log-link:active { opacity: 0.92; }
+  .std-watch-link.is-on { background:#faf7fc; border-color:rgba(124,58,237,.35); color:#7c3aed; }
   .log-tabs { display:flex; gap:6px; margin-bottom:12px; }
   .log-tab { flex:1; padding:10px 8px; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:600; color:var(--ink3); cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .15s,border-color .15s,color .15s; }
   .log-tab.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
@@ -259,8 +260,12 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mdr-supabase-sync.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script>
@@ -275,6 +280,25 @@
 
   document.getElementById('top-teacher').textContent = teacher.name;
   document.getElementById('top-class').textContent = myClass ? myClass.name : 'বর্ষ নির্ধারিত নেই';
+
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  function teacherActor() {
+    return {
+      id: MMSession.getStaffUserId && MMSession.getStaffUserId(),
+      pin: MMSession.getStaffPin && MMSession.getStaffPin(),
+    };
+  }
+  async function refreshTeacherData() {
+    if (window.MDRSupabaseSync && window.MMSharedAPI) {
+      try {
+        await MDRSupabaseSync.syncTeacherClass();
+        return true;
+      } catch (e) {
+        console.warn('Teacher class Supabase refresh failed', e);
+      }
+    }
+    return false;
+  }
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
@@ -391,6 +415,8 @@
           const hasR = s.roll != null && String(s.roll).trim() !== '';
           const rollPill = hasR ? API.esc(String(s.roll)) : '—';
           const khTag = '<button type="button" class="std-kh-inline ' + khClass + '" title="হুসনুল খুলুক (সর্বশেষ)" onclick="event.stopPropagation();openKhuluk(\'' + _jsQuote(s.id) + '\')">' + khText + '</button>';
+          const watchOn = !!s.special_watch;
+          const watchBtn = '<button type="button" class="std-watch-link' + (watchOn ? ' is-on' : '') + '" data-std-sid="' + _attrId(s.id) + '" onclick="event.stopPropagation(); toggleSpecialWatchFromRowBtn(this)">' + (watchOn ? 'পর্যবেক্ষণ ✓' : 'পর্যবেক্ষণ') + '</button>';
           return '<div class="std-row" data-std-sid="' + _attrId(s.id) + '">' +
             '<span class="std-roll">' + rollPill + '</span>' +
             '<div style="flex:1;min-width:0;">' +
@@ -399,10 +425,36 @@
             '</div>' +
             (attLine ? '<div class="std-meta">' + attLine + '</div>' : '') +
             '</div>' +
+            watchBtn +
             '<button type="button" class="std-log-link" data-std-sid="' + _attrId(s.id) + '" onclick="event.stopPropagation(); openLogFromRowBtn(this)">লগ</button>' +
             '</div>';
         }).join('')
       : '<div style="text-align:center;padding:40px;color:var(--ink3);font-size:13px;">এই বর্ষে কোনো ছাত্র নেই</div>';
+  }
+  async function toggleSpecialWatchFromRowBtn(btn) {
+    const sid = btn && btn.getAttribute('data-std-sid');
+    const stu = sid ? API.Students.getById(sid) : null;
+    if (!stu) { showToast('ছাত্র পাওয়া যায়নি'); return; }
+    const next = !stu.special_watch;
+    API.Students.update(sid, { special_watch: next });
+    renderStudents();
+    if (window.MMSharedAPI && MMSession.getStaffUserId && MMSession.getStaffUserId()) {
+      try {
+        const res = await MMSharedAPI.setSpecialWatch(
+          MMSession.getStaffUserId(),
+          MMSession.getStaffPin && MMSession.getStaffPin(),
+          stu.supabase_id || stu.id,
+          next
+        );
+        if (!res || !res.ok) throw new Error((res && res.error) || 'special_watch_failed');
+      } catch (e) {
+        API.Students.update(sid, { special_watch: !next });
+        renderStudents();
+        showToast('ডাটাবেজে সংরক্ষণ হয়নি');
+        return;
+      }
+    }
+    showToast(next ? 'বিশেষ পর্যবেক্ষণে যুক্ত হয়েছে' : 'বিশেষ পর্যবেক্ষণ থেকে সরানো হয়েছে');
   }
 
   /* ── KHULUK: সর্বশেষ সারাংশ + সঙ্গোপন পূর্ণ ইতিহাস ── */
@@ -477,13 +529,24 @@
     fillKhulukHistory(sid);
     openModal('modal-khuluk');
   }
-  function saveKhuluk() {
+  async function saveKhuluk() {
     const scoreN = parseInt(String(document.getElementById('kh-score').value).trim(), 10);
     const reason = document.getElementById('kh-reason').value.trim();
     if (Number.isNaN(scoreN) || scoreN < 0 || scoreN > 100) { showToast('হুসনুল খুলুক ০–১০০ এর মধ্যে পূর্ণসংখ্যা হিসেবে দিন'); return; }
     if (!reason) { showToast('কারণ / মন্তব্য লিখুন'); return; }
     if (!khulukTargetId) { showToast('ছাত্র নির্বাচিত নেই'); return; }
     API.Khuluk.add(khulukTargetId, scoreN, reason, teacher.name);
+    if (window.MMSharedAPI && UUID_RE.test(khulukTargetId)) {
+      try {
+        const actor = teacherActor();
+        const res = await MMSharedAPI.saveAkhlaq(actor.id, actor.pin, khulukTargetId, scoreN, reason);
+        if (!res || !res.ok) throw new Error((res && res.error) || 'akhlaq_failed');
+        await refreshTeacherData();
+      } catch (e) {
+        console.warn('Save akhlaq failed', e);
+        showToast('লোকালি সংরক্ষিত, ডাটাবেজে হয়নি');
+      }
+    }
     const latest = API.Khuluk.getLatest(khulukTargetId);
     if (latest) document.getElementById('kh-score').value = latest.score;
     document.getElementById('kh-reason').value = '';
@@ -514,13 +577,24 @@
     const sel = document.getElementById('bp-book');
     sel.innerHTML = books.map(b => `<option value="${b.id}">${API.esc(b.name)}</option>`).join('');
   }
-  function saveBookProg() {
+  async function saveBookProg() {
     const book_id = document.getElementById('bp-book').value;
     const pages = parseInt(document.getElementById('bp-pages').value);
     const note = document.getElementById('bp-note').value.trim();
     if (!book_id) { showToast('কিতাব নির্বাচন করুন'); return; }
     if (isNaN(pages) || pages < 0) { showToast('সঠিক পৃষ্ঠা সংখ্যা দিন'); return; }
     API.KitabProgress.update(book_id, classId, pages, note);
+    if (window.MMSharedAPI && UUID_RE.test(book_id)) {
+      try {
+        const actor = teacherActor();
+        const res = await MMSharedAPI.saveBookProgress(actor.id, actor.pin, book_id, pages, note);
+        if (!res || !res.ok) throw new Error((res && res.error) || 'book_progress_failed');
+        await refreshTeacherData();
+      } catch (e) {
+        console.warn('Save book progress failed', e);
+        showToast('লোকালি আপডেট হয়েছে, ডাটাবেজে হয়নি');
+      }
+    }
     closeModal('modal-book-prog'); renderKitab(); showToast('অগ্রগতি আপডেট হয়েছে');
   }
 
@@ -589,28 +663,48 @@
       return '<div class="log-student-block">' + head + body + '</div>';
     }).join('');
   }
-  function saveLog() {
+  async function saveLog() {
     const text = document.getElementById('log-text').value.trim();
     if (!text) { showToast('লগ লিখুন'); return; }
     const sel = document.getElementById('log-student');
     const sid = sel && sel.value ? sel.value : '';
+    let logType = 'class';
     if (sid) {
       if (!API.Students.getById(sid)) { showToast('অকার্যকর ছাত্র'); return; }
       API.Logs.add('student', sid, text, teacher.name);
+      logType = 'student';
     } else {
       API.Logs.add('class', classId, text, teacher.name);
+    }
+    if (window.MMSharedAPI && (logType === 'class' || UUID_RE.test(sid))) {
+      try {
+        const actor = teacherActor();
+        const res = await MMSharedAPI.saveTeacherLog(actor.id, actor.pin, logType, logType === 'student' ? sid : null, text);
+        if (!res || !res.ok) throw new Error((res && res.error) || 'log_failed');
+        await refreshTeacherData();
+      } catch (e) {
+        console.warn('Save teacher log failed', e);
+        showToast('লোকালি সংরক্ষিত, ডাটাবেজে হয়নি');
+      }
     }
     document.getElementById('log-text').value = '';
     closeModal('modal-log'); renderLog(); showToast('লগ যোগ হয়েছে');
   }
 
-  renderStats();
-  renderStudents();
-  (function tabFromUrl() {
+  async function initClassPage() {
+    await refreshTeacherData();
+    renderStats();
+    renderStudents();
+    initTabFromUrl();
+  }
+
+  function initTabFromUrl() {
     const q = new URLSearchParams(window.location.search).get('tab');
     if (q === 'kitab') switchTab('kitab');
     else if (q === 'log') switchTab('log');
-  })();
+  }
+
+  initClassPage();
 </script>
 </body>
 </html>

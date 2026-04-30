@@ -90,7 +90,35 @@ const ChatAPI = (() => {
     return load().filter(m => m.from_role!=='admin' && !m.read_admin).length;
   }
 
+  async function syncRemote(actorId, pin, isAdmin) {
+    if (!globalThis.MMSharedAPI || !pin) return false;
+    const res = await MMSharedAPI.chatBootstrap(actorId || null, pin, !!isAdmin);
+    if (!res || !res.ok) return false;
+    save((res.messages || []).map(m => ({
+      id: String(m.id || ''),
+      thread_id: m.thread_id || '',
+      from_role: m.from_role || '',
+      from_name: m.from_name || '',
+      text: m.text || '',
+      ts: m.ts || new Date().toISOString(),
+      read_admin: !!m.read_admin,
+      read_staff: !!m.read_staff,
+    })));
+    return true;
+  }
+
+  async function sendRemote(actorId, pin, threadId, text, isAdmin) {
+    if (!globalThis.MMSharedAPI || !pin) return null;
+    return MMSharedAPI.chatSend(actorId || null, pin, threadId, text, !!isAdmin);
+  }
+
+  async function markReadRemote(actorId, pin, threadId, isAdmin) {
+    if (!globalThis.MMSharedAPI || !pin || !threadId) return false;
+    const res = await MMSharedAPI.chatMarkRead(actorId || null, pin, threadId, !!isAdmin);
+    return !!(res && res.ok);
+  }
+
   seedIfEmpty();
-  return { getThreads, getThread, send, markReadAdmin, markReadStaff, countUnreadStaff, countUnreadAdmin, getLabel, esc };
+  return { getThreads, getThread, send, markReadAdmin, markReadStaff, countUnreadStaff, countUnreadAdmin, getLabel, esc, syncRemote, sendRemote, markReadRemote };
 
 })();
