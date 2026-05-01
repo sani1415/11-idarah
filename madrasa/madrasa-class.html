@@ -9,6 +9,24 @@
   .content { max-width:520px; margin:0 auto; padding:12px 16px var(--app-content-pad-bottom); }
   .stat-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-bottom:10px; }
   .stat-tile { background:#fff; border-radius:var(--radius-sm); padding:10px 4px; box-shadow:var(--shadow); text-align:center; min-height:96px; display:flex; flex-direction:column; align-items:center; justify-content:center; box-sizing:border-box; }
+  button.stat-tile {
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.12s, box-shadow 0.12s;
+  }
+  button.stat-tile:active { opacity: 0.92; }
+  button.stat-tile:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.35); }
+  #modal-watch-list .modal-large > .watch-list-sub { flex-shrink: 0; font-size: 12px; color: var(--ink3); margin: 0 0 10px; line-height: 1.35; }
+  #modal-watch-list .modal-large .watch-list-panel { flex: 1 1 auto; min-height: 0; margin-top: 0; padding-right: 2px; }
+  .watch-list-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #fff; border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--cream3); }
+  .watch-list-item:last-child { margin-bottom: 0; }
+  .watch-list-item .watch-open-std { flex: 1; text-align: left; border: none; background: transparent; padding: 0; cursor: pointer; font: inherit; font-weight: 600; color: var(--ink); min-width: 0; }
   .stat-tile--kh { padding:6px 4px; min-height:96px; justify-content:center; }
   .stat-num { font-family:'Noto Serif Bengali',serif; font-size:20px; font-weight:700; color:var(--ink2); display:block; line-height:1.1; }
   .stat-label { font-size:9px; color:var(--ink3); margin-top:4px; display:block; line-height:1.2; }
@@ -281,6 +299,17 @@
   </div>
 </div>
 
+<!-- MODAL: পর্যবেক্ষণ তালিকা (আকৃতি অন্য modal-large-এর মতো — তালিকা ভেতরে স্ক্রল) -->
+<div class="modal-bg" id="modal-watch-list">
+  <div class="modal modal-large">
+    <div class="modal-title">পর্যবেক্ষণ <button type="button" class="modal-close" onclick="closeModal('modal-watch-list')">✕</button></div>
+    <p id="watch-list-sub" class="watch-list-sub">—</p>
+    <div class="modal-panel watch-list-panel">
+      <div id="watch-list-body" class="modal-history-list"></div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -403,6 +432,7 @@
     const leaveCount = leavers.length;
 
     const bands = API.Khuluk.getClassKhulukBands(classId);
+    const watchCount = students.filter(function (s) { return s.special_watch; }).length;
     const threeLines =
       '<div class="kh-line kh-line--gr"><span class="kh-cat">মুজতাহিদ</span><span class="kh-n">' + toBn(bands.high) + '</span></div>' +
       '<div class="kh-line kh-line--sky"><span class="kh-cat">মুতাওয়াস্সিত</span><span class="kh-n">' + toBn(bands.mid) + '</span></div>' +
@@ -412,11 +442,35 @@
       '<div class="stat-tile"><span class="stat-num">' + toBn(students.length) + '</span><span class="stat-label">মোট ছাত্র</span></div>' +
       '<div class="stat-tile"><span class="stat-num" style="color:var(--green)">' + toBn(present) + '</span><span class="stat-label">আজ উপস্থিত</span></div>' +
       '<div class="stat-tile"><span class="stat-num stat-num--leave">' + toBn(leaveCount) + '</span><span class="stat-label">বিদায়ী</span></div>' +
+      '<button type="button" class="stat-tile" onclick="openWatchListModal()"><span class="stat-num" style="color:#7c3aed">' + toBn(watchCount) + '</span><span class="stat-label">পর্যবেক্ষণ</span></button>' +
       '<div class="stat-tile"><span class="stat-num" style="color:var(--gold)">' + (avg !== null ? toBn(avg) : '—') + '</span><span class="stat-label">গড় হুসনুল খুলুক</span></div>' +
       '<div class="stat-tile stat-tile--kh">' +
       '<div class="stat-kh-hd">' + '\u09B9\u09C1\u09B8\u09A8\u09C1\u09B2 \u0996\u09C1\u09B2\u09C1\u0995' + '</div>' +
       '<div class="kh-mini">' + threeLines + '</div>' +
       '</div>';
+  }
+
+  function openWatchListModal() {
+    if (!classId) return;
+    const body = document.getElementById('watch-list-body');
+    const sub = document.getElementById('watch-list-sub');
+    if (!body) return;
+    const watched = API.Students.getByClass(classId).filter(function (s) { return s.special_watch; });
+    watched.sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'bn'); });
+    if (sub) sub.textContent = watched.length ? 'মোট ' + toBn(watched.length) + ' জন' : 'কেউ নেই';
+    if (!watched.length) {
+      body.innerHTML = '<div class="log-panel-empty">পর্যবেক্ষণে কেউ নেই। নিচের ছাত্র তালিকায় «পর্যবেক্ষণ» চেপে যুক্ত করুন।</div>';
+    } else {
+      body.innerHTML = watched.map(function (s) {
+        var hasR = s.roll != null && String(s.roll).trim() !== '';
+        var rollPill = hasR ? API.esc(String(s.roll)) : '—';
+        return '<div class="watch-list-item">' +
+          '<span class="std-roll">' + rollPill + '</span>' +
+          '<button type="button" class="watch-open-std" onclick="closeModal(\'modal-watch-list\'); MMStudentModal.open(\'' + _jsQuote(s.id) + '\')">' + API.esc(s.name) + '</button>' +
+          '</div>';
+      }).join('');
+    }
+    openModal('modal-watch-list');
   }
 
   /* ── STUDENTS ── */
@@ -461,6 +515,7 @@
     const next = !stu.special_watch;
     API.Students.update(sid, { special_watch: next });
     renderStudents();
+    renderStats();
     if (window.MMSharedAPI && MMSession.getStaffUserId && MMSession.getStaffUserId()) {
       try {
         const res = await MMSharedAPI.setSpecialWatch(
@@ -473,6 +528,7 @@
       } catch (e) {
         API.Students.update(sid, { special_watch: !next });
         renderStudents();
+        renderStats();
         showToast('ডাটাবেজে সংরক্ষণ হয়নি');
         return;
       }
