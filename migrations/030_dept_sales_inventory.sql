@@ -418,10 +418,6 @@ begin
   if p_type not in ('income', 'expense') then
     return jsonb_build_object('ok', false, 'error', 'invalid_type');
   end if;
-  if btrim(coalesce(p_description, '')) = '' then
-    return jsonb_build_object('ok', false, 'error', 'description_required');
-  end if;
-
   select id into v_dept_id from public.dept_departments where code = p_dept_code and is_active = true;
   if v_dept_id is null then
     return jsonb_build_object('ok', false, 'error', 'dept_not_found');
@@ -457,7 +453,7 @@ begin
   values (
     v_dept_id, p_type, v_amount, v_base,
     case when p_type = 'income' then greatest(coalesce(p_honor_amount, 0), 0) else 0 end,
-    btrim(p_description), coalesce(p_date, current_date),
+    btrim(coalesce(p_description, '')), coalesce(p_date, current_date),
     p_category, nullif(btrim(coalesce(p_buyer_name, '')), ''),
     nullif(btrim(coalesce(p_buyer_phone, '')), ''),
     coalesce(p_metadata, '{}'::jsonb), v_actor.id

@@ -52,6 +52,30 @@
   .stock-mode { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
   .stock-mode button { padding:10px; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Noto Sans Bengali',sans-serif; cursor:pointer; }
   .stock-mode button.active { border-color:var(--ink); background:var(--cream2); font-weight:700; }
+  .report-filter { display:flex; gap:6px; overflow-x:auto; padding:2px 0 10px; }
+  .report-filter button { flex:0 0 auto; border:1px solid var(--cream3); background:#fff; color:var(--ink3); border-radius:999px; padding:8px 11px; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; cursor:pointer; }
+  .report-filter button.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); font-weight:700; }
+  .report-custom { display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+  .report-custom.open { display:grid; }
+  .report-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .report-card { background:#fff; border-radius:var(--radius-sm); box-shadow:var(--shadow); padding:12px; min-width:0; }
+  .report-card .label { font-size:11px; color:var(--ink3); }
+  .report-card .value { font-family:'Noto Serif Bengali',serif; font-size:18px; font-weight:800; color:var(--ink2); margin-top:3px; }
+  .report-section { background:#fff; border-radius:var(--radius-sm); box-shadow:var(--shadow); padding:12px; margin-bottom:10px; }
+  .report-section-title { font-family:'Noto Serif Bengali',serif; font-weight:800; color:var(--ink2); font-size:14px; margin-bottom:10px; }
+  .rank-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--cream2); }
+  .rank-row:last-child { border-bottom:0; }
+  .rank-name { font-size:13px; font-weight:700; color:var(--ink); }
+  .rank-sub { font-size:11px; color:var(--ink3); margin-top:2px; }
+  .rank-value { text-align:right; font-family:'Noto Serif Bengali',serif; font-weight:800; color:var(--ink2); white-space:nowrap; }
+  .chart-scroll { overflow-x:auto; padding-bottom:4px; }
+  .month-chart { display:grid; grid-template-columns:repeat(12, 52px); gap:8px; min-width:680px; align-items:end; }
+  .month-bar-wrap { height:150px; display:flex; align-items:end; gap:4px; justify-content:center; border-bottom:1px solid var(--cream3); }
+  .month-bar { width:16px; border-radius:6px 6px 0 0; min-height:3px; }
+  .month-bar.income { background:var(--green); }
+  .month-bar.expense { background:var(--red); }
+  .month-chart-label { text-align:center; font-size:10px; color:var(--ink3); margin-top:5px; }
+  .empty-report { text-align:center; color:var(--ink3); padding:18px 0; font-size:12px; }
   @media (max-width:640px) {
     .sale-row { grid-template-columns:190px 82px 104px 96px 92px 42px; min-width:630px; }
   }
@@ -73,9 +97,7 @@
 <!-- PANELS -->
 <div class="content" id="panel-txn" style="padding-bottom:var(--app-content-pad-bottom);">
   <div class="month-nav">
-    <button class="month-nav-btn" onclick="changeMonth(-1)">‹</button>
-    <span class="month-label" id="month-label">—</span>
-    <button class="month-nav-btn" onclick="changeMonth(1)">›</button>
+    <span class="month-label" id="month-label">শুরু থেকে সব হিসাব</span>
   </div>
   <div class="stat-row-2" id="txn-summary"></div>
   <div class="add-btn-row">
@@ -97,6 +119,34 @@
   <div id="inv-list"></div>
 </div>
 
+<div class="content" id="panel-report" style="display:none;padding-bottom:var(--app-content-pad-bottom);">
+  <div class="sec-header"><div class="sec-title">রিপোর্ট</div></div>
+  <div class="report-filter" id="report-filter">
+    <button type="button" data-range="today" onclick="setReportRange('today')">আজ</button>
+    <button type="button" data-range="month" onclick="setReportRange('month')">এই মাস</button>
+    <button type="button" data-range="last_month" onclick="setReportRange('last_month')">গত মাস</button>
+    <button type="button" data-range="year" onclick="setReportRange('year')">এই বছর</button>
+    <button type="button" data-range="custom" onclick="setReportRange('custom')">কাস্টম</button>
+  </div>
+  <div class="report-custom" id="report-custom">
+    <div class="form-group"><label class="form-label">শুরু</label><input class="form-input" type="date" id="report-from" onchange="renderReport()"></div>
+    <div class="form-group"><label class="form-label">শেষ</label><input class="form-input" type="date" id="report-to" onchange="renderReport()"></div>
+  </div>
+  <div class="report-grid" id="report-summary"></div>
+  <div class="report-section">
+    <div class="report-section-title">সবচেয়ে বেশি বিক্রিত পণ্য</div>
+    <div id="report-top-products"></div>
+  </div>
+  <div class="report-section">
+    <div class="report-section-title">মাসভিত্তিক আয়-ব্যয়</div>
+    <div class="chart-scroll"><div class="month-chart" id="report-month-chart"></div></div>
+  </div>
+  <div class="report-section">
+    <div class="report-section-title">ব্যয়ের খাত</div>
+    <div id="report-expense-cats"></div>
+  </div>
+</div>
+
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav" aria-label="নিচের নেভিগেশন">
   <div class="nav-item active" id="nav-txn" onclick="switchPanel('txn')">
@@ -110,6 +160,10 @@
   <div class="nav-item" id="nav-inv" onclick="switchPanel('inv')">
     <span class="nav-icon"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
     <span class="nav-label">মজুদ</span>
+  </div>
+  <div class="nav-item" id="nav-report" onclick="switchPanel('report')">
+    <span class="nav-icon"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M4 19V5m0 14h16M8 16V9m4 7V6m4 10v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+    <span class="nav-label">রিপোর্ট</span>
   </div>
   <div class="nav-item" onclick="location.href='../chat.html'">
     <span class="nav-icon"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
@@ -265,6 +319,7 @@
   let addType  = 'income';
   let lineItems = [];
   let invMode = 'stock_in';
+  let reportRange = 'month';
 
   const toBn   = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = n => '৳' + toBn(Number(n||0).toLocaleString('en'));
@@ -282,13 +337,14 @@
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
   function switchPanel(name) {
-    ['txn','products','inv'].forEach(p => {
+    ['txn','products','inv','report'].forEach(p => {
       document.getElementById('panel-'+p).style.display = p===name ? '' : 'none';
       document.getElementById('nav-'+p).classList.toggle('active', p===name);
     });
     if (name==='txn')      renderTxn();
     if (name==='products') renderProducts();
     if (name==='inv')      renderInv();
+    if (name==='report')   renderReport();
   }
 
   function changeMonth(dir) {
@@ -298,9 +354,9 @@
 
   /* ── RENDER TXN ── */
   function renderTxn() {
-    document.getElementById('month-label').textContent = monthLabel(curMonth);
-    const txns = DeptAPI.Transactions.getByMonth(deptId, curMonth);
-    const sum  = DeptAPI.Transactions.getSummary(deptId, curMonth);
+    document.getElementById('month-label').textContent = 'শুরু থেকে সব হিসাব';
+    const txns = DeptAPI.Transactions.getByDept(deptId);
+    const sum  = DeptAPI.Transactions.getSummary(deptId);
     document.getElementById('txn-summary').innerHTML =
       `<div class="stat-card"><span class="stat-num" style="color:var(--green)">${fmtAmt(sum.income)}</span><span class="stat-label">আয়</span></div>
        <div class="stat-card"><span class="stat-num" style="color:var(--red)">${fmtAmt(sum.expense)}</span><span class="stat-label">ব্যয়</span></div>`;
@@ -327,20 +383,21 @@
             <div class="txn-amt ${t.type}">${fmtAmt(t.amount)}</div>
           </div>`;
         }).join('')
-      : '<div style="text-align:center;color:var(--ink3);padding:32px 0;font-size:13px;">এই মাসে কোনো লেনদেন নেই</div>';
+      : '<div style="text-align:center;color:var(--ink3);padding:32px 0;font-size:13px;">এখনো কোনো লেনদেন নেই</div>';
   }
 
   /* ── ADD TXN MODAL ── */
   function openAddTxn(type) {
-    lineItems = [blankSaleItem()];
+    const nextType = type || 'income';
+    lineItems = nextType === 'income' ? [blankSaleItem()] : [];
     updateItemsBadge();
     ['txn-amount','txn-desc','txn-honor','txn-buyer-name'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value='';
     });
     document.getElementById('txn-date').value = new Date().toISOString().split('T')[0];
-    renderSaleItems();
+    if (nextType === 'income') renderSaleItems();
     renderTxnExtraFields();
-    selType(type || 'income');
+    selType(nextType);
     document.getElementById('modal-txn-title').innerHTML = (addType === 'income' ? 'আয় যোগ' : 'ব্যয় যোগ') + " <button class=\"modal-close\" onclick=\"closeModal('modal-txn')\">✕</button>";
     openModal('modal-txn');
   }
@@ -521,7 +578,6 @@
     const desc   = document.getElementById('txn-desc').value.trim();
     const date   = document.getElementById('txn-date').value;
     if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
-    if (!desc) { showToast('বিবরণ দিন'); return; }
     const ext = collectExtra();
     if (ext.err) { showToast(ext.err); return; }
 
@@ -635,6 +691,149 @@
     }
   }
 
+  /* ── REPORTS ── */
+  function isoDate(d) { return d.toISOString().slice(0,10); }
+
+  function setReportRange(range) {
+    reportRange = range;
+    const custom = document.getElementById('report-custom');
+    if (custom) custom.classList.toggle('open', range === 'custom');
+    renderReport();
+  }
+
+  function getReportWindow() {
+    const now = new Date();
+    const today = isoDate(now);
+    if (reportRange === 'today') return { from: today, to: today, label:'আজ' };
+    if (reportRange === 'last_month') {
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const end = new Date(now.getFullYear(), now.getMonth(), 0);
+      return { from: isoDate(start), to: isoDate(end), label:'গত মাস' };
+    }
+    if (reportRange === 'year') {
+      return { from: now.getFullYear() + '-01-01', to: now.getFullYear() + '-12-31', label:'এই বছর' };
+    }
+    if (reportRange === 'custom') {
+      return {
+        from: document.getElementById('report-from').value || now.getFullYear() + '-01-01',
+        to: document.getElementById('report-to').value || today,
+        label:'কাস্টম'
+      };
+    }
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return { from: isoDate(start), to: isoDate(end), label:'এই মাস' };
+  }
+
+  function txnDate(t) {
+    return String(t.date || t.txn_date || '').slice(0,10);
+  }
+
+  function txnsForReport() {
+    const w = getReportWindow();
+    return DeptAPI.Transactions.getByDept(deptId).filter(t => {
+      const d = txnDate(t);
+      return d >= w.from && d <= w.to;
+    });
+  }
+
+  function reportSaleItems(t) {
+    const meta = t.metadata || {};
+    if (Array.isArray(meta.line_items) && meta.line_items.length) {
+      return meta.line_items.map(i => ({
+        name: i.product_name || i.name || 'পণ্য',
+        unit: i.unit || '',
+        qty: Number(i.qty || i.quantity || 0),
+        amount: Number(i.amount || 0)
+      }));
+    }
+    if (meta.product_name) {
+      return [{
+        name: meta.product_name,
+        unit: meta.unit || '',
+        qty: Number(meta.qty || 0),
+        amount: Number(t.base_amount || t.amount || 0)
+      }];
+    }
+    return [];
+  }
+
+  function renderReport() {
+    const filter = document.getElementById('report-filter');
+    if (!filter) return;
+    [...filter.querySelectorAll('button')].forEach(btn => btn.classList.toggle('active', btn.dataset.range === reportRange));
+    document.getElementById('report-custom').classList.toggle('open', reportRange === 'custom');
+
+    const txns = txnsForReport();
+    const income = txns.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount||0),0);
+    const expense = txns.filter(t=>t.type==='expense').reduce((s,t)=>s+Number(t.amount||0),0);
+    const honor = txns.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.honor_amount || (t.metadata && t.metadata.honor_amount) || 0),0);
+    document.getElementById('report-summary').innerHTML = [
+      ['আয়', income, 'var(--green)'],
+      ['ব্যয়', expense, 'var(--red)'],
+      ['লাভ / ঘাটতি', income-expense, income-expense >= 0 ? 'var(--green)' : 'var(--red)'],
+      ['মর্যাদা মূল্য', honor, 'var(--gold)']
+    ].map(c => `<div class="report-card"><div class="label">${c[0]}</div><div class="value" style="color:${c[2]}">${fmtAmt(c[1])}</div></div>`).join('');
+
+    renderTopProducts(txns);
+    renderMonthlyChart();
+    renderExpenseCategories(txns);
+  }
+
+  function renderTopProducts(txns) {
+    const map = {};
+    txns.filter(t=>t.type==='income').forEach(t => {
+      reportSaleItems(t).forEach(i => {
+        const key = i.name + '|' + i.unit;
+        if (!map[key]) map[key] = { name:i.name, unit:i.unit, qty:0, amount:0 };
+        map[key].qty += Number(i.qty || 0);
+        map[key].amount += Number(i.amount || 0);
+      });
+    });
+    const rows = Object.values(map).sort((a,b)=>b.amount-a.amount).slice(0,5);
+    document.getElementById('report-top-products').innerHTML = rows.length ? rows.map(r => `
+      <div class="rank-row">
+        <div><div class="rank-name">${DeptAPI.esc(r.name)}</div><div class="rank-sub">${toBn(r.qty)} ${DeptAPI.esc(r.unit || '')} বিক্রি</div></div>
+        <div class="rank-value">${fmtAmt(r.amount)}</div>
+      </div>`).join('') : '<div class="empty-report">এই সময়ে কোনো পণ্য বিক্রি নেই</div>';
+  }
+
+  function renderMonthlyChart() {
+    const year = new Date().getFullYear();
+    const rows = Array.from({ length:12 }, (_,i)=>({ m:i, income:0, expense:0 }));
+    DeptAPI.Transactions.getByDept(deptId).forEach(t => {
+      const d = txnDate(t);
+      if (!d.startsWith(String(year))) return;
+      const idx = Number(d.slice(5,7)) - 1;
+      if (idx < 0 || idx > 11) return;
+      rows[idx][t.type === 'income' ? 'income' : 'expense'] += Number(t.amount || 0);
+    });
+    const max = Math.max(1, ...rows.flatMap(r=>[r.income,r.expense]));
+    const labels = ['জানু','ফেব','মার','এপ্রি','মে','জুন','জুল','আগ','সেপ','অক্টো','নভে','ডিসে'];
+    document.getElementById('report-month-chart').innerHTML = rows.map(r => `
+      <div>
+        <div class="month-bar-wrap" title="${labels[r.m]}: আয় ${fmtAmt(r.income)}, ব্যয় ${fmtAmt(r.expense)}">
+          <div class="month-bar income" style="height:${Math.max(3, Math.round((r.income/max)*140))}px"></div>
+          <div class="month-bar expense" style="height:${Math.max(3, Math.round((r.expense/max)*140))}px"></div>
+        </div>
+        <div class="month-chart-label">${labels[r.m]}</div>
+      </div>`).join('');
+  }
+
+  function renderExpenseCategories(txns) {
+    const map = {};
+    txns.filter(t=>t.type==='expense').forEach(t => {
+      const key = t.category || 'other';
+      map[key] = (map[key] || 0) + Number(t.amount || 0);
+    });
+    const rows = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+    document.getElementById('report-expense-cats').innerHTML = rows.length ? rows.map(([cat, amount]) => `
+      <div class="rank-row">
+        <div class="rank-name">${DeptAPI.esc(CAT_LABEL[cat] || cat)}</div>
+        <div class="rank-value">${fmtAmt(amount)}</div>
+      </div>`).join('') : '<div class="empty-report">এই সময়ে কোনো ব্যয় নেই</div>';
+  }
+
   /* ── PRODUCTS ── */
   function renderProducts() {
     const prds = DeptAPI.Products.getByDept(deptId);
@@ -644,7 +843,7 @@
             <div style="font-size:13px;font-weight:600;">${DeptAPI.esc(p.name)}</div>
             <div style="font-size:11px;color:var(--ink3);">একক: ${DeptAPI.esc(p.unit)} · মূল্য: ${fmtAmt(p.price)}/একক</div>
           </div>
-          <button onclick="DeptAPI.Products.remove('${p.id}');renderProducts();"
+          <button onclick="removeProduct('${p.id}')"
             style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:4px;">✕</button>
         </div>`).join('')
       : '<div style="text-align:center;color:var(--ink3);padding:32px 0;font-size:13px;">কোনো পণ্য নেই — উপরের বোতাম থেকে যোগ করুন</div>';
@@ -675,6 +874,24 @@
     closeModal('modal-product');
     renderProducts();
     showToast('পণ্য যোগ হয়েছে');
+  }
+
+  async function removeProduct(id) {
+    const product = DeptAPI.Products.getById(id);
+    if (!product) return;
+    try {
+      if (window.DeptSync && staffUserId && staffPin) {
+        await DeptSync.saveProduct(staffUserId, staffPin, deptId, { ...product, is_active:false });
+      } else {
+        DeptAPI.Products.remove(id);
+      }
+    } catch (e) {
+      console.warn('[Dept] product remove failed, using local fallback:', e);
+      DeptAPI.Products.remove(id);
+      showToast('Supabase সংযোগ হয়নি, লোকালভাবে বাদ দেওয়া হয়েছে');
+    }
+    renderProducts();
+    showToast('পণ্য বাদ দেওয়া হয়েছে');
   }
 
   /* ── INVENTORY ── */

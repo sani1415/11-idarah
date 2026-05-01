@@ -366,97 +366,6 @@
     };
   }
 
-  /** দফতর «খাদিমিন» মডাল প্রোটোটাইপ — mdr-home-panels.js একবার সিড করে */
-  function buildKhadiminDemo() {
-    const khadimin = [
-      {
-        id: 'kh_demo_amin',
-        name: 'মোহাম্মাদ আমিন উল্লাহ',
-        phone: '০১৭১১-২২৩৩৪৪',
-        duty: 'প্রধান রান্নাঘর ও খাদ্য বণ্টন',
-        join_date: '2023-02-15',
-        status: 'active',
-        address: 'গাইবান্ধা, মাদরাসা সংলগ্ন কোয়ার্টার',
-        details: 'ফজরের পর থেকে মাগরিব পর্যন্ত ডিউটি। জুমার দিন অতিরিক্ত সাহাযিক হিসেবে দারোয়ান।',
-        notes: [
-          { date: '2026-04-10', text: 'ঈদের আগে কোরবানির ব্যবস্থা পরিদর্শন — সন্তুষ্ট।' },
-          { date: '2026-03-22', text: 'নতুন গ্যাস সিলিনডার সরবরাহ নিশ্চিত করা হয়েছে।' },
-        ],
-      },
-      {
-        id: 'kh_demo_rashed',
-        name: 'রাশেদ আহমদ',
-        phone: '০১৮১৯-৪৪৫৫৬৬',
-        duty: 'দারোয়ান ও গেট নিরাপত্তা (রাত্রি)',
-        join_date: '2024-06-01',
-        status: 'active',
-        address: 'চাকিরপশার বাজার',
-        details: 'রাত ৮টা থেকে ফজর পর্যন্ত। দিবা শিফটে প্রয়োজনে বিকল্প খাদেম।',
-        notes: [{ date: '2026-04-28', text: 'বৃষ্টির দিনে ম্যাট নতুন করা হয়েছে।' }],
-      },
-      {
-        id: 'kh_demo_farid',
-        name: 'ফরিদ হোসেন',
-        phone: '০১৩০৮-৭৭৮৮৯৯',
-        duty: 'শ্রেণিকক্ষ ও করিডোর পরিষ্কার',
-        join_date: '2022-08-20',
-        status: 'away',
-        address: 'গাইবান্ধা সদর',
-        details: 'সকাল ও আসরের পর ডিউটি। ছুটিতে বিকল্প: অস্থায়ী শ্রমিক।',
-        notes: [{ date: '2026-04-15', text: 'মেঝে মোজাইক মেরামতের জন্য রিপোর্ট দেওয়া হয়েছে।' }],
-      },
-      {
-        id: 'kh_demo_jamal',
-        name: 'জামাল উদ্দিন',
-        phone: '০১৯১২-৩৩৪৪৫৫',
-        duty: 'মাকতাবা ও দফতর স্টোর সামগ্রী',
-        join_date: '2025-01-10',
-        status: 'active',
-        address: 'মাদরাসা হোস্টেল সড়ক',
-        details: 'কিতাব ইস্যু ও গ্রন্থাগারে বই সাজানোতে সহায়তা।',
-        notes: [],
-      },
-      {
-        id: 'kh_demo_habib',
-        name: 'হাবিবুর রহমান',
-        phone: '০১৬৪৪-৯৯৮৮৭৭',
-        duty: 'নেটিভ পার্ক ও কৃষি প্লট রক্ষণাবেক্ষণ',
-        join_date: '2021-11-05',
-        status: 'inactive',
-        address: 'পার্শ্ববর্তী গ্রাম',
-        details: 'ব্যক্তিগত কারণে চুক্তি শেষ; প্রয়োজনে রেফারেন্স।',
-        notes: [{ date: '2026-01-05', text: 'শেষ কাজের দিন হস্তান্তর সম্পন্ন।' }],
-      },
-      {
-        id: 'kh_demo_nurul',
-        name: 'নুরুল আফসার',
-        phone: '০১৭৪৫-৬৬৭৭৮৮',
-        duty: 'আবাসিক কোয়ার্টার ও বিদ্যুৎ লাইন দেখাশোনা',
-        join_date: '2024-03-01',
-        status: 'active',
-        address: 'মাদরাসা কম্পাউন্ড',
-        details: 'ছোট মেরামত ও নিয়মিত চেকলিস্ট জিম্মাদারকে জমা দেন।',
-        notes: [
-          { date: '2026-05-01', text: 'জেনারেটর সার্ভিসিং নির্ধারিত — ৫ মে।' },
-        ],
-      },
-    ];
-
-    const leaves = [
-      { id: 'lv_d1', khadim_id: 'kh_demo_amin', from: '2026-01-05', to: '2026-01-07', reason: 'গ্রামের বাড়িতে জানাজা', days: 3 },
-      { id: 'lv_d2', khadim_id: 'kh_demo_amin', from: '2025-12-20', to: '2025-12-22', reason: 'অসুস্থতা', days: 3 },
-      { id: 'lv_d3', khadim_id: 'kh_demo_rashed', from: '2026-04-12', to: '2026-04-12', reason: 'ব্যাংক কাজ', days: 1 },
-      { id: 'lv_d4', khadim_id: 'kh_demo_rashed', from: '2026-02-01', to: '2026-02-05', reason: 'নিজ জমিতে ধান কাটা', days: 5 },
-      { id: 'lv_d5', khadim_id: 'kh_demo_farid', from: '2026-04-25', to: '2026-05-10', reason: 'পারিবারিক ছুটি (বিয়ে)', days: 16 },
-      { id: 'lv_d6', khadim_id: 'kh_demo_farid', from: '2025-10-15', to: '2025-10-17', reason: 'স্ত্রী অসুস্থ', days: 3 },
-      { id: 'lv_d7', khadim_id: 'kh_demo_jamal', from: '2026-03-10', to: '2026-03-12', reason: 'আত্মীয়ের বাড়ি', days: 3 },
-      { id: 'lv_d8', khadim_id: 'kh_demo_nurul', from: '2026-04-01', to: '2026-04-03', reason: 'বৈদ্যুতিক প্যানেল মেরামত বাড়ি', days: 3 },
-      { id: 'lv_d9', khadim_id: 'kh_demo_habib', from: '2025-09-01', to: '2025-09-05', reason: 'বার্ষিক ছুটি', days: 5 },
-    ];
-
-    return { khadimin, khadimin_leaves: leaves };
-  }
-
   function buildChatSample() {
     const now = Date.now();
     const ago = function (h) { return new Date(now - h * 3600000).toISOString(); };
@@ -492,7 +401,6 @@
     buildMadrasaSample,
     buildKhedmatSample,
     buildDeptSample,
-    buildKhadiminDemo,
     buildChatSample,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

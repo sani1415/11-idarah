@@ -3,9 +3,31 @@
 
   const KHADIMIN_KEY = 'mm_khadimin';
   const LEAVES_KEY = 'mm_khadimin_leaves';
+  const KHD_MODAL_ID = 'modal-khadim-detail';
   let helpers = { toBn: (n) => String(n), showToast: () => {} };
+  /** @type {string|null} */
+  let _openKhadimId = null;
   /** @type {Record<string, { vy: number, vm: number, a: string|null, b: string|null }>} */
   const leavePickState = {};
+
+  function useRemote() {
+    if (!global.MMSharedAPI || !MMSharedAPI.supabaseClient || !global.MDRKhadiminSupabase) return false;
+    const fn = MDRKhadiminSupabase.actor;
+    if (!fn) return false;
+    const a = fn();
+    return !!(a && a.id && a.pin);
+  }
+
+  function academicYearBounds() {
+    if (global.MDRKhadiminSupabase && MDRKhadiminSupabase.academicYearBounds) {
+      return MDRKhadiminSupabase.academicYearBounds();
+    }
+    const end = new Date().toISOString().slice(0, 10);
+    const start = (global.API && API.Settings && API.Settings.get)
+      ? ((API.Settings.get().session_start_date || '').trim() || null)
+      : null;
+    return { start, end };
+  }
 
   const BN_MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
   const BN_DOW = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহ', 'শুক', 'শনি'];
@@ -17,6 +39,11 @@
   /** onclick="...('…')" এর জন্য — ডাবল কোট ভাঙ্গা এড়াতে (JSON.stringify এখানে ব্যবহার নয়) */
   function jsSingleQuote(s) {
     return String(s).replace(/\\/g, '\\\\').replace(/'/g, '\\\'');
+  }
+
+  function initialCharPlain(name) {
+    const s = String(name || '').trim();
+    return s ? s[0] : '?';
   }
 
   function initialChar(name) {
@@ -39,9 +66,10 @@
   }
 
   function syncLeaveHidden(id) {
+    if (_openKhadimId !== id) return;
     const st = ensureLeavePick(id);
-    const fromEl = document.getElementById('kh-leave-from-' + id);
-    const toEl = document.getElementById('kh-leave-to-' + id);
+    const fromEl = document.getElementById('khd-leave-from');
+    const toEl = document.getElementById('khd-leave-to');
     if (!fromEl || !toEl) return;
     if (!st.a) { fromEl.value = ''; toEl.value = ''; return; }
     if (!st.b) { fromEl.value = st.a; toEl.value = st.a; return; }
@@ -49,6 +77,14 @@
     const hi = st.a <= st.b ? st.b : st.a;
     fromEl.value = lo;
     toEl.value = hi;
+  }
+
+  function redrawLeaveCal(id) {
+    if (_openKhadimId !== id) return;
+    const host = document.getElementById('khd-cal-host');
+    if (!host) return;
+    host.innerHTML = buildCalInnerHtml(id);
+    syncLeaveHidden(id);
   }
 
   function leaveRangeLabel(id) {
@@ -99,10 +135,163 @@
     return parts.join('');
   }
 
-  function redrawLeaveCal(id) {
-    const host = document.getElementById('kh-cal-host-' + id);
-    if (host) host.innerHTML = buildCalInnerHtml(id);
-    syncLeaveHidden(id);
+  function ensureKhadimDetailModal() {
+    if (document.getElementById(KHD_MODAL_ID)) return;
+    const wrap = document.createElement('div');
+    wrap.id = KHD_MODAL_ID;
+    wrap.className = 'modal-bg';
+    wrap.innerHTML = `
+<div class="modal modal--student" id="khd-inner">
+  <div class="st-modal-hd">
+    <div class="st-modal-hd-main">
+      <div class="st-avatar st-avatar--empty khd-avatar" id="khd-avatar" aria-hidden="true">
+        <span class="st-avatar-ph" id="khd-avatar-ph">?</span>
+      </div>
+      <div class="st-modal-texts">
+        <h2 class="st-modal-title-khd" id="khd-title">খাদেম</h2>
+        <p class="st-modal-sub" id="khd-sub"></p>
+      </div>
+    </div>
+    <button type="button" class="modal-close" id="khd-close" aria-label="বন্ধ">✕</button>
+  </div>
+  <div id="khd-tabs-wrap">
+    <div class="st-tabs" role="tablist" aria-label="খাদেমের তথ্য">
+      <button type="button" class="st-tab st-tab--on" data-tab="info" role="tab" aria-selected="true" onclick="MDRHomePanels.switchKhadimTab('info')">তথ্য</button>
+      <button type="button" class="st-tab" data-tab="notes" role="tab" aria-selected="false" onclick="MDRHomePanels.switchKhadimTab('notes')">নোট ও ঘটনা</button>
+      <button type="button" class="st-tab" data-tab="leave" role="tab" aria-selected="false" onclick="MDRHomePanels.switchKhadimTab('leave')">ছুটির হিসাব</button>
+    </div>
+    <div class="st-tab-panels">
+      <div class="st-tab-panel st-tab-panel--on" data-panel="info" id="khd-panel-info"></div>
+      <div class="st-tab-panel" data-panel="notes" id="khd-panel-notes"></div>
+      <div class="st-tab-panel" data-panel="leave" id="khd-panel-leave"></div>
+    </div>
+  </div>
+</div>`;
+    wrap.addEventListener('click', (e) => { if (e.target.id === KHD_MODAL_ID) closeKhadimDetail(); });
+    const inner = wrap.querySelector('#khd-inner');
+    if (inner) inner.addEventListener('click', (e) => e.stopPropagation());
+    const cls = wrap.querySelector('#khd-close');
+    if (cls) cls.addEventListener('click', closeKhadimDetail);
+    document.body.appendChild(wrap);
+    const notesRoot = wrap.querySelector('#khd-panel-notes');
+    if (notesRoot) {
+      notesRoot.innerHTML = `
+<div id="khd-notes-list" class="khd-notes-list"></div>
+<textarea class="form-input" id="khd-note-ta" rows="3" placeholder="নতুন ঘটনা বা অবস্থা লিখুন…"></textarea>
+<button type="button" class="kh-mini-btn gold" style="margin-top:8px" onclick="MDRHomePanels.addKhadimNote()">নোট যোগ করুন</button>`;
+    }
+    const leaveRoot = wrap.querySelector('#khd-panel-leave');
+    if (leaveRoot) {
+      leaveRoot.innerHTML = `
+<p class="khd-leave-summary" id="khd-leave-summary"></p>
+<div class="kh-subtitle">এই শিক্ষাবর্ষের ছুটি (মাদরাসা সেটিংসের শুরুর তারিখ থেকে আজ)</div>
+<div id="khd-leave-list" class="kh-leave-scroll"></div>
+<div class="kh-subtitle">নতুন ছুটি — ক্যালেন্ডারে প্রথমে শুরু, তারপর শেষ দিন (এক দিন হলে দুবার একই দিন)</div>
+<div class="kh-cal"><div id="khd-cal-host"></div></div>
+<input type="hidden" id="khd-leave-from" value="">
+<input type="hidden" id="khd-leave-to" value="">
+<input class="form-input" id="khd-leave-reason" placeholder="ছুটির কারণ" style="margin-top:8px">
+<button type="button" class="kh-mini-btn gold" style="margin-top:8px;width:100%" onclick="MDRHomePanels.addLeave()">ছুটি সংরক্ষণ করুন</button>`;
+    }
+  }
+
+  function switchKhadimTab(key) {
+    const root = document.getElementById('khd-tabs-wrap');
+    if (!root) return;
+    root.querySelectorAll('.st-tab').forEach((btn) => {
+      const on = btn.getAttribute('data-tab') === key;
+      btn.classList.toggle('st-tab--on', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    root.querySelectorAll('.st-tab-panel').forEach((p) => {
+      p.classList.toggle('st-tab-panel--on', p.getAttribute('data-panel') === key);
+    });
+    if (key === 'leave' && _openKhadimId) {
+      const t = new Date();
+      leavePickState[_openKhadimId] = { vy: t.getFullYear(), vm: t.getMonth(), a: null, b: null };
+      redrawLeaveCal(_openKhadimId);
+    }
+  }
+
+  function khdKv(lbl, val) {
+    return `<div class="st-kv-item"><div class="st-kv-lbl">${lbl}</div><div class="st-kv-val">${val}</div></div>`;
+  }
+
+  function refreshKhadimDetailPanels() {
+    if (!_openKhadimId) return;
+    const k = getKhadimin().find((x) => x.id === _openKhadimId);
+    if (!k) { closeKhadimDetail(); return; }
+    const bounds = academicYearBounds();
+    const allLeaves = getLeaves().filter((l) => l.khadim_id === k.id);
+    const Ksup = global.MDRKhadiminSupabase;
+    const leaves = Ksup && Ksup.leavesInAcademicWindow
+      ? Ksup.leavesInAcademicWindow(getLeaves(), k.id, bounds)
+      : getLeaves().filter((l) => l.khadim_id === k.id);
+    const yDays = Ksup && Ksup.leaveDaysYearToDateForKhadim
+      ? Ksup.leaveDaysYearToDateForKhadim(k.id, getLeaves(), bounds)
+      : null;
+    const totalAll = allLeaves.reduce((sum, l) => sum + (Number(l.days) || 0), 0);
+    const st = k.status || 'active';
+    const tagBg = st === 'away' ? 'rgba(180,120,40,.2);color:#5a4010' : st === 'inactive' ? 'var(--cream2);color:var(--ink3)' : 'rgba(40,120,80,.15);color:#1d5c3a';
+    const yLabel = bounds.start
+      ? `${helpers.toBn(yDays != null ? yDays : 0)} দিন (${esc(bounds.start)} থেকে ${esc(bounds.end)} পর্যন্ত ছেদ)`
+      : `— (মাদরাসা সেটিংসে «চলতি শিক্ষাবর্ষ শুরুর তারিখ» দিন)`;
+    const infoEl = document.getElementById('khd-panel-info');
+    if (infoEl) {
+      infoEl.innerHTML = `
+<div class="st-kv-grid">
+  ${khdKv('দায়িত্ব', esc(k.duty || '—'))}
+  ${khdKv('মোবাইল', esc(k.phone || '—'))}
+  ${khdKv('অবস্থা', `<span class="st-kv-val--tag" style="background:${tagBg}">${esc(statusLabel(st))}</span>`)}
+  ${khdKv('যোগদান', esc(k.join_date || '—'))}
+  ${khdKv('ঠিকানা', esc(k.address || '—'))}
+  ${khdKv('বিস্তারিত', esc(k.details || '—'))}
+  ${khdKv('এই শিক্ষাবর্ষে ছুটি (শুরু থেকে আজ)', yLabel)}
+  ${bounds.start ? khdKv('সব মৌসুম মিলে মোট দিন (রেকর্ড)', helpers.toBn(totalAll) + ' দিন') : ''}
+</div>
+<p class="kh-meta" style="margin-top:12px">সম্পাদনা করতে তালিকার «সম্পাদনা» বাটন ব্যবহার করুন।</p>`;
+    }
+    const listNotes = document.getElementById('khd-notes-list');
+    if (listNotes) {
+      const notes = (k.notes || []).map((n) => `<div class="kh-note">${esc(n.date)} — ${esc(n.text)}</div>`).join('');
+      listNotes.innerHTML = notes || '<div class="kh-note">কোনো নোট নেই</div>';
+    }
+    const sumEl = document.getElementById('khd-leave-summary');
+    if (sumEl) {
+      sumEl.textContent = bounds.start
+        ? `এই শিক্ষাবর্ষে মোট ${helpers.toBn(yDays != null ? yDays : 0)} দিন ছুটি (শুরু: ${bounds.start} → আজ ${bounds.end})।`
+        : `শিক্ষাবর্ষ শুরুর তারিখ সেট নেই — নিচে সব যুক্ত ছুটির রেকর্ড দেখাচ্ছে। সেটিংসে তারিখ দিন।`;
+    }
+    const leaveList = document.getElementById('khd-leave-list');
+    if (leaveList) {
+      leaveList.innerHTML = leaves.length
+        ? leaves.map((l) => `<div class="kh-leave-row"><span>${esc(l.from)} → ${esc(l.to || l.from)}${l.reason ? ' · ' + esc(l.reason) : ''}</span><strong>${helpers.toBn(l.days)} দিন</strong></div>`).join('')
+        : '<div class="kh-note">' + (bounds.start ? 'এই শিক্ষাবর্ষে কোনো ছুটির রেকর্ড নেই' : 'কোনো ছুটির রেকর্ড নেই') + '</div>';
+    }
+    const reasonEl = document.getElementById('khd-leave-reason');
+    if (reasonEl) reasonEl.value = '';
+  }
+
+  function openKhadimDetail(id) {
+    const k = getKhadimin().find((x) => x.id === id);
+    if (!k) { helpers.showToast('খাদেম পাওয়া যায়নি'); return; }
+    _openKhadimId = id;
+    ensureKhadimDetailModal();
+    const ph = document.getElementById('khd-avatar-ph');
+    if (ph) ph.textContent = initialCharPlain(k.name);
+    const title = document.getElementById('khd-title');
+    if (title) title.textContent = k.name || 'খাদেম';
+    const sub = document.getElementById('khd-sub');
+    if (sub) sub.textContent = [k.duty, k.phone, statusLabel(k.status || 'active')].filter(Boolean).join(' · ');
+    switchKhadimTab('info');
+    refreshKhadimDetailPanels();
+    document.getElementById(KHD_MODAL_ID).classList.add('open');
+  }
+
+  function closeKhadimDetail() {
+    _openKhadimId = null;
+    const el = document.getElementById(KHD_MODAL_ID);
+    if (el) el.classList.remove('open');
   }
 
   function loadArr(key) {
@@ -132,17 +321,15 @@
       .kh-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
       #kh-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));gap:8px;align-content:start}
       .kh-card-wrap{background:#fff;border:1px solid rgba(26,18,8,.07);border-radius:14px;box-shadow:0 4px 12px rgba(26,18,8,.05);overflow:hidden}
-      .kh-compact{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:stretch;padding:8px 8px 8px 10px}
-      .kh-main-hit{border:none;margin:0;background:transparent;cursor:pointer;text-align:left;display:flex;align-items:flex-start;gap:10px;min-width:0;padding:4px 2px 4px 0;font:inherit;border-radius:10px;flex:1}
-      .kh-main-hit:hover{background:rgba(201,149,42,.06)}
-      .kh-main-hit:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+      .kh-compact{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 10px 10px 12px}
+      .kh-main-row{display:flex;align-items:flex-start;gap:10px;min-width:0;flex:1}
       .kh-av{flex-shrink:0;width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--gold2);display:flex;align-items:center;justify-content:center;font-family:'Noto Serif Bengali',serif;font-size:16px;font-weight:800}
       .kh-row-text{flex:1;min-width:0}
-      .kh-name{display:block;font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:800;color:var(--ink);line-height:1.25}
-      .kh-meta,.kh-note,.abs-meta-home{font-size:11px;color:var(--ink3);line-height:1.45;margin-top:2px}
+      .kh-name-btn{display:block;width:100%;font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:800;color:var(--ink);background:none;border:none;padding:0;margin:0;cursor:pointer;text-align:left;line-height:1.25}
+      .kh-name-btn:hover{color:var(--blue);text-decoration:underline}
+      .kh-name-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
       .kh-meta--1l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
       .kh-row-side{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
-      .kh-chev{font-size:10px;color:var(--ink3);margin-top:2px}
       .kh-pill{display:inline-block;background:var(--cream2);border-radius:20px;padding:2px 8px;font-size:10px;color:var(--ink3);white-space:nowrap}
       .kh-pill--away{background:rgba(180,120,40,.18);color:#6a4a12}
       .kh-pill--inactive{background:rgba(120,120,120,.15);color:var(--ink3)}
@@ -151,9 +338,6 @@
       .kh-mini-btn{border:1px solid var(--cream3);background:#fff;border-radius:10px;padding:8px;font-family:'Noto Sans Bengali',sans-serif;font-size:11px;font-weight:800;color:var(--ink2);cursor:pointer}
       .kh-mini-btn.gold{background:var(--ink);color:var(--gold2);border-color:var(--ink)}
       .kh-subtitle{font-size:12px;font-weight:900;color:var(--ink2);margin:10px 0 6px}
-      .kh-detail{display:none;background:linear-gradient(180deg,#fffaf2 0%,#fff 100%);border-top:1px solid var(--cream2);padding:10px 10px 12px}
-      .kh-detail.open{display:block}
-      .kh-detail input,.kh-detail textarea,.kh-grid input,.kh-grid select,.kh-grid textarea{width:100%;box-sizing:border-box}
       .kh-leave-scroll{max-height:112px;overflow-y:auto;margin:4px 0 8px;padding-right:4px;border-radius:8px}
       .kh-leave-row{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--cream2);padding:6px 0;font-size:11px;color:var(--ink2)}
       .kh-leave-row:first-child{border-top:none;padding-top:0}
@@ -178,6 +362,26 @@
       .abs-days-home{font-family:'Noto Serif Bengali',serif;font-size:17px;font-weight:800;color:var(--red);white-space:nowrap}
       @media(max-width:520px){.kh-grid{grid-template-columns:1fr}#kh-list{grid-template-columns:1fr}}
       .kh-list-empty{grid-column:1/-1}
+      #modal-khadim-detail.modal-bg{
+        align-items:center;justify-content:center;
+        padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+        backdrop-filter:blur(2px);z-index:220;
+      }
+      #modal-khadim-detail .modal.modal--student{
+        --st-modal-h:min(75vh,640px);
+        width:min(600px,calc(100vw - 32px));max-width:min(600px,calc(100vw - 32px));
+        height:var(--st-modal-h);min-height:var(--st-modal-h);max-height:var(--st-modal-h);
+        margin:0;padding:0;border-radius:20px;align-self:center;overflow:hidden;
+        display:flex;flex-direction:column;
+        background:linear-gradient(180deg,#fffef9 0%,#fcfaf5 8%,#fff 14%);
+        box-shadow:0 4px 6px rgba(26,18,8,.04),0 24px 64px rgba(26,18,8,.16);
+        border:1px solid rgba(201,149,42,.12);
+      }
+      #modal-khadim-detail #khd-tabs-wrap{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden}
+      #modal-khadim-detail #khd-title{font-family:'Noto Serif Bengali',serif;font-size:18px;font-weight:700;color:var(--ink2);margin:0 0 4px 0;line-height:1.2;word-break:break-word}
+      .khd-notes-list{max-height:min(200px,35vh);overflow-y:auto;margin-bottom:8px}
+      .khd-leave-summary{font-size:12px;color:var(--ink2);margin:0 0 8px;font-weight:600}
+      #modal-khadim-detail .st-tab-panels{padding:12px 14px 16px;overflow-y:auto;flex:1;min-height:0}
     `;
     document.head.appendChild(style);
 
@@ -230,37 +434,85 @@
   }
 
   function getKhadimin() {
+    if (useRemote() && global.MDRKhadiminSupabase) return MDRKhadiminSupabase.getKhadimin();
     return loadArr(KHADIMIN_KEY);
   }
 
   function getLeaves() {
+    if (useRemote() && global.MDRKhadiminSupabase) return MDRKhadiminSupabase.getLeaves();
     return loadArr(LEAVES_KEY);
   }
 
   function saveKhadim() {
     const name = document.getElementById('kh-name').value.trim();
     if (!name) { helpers.showToast('নাম লিখুন'); return; }
-    const id = document.getElementById('kh-id').value || uid();
-    const rows = getKhadimin();
-    const row = {
-      id,
-      name,
-      phone: document.getElementById('kh-phone').value.trim(),
-      duty: document.getElementById('kh-duty').value.trim(),
-      join_date: document.getElementById('kh-join').value,
-      status: document.getElementById('kh-status').value,
-      address: document.getElementById('kh-address').value.trim(),
-      details: document.getElementById('kh-details').value.trim(),
-      notes: (rows.find((x) => x.id === id) || {}).notes || [],
+    const rawId = (document.getElementById('kh-id').value || '').trim();
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const existingId = uuidRe.test(rawId) ? rawId : null;
+
+    const doLocal = () => {
+      const id = existingId || rawId || uid();
+      const rows = loadArr(KHADIMIN_KEY);
+      const row = {
+        id,
+        name,
+        phone: document.getElementById('kh-phone').value.trim(),
+        duty: document.getElementById('kh-duty').value.trim(),
+        join_date: document.getElementById('kh-join').value,
+        status: document.getElementById('kh-status').value,
+        address: document.getElementById('kh-address').value.trim(),
+        details: document.getElementById('kh-details').value.trim(),
+        notes: (rows.find((x) => x.id === id) || {}).notes || [],
+      };
+      const idx = rows.findIndex((x) => x.id === id);
+      if (idx >= 0) rows[idx] = row;
+      else rows.push(row);
+      saveArr(KHADIMIN_KEY, rows);
+      afterSaveRefresh(id);
     };
-    const idx = rows.findIndex((x) => x.id === id);
-    if (idx >= 0) rows[idx] = row;
-    else rows.push(row);
-    saveArr(KHADIMIN_KEY, rows);
-    renderKhadimin();
+
+    if (useRemote()) {
+      MDRKhadiminSupabase.upsertKhadim({
+        id: existingId,
+        name,
+        phone: document.getElementById('kh-phone').value.trim(),
+        duty: document.getElementById('kh-duty').value.trim(),
+        join_date: document.getElementById('kh-join').value || null,
+        status: document.getElementById('kh-status').value,
+        address: document.getElementById('kh-address').value.trim(),
+        details: document.getElementById('kh-details').value.trim(),
+      }).then((newId) => {
+        const fid = newId || existingId;
+        if (fid) document.getElementById('kh-id').value = fid;
+        afterSaveRefresh(fid || _openKhadimId);
+        updateCards();
+        showList();
+        helpers.showToast('খাদেমের তথ্য সংরক্ষণ হয়েছে ✓');
+      }).catch(() => {
+        helpers.showToast('সংরক্ষণ ব্যর্থ — আবার চেষ্টা করুন');
+      });
+      return;
+    }
+    doLocal();
     updateCards();
     showList();
     helpers.showToast('খাদেমের তথ্য সংরক্ষণ হয়েছে ✓');
+  }
+
+  function afterSaveRefresh(id) {
+    renderKhadimin();
+    if (id && _openKhadimId === id) {
+      const k2 = getKhadimin().find((x) => x.id === id);
+      if (k2) {
+        const title = document.getElementById('khd-title');
+        if (title) title.textContent = k2.name || 'খাদেম';
+        const sub = document.getElementById('khd-sub');
+        if (sub) sub.textContent = [k2.duty, k2.phone, statusLabel(k2.status || 'active')].filter(Boolean).join(' · ');
+        const ph = document.getElementById('khd-avatar-ph');
+        if (ph) ph.textContent = initialCharPlain(k2.name);
+        refreshKhadimDetailPanels();
+      }
+    }
   }
 
   function showList() {
@@ -283,6 +535,7 @@
   }
 
   function editKhadim(id) {
+    closeKhadimDetail();
     const k = getKhadimin().find((x) => x.id === id);
     if (!k) return;
     document.getElementById('kh-id').value = k.id;
@@ -294,7 +547,7 @@
     document.getElementById('kh-address').value = k.address || '';
     document.getElementById('kh-details').value = k.details || '';
     const t = document.getElementById('kh-form-title');
-    if (t) t.textContent = esc(k.name) + ' — সম্পাদনা';
+    if (t) t.textContent = (k.name || '') + ' — সম্পাদনা';
     document.getElementById('kh-panel-list').classList.add('hidden');
     document.getElementById('kh-panel-form').classList.add('active');
     document.getElementById('kh-panel-form').scrollTop = 0;
@@ -307,38 +560,60 @@
     return Math.max(1, Math.round((b - a) / 86400000) + 1);
   }
 
-  function addNote(id) {
-    const el = document.getElementById('kh-note-' + id);
+  function addKhadimNote() {
+    if (!_openKhadimId) {
+      helpers.showToast('প্রথমে তালিকা থেকে খাদেমের নামে ক্লিক করে বিস্তারিত খুলুন');
+      return;
+    }
+    const id = _openKhadimId;
+    const el = document.getElementById('khd-note-ta');
     const text = el && el.value.trim();
     if (!text) { helpers.showToast('ঘটনা/নোট লিখুন'); return; }
-    const rows = getKhadimin().map((k) => k.id === id ? { ...k, notes: [{ date: today(), text }].concat(k.notes || []) } : k);
+    const done = () => {
+      if (el) el.value = '';
+      renderKhadimin();
+      refreshKhadimDetailPanels();
+      helpers.showToast('নোট যোগ হয়েছে ✓');
+    };
+    if (useRemote()) {
+      MDRKhadiminSupabase.addNote(id, text).then(done).catch(() => helpers.showToast('নোট সংরক্ষণ ব্যর্থ'));
+      return;
+    }
+    const rows = loadArr(KHADIMIN_KEY).map((k) => (k.id === id ? { ...k, notes: [{ date: today(), text }].concat(k.notes || []) } : k));
     saveArr(KHADIMIN_KEY, rows);
-    renderKhadimin();
+    done();
   }
 
-  function addLeave(id) {
-    const from = document.getElementById('kh-leave-from-' + id).value;
-    const to = document.getElementById('kh-leave-to-' + id).value || from;
-    const reasonEl = document.getElementById('kh-leave-reason-' + id);
+  function addLeave() {
+    if (!_openKhadimId) {
+      helpers.showToast('প্রথমে তালিকা থেকে খাদেমের নামে ক্লিক করে বিস্তারিত খুলুন');
+      return;
+    }
+    const id = _openKhadimId;
+    const fromEl = document.getElementById('khd-leave-from');
+    const toEl = document.getElementById('khd-leave-to');
+    const from = fromEl && fromEl.value;
+    const to = (toEl && toEl.value) || from;
+    const reasonEl = document.getElementById('khd-leave-reason');
     const reason = reasonEl && reasonEl.value.trim();
     if (!from) { helpers.showToast('ক্যালেন্ডার থেকে ছুটির তারিখ বেছে নিন'); return; }
-    const leaves = getLeaves();
+    const done = () => {
+      if (reasonEl) reasonEl.value = '';
+      const t = new Date();
+      leavePickState[id] = { vy: t.getFullYear(), vm: t.getMonth(), a: null, b: null };
+      renderKhadimin();
+      redrawLeaveCal(id);
+      refreshKhadimDetailPanels();
+      helpers.showToast('ছুটির হিসাব যোগ হয়েছে ✓');
+    };
+    if (useRemote()) {
+      MDRKhadiminSupabase.addLeave(id, from, to, reason).then(done).catch(() => helpers.showToast('ছুটি সংরক্ষণ ব্যর্থ'));
+      return;
+    }
+    const leaves = loadArr(LEAVES_KEY);
     leaves.unshift({ id: uid(), khadim_id: id, from, to, reason, days: daysBetween(from, to) });
     saveArr(LEAVES_KEY, leaves);
-    if (reasonEl) reasonEl.value = '';
-    const t = new Date();
-    const prev = document.getElementById('kh-detail-' + id);
-    const wasOpen = prev && prev.classList.contains('open');
-    leavePickState[id] = { vy: t.getFullYear(), vm: t.getMonth(), a: null, b: null };
-    renderKhadimin();
-    if (wasOpen) {
-      const det = document.getElementById('kh-detail-' + id);
-      if (det) det.classList.add('open');
-      const hit = document.getElementById('kh-hit-' + id);
-      if (hit) hit.setAttribute('aria-expanded', 'true');
-      redrawLeaveCal(id);
-    }
-    helpers.showToast('ছুটির হিসাব যোগ হয়েছে ✓');
+    done();
   }
 
   function pickLeaveDay(id, iso) {
@@ -384,41 +659,30 @@
     }
     el.innerHTML = rows.map((k) => {
       const qid = jsSingleQuote(k.id);
-      const kLeaves = leaves.filter((l) => l.khadim_id === k.id);
-      const totalDays = kLeaves.reduce((sum, l) => sum + (Number(l.days) || 0), 0);
-      const notes = (k.notes || []).slice(0, 4).map((n) => `<div class="kh-note">${esc(n.date)} — ${esc(n.text)}</div>`).join('');
-      const leaveRows = kLeaves.slice(0, 10).map((l) => `<div class="kh-leave-row"><span>${esc(l.from)} → ${esc(l.to || l.from)}${l.reason ? ' · ' + esc(l.reason) : ''}</span><strong>${helpers.toBn(l.days)} দিন</strong></div>`).join('');
+      const bounds = academicYearBounds();
+      const Ksup = global.MDRKhadiminSupabase;
+      const yDays = Ksup && Ksup.leaveDaysYearToDateForKhadim
+        ? Ksup.leaveDaysYearToDateForKhadim(k.id, leaves, bounds)
+        : null;
       const st = k.status || 'active';
       const pcl = st === 'away' ? 'kh-pill--away' : st === 'inactive' ? 'kh-pill--inactive' : 'kh-pill--active';
+      const leavePill = bounds.start
+        ? `ছুটি ${helpers.toBn(yDays != null ? yDays : 0)} দিন (শিক্ষাবর্ষ)`
+        : 'ছুটি — শিক্ষাবর্ষ শুরু সেট করুন';
       return `<article class="kh-card-wrap">
         <div class="kh-compact">
-          <button type="button" class="kh-main-hit" id="kh-hit-${k.id}" onclick="MDRHomePanels.toggleDetail('${qid}')" aria-expanded="false">
+          <div class="kh-main-row">
             <div class="kh-av" aria-hidden="true">${initialChar(k.name)}</div>
             <div class="kh-row-text">
-              <span class="kh-name">${esc(k.name)}</span>
+              <button type="button" class="kh-name-btn" onclick="MDRHomePanels.openKhadimDetail('${qid}')">${esc(k.name)}</button>
               <div class="kh-meta kh-meta--1l">${esc(k.duty || 'দায়িত্ব —')} · ${esc(k.phone || 'ফোন নেই')}</div>
             </div>
             <div class="kh-row-side">
               <span class="kh-pill ${pcl}">${statusLabel(st)}</span>
-              <span class="kh-pill">ছুটি ${helpers.toBn(totalDays)} দিন</span>
-              <span class="kh-chev">▼</span>
+              <span class="kh-pill">${leavePill}</span>
             </div>
-          </button>
+          </div>
           <button type="button" class="kh-edit" onclick="MDRHomePanels.editKhadim('${qid}')">সম্পাদনা</button>
-        </div>
-        <div class="kh-detail" id="kh-detail-${k.id}">
-          <div class="kh-subtitle">ঘটনা / অবস্থা</div>
-          ${notes || '<div class="kh-note">কোনো নোট নেই</div>'}
-          <textarea class="form-input" id="kh-note-${k.id}" rows="2" placeholder="নতুন ঘটনা বা অবস্থা লিখুন"></textarea>
-          <button type="button" class="kh-mini-btn gold" style="margin-top:6px" onclick="MDRHomePanels.addNote('${qid}')">ঘটনা যোগ করুন</button>
-          <div class="kh-subtitle">আগের ছুটি</div>
-          <div class="kh-leave-scroll">${leaveRows || '<div class="kh-note">কোনো ছুটির রেকর্ড নেই</div>'}</div>
-          <div class="kh-subtitle">নতুন ছুটি — ক্যালেন্ডারে প্রথমে শুরুর দিন, তারপর শেষ দিন টোকা দিন (এক দিন হলে দুবার একই দিন)</div>
-          <div class="kh-cal"><div id="kh-cal-host-${k.id}"></div></div>
-          <input type="hidden" id="kh-leave-from-${k.id}" value="">
-          <input type="hidden" id="kh-leave-to-${k.id}" value="">
-          <input class="form-input" id="kh-leave-reason-${k.id}" placeholder="ছুটির কারণ" style="margin-top:8px">
-          <button type="button" class="kh-mini-btn gold" style="margin-top:8px;width:100%" onclick="MDRHomePanels.addLeave('${qid}')">ছুটি সংরক্ষণ করুন</button>
         </div>
       </article>`;
     }).join('');
@@ -426,20 +690,6 @@
 
   function statusLabel(status) {
     return status === 'away' ? 'ছুটিতে' : status === 'inactive' ? 'নিষ্ক্রিয়' : 'সক্রিয়';
-  }
-
-  function toggleDetail(id) {
-    const el = document.getElementById('kh-detail-' + id);
-    const hit = document.getElementById('kh-hit-' + id);
-    if (!el) return;
-    const opening = !el.classList.contains('open');
-    el.classList.toggle('open');
-    if (hit) hit.setAttribute('aria-expanded', opening ? 'true' : 'false');
-    if (opening) {
-      const t = new Date();
-      leavePickState[id] = { vy: t.getFullYear(), vm: t.getMonth(), a: null, b: null };
-      redrawLeaveCal(id);
-    }
   }
 
   function scopeDepts() {
@@ -488,12 +738,21 @@
 
   function openKhadimin() {
     injectOnce();
-    renderKhadimin();
-    showList();
-    document.getElementById('modal-khadimin').classList.add('open');
+    const open = () => {
+      renderKhadimin();
+      showList();
+      document.getElementById('modal-khadimin').classList.add('open');
+    };
+    if (useRemote()) {
+      MDRKhadiminSupabase.sync().then(open).catch(() => {
+        helpers.showToast('খাদিমিন লোড হয়নি');
+        open();
+      });
+    } else open();
   }
 
   function closeKhadimin() {
+    closeKhadimDetail();
     document.getElementById('modal-khadimin').classList.remove('open');
   }
 
@@ -507,24 +766,13 @@
     document.getElementById('modal-absent-home').classList.remove('open');
   }
 
-  /** প্রথম চালু: localStorage-এ `mm_khadimin` কখনো সেট হয়নি হলে MMSampleData থেকে নমুনা ভরে */
-  function ensureKhadiminDemoSeed() {
-    if (localStorage.getItem(KHADIMIN_KEY) !== null) return;
-    const build = global.MMSampleData && typeof global.MMSampleData.buildKhadiminDemo === 'function'
-      ? global.MMSampleData.buildKhadiminDemo
-      : null;
-    if (!build) return;
-    const pack = build();
-    if (!pack || !Array.isArray(pack.khadimin)) return;
-    saveArr(KHADIMIN_KEY, pack.khadimin);
-    if (Array.isArray(pack.khadimin_leaves)) saveArr(LEAVES_KEY, pack.khadimin_leaves);
-  }
-
   function init(opts) {
     helpers = { ...helpers, ...(opts || {}) };
-    ensureKhadiminDemoSeed();
     injectOnce();
     updateCards();
+    if (useRemote()) {
+      MDRKhadiminSupabase.sync().then(() => updateCards()).catch(() => {});
+    }
   }
 
   global.MDRHomePanels = {
@@ -536,8 +784,10 @@
     showAddForm,
     saveKhadim,
     editKhadim,
-    toggleDetail,
-    addNote,
+    openKhadimDetail,
+    closeKhadimDetail,
+    switchKhadimTab,
+    addKhadimNote,
     addLeave,
     pickLeaveDay,
     leaveCalNav,

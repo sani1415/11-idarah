@@ -194,6 +194,41 @@ const MMSharedAPI = (() => {
     examBootstrap(actorId, pin) {
       return rpc('mdr_rel_exam_bootstrap', { p_actor_id: actorId, p_pin: pin });
     },
+    khadiminList(actorId, pin) {
+      return rpc('mdr_rel_khadimin_list', { p_actor_id: actorId, p_pin: pin });
+    },
+    khadiminUpsert(actorId, pin, payload) {
+      return rpc('mdr_rel_khadimin_upsert', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_id: payload.id || null,
+        p_name: payload.name || '',
+        p_phone: payload.phone || null,
+        p_duty: payload.duty || null,
+        p_join_date: payload.join_date || null,
+        p_status: payload.status || null,
+        p_address: payload.address || null,
+        p_details: payload.details || null,
+      });
+    },
+    khadiminAddNote(actorId, pin, khadimId, text) {
+      return rpc('mdr_rel_khadimin_add_note', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_khadim_id: khadimId,
+        p_text: text || '',
+      });
+    },
+    khadiminAddLeave(actorId, pin, khadimId, dateFrom, dateTo, reason) {
+      return rpc('mdr_rel_khadimin_add_leave', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_khadim_id: khadimId,
+        p_date_from: dateFrom,
+        p_date_to: dateTo,
+        p_reason: reason || null,
+      });
+    },
     saveExam(actorId, pin, name, type, subjects) {
       return rpc('mdr_rel_save_exam', {
         p_actor_id: actorId,
