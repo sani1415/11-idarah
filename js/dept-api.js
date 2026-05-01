@@ -20,6 +20,10 @@ const DeptAPI = (() => {
 
   function load(key) { try { return JSON.parse(localStorage.getItem(key))||[]; } catch { return []; } }
   function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+  function deptIcon(id, emoji) {
+    if (id === 'dept_4' && (!emoji || emoji === '🧵')) return '✂️';
+    return emoji || '🏢';
+  }
   function purgeKnownSampleData() {
     const sample = row => /^(dept|txn|inv)_\d+$/.test(String(row && row.id || ''));
     [KEYS.departments, KEYS.transactions, KEYS.inventory].forEach(key => {
@@ -32,19 +36,29 @@ const DeptAPI = (() => {
   /* ── SEED ── */
   function seedIfEmpty() {
     const existing = load(KEYS.departments);
+    const defaultDepts = [
+      { id:'dept_1', name:'কৃষি বিভাগ', emoji:'🌾', pin:'0000', is_active:true },
+      { id:'dept_2', name:'মধু বিভাগ', emoji:'🍯', pin:'0000', is_active:true },
+      { id:'dept_3', name:'বেকারি বিভাগ', emoji:'🍞', pin:'0000', is_active:true },
+      { id:'dept_4', name:'সেলাই বিভাগ', emoji:'✂️', pin:'0000', is_active:true },
+      { id:'dept_5', name:'স্টোর', emoji:'📦', pin:'0000', is_active:true },
+      { id:'dept_6', name:'রান্নাঘর', emoji:'🍽️', pin:'0000', is_active:true },
+      { id:'dept_7', name:'বই বিতরণ', emoji:'📚', pin:'0000', is_active:true },
+    ];
     if (existing.length) {
       /* migration: নতুন বিভাগ যোগ হলে শুধু সেটা ঢুকিয়ে দাও */
-      const newDepts = [
-        { id:'dept_4', name:'সেলাই বিভাগ', emoji:'🧵', pin:'0000', is_active:true },
-      ];
       let changed = false;
-      newDepts.forEach(nd => {
+      defaultDepts.forEach(nd => {
         if (!existing.find(d => d.id === nd.id)) { existing.push(nd); changed = true; }
+      });
+      existing.forEach(d => {
+        const nextEmoji = deptIcon(d.id, d.emoji);
+        if (d.emoji !== nextEmoji) { d.emoji = nextEmoji; changed = true; }
       });
       if (changed) save(KEYS.departments, existing);
       return;
     }
-    save(KEYS.departments, []);
+    save(KEYS.departments, defaultDepts);
   }
 
   /* ── DEPARTMENTS ── */
@@ -110,11 +124,14 @@ const DeptAPI = (() => {
   const Transactions = {
     getByDept: id => load(KEYS.transactions)
       .filter(t => t.dept_id===id)
-      .sort((a,b) => b.date.localeCompare(a.date)),
+      .sort((a,b) => String(b.date||b.txn_date||'').localeCompare(String(a.date||a.txn_date||''))),
     getByMonth(id, month) {
-      return load(KEYS.transactions).filter(t => t.dept_id===id && t.date.startsWith(month));
+      return load(KEYS.transactions).filter(t => {
+        const d = String(t.date || t.txn_date || '');
+        return t.dept_id===id && d.startsWith(month);
+      });
     },
-    getAll: () => load(KEYS.transactions).sort((a,b)=>b.date.localeCompare(a.date)),
+    getAll: () => load(KEYS.transactions).sort((a,b)=>String(b.date||b.txn_date||'').localeCompare(String(a.date||a.txn_date||''))),
     add(data) {
       const list = load(KEYS.transactions);
       const dateVal = data.date || data.txn_date || today();
@@ -155,9 +172,17 @@ const DeptAPI = (() => {
     getByDept: id => load(KEYS.inventory).filter(i => i.dept_id===id),
     add(data) {
       const list = load(KEYS.inventory);
-      const existing = list.findIndex(i => i.dept_id===data.dept_id && i.product===data.product);
-      const item = { id:'inv_'+uid(), date_updated:today(), ...data };
-      if (existing >= 0) list[existing] = { ...list[existing], ...item, id:list[existing].id };
+      const name = data.item_name || data.product || '';
+      const existing = list.findIndex(i =>
+        i.dept_id===data.dept_id &&
+        String(i.product_id || '') === String(data.product_id || '') &&
+        String(i.item_name || i.product || '').toLowerCase() === String(name).toLowerCase()
+      );
+      const item = { id:'inv_'+uid(), date_updated:today(), ...data, item_name:name };
+      if (existing >= 0) {
+        const nextQty = Number(list[existing].quantity || 0) + Number(data.quantity || 0);
+        list[existing] = { ...list[existing], ...item, id:list[existing].id, quantity:nextQty };
+      }
       else list.push(item);
       save(KEYS.inventory, list);
       return item;

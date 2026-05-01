@@ -43,6 +43,7 @@
       active: row.status !== 'dropped' && row.status !== 'alumni',
       hifz: !!row.is_hifz,
       special_watch: !!row.special_watch,
+      alhamdulillah: !!row.alhamdulillah,
       left_date: row.left_date || '',
       left_reason: row.left_reason || '',
       supabase_id: row.id || '',

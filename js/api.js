@@ -169,7 +169,10 @@ const API = (() => {
       });
       const next = (Array.isArray(list) ? list : []).map((s) => {
         const prev = byId.get(String(s.id || '')) || byId.get(String(s.supabase_id || '')) || byId.get(String(s.permanent_id || ''));
-        return prev && prev.special_watch && s.special_watch == null ? { ...s, special_watch: true } : s;
+        let out = { ...s };
+        if (prev && prev.special_watch && s.special_watch == null) out = { ...out, special_watch: true };
+        if (prev && prev.alhamdulillah && s.alhamdulillah == null) out = { ...out, alhamdulillah: true };
+        return out;
       });
       save(KEYS.students, next);
     },
@@ -321,6 +324,19 @@ const API = (() => {
         .filter((s) => s.active && cids.has(s.class_id) && s.special_watch)
         .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'bn'));
     },
+    /** শিক্ষক কর্তৃক চিহ্নিত আলহামদুলিল্লাহ */
+    countAlhamdulillahByDept(dept) {
+      const cids = new Set(load(KEYS.classes).filter((c) => c.dept === dept).map((c) => c.id));
+      return load(KEYS.students).filter(
+        (s) => s.active && cids.has(s.class_id) && s.alhamdulillah
+      ).length;
+    },
+    getAlhamdulillahByDeptSorted(dept) {
+      const cids = new Set(load(KEYS.classes).filter((c) => c.dept === dept).map((c) => c.id));
+      return load(KEYS.students)
+        .filter((s) => s.active && cids.has(s.class_id) && s.alhamdulillah)
+        .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'bn'));
+    },
     /**
      * mm_withdrawals — বর্ষ শেষে বা ড্রপআউটে last_class_id অনুসারে।
      * @param {string} classId
@@ -394,12 +410,15 @@ const API = (() => {
   const Teachers = {
     getAll: () => load(KEYS.teachers),
     getById: id => load(KEYS.teachers).find(t => t.id === id),
-    getByClassId: cid => load(KEYS.teachers).find(t => t.class_id === cid),
+    getByClassId: cid => load(KEYS.teachers).find(t => t.class_id === cid && t.is_active !== false),
+    replaceAll(list) {
+      save(KEYS.teachers, Array.isArray(list) ? list : []);
+    },
     /** ওই বিভাগের ক্লাসে নিয়োজিত শিক্ষক (ক্লাসবিহীন স্টাফ বাদ) */
     getByDept(dept) {
       const cids = new Set(Classes.getByDept(dept).map(c => c.id));
       return load(KEYS.teachers)
-        .filter(t => t.class_id && cids.has(t.class_id))
+        .filter(t => t.class_id && t.is_active !== false && cids.has(t.class_id))
         .sort((a, b) => {
           const classA = Classes.getById(a.class_id)?.name || '';
           const classB = Classes.getById(b.class_id)?.name || '';

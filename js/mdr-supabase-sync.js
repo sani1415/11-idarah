@@ -24,6 +24,16 @@
     LOCAL_ID_TO_CLASS_CODE[CLASS_CODE_TO_LOCAL_ID[code]] = code;
   });
 
+  var SUPA_ROLE_TO_LOCAL = {
+    madrasa_teacher: 'teacher',
+    daftar: 'daftar',
+    hifz: 'hifz',
+    library: 'library',
+    alumni_tracker: 'alumni',
+    khedmat: 'khedmat',
+    restricted_admin: 'restricted_admin',
+  };
+
   function toLocalStudent(row) {
     return {
       id: String(row.id || row.student_id || ''),
@@ -40,6 +50,7 @@
       active: row.status !== 'dropped' && row.status !== 'alumni',
       hifz: !!row.is_hifz,
       special_watch: !!row.special_watch,
+      alhamdulillah: !!row.alhamdulillah,
       left_date: row.left_date || '',
       left_reason: row.left_reason || '',
       supabase_id: row.id || '',
@@ -169,6 +180,32 @@
     return true;
   }
 
+  async function syncAdminUsers() {
+    if (!global.MMSession || !global.MMSharedAPI || !global.API || !API.Teachers) return false;
+    var pin = MMSession.getAdminPin && MMSession.getAdminPin();
+    if (!pin) return false;
+    var res = await MMSharedAPI.adminUsers(pin);
+    if (!res || !res.ok) return false;
+    var users = (res.users || []).map(function (u) {
+      return {
+        id: String(u.id || ''),
+        name: u.name || '',
+        login_id: u.login_id || '',
+        class_id: CLASS_CODE_TO_LOCAL_ID[u.class_code] || '',
+        class_code: u.class_code || '',
+        pin: u.pin || '',
+        role: SUPA_ROLE_TO_LOCAL[u.role] || u.role,
+        admin_perms: u.admin_perms || {},
+        is_active: u.is_active !== false,
+      };
+    }).filter(function (u) { return u.id; });
+    if (API.Teachers.replaceAll) API.Teachers.replaceAll(users);
+    else {
+      try { localStorage.setItem('mm_teachers', JSON.stringify(users)); } catch (e) {}
+    }
+    return true;
+  }
+
   async function syncTeacherClass() {
     if (!global.MMSession || !global.MMSharedAPI || !global.API) return false;
     var actorId = MMSession.getStaffUserId && MMSession.getStaffUserId();
@@ -196,6 +233,7 @@
 
   global.MDRSupabaseSync = {
     syncAdminStudents: syncAdminStudents,
+    syncAdminUsers: syncAdminUsers,
     syncTeacherClass: syncTeacherClass,
     syncAlumni: syncAlumni,
     syncTeacherExtras: syncTeacherExtras,

@@ -7,20 +7,23 @@ const MMSharedAPI = (() => {
     return cfg.publishableKey || cfg.anonKey || '';
   }
 
-  function requireClient() {
+  function createClientOrNull() {
     if (!window.supabase || !window.supabase.createClient) {
-      throw new Error('Supabase client script is not loaded');
+      console.warn('[MMSharedAPI] Supabase client script is not loaded; using local fallback.');
+      return null;
     }
     const key = getSupabaseKey();
     if (!cfg.url || !key) {
-      throw new Error('supabase-config.js is missing SUPABASE_URL or publishable key');
+      console.warn('[MMSharedAPI] supabase-config.js is missing SUPABASE_URL or publishable key; using local fallback.');
+      return null;
     }
     return window.supabase.createClient(cfg.url, key);
   }
 
-  const supabaseClient = requireClient();
+  const supabaseClient = createClientOrNull();
 
   async function rpc(name, params) {
+    if (!supabaseClient) throw new Error('Supabase client is not configured');
     const { data, error } = await supabaseClient.rpc(name, params || {});
     if (error) throw error;
     return data;
@@ -85,6 +88,14 @@ const MMSharedAPI = (() => {
         p_pin: pin,
         p_student_id: studentId,
         p_special_watch: !!specialWatch,
+      });
+    },
+    setAlhamdulillah(actorId, pin, studentId, value) {
+      return rpc('mdr_rel_set_alhamdulillah', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_student_id: studentId,
+        p_alhamdulillah: !!value,
       });
     },
     setStudentStatus(actorId, pin, studentId, status, reason) {
@@ -228,6 +239,60 @@ const MMSharedAPI = (() => {
         p_emoji: emoji || '🏢',
         p_code: code || null,
         p_is_active: isActive !== false,
+      });
+    },
+    deptBootstrap(actorId, pin, deptCode) {
+      return rpc('dept_rel_bootstrap', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_dept_code: deptCode || null,
+      });
+    },
+    saveDeptProduct(actorId, pin, deptCode, product) {
+      return rpc('dept_rel_save_product', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_product_id: product.id && /^[0-9a-f-]{36}$/i.test(String(product.id)) ? product.id : null,
+        p_name: product.name,
+        p_unit: product.unit || 'পিস',
+        p_price: Number(product.price || 0),
+        p_is_active: product.is_active !== false,
+      });
+    },
+    saveDeptTransaction(actorId, pin, deptCode, txn) {
+      const honorAmount = Number(txn.honor_amount || (txn.metadata && txn.metadata.honor_amount) || 0);
+      const hasItems = !!(txn.items && txn.items.length) || !!(txn.metadata && txn.metadata.line_items && txn.metadata.line_items.length);
+      const rpcAmount = txn.type === 'income' && !hasItems
+        ? Math.max(Number(txn.amount || 0) - honorAmount, 0)
+        : Number(txn.amount || 0);
+      return rpc('dept_rel_save_transaction', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_type: txn.type,
+        p_description: txn.description || '',
+        p_date: txn.date || txn.txn_date || null,
+        p_category: txn.category || null,
+        p_amount: rpcAmount,
+        p_honor_amount: honorAmount,
+        p_buyer_name: txn.buyer_name || (txn.metadata && txn.metadata.buyer_name) || null,
+        p_buyer_phone: txn.buyer_phone || (txn.metadata && txn.metadata.buyer_phone) || null,
+        p_items: txn.items || (txn.metadata && txn.metadata.line_items) || [],
+        p_metadata: txn.metadata || {},
+      });
+    },
+    adjustDeptInventory(actorId, pin, deptCode, item) {
+      return rpc('dept_rel_adjust_inventory', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_product_id: item.product_id && /^[0-9a-f-]{36}$/i.test(String(item.product_id)) ? item.product_id : null,
+        p_item_name: item.item_name || item.product || '',
+        p_unit: item.unit || 'পিস',
+        p_quantity_delta: Number(item.quantity_delta || item.quantity || 0),
+        p_reason: item.reason || 'stock_in',
+        p_notes: item.notes || null,
       });
     },
   };

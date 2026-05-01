@@ -4,10 +4,106 @@
   const KHADIMIN_KEY = 'mm_khadimin';
   const LEAVES_KEY = 'mm_khadimin_leaves';
   let helpers = { toBn: (n) => String(n), showToast: () => {} };
+  /** @type {Record<string, { vy: number, vm: number, a: string|null, b: string|null }>} */
+  const leavePickState = {};
+
+  const BN_MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+  const BN_DOW = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহ', 'শুক', 'শনি'];
 
   const uid = () => 'kh_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const today = () => new Date().toISOString().slice(0, 10);
   const esc = (s) => global.API && API.esc ? API.esc(s) : String(s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  /** onclick="...('…')" এর জন্য — ডাবল কোট ভাঙ্গা এড়াতে (JSON.stringify এখানে ব্যবহার নয়) */
+  function jsSingleQuote(s) {
+    return String(s).replace(/\\/g, '\\\\').replace(/'/g, '\\\'');
+  }
+
+  function initialChar(name) {
+    const s = String(name || '').trim();
+    if (!s) return '?';
+    const ch = s[0];
+    return esc(ch);
+  }
+
+  function isoFromYmd(y, m0, d) {
+    return `${y}-${String(m0 + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  }
+
+  function ensureLeavePick(id) {
+    if (!leavePickState[id]) {
+      const t = new Date();
+      leavePickState[id] = { vy: t.getFullYear(), vm: t.getMonth(), a: null, b: null };
+    }
+    return leavePickState[id];
+  }
+
+  function syncLeaveHidden(id) {
+    const st = ensureLeavePick(id);
+    const fromEl = document.getElementById('kh-leave-from-' + id);
+    const toEl = document.getElementById('kh-leave-to-' + id);
+    if (!fromEl || !toEl) return;
+    if (!st.a) { fromEl.value = ''; toEl.value = ''; return; }
+    if (!st.b) { fromEl.value = st.a; toEl.value = st.a; return; }
+    const lo = st.a <= st.b ? st.a : st.b;
+    const hi = st.a <= st.b ? st.b : st.a;
+    fromEl.value = lo;
+    toEl.value = hi;
+  }
+
+  function leaveRangeLabel(id) {
+    const st = ensureLeavePick(id);
+    if (!st.a) return 'ক্যালেন্ডারে শুরুর দিন টোকা দিন; শেষ দিন আবার টোকা দিন। একদিন হলে দুবার একই দিন।';
+    if (!st.b) return `${esc(st.a)} থেকে — শেষ তারিখ বেছে নিন (${helpers.toBn(daysBetween(st.a, st.a))} দিন)`;
+    const lo = st.a <= st.b ? st.a : st.b;
+    const hi = st.a <= st.b ? st.b : st.a;
+    return `${esc(lo)} থেকে ${esc(hi)} — মোট ${helpers.toBn(daysBetween(lo, hi))} দিন`;
+  }
+
+  function buildCalInnerHtml(id) {
+    const st = ensureLeavePick(id);
+    const y = st.vy;
+    const m = st.vm;
+    const first = new Date(y, m, 1);
+    const lastDate = new Date(y, m + 1, 0).getDate();
+    const pad = first.getDay();
+    const td = today();
+    let lo = null; let hi = null;
+    if (st.a) {
+      lo = st.b ? (st.a <= st.b ? st.a : st.b) : st.a;
+      hi = st.b ? (st.a <= st.b ? st.b : st.a) : st.a;
+    }
+    const inRange = (iso) => lo && hi && iso >= lo && iso <= hi;
+    const parts = [];
+    const qid = jsSingleQuote(id);
+    parts.push(`<div class="kh-cal-head">`);
+    parts.push(`<button type="button" class="kh-cal-nav" aria-label="আগের মাস" onclick="MDRHomePanels.leaveCalNav('${qid}',-1)">‹</button>`);
+    parts.push(`<div class="kh-cal-mo">${esc(BN_MONTHS[m])} ${helpers.toBn(y)}</div>`);
+    parts.push(`<button type="button" class="kh-cal-nav" aria-label="পরের মাস" onclick="MDRHomePanels.leaveCalNav('${qid}',1)">›</button>`);
+    parts.push(`</div><div class="kh-cal-grid">`);
+    for (let i = 0; i < 7; i++) parts.push(`<div class="kh-cal-dow">${esc(BN_DOW[i])}</div>`);
+    for (let i = 0; i < pad; i++) parts.push('<div class="kh-cal-pad"></div>');
+    for (let d = 1; d <= lastDate; d++) {
+      const iso = isoFromYmd(y, m, d);
+      const cls = ['kh-cal-day'];
+      if (iso === td) cls.push('kh-cal-today');
+      if (st.a && st.b) {
+        if (inRange(iso)) cls.push('kh-cal-inrange');
+        if (iso === lo || iso === hi) cls.push('kh-cal-edge');
+      } else if (st.a && iso === st.a) cls.push('kh-cal-edge');
+      parts.push(`<button type="button" class="${cls.join(' ')}" onclick="MDRHomePanels.pickLeaveDay('${qid}','${jsSingleQuote(iso)}')">${helpers.toBn(d)}</button>`);
+    }
+    parts.push('</div>');
+    parts.push(`<p class="kh-cal-hint">${leaveRangeLabel(id)}</p>`);
+    parts.push(`<div class="kh-cal-tools"><button type="button" class="kh-cal-clear" onclick="MDRHomePanels.clearLeavePick('${qid}')">নির্বাচন মুছুন</button></div>`);
+    return parts.join('');
+  }
+
+  function redrawLeaveCal(id) {
+    const host = document.getElementById('kh-cal-host-' + id);
+    if (host) host.innerHTML = buildCalInnerHtml(id);
+    syncLeaveHidden(id);
+  }
 
   function loadArr(key) {
     if (global.API && API.persistLoadArr) return API.persistLoadArr(key);
@@ -34,23 +130,54 @@
       .kh-add-btn{border:none;background:var(--ink);color:var(--gold2);border-radius:10px;padding:8px 14px;font-family:'Noto Sans Bengali',sans-serif;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
       .kh-back-btn{border:1px solid var(--cream3);background:#fff;color:var(--ink2);border-radius:10px;padding:7px 12px;font-family:'Noto Sans Bengali',sans-serif;font-size:12px;font-weight:800;cursor:pointer}
       .kh-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-      .kh-card,.abs-row-home{background:#fff;border:1px solid rgba(26,18,8,.07);border-radius:14px;box-shadow:0 5px 14px rgba(26,18,8,.06);padding:12px;margin-bottom:8px}
-      .kh-name{font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:800;color:var(--ink)}
-      .kh-meta,.kh-note,.abs-meta-home{font-size:11px;color:var(--ink3);line-height:1.6;margin-top:3px}
-      .kh-pill{display:inline-block;background:var(--cream2);border-radius:20px;padding:2px 8px;font-size:10px;color:var(--ink3);margin:5px 5px 0 0}
-      .kh-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+      #kh-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));gap:8px;align-content:start}
+      .kh-card-wrap{background:#fff;border:1px solid rgba(26,18,8,.07);border-radius:14px;box-shadow:0 4px 12px rgba(26,18,8,.05);overflow:hidden}
+      .kh-compact{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:stretch;padding:8px 8px 8px 10px}
+      .kh-main-hit{border:none;margin:0;background:transparent;cursor:pointer;text-align:left;display:flex;align-items:flex-start;gap:10px;min-width:0;padding:4px 2px 4px 0;font:inherit;border-radius:10px;flex:1}
+      .kh-main-hit:hover{background:rgba(201,149,42,.06)}
+      .kh-main-hit:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+      .kh-av{flex-shrink:0;width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--gold2);display:flex;align-items:center;justify-content:center;font-family:'Noto Serif Bengali',serif;font-size:16px;font-weight:800}
+      .kh-row-text{flex:1;min-width:0}
+      .kh-name{display:block;font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:800;color:var(--ink);line-height:1.25}
+      .kh-meta,.kh-note,.abs-meta-home{font-size:11px;color:var(--ink3);line-height:1.45;margin-top:2px}
+      .kh-meta--1l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+      .kh-row-side{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+      .kh-chev{font-size:10px;color:var(--ink3);margin-top:2px}
+      .kh-pill{display:inline-block;background:var(--cream2);border-radius:20px;padding:2px 8px;font-size:10px;color:var(--ink3);white-space:nowrap}
+      .kh-pill--away{background:rgba(180,120,40,.18);color:#6a4a12}
+      .kh-pill--inactive{background:rgba(120,120,120,.15);color:var(--ink3)}
+      .kh-pill--active{background:rgba(40,120,80,.12);color:#1d5c3a}
+      .kh-edit{border:1px solid var(--cream3);background:#fff;border-radius:10px;padding:8px 9px;font-family:'Noto Sans Bengali',sans-serif;font-size:10px;font-weight:800;color:var(--ink2);cursor:pointer;align-self:center}
       .kh-mini-btn{border:1px solid var(--cream3);background:#fff;border-radius:10px;padding:8px;font-family:'Noto Sans Bengali',sans-serif;font-size:11px;font-weight:800;color:var(--ink2);cursor:pointer}
       .kh-mini-btn.gold{background:var(--ink);color:var(--gold2);border-color:var(--ink)}
-      .kh-subtitle{font-size:13px;font-weight:900;color:var(--ink2);margin:14px 0 8px}
-      .kh-detail{display:none;background:#fffaf2;border-radius:12px;padding:10px;margin-top:9px}
+      .kh-subtitle{font-size:12px;font-weight:900;color:var(--ink2);margin:10px 0 6px}
+      .kh-detail{display:none;background:linear-gradient(180deg,#fffaf2 0%,#fff 100%);border-top:1px solid var(--cream2);padding:10px 10px 12px}
       .kh-detail.open{display:block}
       .kh-detail input,.kh-detail textarea,.kh-grid input,.kh-grid select,.kh-grid textarea{width:100%;box-sizing:border-box}
-      .kh-leave-row{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--cream2);padding-top:7px;margin-top:7px;font-size:11px;color:var(--ink2)}
-      .abs-row-home{display:flex;align-items:center;gap:12px}
+      .kh-leave-scroll{max-height:112px;overflow-y:auto;margin:4px 0 8px;padding-right:4px;border-radius:8px}
+      .kh-leave-row{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--cream2);padding:6px 0;font-size:11px;color:var(--ink2)}
+      .kh-leave-row:first-child{border-top:none;padding-top:0}
+      .kh-cal{border:1px solid rgba(26,18,8,.1);border-radius:14px;padding:8px 8px 6px;background:#fff;margin-top:6px}
+      .kh-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding:0 2px}
+      .kh-cal-nav{border:none;background:var(--cream2);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:18px;line-height:1;color:var(--ink2)}
+      .kh-cal-mo{font-size:13px;font-weight:800;color:var(--ink);font-family:'Noto Sans Bengali',sans-serif}
+      .kh-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+      .kh-cal-dow{font-size:9px;color:var(--ink3);padding:4px 0;font-weight:700}
+      .kh-cal-pad{min-height:32px}
+      .kh-cal-day{min-height:32px;border:none;border-radius:9px;background:transparent;cursor:pointer;font-size:12px;font-family:inherit;color:var(--ink2);padding:0}
+      .kh-cal-day:hover{background:var(--cream2)}
+      .kh-cal-day.kh-cal-today{box-shadow:inset 0 0 0 1.5px var(--gold)}
+      .kh-cal-day.kh-cal-inrange{background:rgba(201,149,42,.14)}
+      .kh-cal-day.kh-cal-edge{background:var(--ink);color:var(--gold2);font-weight:800}
+      .kh-cal-hint{font-size:10px;color:var(--ink3);line-height:1.45;margin:8px 2px 4px;min-height:2.8em}
+      .kh-cal-tools{text-align:center}
+      .kh-cal-clear{border:none;background:transparent;color:var(--blue);font-size:11px;cursor:pointer;text-decoration:underline;padding:2px;font-family:'Noto Sans Bengali',sans-serif}
+      .abs-row-home{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid rgba(26,18,8,.07);border-radius:14px;box-shadow:0 5px 14px rgba(26,18,8,.06);padding:12px;margin-bottom:8px}
       .abs-rank-home{font-family:'Noto Serif Bengali',serif;font-size:18px;font-weight:800;color:var(--gold);min-width:34px;text-align:center}
       .abs-info-home{flex:1;min-width:0}.abs-name-home{font-size:14px;font-weight:700;color:var(--ink)}
       .abs-days-home{font-family:'Noto Serif Bengali',serif;font-size:17px;font-weight:800;color:var(--red);white-space:nowrap}
-      @media(max-width:520px){.kh-grid{grid-template-columns:1fr}.kh-actions{grid-template-columns:1fr}}
+      @media(max-width:520px){.kh-grid{grid-template-columns:1fr}#kh-list{grid-template-columns:1fr}}
+      .kh-list-empty{grid-column:1/-1}
     `;
     document.head.appendChild(style);
 
@@ -192,13 +319,58 @@
   function addLeave(id) {
     const from = document.getElementById('kh-leave-from-' + id).value;
     const to = document.getElementById('kh-leave-to-' + id).value || from;
-    const reason = document.getElementById('kh-leave-reason-' + id).value.trim();
-    if (!from) { helpers.showToast('ছুটি যাওয়ার তারিখ দিন'); return; }
+    const reasonEl = document.getElementById('kh-leave-reason-' + id);
+    const reason = reasonEl && reasonEl.value.trim();
+    if (!from) { helpers.showToast('ক্যালেন্ডার থেকে ছুটির তারিখ বেছে নিন'); return; }
     const leaves = getLeaves();
     leaves.unshift({ id: uid(), khadim_id: id, from, to, reason, days: daysBetween(from, to) });
     saveArr(LEAVES_KEY, leaves);
+    if (reasonEl) reasonEl.value = '';
+    const t = new Date();
+    const prev = document.getElementById('kh-detail-' + id);
+    const wasOpen = prev && prev.classList.contains('open');
+    leavePickState[id] = { vy: t.getFullYear(), vm: t.getMonth(), a: null, b: null };
     renderKhadimin();
+    if (wasOpen) {
+      const det = document.getElementById('kh-detail-' + id);
+      if (det) det.classList.add('open');
+      const hit = document.getElementById('kh-hit-' + id);
+      if (hit) hit.setAttribute('aria-expanded', 'true');
+      redrawLeaveCal(id);
+    }
     helpers.showToast('ছুটির হিসাব যোগ হয়েছে ✓');
+  }
+
+  function pickLeaveDay(id, iso) {
+    const st = ensureLeavePick(id);
+    if (!st.a || (st.a && st.b)) {
+      st.a = iso;
+      st.b = null;
+    } else if (iso < st.a) {
+      st.b = st.a;
+      st.a = iso;
+    } else {
+      st.b = iso;
+    }
+    redrawLeaveCal(id);
+  }
+
+  function leaveCalNav(id, delta) {
+    const st = ensureLeavePick(id);
+    let m = st.vm + delta;
+    let y = st.vy;
+    while (m < 0) { m += 12; y -= 1; }
+    while (m > 11) { m -= 12; y += 1; }
+    st.vm = m;
+    st.vy = y;
+    redrawLeaveCal(id);
+  }
+
+  function clearLeavePick(id) {
+    const st = ensureLeavePick(id);
+    st.a = null;
+    st.b = null;
+    redrawLeaveCal(id);
   }
 
   function renderKhadimin() {
@@ -207,39 +379,48 @@
     const el = document.getElementById('kh-list');
     if (!el) return;
     if (!rows.length) {
-      el.innerHTML = '<div class="empty-state"><span class="empty-icon">🤲</span><div class="empty-text">এখনো কোনো খাদেম যোগ করা হয়নি</div></div>';
+      el.innerHTML = '<div class="empty-state kh-list-empty"><span class="empty-icon">🤲</span><div class="empty-text">এখনো কোনো খাদেম যোগ করা হয়নি</div></div>';
       return;
     }
     el.innerHTML = rows.map((k) => {
+      const qid = jsSingleQuote(k.id);
       const kLeaves = leaves.filter((l) => l.khadim_id === k.id);
       const totalDays = kLeaves.reduce((sum, l) => sum + (Number(l.days) || 0), 0);
-      const notes = (k.notes || []).slice(0, 4).map((n) => `<div class="kh-note">${esc(n.date)} — ${esc(n.text)}</div>`).join('') || '<div class="kh-note">কোনো ঘটনা/নোট নেই</div>';
-      const leaveRows = kLeaves.slice(0, 6).map((l) => `<div class="kh-leave-row"><span>${esc(l.from)} → ${esc(l.to || l.from)}${l.reason ? ' · ' + esc(l.reason) : ''}</span><strong>${helpers.toBn(l.days)} দিন</strong></div>`).join('') || '<div class="kh-note">কোনো ছুটির রেকর্ড নেই</div>';
-      return `<div class="kh-card">
-        <div class="kh-name">${esc(k.name)}</div>
-        <div class="kh-meta">${esc(k.duty || 'দায়িত্ব লেখা নেই')} · ${esc(k.phone || 'ফোন নেই')}</div>
-        <span class="kh-pill">${statusLabel(k.status)}</span><span class="kh-pill">মোট ছুটি ${helpers.toBn(totalDays)} দিন</span>
-        <div class="kh-meta">${esc(k.address || 'ঠিকানা নেই')}</div>
-        <div class="kh-note">${esc(k.details || 'বিস্তারিত তথ্য নেই')}</div>
-        <div class="kh-actions">
-          <button class="kh-mini-btn" onclick="MDRHomePanels.editKhadim('${k.id}')">সম্পাদনা</button>
-          <button class="kh-mini-btn gold" onclick="MDRHomePanels.toggleDetail('${k.id}')">ঘটনা / ছুটি</button>
+      const notes = (k.notes || []).slice(0, 4).map((n) => `<div class="kh-note">${esc(n.date)} — ${esc(n.text)}</div>`).join('');
+      const leaveRows = kLeaves.slice(0, 10).map((l) => `<div class="kh-leave-row"><span>${esc(l.from)} → ${esc(l.to || l.from)}${l.reason ? ' · ' + esc(l.reason) : ''}</span><strong>${helpers.toBn(l.days)} দিন</strong></div>`).join('');
+      const st = k.status || 'active';
+      const pcl = st === 'away' ? 'kh-pill--away' : st === 'inactive' ? 'kh-pill--inactive' : 'kh-pill--active';
+      return `<article class="kh-card-wrap">
+        <div class="kh-compact">
+          <button type="button" class="kh-main-hit" id="kh-hit-${k.id}" onclick="MDRHomePanels.toggleDetail('${qid}')" aria-expanded="false">
+            <div class="kh-av" aria-hidden="true">${initialChar(k.name)}</div>
+            <div class="kh-row-text">
+              <span class="kh-name">${esc(k.name)}</span>
+              <div class="kh-meta kh-meta--1l">${esc(k.duty || 'দায়িত্ব —')} · ${esc(k.phone || 'ফোন নেই')}</div>
+            </div>
+            <div class="kh-row-side">
+              <span class="kh-pill ${pcl}">${statusLabel(st)}</span>
+              <span class="kh-pill">ছুটি ${helpers.toBn(totalDays)} দিন</span>
+              <span class="kh-chev">▼</span>
+            </div>
+          </button>
+          <button type="button" class="kh-edit" onclick="MDRHomePanels.editKhadim('${qid}')">সম্পাদনা</button>
         </div>
         <div class="kh-detail" id="kh-detail-${k.id}">
           <div class="kh-subtitle">ঘটনা / অবস্থা</div>
-          ${notes}
+          ${notes || '<div class="kh-note">কোনো নোট নেই</div>'}
           <textarea class="form-input" id="kh-note-${k.id}" rows="2" placeholder="নতুন ঘটনা বা অবস্থা লিখুন"></textarea>
-          <button class="kh-mini-btn gold" onclick="MDRHomePanels.addNote('${k.id}')">ঘটনা যোগ করুন</button>
-          <div class="kh-subtitle">ছুটির হিসাব</div>
-          ${leaveRows}
-          <div class="kh-grid" style="margin-top:8px">
-            <input class="form-input" id="kh-leave-from-${k.id}" type="date" title="গেল">
-            <input class="form-input" id="kh-leave-to-${k.id}" type="date" title="এলো">
-            <input class="form-input" id="kh-leave-reason-${k.id}" placeholder="কারণ" style="grid-column:1/-1">
-          </div>
-          <button class="kh-mini-btn gold" onclick="MDRHomePanels.addLeave('${k.id}')">ছুটি যোগ করুন</button>
+          <button type="button" class="kh-mini-btn gold" style="margin-top:6px" onclick="MDRHomePanels.addNote('${qid}')">ঘটনা যোগ করুন</button>
+          <div class="kh-subtitle">আগের ছুটি</div>
+          <div class="kh-leave-scroll">${leaveRows || '<div class="kh-note">কোনো ছুটির রেকর্ড নেই</div>'}</div>
+          <div class="kh-subtitle">নতুন ছুটি — ক্যালেন্ডারে প্রথমে শুরুর দিন, তারপর শেষ দিন টোকা দিন (এক দিন হলে দুবার একই দিন)</div>
+          <div class="kh-cal"><div id="kh-cal-host-${k.id}"></div></div>
+          <input type="hidden" id="kh-leave-from-${k.id}" value="">
+          <input type="hidden" id="kh-leave-to-${k.id}" value="">
+          <input class="form-input" id="kh-leave-reason-${k.id}" placeholder="ছুটির কারণ" style="margin-top:8px">
+          <button type="button" class="kh-mini-btn gold" style="margin-top:8px;width:100%" onclick="MDRHomePanels.addLeave('${qid}')">ছুটি সংরক্ষণ করুন</button>
         </div>
-      </div>`;
+      </article>`;
     }).join('');
   }
 
@@ -249,7 +430,16 @@
 
   function toggleDetail(id) {
     const el = document.getElementById('kh-detail-' + id);
-    if (el) el.classList.toggle('open');
+    const hit = document.getElementById('kh-hit-' + id);
+    if (!el) return;
+    const opening = !el.classList.contains('open');
+    el.classList.toggle('open');
+    if (hit) hit.setAttribute('aria-expanded', opening ? 'true' : 'false');
+    if (opening) {
+      const t = new Date();
+      leavePickState[id] = { vy: t.getFullYear(), vm: t.getMonth(), a: null, b: null };
+      redrawLeaveCal(id);
+    }
   }
 
   function scopeDepts() {
@@ -317,8 +507,22 @@
     document.getElementById('modal-absent-home').classList.remove('open');
   }
 
+  /** প্রথম চালু: localStorage-এ `mm_khadimin` কখনো সেট হয়নি হলে MMSampleData থেকে নমুনা ভরে */
+  function ensureKhadiminDemoSeed() {
+    if (localStorage.getItem(KHADIMIN_KEY) !== null) return;
+    const build = global.MMSampleData && typeof global.MMSampleData.buildKhadiminDemo === 'function'
+      ? global.MMSampleData.buildKhadiminDemo
+      : null;
+    if (!build) return;
+    const pack = build();
+    if (!pack || !Array.isArray(pack.khadimin)) return;
+    saveArr(KHADIMIN_KEY, pack.khadimin);
+    if (Array.isArray(pack.khadimin_leaves)) saveArr(LEAVES_KEY, pack.khadimin_leaves);
+  }
+
   function init(opts) {
     helpers = { ...helpers, ...(opts || {}) };
+    ensureKhadiminDemoSeed();
     injectOnce();
     updateCards();
   }
@@ -335,6 +539,9 @@
     toggleDetail,
     addNote,
     addLeave,
+    pickLeaveDay,
+    leaveCalNav,
+    clearLeavePick,
     openAbsent,
     closeAbsent,
   };

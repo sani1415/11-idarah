@@ -78,6 +78,21 @@ body {
   transition: background 0.15s, border-color 0.15s;
 }
 .topbar-btn:hover { background: #fff; border-color: rgba(201, 149, 42, 0.28); color: var(--ink2); }
+.topbar-btn.topbar-btn--icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.topbar-btn.topbar-btn--icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  pointer-events: none;
+}
 .notif-btn {
   position: relative; width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;

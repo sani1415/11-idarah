@@ -263,10 +263,58 @@
   global.MMRefreshChatBadges = applyChatBadges;
   global.MMSyncChatBadges = syncChatBadgeRemote;
   global.addEventListener && global.addEventListener('mm-chat-updated', applyChatBadges);
+
+  function readCurrentAcademicYear() {
+    var settings = null;
+    try {
+      var raw = localStorage.getItem('mm_settings');
+      settings = raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      settings = null;
+    }
+    if (!settings && global.API && global.API.Settings) {
+      try { settings = global.API.Settings.get(); } catch (e2) { settings = null; }
+    }
+    if (!settings && global.MMSampleData && global.MMSampleData.defaultSettings) {
+      settings = global.MMSampleData.defaultSettings;
+    }
+    var year = settings && settings.hijri_year != null ? String(settings.hijri_year).trim() : '';
+    if (!year || year === '-') return '';
+    return year.replace(/[0-9]/g, function (d) { return '০১২৩৪৫৬৭৮৯'[d]; });
+  }
+
+  function renderCurrentAcademicYear() {
+    if (typeof document === 'undefined' || !global.MMSession || !global.MMSession.isAdmin()) return;
+    var topbar = document.querySelector('.topbar');
+    if (!topbar) return;
+    var year = readCurrentAcademicYear();
+    var label = topbar.querySelector('.mm-monitor-topbar-label');
+    if (!year) {
+      if (label) label.remove();
+      topbar.classList.remove('mm-monitor-topbar');
+      return;
+    }
+    topbar.classList.add('mm-monitor-topbar');
+    if (!label) {
+      label = document.createElement('div');
+      label.className = 'mm-monitor-topbar-label';
+      topbar.appendChild(label);
+    }
+    label.textContent = year + ' হিজরী শিক্ষাবর্ষ';
+  }
+
+  global.MMRenderCurrentAcademicYear = renderCurrentAcademicYear;
   function autoRestrictNav() { if (global.MMSession) global.MMSession.applyAdminNavRestrictions(); }
   if (typeof document !== 'undefined') {
-    var onReady = function () { autoRestrictNav(); syncChatBadgeRemote(); };
+    var onReady = function () { autoRestrictNav(); renderCurrentAcademicYear(); syncChatBadgeRemote(); };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', onReady);
     else setTimeout(onReady, 0);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) renderCurrentAcademicYear();
+    });
+    global.addEventListener && global.addEventListener('storage', function (event) {
+      if (!event || event.key === 'mm_settings') renderCurrentAcademicYear();
+    });
+    global.setInterval && global.setInterval(renderCurrentAcademicYear, 3000);
   }
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -22,8 +22,11 @@
   }
   button.stat-tile:active { opacity: 0.92; }
   button.stat-tile:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.35); }
-  #modal-watch-list .modal-large > .watch-list-sub { flex-shrink: 0; font-size: 12px; color: var(--ink3); margin: 0 0 10px; line-height: 1.35; }
-  #modal-watch-list .modal-large .watch-list-panel { flex: 1 1 auto; min-height: 0; margin-top: 0; padding-right: 2px; }
+  button.stat-tile.stat-tile--ah:focus-visible { box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.4); }
+  #modal-watch-list .modal-large > .watch-list-sub,
+  #modal-ah-list .modal-large > .watch-list-sub { flex-shrink: 0; font-size: 12px; color: var(--ink3); margin: 0 0 10px; line-height: 1.35; }
+  #modal-watch-list .modal-large .watch-list-panel,
+  #modal-ah-list .modal-large .watch-list-panel { flex: 1 1 auto; min-height: 0; margin-top: 0; padding-right: 2px; }
   .watch-list-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #fff; border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--cream3); }
   .watch-list-item:last-child { margin-bottom: 0; }
   .watch-list-item .watch-open-std { flex: 1; text-align: left; border: none; background: transparent; padding: 0; cursor: pointer; font: inherit; font-weight: 600; color: var(--ink); min-width: 0; }
@@ -92,31 +95,34 @@
   .log-item--student { border-left-color:#0ea5e9; }
   .log-date { font-size:10px; color:var(--ink3); margin-bottom:4px; }
   .log-text { font-size:13px; color:var(--ink); line-height:1.55; }
-  /* লগ — নেভ/ট্যাবের মতো ক্রিম বর্ডার, আন্ডারলাইন নয় */
-  .std-log-link, .std-watch-link {
+  /* ছাত্র সারি — কম জায়গায় আইকন বাটন (পর্যবেক্ষণ / আলহামদুলিল্লাহ / লগ) */
+  .std-row-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .std-icon-btn {
     flex-shrink: 0;
-    font-family: 'Noto Sans Bengali', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--ink2);
-    background: var(--cream2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
     border: 1.5px solid var(--cream3);
     border-radius: 8px;
-    padding: 6px 10px;
-    line-height: 1.2;
+    background: var(--cream2);
+    color: var(--ink2);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: background 0.12s, border-color 0.12s, color 0.12s;
   }
-  .std-log-link:hover,
-  .std-log-link:focus-visible {
-    background: #fff;
-    border-color: var(--gold);
-    color: var(--ink);
-    outline: none;
-  }
-  .std-log-link:active { opacity: 0.92; }
-  .std-watch-link.is-on { background:#faf7fc; border-color:rgba(124,58,237,.35); color:#7c3aed; }
+  .std-icon-btn svg { width: 18px; height: 18px; display: block; pointer-events: none; }
+  .std-icon-btn:focus { outline: none; }
+  .std-icon-btn:focus-visible { box-shadow: 0 0 0 2px rgba(26, 18, 8, 0.2); }
+  .std-icon-btn:active { opacity: 0.92; }
+  .std-icon-btn.std-icon-watch.is-on { background: #faf7fc; border-color: rgba(124, 58, 237, 0.35); color: #7c3aed; }
+  .std-icon-btn.std-icon-ah.is-on { background: #fffbeb; border-color: rgba(180, 83, 9, 0.45); color: #b45309; }
+  .std-icon-btn.std-icon-ah.is-on svg { fill: currentColor; }
+  .std-icon-btn.std-icon-ah:not(.is-on) svg { fill: none; }
+  .std-icon-btn.std-icon-log:hover,
+  .std-icon-btn.std-icon-log:focus-visible { background: #fff; border-color: var(--gold); color: var(--ink); }
   .log-tabs { display:flex; gap:6px; margin-bottom:12px; }
   .log-tab { flex:1; padding:10px 8px; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:600; color:var(--ink3); cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .15s,border-color .15s,color .15s; }
   .log-tab.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); }
@@ -151,6 +157,8 @@
   .modal { background:#fff; border-radius:20px; padding:20px; width:min(520px, calc(100vw - 36px)); max-height:min(760px, calc(100vh - 36px)); overflow:auto; box-shadow:0 22px 70px rgba(26,18,8,.22); border:1px solid rgba(201,149,42,.16); }
   .modal.modal-large { width:min(640px, calc(100vw - 36px)); height:min(720px, calc(100vh - 36px)); display:flex; flex-direction:column; overflow:hidden; }
   .modal-title { font-family:'Noto Serif Bengali',serif; font-size:16px; font-weight:700; color:var(--ink2); margin-bottom:16px; display:flex; justify-content:space-between; }
+  #modal-log .modal-title { align-items:flex-start; gap:10px; }
+  .log-modal-heading { flex:1; min-width:0; line-height:1.35; padding-right:4px; }
   .modal-close { background:none; border:none; font-size:18px; color:var(--ink3); cursor:pointer; }
   .modal-tabs { display:flex; gap:6px; padding:4px; background:var(--cream2); border-radius:12px; margin:10px 0 14px; }
   .modal-tab { flex:1; border:0; border-radius:9px; padding:9px 8px; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:700; cursor:pointer; }
@@ -174,7 +182,7 @@
     <div class="topbar-role" id="top-teacher">—</div>
     <div class="topbar-name" id="top-class">বর্ষ ড্যাশবোর্ড</div>
   </div>
-  <button type="button" class="topbar-btn" onclick="MMSession.logoutToIndex('../index.html')">লগআউট</button>
+  <button type="button" class="topbar-btn topbar-btn--icon" onclick="MMSession.logoutToIndex('../index.html')" title="লগআউট" aria-label="লগআউট"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
 </div>
 
 <!-- PANEL: হোম (স্ট্যাট + ছাত্র তালিকা) -->
@@ -275,13 +283,13 @@
 <!-- MODAL: লগ (বর্ষ / নির্দিষ্ট ছাত্র — পুরনো অ্যাপের মতো) -->
 <div class="modal-bg" id="modal-log">
   <div class="modal modal-large">
-    <div class="modal-title">নতুন লগ <button type="button" class="modal-close" onclick="closeModal('modal-log')">✕</button></div>
+    <div class="modal-title"><span id="log-modal-heading" class="log-modal-heading">নতুন লগ</span><button type="button" class="modal-close" onclick="closeLogModal()">✕</button></div>
     <div class="modal-tabs" role="tablist" aria-label="লগ">
       <button type="button" class="modal-tab active" id="log-modal-tab-form" onclick="setLogModalTab('form')" aria-selected="true">নতুন / এডিট</button>
       <button type="button" class="modal-tab" id="log-modal-tab-history" onclick="setLogModalTab('history')" aria-selected="false">পুরনো লগ</button>
     </div>
     <div class="modal-panel" id="log-modal-panel-form">
-      <div class="form-group">
+      <div class="form-group" id="log-student-field-wrap">
         <label class="form-label">কার জন্য</label>
         <select class="form-input" id="log-student" aria-label="বর্ষ অথবা ছাত্র">
           <option value="">সবাই — বর্ষের সাধারণ লগ</option>
@@ -306,6 +314,17 @@
     <p id="watch-list-sub" class="watch-list-sub">—</p>
     <div class="modal-panel watch-list-panel">
       <div id="watch-list-body" class="modal-history-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: আলহামদুলিল্লাহ তালিকা -->
+<div class="modal-bg" id="modal-ah-list">
+  <div class="modal modal-large">
+    <div class="modal-title">আলহামদুলিল্লাহ <button type="button" class="modal-close" onclick="closeModal('modal-ah-list')">✕</button></div>
+    <p id="ah-list-sub" class="watch-list-sub">—</p>
+    <div class="modal-panel watch-list-panel">
+      <div id="ah-list-body" class="modal-history-list"></div>
     </div>
   </div>
 </div>
@@ -433,6 +452,7 @@
 
     const bands = API.Khuluk.getClassKhulukBands(classId);
     const watchCount = students.filter(function (s) { return s.special_watch; }).length;
+    const ahCount = students.filter(function (s) { return s.alhamdulillah; }).length;
     const threeLines =
       '<div class="kh-line kh-line--gr"><span class="kh-cat">মুজতাহিদ</span><span class="kh-n">' + toBn(bands.high) + '</span></div>' +
       '<div class="kh-line kh-line--sky"><span class="kh-cat">মুতাওয়াস্সিত</span><span class="kh-n">' + toBn(bands.mid) + '</span></div>' +
@@ -443,6 +463,7 @@
       '<div class="stat-tile"><span class="stat-num" style="color:var(--green)">' + toBn(present) + '</span><span class="stat-label">আজ উপস্থিত</span></div>' +
       '<div class="stat-tile"><span class="stat-num stat-num--leave">' + toBn(leaveCount) + '</span><span class="stat-label">বিদায়ী</span></div>' +
       '<button type="button" class="stat-tile" onclick="openWatchListModal()"><span class="stat-num" style="color:#7c3aed">' + toBn(watchCount) + '</span><span class="stat-label">পর্যবেক্ষণ</span></button>' +
+      '<button type="button" class="stat-tile stat-tile--ah" onclick="openAhListModal()"><span class="stat-num" style="color:#b45309">' + toBn(ahCount) + '</span><span class="stat-label">আলহামদুলিল্লাহ</span></button>' +
       '<div class="stat-tile"><span class="stat-num" style="color:var(--gold)">' + (avg !== null ? toBn(avg) : '—') + '</span><span class="stat-label">গড় হুসনুল খুলুক</span></div>' +
       '<div class="stat-tile stat-tile--kh">' +
       '<div class="stat-kh-hd">' + '\u09B9\u09C1\u09B8\u09A8\u09C1\u09B2 \u0996\u09C1\u09B2\u09C1\u0995' + '</div>' +
@@ -473,6 +494,35 @@
     openModal('modal-watch-list');
   }
 
+  function openAhListModal() {
+    if (!classId) return;
+    const body = document.getElementById('ah-list-body');
+    const sub = document.getElementById('ah-list-sub');
+    if (!body) return;
+    const listed = API.Students.getByClass(classId).filter(function (s) { return s.alhamdulillah; });
+    listed.sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'bn'); });
+    if (sub) sub.textContent = listed.length ? 'মোট ' + toBn(listed.length) + ' জন' : 'কেউ নেই';
+    if (!listed.length) {
+      body.innerHTML = '<div class="log-panel-empty">আলহামদুলিল্লাহতে কেউ নেই। তারকা চিহ্ন চেপে যুক্ত করুন।</div>';
+    } else {
+      body.innerHTML = listed.map(function (s) {
+        var hasR = s.roll != null && String(s.roll).trim() !== '';
+        var rollPill = hasR ? API.esc(String(s.roll)) : '—';
+        return '<div class="watch-list-item">' +
+          '<span class="std-roll">' + rollPill + '</span>' +
+          '<button type="button" class="watch-open-std" onclick="closeModal(\'modal-ah-list\'); MMStudentModal.open(\'' + _jsQuote(s.id) + '\')">' + API.esc(s.name) + '</button>' +
+          '</div>';
+      }).join('');
+    }
+    openModal('modal-ah-list');
+  }
+
+  var ROW_SVG = {
+    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+    doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>',
+    star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
+  };
+
   /* ── STUDENTS ── */
   function renderStudents() {
     if (!classId) { document.getElementById('std-list').innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3);">বর্ষ নির্ধারিত নেই</div>'; return; }
@@ -493,7 +543,11 @@
           const rollPill = hasR ? API.esc(String(s.roll)) : '—';
           const khTag = '<button type="button" class="std-kh-inline ' + khClass + '" title="হুসনুল খুলুক (সর্বশেষ)" onclick="event.stopPropagation();openKhuluk(\'' + _jsQuote(s.id) + '\')">' + khText + '</button>';
           const watchOn = !!s.special_watch;
-          const watchBtn = '<button type="button" class="std-watch-link' + (watchOn ? ' is-on' : '') + '" data-std-sid="' + _attrId(s.id) + '" onclick="event.stopPropagation(); toggleSpecialWatchFromRowBtn(this)">' + (watchOn ? 'পর্যবেক্ষণ ✓' : 'পর্যবেক্ষণ') + '</button>';
+          const ahOn = !!s.alhamdulillah;
+          const watchBtn = '<button type="button" class="std-icon-btn std-icon-watch' + (watchOn ? ' is-on' : '') + '" data-std-sid="' + _attrId(s.id) + '" onclick="event.stopPropagation(); toggleSpecialWatchFromRowBtn(this)" title="পর্যবেক্ষণ" aria-label="পর্যবেক্ষণ">' + ROW_SVG.eye + '</button>';
+          const ahBtn = '<button type="button" class="std-icon-btn std-icon-ah' + (ahOn ? ' is-on' : '') + '" data-std-sid="' + _attrId(s.id) + '" onclick="event.stopPropagation(); toggleAlhamdulillahFromRowBtn(this)" title="আলহামদুলিল্লাহ" aria-label="আলহামদুলিল্লাহ">' + ROW_SVG.star + '</button>';
+          const logBtn = '<button type="button" class="std-icon-btn std-icon-log" data-std-sid="' + _attrId(s.id) + '" onclick="event.stopPropagation(); openLogFromRowBtn(this)" title="লগ" aria-label="লগ">' + ROW_SVG.doc + '</button>';
+          const rowActions = '<div class="std-row-actions">' + watchBtn + ahBtn + logBtn + '</div>';
           return '<div class="std-row" data-std-sid="' + _attrId(s.id) + '">' +
             '<span class="std-roll">' + rollPill + '</span>' +
             '<div style="flex:1;min-width:0;">' +
@@ -502,8 +556,7 @@
             '</div>' +
             (attLine ? '<div class="std-meta">' + attLine + '</div>' : '') +
             '</div>' +
-            watchBtn +
-            '<button type="button" class="std-log-link" data-std-sid="' + _attrId(s.id) + '" onclick="event.stopPropagation(); openLogFromRowBtn(this)">লগ</button>' +
+            rowActions +
             '</div>';
         }).join('')
       : '<div style="text-align:center;padding:40px;color:var(--ink3);font-size:13px;">এই বর্ষে কোনো ছাত্র নেই</div>';
@@ -516,24 +569,50 @@
     API.Students.update(sid, { special_watch: next });
     renderStudents();
     renderStats();
-    if (window.MMSharedAPI && MMSession.getStaffUserId && MMSession.getStaffUserId()) {
+    const supaSid = String(stu.supabase_id || stu.id || '');
+    if (window.MMSharedAPI && MMSession.getStaffUserId && MMSession.getStaffUserId() && UUID_RE.test(supaSid)) {
       try {
         const res = await MMSharedAPI.setSpecialWatch(
           MMSession.getStaffUserId(),
           MMSession.getStaffPin && MMSession.getStaffPin(),
-          stu.supabase_id || stu.id,
+          supaSid,
           next
         );
         if (!res || !res.ok) throw new Error((res && res.error) || 'special_watch_failed');
       } catch (e) {
-        API.Students.update(sid, { special_watch: !next });
-        renderStudents();
-        renderStats();
-        showToast('ডাটাবেজে সংরক্ষণ হয়নি');
+        console.warn('setSpecialWatch', e);
+        showToast('লোকালি সংরক্ষিত, ডাটাবেজে হয়নি');
         return;
       }
     }
     showToast(next ? 'বিশেষ পর্যবেক্ষণে যুক্ত হয়েছে' : 'বিশেষ পর্যবেক্ষণ থেকে সরানো হয়েছে');
+  }
+
+  async function toggleAlhamdulillahFromRowBtn(btn) {
+    const sid = btn && btn.getAttribute('data-std-sid');
+    const stu = sid ? API.Students.getById(sid) : null;
+    if (!stu) { showToast('ছাত্র পাওয়া যায়নি'); return; }
+    const next = !stu.alhamdulillah;
+    API.Students.update(sid, { alhamdulillah: next });
+    renderStudents();
+    renderStats();
+    const supaSid = String(stu.supabase_id || stu.id || '');
+    if (window.MMSharedAPI && MMSession.getStaffUserId && MMSession.getStaffUserId() && UUID_RE.test(supaSid)) {
+      try {
+        const res = await MMSharedAPI.setAlhamdulillah(
+          MMSession.getStaffUserId(),
+          MMSession.getStaffPin && MMSession.getStaffPin(),
+          supaSid,
+          next
+        );
+        if (!res || !res.ok) throw new Error((res && res.error) || 'alhamdulillah_failed');
+      } catch (e) {
+        console.warn('setAlhamdulillah', e);
+        showToast('লোকালি সংরক্ষিত, ডাটাবেজে হয়নি');
+        return;
+      }
+    }
+    showToast(next ? 'আলহামদুলিল্লাহ হিসেবে চিহ্নিত' : 'আলহামদুলিল্লাহ চিহ্ন সরানো হয়েছে');
   }
 
   /* ── KHULUK: সর্বশেষ সারাংশ + modal tab history ── */
@@ -686,6 +765,20 @@
       }).join('');
   }
   let logEditId = '';
+  let logModalFixedStudentId = null;
+  function resetLogModalStudentPickerUi() {
+    logModalFixedStudentId = null;
+    const wrapPick = document.getElementById('log-student-field-wrap');
+    if (wrapPick) wrapPick.hidden = false;
+    const sel = document.getElementById('log-student');
+    if (sel) sel.disabled = false;
+    const h = document.getElementById('log-modal-heading');
+    if (h) h.textContent = 'নতুন লগ';
+  }
+  function closeLogModal() {
+    resetLogModalStudentPickerUi();
+    closeModal('modal-log');
+  }
   function setLogModalTab(which) {
     const form = which !== 'history';
     document.getElementById('log-modal-panel-form').hidden = !form;
@@ -716,10 +809,26 @@
     logEditId = '';
     populateLogStudentSelect();
     const sel = document.getElementById('log-student');
-    if (sel) {
-      sel.disabled = false;
-      sel.value = prefStudentId && API.Students.getById(prefStudentId) ? prefStudentId : '';
-      sel.onchange = renderModalLogHistory;
+    logModalFixedStudentId = prefStudentId && API.Students.getById(prefStudentId) ? String(prefStudentId) : null;
+    const wrapPick = document.getElementById('log-student-field-wrap');
+    const headingEl = document.getElementById('log-modal-heading');
+    if (logModalFixedStudentId) {
+      if (wrapPick) wrapPick.hidden = true;
+      const stu = API.Students.getById(logModalFixedStudentId);
+      if (headingEl) headingEl.textContent = 'নতুন লগ · ' + (stu && stu.name ? stu.name : '—');
+      if (sel) {
+        sel.value = logModalFixedStudentId;
+        sel.disabled = true;
+        sel.onchange = renderModalLogHistory;
+      }
+    } else {
+      if (wrapPick) wrapPick.hidden = false;
+      if (headingEl) headingEl.textContent = 'নতুন লগ';
+      if (sel) {
+        sel.disabled = false;
+        sel.value = '';
+        sel.onchange = renderModalLogHistory;
+      }
     }
     document.getElementById('log-text').value = '';
     renderModalLogHistory();
@@ -729,6 +838,7 @@
   function editLogEntry(id) {
     const log = API.Logs.getAll().find(l => l.id === id);
     if (!log) { showToast('লগ পাওয়া যায়নি'); return; }
+    resetLogModalStudentPickerUi();
     logEditId = id;
     populateLogStudentSelect();
     const sel = document.getElementById('log-student');
@@ -737,6 +847,15 @@
       sel.disabled = true;
     }
     document.getElementById('log-text').value = log.text || '';
+    const headingEl = document.getElementById('log-modal-heading');
+    if (headingEl) {
+      if (log.type === 'student') {
+        const stu = API.Students.getById(log.ref_id);
+        headingEl.textContent = 'লগ সংশোধন · ' + (stu && stu.name ? stu.name : '—');
+      } else {
+        headingEl.textContent = 'লগ সংশোধন · বর্ষের লগ';
+      }
+    }
     renderModalLogHistory();
     setLogModalTab('form');
     openModal('modal-log');
@@ -807,9 +926,7 @@
         }
       }
       logEditId = '';
-      if (sel) sel.disabled = false;
-      document.getElementById('log-text').value = '';
-      closeModal('modal-log'); renderLog(); showToast('লগ সংশোধন হয়েছে');
+      closeLogModal(); renderLog(); showToast('লগ সংশোধন হয়েছে');
       return;
     }
     let logType = 'class';
@@ -832,8 +949,7 @@
       }
     }
     document.getElementById('log-text').value = '';
-    if (sel) sel.disabled = false;
-    closeModal('modal-log'); renderLog(); showToast('লগ যোগ হয়েছে');
+    closeLogModal(); renderLog(); showToast('লগ যোগ হয়েছে');
   }
 
   async function initClassPage() {

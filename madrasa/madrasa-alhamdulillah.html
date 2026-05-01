@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>আলহামদুলিল্লাহ — মাদ্রাসা</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .sw-page { max-width: 520px; margin: 0 auto; padding: 12px 16px calc(24px + env(safe-area-inset-bottom)); }
+  .sw-head { font-family: 'Noto Serif Bengali', serif; font-size: 18px; font-weight: 700; color: var(--ink2); margin-bottom: 6px; }
+  .sw-sub { font-size: 12px; color: var(--ink3); line-height: 1.5; margin-bottom: 16px; }
+  .sw-row {
+    background: #fff;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid rgba(26, 18, 8, 0.06);
+  }
+  .sw-rank {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 36px;
+    text-align: center;
+  }
+  .sw-info { flex: 1; min-width: 0; }
+  .sw-name { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .sw-meta { font-size: 11px; color: var(--ink3); margin-top: 3px; }
+  .sw-badge {
+    font-size: 9px;
+    font-weight: 700;
+    color: #b45309;
+    border: 1px solid rgba(180, 83, 9, 0.45);
+    border-radius: 6px;
+    padding: 4px 8px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .sw-empty { text-align: center; color: var(--ink3); padding: 40px 16px; font-size: 14px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-role">মাদ্রাসা</div>
+    <div class="topbar-name">আলহামদুলিল্লাহ</div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="topbar-btn" onclick="location.href='../main-admin-madrasa.html'">← এডমিন</button>
+  </div>
+</div>
+
+<div class="sw-page">
+  <div class="sw-head">আলহামদুলিল্লাহতে ছাত্র</div>
+  <p class="sw-sub">যে ছাত্রদের তাদের শিক্ষক <strong>আলহামদুলিল্লাহ</strong> হিসেবে চিহ্নিত করেছেন।</p>
+  <div id="ah-list"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
+<script src="../api-mdr.js"></script>
+<script src="../js/mm-sample-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/mdr-supabase-sync.js"></script>
+<script src="../js/mm-session.js"></script>
+<script src="../js/mm-student-modal.js"></script>
+<script>
+  if (!MMSession.requireAdminPerm('dashboard', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
+
+  const toBn = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+
+  const params = new URLSearchParams(location.search);
+  const allowed = MMSession.getAllowedMadrasaDepts();
+  let dept = params.get('dept') === 'all' && allowed.length > 1 ? 'all' : (params.get('dept') === 'maktab' ? 'maktab' : 'kitab');
+  if (dept !== 'all' && !MMSession.canUseMadrasaDept(dept)) dept = allowed[0] || 'kitab';
+  if (dept === 'all' && allowed.length <= 1) dept = allowed[0] || 'kitab';
+  const deptName = (d) => d === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
+  const deptLabel = dept === 'all' ? 'সামগ্রিক' : deptName(dept);
+  const sub = document.querySelector('.sw-sub');
+  if (sub) sub.textContent = deptLabel + ' — যে ছাত্রদের শিক্ষক আলহামদুলিল্লাহ হিসেবে চিহ্নিত করেছেন।';
+
+  function render() {
+    const students = (dept === 'all' ? allowed : [dept])
+      .flatMap(d => API.Students.getAlhamdulillahByDeptSorted(d).map(s => ({ ...s, dept: d })));
+    const el = document.getElementById('ah-list');
+    if (!students.length) {
+      el.innerHTML = '<div class="sw-empty">এই বিভাগে কেউ আলহামদুলিল্লাহতে নেই। বর্ষ দায়িত্বশীলের ড্যাশবোর্ডে তারকা চিহ্নিত করলে এখানে দেখা যাবে।</div>';
+      return;
+    }
+    el.innerHTML = students
+      .map((s, i) => {
+        const cls = API.Classes.getById(s.class_id);
+        const metaDept = dept === 'all' ? ` · ${deptName(s.dept)}` : '';
+        return `<div class="sw-row">
+          <div class="sw-rank">${toBn(i + 1)}</div>
+          <div class="sw-info">
+            <div class="sw-name"><button type="button" class="s-name-btn" style="font-size:14px;font-weight:600;" onclick="MMStudentModal.open('${s.id}')">${API.esc(s.name)}</button></div>
+            <div class="sw-meta">${API.esc(cls ? cls.name : '—')}${metaDept} · রোল ${API.esc(s.roll || '—')}</div>
+          </div>
+          <div class="sw-badge">আলহামদুলিল্লাহ</div>
+        </div>`;
+      })
+      .join('');
+  }
+  async function initAhPage() {
+    if (window.MDRSupabaseSync && window.MMMadrasaAPI) {
+      try {
+        await MDRSupabaseSync.syncAdminStudents();
+      } catch (e) {
+        console.warn('Alhamdulillah list Supabase sync failed', e);
+      }
+    }
+    render();
+  }
+  initAhPage();
+</script>
+</body>
+</html>

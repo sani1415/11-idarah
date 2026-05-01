@@ -37,6 +37,24 @@
   .li-amt { font-family:'Noto Serif Bengali',serif; font-size:13px; font-weight:600; color:var(--ink2); }
   .li-del { background:none; border:none; color:var(--red); font-size:16px; cursor:pointer; padding:2px 4px; }
   .items-total-bar { display:flex; justify-content:space-between; align-items:center; padding:10px 0 6px; border-top:2px solid var(--cream2); margin-top:4px; }
+  #modal-txn .modal { max-width:min(760px, calc(100vw - 24px)); overflow-y:auto; }
+  .txn-top-grid { display:grid; grid-template-columns:minmax(116px,.8fr) minmax(132px,1fr); gap:8px; align-items:end; margin-bottom:10px; }
+  .txn-form-grid { display:grid; grid-template-columns:minmax(116px,.8fr) minmax(116px,.8fr); gap:8px; align-items:end; }
+  .txn-form-wide { grid-column:1 / -1; }
+  .sale-lines { display:grid; gap:8px; margin-bottom:10px; overflow-x:auto; padding-bottom:4px; }
+  .sale-row { display:grid; grid-template-columns:minmax(190px,2fr) 86px 112px 104px 100px 42px; gap:8px; align-items:end; min-width:650px; }
+  .sale-row .form-group { margin-bottom:0; }
+  .sale-row .form-input { height:42px; }
+  .sale-total { height:42px; display:flex; align-items:center; justify-content:flex-end; padding:0 10px; background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Noto Serif Bengali',serif; font-weight:700; color:var(--ink2); white-space:nowrap; }
+  .sale-action-btn { width:42px; height:42px; border:0; border-radius:var(--radius-sm); background:var(--ink); color:var(--gold2); font-size:18px; cursor:pointer; }
+  .sale-action-btn.remove { background:#fff; color:var(--red); border:1px solid var(--cream3); }
+  .sale-hint { font-size:11px; color:var(--ink3); margin:0 0 8px; }
+  .stock-mode { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+  .stock-mode button { padding:10px; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Noto Sans Bengali',sans-serif; cursor:pointer; }
+  .stock-mode button.active { border-color:var(--ink); background:var(--cream2); font-weight:700; }
+  @media (max-width:640px) {
+    .sale-row { grid-template-columns:190px 82px 104px 96px 92px 42px; min-width:630px; }
+  }
 </style>
 </head>
 <body>
@@ -48,7 +66,7 @@
   </div>
   <div class="topbar-actions">
     <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../main-admin-madrasa.html'">এডমিন</button>
-    <button type="button" class="topbar-btn" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')">লগআউট</button>
+    <button type="button" class="topbar-btn topbar-btn--icon" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')" title="লগআউট" aria-label="লগআউট"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
   </div>
 </div>
 
@@ -103,32 +121,21 @@
 <div class="modal-bg modal-float" id="modal-txn">
   <div class="modal">
     <div class="modal-title" id="modal-txn-title">লেনদেন <button class="modal-close" onclick="closeModal('modal-txn')">✕</button></div>
-    <div class="type-toggle">
-      <button class="type-btn sel-income" id="btn-income" onclick="selType('income')">↑ আয়</button>
-      <button class="type-btn" id="btn-expense" onclick="selType('expense')">↓ ব্যয়</button>
+    <div class="txn-top-grid">
+      <div class="form-group">
+        <label class="form-label">তারিখ</label>
+        <input class="form-input" type="date" id="txn-date">
+      </div>
+      <div class="form-group" id="buyer-name-wrap">
+        <label class="form-label">ক্রেতার নাম <span style="font-weight:400;color:var(--ink3)">(ঐচ্ছিক)</span></label>
+        <input class="form-input" id="txn-buyer-name" placeholder="ক্রেতার নাম">
+      </div>
     </div>
 
     <!-- আয়: পণ্য dropdown -->
     <div id="area-income">
-      <div class="form-group">
-        <label class="form-label">পণ্য <span style="font-weight:400;color:var(--ink3)">(ঐচ্ছিক)</span></label>
-        <select class="form-input" id="txn-product" onchange="onProductChange()">
-          <option value="">— সরাসরি টাকা লিখুন —</option>
-        </select>
-      </div>
-      <div id="txn-qty-row" style="display:none">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">পরিমাণ</label>
-            <input class="form-input" type="number" id="txn-qty" placeholder="০" oninput="calcTotal()">
-          </div>
-          <div class="form-group">
-            <label class="form-label">দর (প্রতি একক)</label>
-            <input class="form-input" type="number" id="txn-rate" placeholder="০" oninput="calcTotal()">
-          </div>
-        </div>
-        <div style="font-size:11px;color:var(--ink3);margin-bottom:10px;">মোট: <span id="txn-calc-total" style="font-weight:700;color:var(--ink2);">৳০</span></div>
-      </div>
+      <div class="sale-lines" id="sale-line-list"></div>
+      <div class="sale-hint">প্রতি লাইনে পণ্য, পরিমাণ, একক ও দর দিন। + চাপলে নতুন লাইন আসবে।</div>
     </div>
 
     <!-- ব্যয়: ক্যাটাগরি -->
@@ -143,13 +150,19 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">পরিমাণ (টাকা)</label>
-      <input class="form-input" type="number" id="txn-amount" placeholder="০">
-    </div>
-    <div class="form-group">
-      <label class="form-label">বিবরণ</label>
-      <input class="form-input" id="txn-desc" placeholder="সংক্ষিপ্ত বিবরণ">
+    <div class="txn-form-grid">
+      <div class="form-group">
+        <label class="form-label">পরিমাণ (টাকা)</label>
+        <input class="form-input" type="number" id="txn-amount" placeholder="০">
+      </div>
+      <div class="form-group" id="honor-wrap">
+        <label class="form-label">মর্যাদা মূল্য</label>
+        <input class="form-input" type="number" id="txn-honor" placeholder="০" oninput="updateTxnAmount()">
+      </div>
+      <div class="form-group txn-form-wide">
+        <label class="form-label">বিবরণ</label>
+        <input class="form-input" id="txn-desc" placeholder="সংক্ষিপ্ত বিবরণ">
+      </div>
     </div>
 
     <!-- ব্যয়: বিস্তারিত লাইন বোতাম -->
@@ -160,10 +173,6 @@
       </button>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">তারিখ</label>
-      <input class="form-input" type="date" id="txn-date">
-    </div>
     <div id="txn-extra-wrap"></div>
     <button class="submit-btn" onclick="saveTxn()">সংরক্ষণ করুন</button>
   </div>
@@ -200,7 +209,7 @@
     <div class="modal-title">পণ্য যোগ <button class="modal-close" onclick="closeModal('modal-product')">✕</button></div>
     <div class="form-group"><label class="form-label">পণ্যের নাম</label><input class="form-input" id="prd-name" placeholder="যেমন: মধু, রুটি, ধান"></div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">একক</label><input class="form-input" id="prd-unit" placeholder="কেজি / লিটার / পিস"></div>
+      <div class="form-group"><label class="form-label">একক</label><select class="form-input" id="prd-unit"></select></div>
       <div class="form-group"><label class="form-label">বিক্রয় মূল্য</label><input class="form-input" type="number" id="prd-price" placeholder="০"></div>
     </div>
     <button class="submit-btn" onclick="saveProduct()">সংরক্ষণ করুন</button>
@@ -211,11 +220,20 @@
 <div class="modal-bg modal-float" id="modal-inv">
   <div class="modal">
     <div class="modal-title">মজুদ আপডেট <button class="modal-close" onclick="closeModal('modal-inv')">✕</button></div>
+    <div class="stock-mode">
+      <button type="button" id="inv-mode-in" class="active" onclick="setInvMode('stock_in')">মজুদ যোগ</button>
+      <button type="button" id="inv-mode-waste" onclick="setInvMode('waste')">বাতিল / নষ্ট</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">পণ্য <span style="font-weight:400;color:var(--ink3)">(তালিকা থেকে)</span></label>
+      <select class="form-input" id="inv-product" onchange="onInvProductChange()"></select>
+    </div>
     <div class="form-group"><label class="form-label">পণ্যের নাম</label><input class="form-input" id="inv-name" placeholder="যেমন: ধান, মধু"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">পরিমাণ</label><input class="form-input" type="number" id="inv-qty" placeholder="০"></div>
-      <div class="form-group"><label class="form-label">একক</label><input class="form-input" id="inv-unit" placeholder="কেজি / লিটার"></div>
+      <div class="form-group"><label class="form-label">একক</label><select class="form-input" id="inv-unit"></select></div>
     </div>
+    <div class="form-group"><label class="form-label">নোট <span style="font-weight:400;color:var(--ink3)">(ঐচ্ছিক)</span></label><input class="form-input" id="inv-notes" placeholder="কারণ / মন্তব্য"></div>
     <button class="submit-btn" onclick="saveInv()">সংরক্ষণ করুন</button>
   </div>
 </div>
@@ -229,10 +247,13 @@
 <script src="../js/monitor-mode.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/dept-api.js"></script>
+<script src="../js/dept-supabase-sync.js"></script>
 <script>
   const deptId   = MMSession.getDeptId();
   const deptName = MMSession.getDeptName();
   const deptEmoji= MMSession.getDeptEmoji();
+  const staffUserId = MMSession.getStaffUserId && MMSession.getStaffUserId();
+  const staffPin = MMSession.getStaffPin && MMSession.getStaffPin();
   const isAdmin  = MMSession.isAdmin();
   if (!deptId && !isAdmin) { location.href = 'dept-index.html'; }
 
@@ -243,6 +264,7 @@
   let curMonth = new Date().toISOString().slice(0,7);
   let addType  = 'income';
   let lineItems = [];
+  let invMode = 'stock_in';
 
   const toBn   = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = n => '৳' + toBn(Number(n||0).toLocaleString('en'));
@@ -250,6 +272,7 @@
   const monthLabel = m => { const p=m.split('-'); return toBn(p[1])+' — '+toBn(p[0]); };
 
   const CAT_LABEL = { production:'উৎপাদন উপকরণ', operational:'পরিচালন খরচ', other:'অন্যান্য' };
+  const UNIT_OPTIONS = ['কেজি','গ্রাম','মন','লিটার','মিলি','পিস','জোড়া','ডজন','প্যাকেট','বস্তা','গজ','রিল','প্লেট','কপি'];
 
   function showToast(msg) {
     const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
@@ -284,16 +307,22 @@
     document.getElementById('txn-list').innerHTML = txns.length
       ? txns.map(t => {
           const cat = t.category ? `<span class="cat-pill ${t.category}">${DeptAPI.esc(CAT_LABEL[t.category]||t.category)}</span>` : '';
-          const prod = t.metadata && t.metadata.product_name
-            ? `<span style="font-size:11px;color:var(--teal);">${DeptAPI.esc(t.metadata.product_name)} · ${toBn(t.metadata.qty||0)} ${DeptAPI.esc(t.metadata.unit||'')} · ${fmtAmt(t.metadata.rate||0)}/একক</span>` : '';
+          const saleItems = t.metadata && Array.isArray(t.metadata.line_items) ? t.metadata.line_items : [];
+          const prod = saleItems.length && t.type === 'income'
+            ? `<span style="font-size:11px;color:var(--teal);">${saleItems.map(i=>DeptAPI.esc(i.product_name||i.name)+' '+toBn(i.qty||i.quantity||0)+' '+DeptAPI.esc(i.unit||'')).join(' · ')}</span>`
+            : (t.metadata && t.metadata.product_name
+              ? `<span style="font-size:11px;color:var(--teal);">${DeptAPI.esc(t.metadata.product_name)} · ${toBn(t.metadata.qty||0)} ${DeptAPI.esc(t.metadata.unit||'')} · ${fmtAmt(t.metadata.rate||0)}/একক</span>` : '');
           const items = t.metadata && t.metadata.line_items && t.metadata.line_items.length
-            ? `<div style="font-size:11px;color:var(--ink3);margin-top:2px;">${t.metadata.line_items.map(i=>DeptAPI.esc(i.name)+' '+fmtAmt(i.amount)).join(' · ')}</div>` : '';
+            ? `<div style="font-size:11px;color:var(--ink3);margin-top:2px;">${t.metadata.line_items.map(i=>DeptAPI.esc(i.name||i.product_name)+' '+fmtAmt(i.amount)).join(' · ')}</div>` : '';
+          const honor = Number(t.honor_amount || (t.metadata && t.metadata.honor_amount) || 0);
+          const honorHtml = honor > 0 ? `<div style="font-size:11px;color:var(--green);margin-top:2px;">মর্যাদা মূল্য: ${fmtAmt(honor)}</div>` : '';
           return `<div class="txn-item">
             <div class="txn-icon ${t.type}">${t.type==='income'?'↑':'↓'}</div>
             <div class="txn-info">
               <div class="txn-desc">${DeptAPI.esc(t.description)}</div>
               <div class="txn-sub">${fmtDate(t.date||t.txn_date)} ${cat}${prod}</div>
               ${items}
+              ${honorHtml}
             </div>
             <div class="txn-amt ${t.type}">${fmtAmt(t.amount)}</div>
           </div>`;
@@ -303,56 +332,162 @@
 
   /* ── ADD TXN MODAL ── */
   function openAddTxn(type) {
-    lineItems = [];
+    lineItems = [blankSaleItem()];
     updateItemsBadge();
-    ['txn-amount','txn-desc','txn-qty','txn-rate'].forEach(id => {
+    ['txn-amount','txn-desc','txn-honor','txn-buyer-name'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value='';
     });
     document.getElementById('txn-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('txn-calc-total').textContent = '৳০';
+    renderSaleItems();
     renderTxnExtraFields();
     selType(type || 'income');
+    document.getElementById('modal-txn-title').innerHTML = (addType === 'income' ? 'আয় যোগ' : 'ব্যয় যোগ') + " <button class=\"modal-close\" onclick=\"closeModal('modal-txn')\">✕</button>";
     openModal('modal-txn');
   }
 
   function selType(t) {
     addType = t;
-    document.getElementById('btn-income').className  = 'type-btn'+(t==='income'?' sel-income':'');
-    document.getElementById('btn-expense').className = 'type-btn'+(t==='expense'?' sel-expense':'');
     document.getElementById('area-income').style.display  = t==='income'  ? '' : 'none';
     document.getElementById('area-expense').style.display = t==='expense' ? '' : 'none';
     document.getElementById('area-items-btn').style.display = t==='expense' ? '' : 'none';
+    document.getElementById('honor-wrap').style.display = t==='income' ? '' : 'none';
+    document.getElementById('buyer-name-wrap').style.display = t==='income' ? '' : 'none';
     if (t==='income') populateProductDropdown();
+    updateTxnAmount();
+  }
+
+  function unitOptionsHtml(selected) {
+    return UNIT_OPTIONS.map(u => `<option value="${DeptAPI.esc(u)}"${u === selected ? ' selected' : ''}>${DeptAPI.esc(u)}</option>`).join('');
+  }
+
+  function blankSaleItem() {
+    return { product_id:'', product_name:'', unit:'পিস', qty:'', rate:'', amount:0 };
   }
 
   function populateProductDropdown() {
-    const sel = document.getElementById('txn-product');
+    renderSaleItems();
+  }
+
+  function productOptionsHtml(selected) {
     const prds = DeptAPI.Products.getByDept(deptId);
-    sel.innerHTML = '<option value="">— সরাসরি টাকা লিখুন —</option>' +
-      prds.map(p=>`<option value="${p.id}" data-unit="${DeptAPI.esc(p.unit)}" data-price="${p.price}">${DeptAPI.esc(p.name)} (${DeptAPI.esc(p.unit)})</option>`).join('');
-    document.getElementById('txn-qty-row').style.display = 'none';
+    return '<option value="">— পণ্য নির্বাচন —</option>' +
+      prds.map(p=>`<option value="${p.id}" data-unit="${DeptAPI.esc(p.unit)}" data-price="${p.price}"${p.id === selected ? ' selected' : ''}>${DeptAPI.esc(p.name)}</option>`).join('');
   }
 
-  function onProductChange() {
-    const sel = document.getElementById('txn-product');
-    const show = !!sel.value;
-    document.getElementById('txn-qty-row').style.display = show ? '' : 'none';
-    if (show) {
-      const opt = sel.options[sel.selectedIndex];
-      document.getElementById('txn-rate').value = opt.dataset.price || '';
-      calcTotal();
-    } else {
-      document.getElementById('txn-amount').value = '';
-      document.getElementById('txn-calc-total').textContent = '৳০';
+  function onProductChange(idx) {
+    const row = lineItems[idx];
+    const sel = document.getElementById('sale-product-' + idx);
+    if (!row || !sel) return;
+    const opt = sel.options[sel.selectedIndex];
+    const prd = DeptAPI.Products.getById(sel.value);
+    row.product_id = sel.value;
+    row.product_name = prd ? prd.name : '';
+    if (opt && opt.dataset.unit) row.unit = opt.dataset.unit;
+    if (opt && opt.dataset.price) row.rate = Number(opt.dataset.price) || '';
+    calcTotal(idx);
+    renderSaleItems();
+  }
+
+  function updateSaleField(idx, field, value) {
+    if (!lineItems[idx]) return;
+    lineItems[idx][field] = value;
+    calcTotal(idx);
+  }
+
+  function calcTotal(idx) {
+    const row = lineItems[idx];
+    if (!row) return;
+    const qty = parseFloat(row.qty) || 0;
+    const rate = parseFloat(row.rate) || 0;
+    row.amount = qty * rate;
+    const el = document.getElementById('sale-total-' + idx);
+    if (el) el.textContent = fmtAmt(row.amount);
+    updateTxnAmount();
+  }
+
+  function saleBaseTotal() {
+    return collectSaleItems(false).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  }
+
+  function updateTxnAmount() {
+    if (addType !== 'income') return;
+    const base = saleBaseTotal();
+    const honor = parseFloat(document.getElementById('txn-honor').value) || 0;
+    if (base > 0 || honor > 0) document.getElementById('txn-amount').value = base + honor;
+  }
+
+  function renderSaleItems() {
+    const box = document.getElementById('sale-line-list');
+    if (!box) return;
+    if (!lineItems.length) lineItems.push(blankSaleItem());
+    box.innerHTML = lineItems.map((i,idx)=>`<div class="sale-row">
+      <div class="form-group">
+        <label class="form-label">${idx === 0 ? 'পণ্য' : '&nbsp;'}</label>
+        <select class="form-input" id="sale-product-${idx}" onchange="onProductChange(${idx})">${productOptionsHtml(i.product_id)}</select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">${idx === 0 ? 'পরিমাণ' : '&nbsp;'}</label>
+        <input class="form-input" type="number" value="${DeptAPI.esc(i.qty)}" placeholder="০" oninput="updateSaleField(${idx},'qty',this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">${idx === 0 ? 'একক' : '&nbsp;'}</label>
+        <select class="form-input" onchange="updateSaleField(${idx},'unit',this.value)">${unitOptionsHtml(i.unit || 'পিস')}</select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">${idx === 0 ? 'দর' : '&nbsp;'}</label>
+        <input class="form-input" type="number" value="${DeptAPI.esc(i.rate)}" placeholder="০" oninput="updateSaleField(${idx},'rate',this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">${idx === 0 ? 'মোট' : '&nbsp;'}</label>
+        <div class="sale-total" id="sale-total-${idx}">${fmtAmt(i.amount || 0)}</div>
+      </div>
+      <button type="button" class="sale-action-btn ${idx === lineItems.length - 1 ? '' : 'remove'}" onclick="${idx === lineItems.length - 1 ? 'addSaleItem()' : `removeSaleItem(${idx})`}" title="${idx === lineItems.length - 1 ? 'নতুন লাইন' : 'বাদ দিন'}">${idx === lineItems.length - 1 ? '+' : '×'}</button>
+    </div>`).join('');
+    updateTxnAmount();
+  }
+
+  function addSaleItem() {
+    lineItems.push(blankSaleItem());
+    renderSaleItems();
+  }
+
+  function removeSaleItem(idx) {
+    lineItems.splice(idx, 1);
+    if (!lineItems.length) lineItems.push(blankSaleItem());
+    renderSaleItems();
+  }
+
+  function collectSaleItems(showErrors) {
+    const items = [];
+    for (const row of lineItems) {
+      const hasAny = row.product_id || row.qty || row.rate;
+      if (!hasAny) continue;
+      const prd = DeptAPI.Products.getById(row.product_id);
+      const qty = parseFloat(row.qty) || 0;
+      const rate = parseFloat(row.rate) || 0;
+      if (!prd) {
+        if (showErrors) showToast('সব লাইনে পণ্য নির্বাচন করুন');
+        return null;
+      }
+      if (qty <= 0) {
+        if (showErrors) showToast('সব লাইনে পরিমাণ দিন');
+        return null;
+      }
+      if (rate <= 0) {
+        if (showErrors) showToast('সব লাইনে দর দিন');
+        return null;
+      }
+      items.push({
+        product_id: prd.id,
+        product_name: prd.name,
+        name: prd.name,
+        unit: row.unit || prd.unit || 'পিস',
+        qty,
+        rate,
+        amount: qty * rate
+      });
     }
-  }
-
-  function calcTotal() {
-    const qty  = parseFloat(document.getElementById('txn-qty').value)||0;
-    const rate = parseFloat(document.getElementById('txn-rate').value)||0;
-    const total = qty * rate;
-    document.getElementById('txn-calc-total').textContent = fmtAmt(total);
-    if (total > 0) document.getElementById('txn-amount').value = total;
+    return items;
   }
 
   function renderTxnExtraFields() {
@@ -380,7 +515,8 @@
     return { meta };
   }
 
-  function saveTxn() {
+  async function saveTxn() {
+    updateTxnAmount();
     const amount = parseFloat(document.getElementById('txn-amount').value);
     const desc   = document.getElementById('txn-desc').value.trim();
     const date   = document.getElementById('txn-date').value;
@@ -393,25 +529,54 @@
     let category = null;
 
     if (addType === 'income') {
-      const prdId = document.getElementById('txn-product').value;
-      if (prdId) {
-        const prd = DeptAPI.Products.getById(prdId);
-        if (prd) {
-          meta.product_id   = prdId;
-          meta.product_name = prd.name;
-          meta.unit = prd.unit;
-          meta.qty  = parseFloat(document.getElementById('txn-qty').value)||0;
-          meta.rate = parseFloat(document.getElementById('txn-rate').value)||0;
-        }
+      const saleItems = collectSaleItems(true);
+      if (!saleItems) return;
+      const honor = parseFloat(document.getElementById('txn-honor').value) || 0;
+      meta.honor_amount = honor;
+      meta.buyer_name = document.getElementById('txn-buyer-name').value.trim();
+      meta.buyer_phone = '';
+      if (saleItems.length) {
+        meta.line_items = saleItems.slice();
+        const first = saleItems[0];
+        meta.product_id = first.product_id;
+        meta.product_name = first.product_name || first.name;
+        meta.unit = first.unit;
+        meta.qty = first.qty;
+        meta.rate = first.rate;
       }
+      lineItems = saleItems;
     } else {
       category = document.getElementById('txn-category').value;
       if (lineItems.length) meta.line_items = lineItems;
     }
 
-    DeptAPI.Transactions.add({ dept_id:deptId, type:addType, amount, description:desc, date, category, metadata:meta });
+    const payload = {
+      dept_id:deptId,
+      type:addType,
+      amount,
+      honor_amount: meta.honor_amount || 0,
+      buyer_name: meta.buyer_name || '',
+      buyer_phone: '',
+      description:desc,
+      date,
+      category,
+      metadata:meta,
+      items: lineItems.slice()
+    };
+    try {
+      if (window.DeptSync && staffUserId && staffPin) {
+        await DeptSync.saveTransaction(staffUserId, staffPin, deptId, payload);
+      } else {
+        DeptAPI.Transactions.add(payload);
+      }
+    } catch (e) {
+      console.warn('[Dept] transaction save failed, using local fallback:', e);
+      DeptAPI.Transactions.add(payload);
+      showToast('Supabase সংযোগ হয়নি, লোকালভাবে সংরক্ষিত');
+    }
     closeModal('modal-txn');
     renderTxn();
+    renderInv();
     showToast('লেনদেন সংরক্ষিত হয়েছে');
   }
 
@@ -486,16 +651,27 @@
   }
 
   function openAddProduct() {
-    ['prd-name','prd-unit','prd-price'].forEach(id=>document.getElementById(id).value='');
+    ['prd-name','prd-price'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('prd-unit').innerHTML = unitOptionsHtml('পিস');
     openModal('modal-product');
   }
 
-  function saveProduct() {
+  async function saveProduct() {
     const name  = document.getElementById('prd-name').value.trim();
     const unit  = document.getElementById('prd-unit').value.trim() || 'পিস';
     const price = parseFloat(document.getElementById('prd-price').value)||0;
     if (!name) { showToast('পণ্যের নাম দিন'); return; }
-    DeptAPI.Products.add({ dept_id:deptId, name, unit, price });
+    try {
+      if (window.DeptSync && staffUserId && staffPin) {
+        await DeptSync.saveProduct(staffUserId, staffPin, deptId, { name, unit, price });
+      } else {
+        DeptAPI.Products.add({ dept_id:deptId, name, unit, price });
+      }
+    } catch (e) {
+      console.warn('[Dept] product save failed, using local fallback:', e);
+      DeptAPI.Products.add({ dept_id:deptId, name, unit, price });
+      showToast('Supabase সংযোগ হয়নি, লোকালভাবে সংরক্ষিত');
+    }
     closeModal('modal-product');
     renderProducts();
     showToast('পণ্য যোগ হয়েছে');
@@ -519,24 +695,75 @@
   }
 
   function openAddInv() {
-    ['inv-name','inv-qty','inv-unit'].forEach(id=>document.getElementById(id).value='');
+    ['inv-name','inv-qty','inv-unit','inv-notes'].forEach(id=>document.getElementById(id).value='');
+    setInvMode('stock_in');
+    populateInvProductDropdown();
     openModal('modal-inv');
   }
 
-  function saveInv() {
+  function setInvMode(mode) {
+    invMode = mode === 'waste' ? 'waste' : 'stock_in';
+    document.getElementById('inv-mode-in').classList.toggle('active', invMode === 'stock_in');
+    document.getElementById('inv-mode-waste').classList.toggle('active', invMode === 'waste');
+  }
+
+  function populateInvProductDropdown() {
+    const sel = document.getElementById('inv-product');
+    const prds = DeptAPI.Products.getByDept(deptId);
+    sel.innerHTML = '<option value="">— তালিকার বাইরে / নিজে লিখুন —</option>' +
+      prds.map(p=>`<option value="${p.id}" data-name="${DeptAPI.esc(p.name)}" data-unit="${DeptAPI.esc(p.unit)}">${DeptAPI.esc(p.name)}</option>`).join('');
+    document.getElementById('inv-unit').innerHTML = unitOptionsHtml('পিস');
+  }
+
+  function onInvProductChange() {
+    const sel = document.getElementById('inv-product');
+    if (!sel.value) return;
+    const opt = sel.options[sel.selectedIndex];
+    document.getElementById('inv-name').value = opt.dataset.name || '';
+    document.getElementById('inv-unit').innerHTML = unitOptionsHtml(opt.dataset.unit || 'পিস');
+  }
+
+  async function saveInv() {
     const name = document.getElementById('inv-name').value.trim();
     const qty  = parseFloat(document.getElementById('inv-qty').value);
     const unit = document.getElementById('inv-unit').value.trim();
+    const productId = document.getElementById('inv-product').value;
+    const notes = document.getElementById('inv-notes').value.trim();
     if (!name) { showToast('পণ্যের নাম দিন'); return; }
     if (!unit) { showToast('একক দিন'); return; }
-    if (isNaN(qty)) { showToast('পরিমাণ দিন'); return; }
-    DeptAPI.Inventory.add({ dept_id:deptId, item_name:name, unit, quantity:qty });
+    if (isNaN(qty) || qty <= 0) { showToast('পরিমাণ দিন'); return; }
+    const delta = invMode === 'waste' ? -Math.abs(qty) : Math.abs(qty);
+    try {
+      if (window.DeptSync && staffUserId && staffPin) {
+        await DeptSync.adjustInventory(staffUserId, staffPin, deptId, {
+          product_id: productId || null,
+          item_name: name,
+          unit,
+          quantity_delta: delta,
+          reason: invMode,
+          notes
+        });
+      } else {
+        DeptAPI.Inventory.add({ dept_id:deptId, product_id:productId || null, item_name:name, unit, quantity:delta });
+      }
+    } catch (e) {
+      console.warn('[Dept] inventory update failed, using local fallback:', e);
+      DeptAPI.Inventory.add({ dept_id:deptId, product_id:productId || null, item_name:name, unit, quantity:delta });
+      showToast('Supabase সংযোগ হয়নি, লোকালভাবে সংরক্ষিত');
+    }
     closeModal('modal-inv');
     renderInv();
     showToast('মজুদ আপডেট হয়েছে');
   }
 
-  renderTxn();
+  async function initDeptPage() {
+    if (window.DeptSync && staffUserId && staffPin && deptId) {
+      await DeptSync.bootstrapData(staffUserId, staffPin, deptId);
+    }
+    renderTxn();
+  }
+
+  initDeptPage();
 </script>
 </body>
 </html>
