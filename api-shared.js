@@ -35,6 +35,12 @@ const MMSharedAPI = (() => {
     loginAdmin(pin) {
       return rpc('mdr_rel_admin_login', { p_pin: pin });
     },
+    adminChangePin(currentPin, newPin) {
+      return rpc('mdr_rel_admin_change_pin', {
+        p_current_pin: currentPin || '',
+        p_new_pin: newPin || '',
+      });
+    },
     loginUser(userId, pin) {
       return rpc('mdr_rel_user_login', { p_user_id: userId, p_pin: pin });
     },
