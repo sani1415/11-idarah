@@ -20,6 +20,15 @@
   @media (max-width:420px) {
     .acc-stat-grid { grid-template-columns:repeat(2,1fr); }
   }
+
+  /* ══ Desktop (≥ 960px) ══ */
+  @media (min-width: 960px) {
+    html body .content { max-width: 1100px !important; }
+    .acc-stat-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .acc-stat-card { padding: 14px 12px; }
+    .acc-stat-val { font-size: 18px; }
+    .acc-stat-lbl { font-size: 10px; }
+  }
 </style>
 </head>
 <body>

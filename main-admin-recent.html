@@ -16,6 +16,16 @@
   .recent-text { flex:1; font-size:12px; color:var(--ink); line-height:1.45; }
   .recent-date { font-size:10px; color:var(--ink3); flex-shrink:0; margin-top:2px; }
   .recent-empty { text-align:center; color:var(--ink3); padding:28px 16px; font-size:13px; background:rgba(255,255,255,.5); border-radius:var(--radius-sm); border:1px dashed var(--cream3); }
+
+  /* ══ Desktop (≥ 960px) ══ */
+  @media (min-width: 960px) {
+    .recent-wrap { padding: 24px 32px; padding-bottom: var(--app-content-pad-bottom); }
+    .recent-head { padding: 20px; }
+    .recent-title { font-size: 20px; }
+    .recent-item { padding: 14px 16px; }
+    .recent-text { font-size: 13px; }
+    .recent-date { font-size: 11px; }
+  }
 </style>
 </head>
 <body>

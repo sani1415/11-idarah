@@ -35,6 +35,18 @@
   .secondary-btn { border:1px solid var(--cream3); background:#fff; color:var(--ink2); border-radius:12px; padding:12px; font-family:'Noto Sans Bengali',sans-serif; font-weight:800; cursor:pointer; }
   .teacher-actionbar { position:sticky; bottom:calc(70px + env(safe-area-inset-bottom)); z-index:20; display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:8px; margin-top:8px; background:rgba(250,246,239,.92); border:1px solid rgba(26,18,8,.08); border-radius:16px; backdrop-filter:blur(8px); box-shadow:0 8px 24px rgba(26,18,8,.10); }
   .teacher-actionbar .add-btn { margin:0; padding:11px 8px; font-size:12px; border-radius:12px; }
+
+  /* ══ Desktop (≥ 960px) ══ */
+  @media (min-width: 960px) {
+    .settings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .settings-grid .settings-section { margin-bottom: 0; }
+    .check-grid { grid-template-columns: repeat(3, 1fr); }
+    .tab-pills { gap: 8px; }
+    .pill { font-size: 13px; padding: 9px 18px; }
+    .teacher-row { padding: 11px 0; }
+    .t-name { font-size: 14px; }
+    .perm-card { padding: 14px 15px; }
+  }
 </style>
 </head>
 <body>

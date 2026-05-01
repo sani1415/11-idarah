@@ -18,6 +18,11 @@
   .ben-row-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
   .ben-row-sub { font-size:11px; color:var(--ink3); margin-top:2px; }
   .month-sel { background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:10px 14px; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; color:var(--ink); width:100%; margin-bottom:14px; outline:none; }
+
+  /* ══ Desktop (≥ 960px) ══ */
+  @media (min-width: 960px) {
+    .adt-wrap { max-width: 1100px !important; }
+  }
 </style>
 </head>
 <body>
@@ -33,7 +38,7 @@
   </div>
 </div>
 
-<div style="max-width:520px;margin:0 auto;padding:8px 16px 0;">
+<div class="adt-wrap" style="max-width:520px;margin:0 auto;padding:8px 16px 0;">
   <div class="tab-bar" style="padding-bottom:0;margin-bottom:0;">
     <button class="tab-btn active" id="nav-overview" onclick="switchPanel('overview')">সারসংক্ষেপ</button>
     <button class="tab-btn" id="nav-bens" onclick="switchPanel('bens')">উপকারভোগী</button>

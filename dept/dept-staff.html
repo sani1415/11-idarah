@@ -87,6 +87,16 @@
   @media (max-width:640px) {
     .sale-row { grid-template-columns:190px 82px 104px 96px 92px 42px; min-width:630px; }
   }
+
+  /* ══ Desktop (≥ 960px) ══ */
+  @media (min-width: 960px) {
+    .txn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .txn-grid .txn-item { margin-bottom: 0; }
+    .inv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .inv-grid .inv-item { margin-bottom: 0; }
+    .report-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .month-chart { min-width: 0; grid-template-columns: repeat(12, 1fr); }
+  }
 </style>
 </head>
 <body>
@@ -112,7 +122,7 @@
     <button class="add-btn-half" onclick="openAddTxn('income')">↑ আয় যোগ</button>
     <button class="add-btn-half" onclick="openAddTxn('expense')">↓ ব্যয় যোগ</button>
   </div>
-  <div id="txn-list"></div>
+  <div id="txn-list" class="txn-grid"></div>
 </div>
 
 <div class="content" id="panel-products" style="display:none;padding-bottom:var(--app-content-pad-bottom);">
@@ -124,7 +134,7 @@
 <div class="content" id="panel-inv" style="display:none;padding-bottom:var(--app-content-pad-bottom);">
   <div class="sec-header"><div class="sec-title">মজুদ তালিকা</div></div>
   <button class="add-btn" onclick="openAddInv()">+ মজুদ আপডেট করুন</button>
-  <div id="inv-list"></div>
+  <div id="inv-list" class="inv-grid"></div>
 </div>
 
 <div class="content" id="panel-report" style="display:none;padding-bottom:var(--app-content-pad-bottom);">

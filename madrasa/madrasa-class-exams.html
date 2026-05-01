@@ -55,6 +55,14 @@
   .cls-ov-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px; padding-bottom:32px; }
   .ov-empty { text-align:center; color:var(--ink3); padding:40px 0; font-size:13px; }
   a.nav-item { -webkit-tap-highlight-color:transparent; }
+
+  /* ══ Desktop (≥ 960px) ══ */
+  @media (min-width: 960px) {
+    html body .content { max-width: 1000px !important; }
+    .exam-card { padding: 16px; }
+    .mark-cell { font-size: 14px; }
+    .mark-sheet-scroll { height: calc(100vh - 220px); }
+  }
 </style>
 </head>
 <body>

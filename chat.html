@@ -99,6 +99,18 @@
     max-height: calc(100vh - var(--app-nav-layout-offset, 72px));
   }
   body.chat-admin #view-inbox { padding-bottom: var(--app-content-pad-bottom); }
+
+  /* ══ Desktop (≥ 960px) ══ */
+  @media (min-width: 960px) {
+    .thread-item { padding: 16px; }
+    .thread-name { font-size: 15px; }
+    .chat-msgs { padding: 18px 24px; }
+    .msg-bubble { max-width: 65%; font-size: 14px; }
+    .msg-row.me .msg-bubble { max-width: 55%; }
+    .chat-input-bar { padding: 12px 20px; }
+    .chat-inp { font-size: 14px; }
+    .fab { right: calc(50% - 340px); }
+  }
 </style>
 </head>
 <body>

@@ -173,6 +173,21 @@
   .form-input { width:100%; padding:11px 12px; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Noto Sans Bengali',sans-serif; font-size:13px; color:var(--ink); outline:none; box-sizing:border-box; }
   .form-input:focus { border-color:var(--gold); }
   .submit-btn { width:100%; padding:14px; background:var(--ink2); border:none; border-radius:var(--radius-sm); font-family:'Noto Sans Bengali',sans-serif; font-size:14px; font-weight:700; color:var(--gold2); cursor:pointer; margin-top:4px; }
+
+  /* ══ Desktop (≥ 960px) ══ */
+  @media (min-width: 960px) {
+    html body .content { max-width: 1000px; padding: 20px 28px var(--app-content-pad-bottom); }
+    .stat-grid { gap: 12px; }
+    .stat-tile { padding: 14px 8px; min-height: 108px; }
+    .stat-num { font-size: 24px; }
+    .stat-label { font-size: 10px; }
+    .std-row { padding: 14px 16px; }
+    .std-name { font-size: 14px; }
+    .book-row { padding: 15px 16px; }
+    .book-name { font-size: 14px; }
+    .log-tabs { gap: 8px; }
+    .log-tab { font-size: 13px; padding: 12px 10px; }
+  }
 </style>
 </head>
 <body>

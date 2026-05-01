@@ -54,6 +54,13 @@
   .ds-row .ds-grp { flex:1; }
   .ds-lbl { font-size:11px; color:var(--ink3); display:block; margin-bottom:4px; letter-spacing:.03em; }
   .ds-add-form { background:var(--cream); border-radius:var(--radius-sm); padding:12px; margin-top:4px; }
+
+  /* ══ Desktop (≥ 960px) ══ */
+  @media (min-width: 960px) {
+    .adt-wrap { max-width: 1100px !important; }
+    .dept-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .dept-grid .dept-card { margin-bottom: 0; }
+  }
 </style>
 </head>
 <body>
@@ -69,7 +76,7 @@
   </div>
 </div>
 
-<div style="max-width:520px;margin:0 auto;padding:8px 16px 0;">
+<div class="adt-wrap" style="max-width:520px;margin:0 auto;padding:8px 16px 0;">
   <div class="tab-bar" style="padding-bottom:0;margin-bottom:0;">
     <button class="tab-btn active" id="nav-overview" onclick="switchTab('overview')">বিভাগ</button>
     <button class="tab-btn" id="nav-requests" onclick="switchTab('requests')">অনুরোধ</button>
@@ -85,7 +92,7 @@
   </div>
   <div class="stat-row" id="overview-stats"></div>
   <button class="add-btn" onclick="openAddDept()">+ নতুন বিভাগ যোগ করুন</button>
-  <div id="dept-list"></div>
+  <div id="dept-list" class="dept-grid"></div>
 </div>
 
 <div class="content" id="panel-requests" style="display:none;padding-bottom: var(--app-content-pad-bottom);">

@@ -849,3 +849,138 @@ body {
   transform: translateX(100%); transition: transform .25s ease;
 }
 .side-panel.open .side-panel-drawer { transform: translateX(0); }
+
+/* ═══════════════════════════════════════════
+   DESKTOP / BIG SCREEN (≥ 960px)
+   Mobile-first: all styles above are mobile default.
+   These enhance layout for larger screens.
+   ═══════════════════════════════════════════ */
+@media (min-width: 960px) {
+  :root {
+    --app-nav-pill-max: 700px;
+    --app-nav-pill-inset: 16px;
+    --app-content-pad-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+    --app-fab-bottom: calc(78px + max(0px, env(safe-area-inset-bottom, 0px)));
+    --app-floating-above-nav: calc(98px + max(0px, env(safe-area-inset-bottom, 0px)));
+  }
+
+  /* ── Content — wider for desktop ── */
+  html body .content { max-width: 1100px; }
+  .pb-safe { height: 90px; }
+
+  /* ── Topbar ── */
+  .topbar { padding: 16px 32px; }
+  .topbar-name { font-size: 18px; }
+  .topbar-role { font-size: 12px; }
+  .topbar-btn { font-size: 12px; padding: 8px 14px; }
+  .topbar-btn.topbar-btn--icon { width: 40px; height: 40px; min-width: 40px; }
+  .topbar-btn.topbar-btn--icon svg { width: 20px; height: 20px; }
+  .notif-btn { width: 40px; height: 40px; }
+
+  /* ── Bottom nav — wider pill, slightly larger ── */
+  .bottom-nav {
+    padding: 8px 14px max(12px, env(safe-area-inset-bottom, 0px));
+  }
+  .nav-item { font-size: 11px; padding: 8px 10px 10px; }
+  .nav-icon svg.nav-svg,
+  .nav-item > svg.nav-svg { width: 24px; height: 24px; }
+  .nav-label,
+  .nav-item > span:not(.nav-icon) { font-size: 11px; }
+  .mm-chat-badge { top: 4px; right: 22%; }
+
+  /* ── Section headers ── */
+  .sec-title { font-size: 16px; }
+  .sec-header { margin: 20px 0 14px; }
+  .sec-link { font-size: 13px; }
+
+  /* ── Stats — wider gaps ── */
+  .stat-row { gap: 12px; }
+  .stat-row-2 { gap: 12px; }
+  .stat-card { padding: 18px 16px; }
+  .stat-num { font-size: 24px; }
+  .stat-label { font-size: 11px; }
+
+  /* ── Cards ── */
+  .card { padding: 20px; }
+  .card-static { padding: 20px; }
+  .header-card { padding: 24px 22px; }
+  .hc-name { font-size: 21px; }
+
+  /* ── List items ── */
+  .list-item { padding: 16px; }
+  .list-name { font-size: 15px; }
+
+  /* ── Forms ── */
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 13px; margin-bottom: 8px; }
+  .form-input { padding: 14px 16px; font-size: 15px; }
+  .form-select { padding-right: 44px; }
+  .form-row { gap: 14px; }
+  .form-textarea { min-height: 110px; }
+  .submit-btn { padding: 16px; font-size: 15px; }
+  .add-btn { padding: 16px 20px; font-size: 15px; }
+
+  /* ── Modal ── */
+  .modal { max-width: 560px; border-radius: 24px; padding: 28px 24px 40px; }
+  .modal-bg.modal-float .modal { max-width: 520px; }
+  .modal-title { font-size: 18px; }
+
+  /* ── Detail view ── */
+  .detail-content { max-width: 900px; padding: 24px 32px; }
+
+  /* ── Student modal ── */
+  #modal-student-detail .modal.modal--student {
+    width: min(680px, calc(100vw - 64px));
+    max-width: min(680px, calc(100vw - 64px));
+  }
+  #modal-teacher-detail .modal.modal--student {
+    width: min(680px, calc(100vw - 64px));
+    max-width: min(680px, calc(100vw - 64px));
+  }
+  .st-avatar { width: 56px; height: 56px; font-size: 22px; }
+  #modal-student-detail h2#st-modal-title,
+  .st-modal-texts h2#st-modal-title { font-size: 20px; }
+  .st-tab { font-size: 12px; padding: 12px 8px; }
+  .st-kv-lbl { font-size: 11px; }
+  .st-kv-val { font-size: 14px; }
+
+  /* ── Side panel ── */
+  .side-panel-drawer { width: min(440px, 38vw); }
+
+  /* ── Toast ── */
+  .toast { font-size: 14px; padding: 12px 28px; border-radius: 24px; }
+
+  /* ── Login ── */
+  .login-box { max-width: 400px; padding: 36px 32px; }
+  .role-grid { max-width: 400px; }
+  .login-logo { font-size: 28px; }
+  .login-subtitle { font-size: 13px; }
+  .num-btn { font-size: 20px; padding: 16px; }
+
+  /* ── Tab bar ── */
+  .tab-bar { gap: 8px; }
+  .tab-btn { font-size: 13px; padding: 9px 18px; }
+  .tab-bar.tab-bar-class { gap: 8px; }
+  .tab-bar.tab-bar-class .tab-btn {
+    flex: 1 1 calc(25% - 6px);
+    min-width: calc(25% - 6px);
+    font-size: 12px;
+    padding: 10px 8px;
+  }
+
+  /* ── Attendance ── */
+  .att-row { padding: 12px 0; }
+  .att-name { font-size: 14px; }
+  .att-id { font-size: 12px; }
+  .att-btn { width: 36px; height: 36px; font-size: 16px; }
+
+  /* ── Logs ── */
+  .log-item { padding: 16px; }
+  .log-text { font-size: 14px; }
+  .log-meta { font-size: 12px; }
+
+  /* ── Empty state ── */
+  .empty-state { padding: 48px 24px; }
+  .empty-icon { font-size: 48px; }
+  .empty-text { font-size: 15px; }
+}

@@ -37,6 +37,17 @@
     }
     .mmt-row { margin-bottom: 0; }
   }
+  @media (min-width: 1100px) {
+    .mmt-page {
+      max-width: 1000px;
+      padding-left: 28px;
+      padding-right: 28px;
+    }
+    #mmt-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+  }
 </style>
 </head>
 <body>

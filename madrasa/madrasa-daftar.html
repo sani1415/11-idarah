@@ -548,6 +548,12 @@ body.page-daftar #modal-account-entry .modal {
   body.page-daftar .content { max-width: 760px; }
   .acct-split { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
 }
+@media (min-width: 960px) {
+  body.page-daftar .content { max-width: 1200px; }
+  .class-summary-table { min-width: 0; }
+  .acct-split { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .acct-dashboard { grid-template-columns: repeat(4, 1fr); }
+}
 </style>
 </head>
 <body class="page-daftar">

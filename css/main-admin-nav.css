@@ -100,3 +100,25 @@
 #chat-page-hub-nav {
   display: none;
 }
+
+/* ══ Desktop (≥ 960px) — wider admin nav pill ══ */
+@media (min-width: 960px) {
+  .main-nav,
+  .hub-bottom-nav {
+    padding: 8px 14px max(12px, env(safe-area-inset-bottom, 0px));
+  }
+  .main-nav-btn,
+  .hub-bottom-nav .hub-nav-btn {
+    font-size: 11px;
+    padding: 8px 10px 10px;
+  }
+  .main-nav-ico,
+  .hub-bottom-nav .hub-nav-ico {
+    width: 24px;
+    height: 24px;
+  }
+  .main-nav-lbl,
+  .hub-bottom-nav .hub-nav-label {
+    font-size: 11px;
+  }
+}
