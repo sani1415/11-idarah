@@ -229,6 +229,34 @@ const MMSharedAPI = (() => {
         p_reason: reason || null,
       });
     },
+    daftarNotesList(actorId, pin) {
+      return rpc('mdr_rel_daftar_notes_list', { p_actor_id: actorId, p_pin: pin });
+    },
+    daftarNotesUpsert(actorId, pin, noteId, text) {
+      return rpc('mdr_rel_daftar_notes_upsert', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_id: noteId || null,
+        p_text: text || '',
+      });
+    },
+    daftarNotesDelete(actorId, pin, noteId) {
+      return rpc('mdr_rel_daftar_notes_delete', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_id: noteId,
+      });
+    },
+    dastarkhanGet(actorId, pin) {
+      return rpc('mdr_rel_dastarkhan_get', { p_actor_id: actorId, p_pin: pin });
+    },
+    dastarkhanSave(actorId, pin, payload) {
+      return rpc('mdr_rel_dastarkhan_save', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_payload: payload || {},
+      });
+    },
     saveExam(actorId, pin, name, type, subjects) {
       return rpc('mdr_rel_save_exam', {
         p_actor_id: actorId,
@@ -315,6 +343,36 @@ const MMSharedAPI = (() => {
         p_buyer_phone: txn.buyer_phone || (txn.metadata && txn.metadata.buyer_phone) || null,
         p_items: txn.items || (txn.metadata && txn.metadata.line_items) || [],
         p_metadata: txn.metadata || {},
+      });
+    },
+    updateDeptTransaction(actorId, pin, deptCode, txnId, txn) {
+      const honorAmount = Number(txn.honor_amount || (txn.metadata && txn.metadata.honor_amount) || 0);
+      const hasItems = !!(txn.items && txn.items.length) || !!(txn.metadata && txn.metadata.line_items && txn.metadata.line_items.length);
+      const rpcAmount = txn.type === 'income' && !hasItems
+        ? Math.max(Number(txn.amount || 0) - honorAmount, 0)
+        : Number(txn.amount || 0);
+      return rpc('dept_rel_update_transaction', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_transaction_id: txnId,
+        p_description: txn.description || '',
+        p_date: txn.date || txn.txn_date || null,
+        p_category: txn.category || null,
+        p_amount: rpcAmount,
+        p_honor_amount: honorAmount,
+        p_buyer_name: txn.buyer_name || (txn.metadata && txn.metadata.buyer_name) || null,
+        p_buyer_phone: txn.buyer_phone || (txn.metadata && txn.metadata.buyer_phone) || null,
+        p_items: txn.items || (txn.metadata && txn.metadata.line_items) || [],
+        p_metadata: txn.metadata || {},
+      });
+    },
+    deleteDeptTransaction(actorId, pin, deptCode, txnId) {
+      return rpc('dept_rel_delete_transaction', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_transaction_id: txnId,
       });
     },
     adjustDeptInventory(actorId, pin, deptCode, item) {

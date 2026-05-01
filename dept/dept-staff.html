@@ -7,12 +7,16 @@
 <link rel="stylesheet" href="../css/style.css">
 <style>
   .txn-item { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+  .txn-item { cursor:pointer; }
   .txn-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
   .txn-icon.income { background:var(--green-light); color:var(--green); }
   .txn-icon.expense { background:var(--red-light); color:var(--red); }
   .txn-info { flex:1; min-width:0; }
   .txn-desc { font-size:13px; font-weight:600; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .txn-sub { font-size:11px; color:var(--ink3); margin-top:2px; }
+  .txn-line-main { display:flex; align-items:center; gap:8px; min-width:0; }
+  .txn-line-date { font-size:11px; color:var(--ink3); white-space:nowrap; }
+  .pending-pill { display:inline-block; background:#fff4d9; color:#9a6a21; border-radius:999px; padding:1px 7px; font-size:10px; font-weight:800; margin-top:3px; }
   .txn-amt { font-family:'Noto Serif Bengali',serif; font-size:15px; font-weight:700; flex-shrink:0; }
   .txn-amt.income { color:var(--green); }
   .txn-amt.expense { color:var(--red); }
@@ -76,6 +80,10 @@
   .month-bar.expense { background:var(--red); }
   .month-chart-label { text-align:center; font-size:10px; color:var(--ink3); margin-top:5px; }
   .empty-report { text-align:center; color:var(--ink3); padding:18px 0; font-size:12px; }
+  .txn-action-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+  .txn-action-row button { border:0; border-radius:var(--radius-sm); padding:10px; font-family:'Noto Sans Bengali',sans-serif; font-weight:800; cursor:pointer; }
+  .txn-action-row .edit { background:var(--cream2); color:var(--ink2); }
+  .txn-action-row .delete { background:var(--red-light); color:var(--red); }
   @media (max-width:640px) {
     .sale-row { grid-template-columns:190px 82px 104px 96px 92px 42px; min-width:630px; }
   }
@@ -229,6 +237,7 @@
 
     <div id="txn-extra-wrap"></div>
     <button class="submit-btn" onclick="saveTxn()">সংরক্ষণ করুন</button>
+    <button id="txn-delete-btn" onclick="deleteFromEditModal()" style="display:none;margin-top:8px;width:100%;padding:10px;border:0;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);font-family:'Noto Sans Bengali',sans-serif;font-weight:800;cursor:pointer;">ডিলিট করুন</button>
   </div>
 </div>
 
@@ -292,6 +301,17 @@
   </div>
 </div>
 
+<div class="modal-bg modal-float" id="modal-txn-detail">
+  <div class="modal">
+    <div class="modal-title">লেনদেন বিস্তারিত <button class="modal-close" onclick="closeModal('modal-txn-detail')">✕</button></div>
+    <div id="txn-detail-body"></div>
+    <div class="txn-action-row">
+      <button class="edit" onclick="startEditActiveTxn()">এডিট</button>
+      <button class="delete" onclick="deleteActiveTxn()">ডিলিট</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -301,6 +321,7 @@
 <script src="../js/monitor-mode.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/dept-api.js"></script>
+<script src="../js/chat-api.js"></script>
 <script src="../js/dept-supabase-sync.js"></script>
 <script>
   const deptId   = MMSession.getDeptId();
@@ -320,6 +341,8 @@
   let lineItems = [];
   let invMode = 'stock_in';
   let reportRange = 'month';
+  let editingTxnId = null;
+  let activeTxnId = null;
 
   const toBn   = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = n => '৳' + toBn(Number(n||0).toLocaleString('en'));
@@ -328,6 +351,7 @@
 
   const CAT_LABEL = { production:'উৎপাদন উপকরণ', operational:'পরিচালন খরচ', other:'অন্যান্য' };
   const UNIT_OPTIONS = ['কেজি','গ্রাম','মন','লিটার','মিলি','পিস','জোড়া','ডজন','প্যাকেট','বস্তা','গজ','রিল','প্লেট','কপি'];
+  const TXN_EDIT_WINDOW_MS = 24 * 60 * 60 * 1000;
 
   function showToast(msg) {
     const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
@@ -335,6 +359,24 @@
   }
   function openModal(id)  { document.getElementById(id).classList.add('open'); }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  async function syncChatForPending() {
+    if (!window.ChatAPI || !ChatAPI.syncRemote || !staffUserId || !staffPin) return;
+    try { await ChatAPI.syncRemote(staffUserId, staffPin, false); } catch (e) { console.warn('Dept chat sync failed', e); }
+  }
+
+  function pendingTxnRequest(txnId) {
+    if (!window.ChatAPI) return null;
+    return ChatAPI.getThread('dept-' + deptId).find(m => {
+      const r = m.request || {};
+      return r.entryId === txnId && (r.kind === 'dept_transaction_edit' || r.kind === 'dept_transaction_delete') && (r.status || 'pending') === 'pending';
+    });
+  }
+
+  function canDirectModify(txn) {
+    const created = new Date(txn.created_at || txn.created || txn.date || txn.txn_date || Date.now()).getTime();
+    return Date.now() - created <= TXN_EDIT_WINDOW_MS;
+  }
 
   function switchPanel(name) {
     ['txn','products','inv','report'].forEach(p => {
@@ -364,21 +406,46 @@
       ? txns.map(t => {
           const cat = t.category ? `<span class="cat-pill ${t.category}">${DeptAPI.esc(CAT_LABEL[t.category]||t.category)}</span>` : '';
           const saleItems = t.metadata && Array.isArray(t.metadata.line_items) ? t.metadata.line_items : [];
-          const prod = saleItems.length && t.type === 'income'
-            ? `<span style="font-size:11px;color:var(--teal);">${saleItems.map(i=>DeptAPI.esc(i.product_name||i.name)+' '+toBn(i.qty||i.quantity||0)+' '+DeptAPI.esc(i.unit||'')).join(' · ')}</span>`
-            : (t.metadata && t.metadata.product_name
-              ? `<span style="font-size:11px;color:var(--teal);">${DeptAPI.esc(t.metadata.product_name)} · ${toBn(t.metadata.qty||0)} ${DeptAPI.esc(t.metadata.unit||'')} · ${fmtAmt(t.metadata.rate||0)}/একক</span>` : '');
-          const items = t.metadata && t.metadata.line_items && t.metadata.line_items.length
+          const dateStr = fmtDate(t.date||t.txn_date);
+
+          let mainTitle;
+          if (t.description) {
+            mainTitle = DeptAPI.esc(t.description);
+          } else if (t.type === 'income' && saleItems.length) {
+            mainTitle = saleItems.map(i => DeptAPI.esc(i.product_name||i.name||'') + ' ' + toBn(i.qty||i.quantity||0) + 'টা').join(' · ');
+          } else if (t.type === 'income' && t.metadata && t.metadata.product_name) {
+            mainTitle = DeptAPI.esc(t.metadata.product_name) + ' ' + toBn(t.metadata.qty||0) + 'টা';
+          } else {
+            mainTitle = t.type === 'income' ? 'আয়' : 'ব্যয়';
+          }
+
+          const subParts = [];
+          if (t.type === 'expense' && cat) subParts.push(cat);
+          if (t.type === 'income' && !t.description) {
+            if (saleItems.length === 1 && saleItems[0].rate) {
+              subParts.push(`<span style="font-size:11px;color:var(--ink3);">${DeptAPI.esc(saleItems[0].product_name||saleItems[0].name||'')} ${fmtAmt(saleItems[0].rate)}/${DeptAPI.esc(saleItems[0].unit||'পিস')}</span>`);
+            } else if (!saleItems.length && t.metadata && t.metadata.rate) {
+              subParts.push(`<span style="font-size:11px;color:var(--ink3);">${DeptAPI.esc(t.metadata.product_name||'')} ${fmtAmt(t.metadata.rate)}/${DeptAPI.esc(t.metadata.unit||'পিস')}</span>`);
+            }
+          } else if (t.description && t.type === 'income' && saleItems.length) {
+            subParts.push(`<span style="font-size:11px;color:var(--teal);">${saleItems.map(i=>DeptAPI.esc(i.product_name||i.name)+' '+toBn(i.qty||i.quantity||0)+'টা').join(' · ')}</span>`);
+          }
+          if (dateStr) subParts.push(`<span class="txn-line-date">${dateStr}</span>`);
+          const subHtml = subParts.length ? `<div class="txn-sub">${subParts.join(' ')}</div>` : '';
+
+          const items = t.type === 'expense' && t.metadata && t.metadata.line_items && t.metadata.line_items.length
             ? `<div style="font-size:11px;color:var(--ink3);margin-top:2px;">${t.metadata.line_items.map(i=>DeptAPI.esc(i.name||i.product_name)+' '+fmtAmt(i.amount)).join(' · ')}</div>` : '';
           const honor = Number(t.honor_amount || (t.metadata && t.metadata.honor_amount) || 0);
           const honorHtml = honor > 0 ? `<div style="font-size:11px;color:var(--green);margin-top:2px;">মর্যাদা মূল্য: ${fmtAmt(honor)}</div>` : '';
-          return `<div class="txn-item">
+          const pending = pendingTxnRequest(String(t.id)) ? '<span class="pending-pill">অনুমতির অপেক্ষায়</span>' : '';
+          return `<div class="txn-item" onclick="openEditTxn('${DeptAPI.esc(t.id)}')">
             <div class="txn-icon ${t.type}">${t.type==='income'?'↑':'↓'}</div>
             <div class="txn-info">
-              <div class="txn-desc">${DeptAPI.esc(t.description)}</div>
-              <div class="txn-sub">${fmtDate(t.date||t.txn_date)} ${cat}${prod}</div>
+              <div class="txn-line-main"><div class="txn-desc">${mainTitle}</div></div>
+              ${subHtml}
               ${items}
               ${honorHtml}
+              ${pending}
             </div>
             <div class="txn-amt ${t.type}">${fmtAmt(t.amount)}</div>
           </div>`;
@@ -389,6 +456,8 @@
   /* ── ADD TXN MODAL ── */
   function openAddTxn(type) {
     const nextType = type || 'income';
+    editingTxnId = null;
+    document.getElementById('txn-delete-btn').style.display = 'none';
     lineItems = nextType === 'income' ? [blankSaleItem()] : [];
     updateItemsBadge();
     ['txn-amount','txn-desc','txn-honor','txn-buyer-name'].forEach(id => {
@@ -524,15 +593,18 @@
       const rate = parseFloat(row.rate) || 0;
       if (!prd) {
         if (showErrors) showToast('সব লাইনে পণ্য নির্বাচন করুন');
-        return null;
+        if (showErrors) return null;
+        continue;
       }
       if (qty <= 0) {
         if (showErrors) showToast('সব লাইনে পরিমাণ দিন');
-        return null;
+        if (showErrors) return null;
+        continue;
       }
       if (rate <= 0) {
         if (showErrors) showToast('সব লাইনে দর দিন');
-        return null;
+        if (showErrors) return null;
+        continue;
       }
       items.push({
         product_id: prd.id,
@@ -545,6 +617,136 @@
       });
     }
     return items;
+  }
+
+  function txnById(id) {
+    return DeptAPI.Transactions.getByDept(deptId).find(t => String(t.id) === String(id));
+  }
+
+  function openTxnDetail(id) {
+    const t = txnById(id);
+    if (!t) return;
+    activeTxnId = id;
+    const meta = t.metadata || {};
+    const pending = pendingTxnRequest(String(t.id));
+    document.getElementById('txn-detail-body').innerHTML = `
+      <div class="report-card" style="box-shadow:none;background:var(--cream2);">
+        <div class="label">${t.type === 'income' ? 'আয়' : 'ব্যয়'} · ${fmtDate(t.date || t.txn_date)}</div>
+        <div class="value">${fmtAmt(t.amount)}</div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:6px;">${DeptAPI.esc(t.description || 'বিবরণ নেই')}</div>
+        ${meta.buyer_name ? `<div style="font-size:12px;color:var(--ink3);margin-top:4px;">ক্রেতা: ${DeptAPI.esc(meta.buyer_name)}</div>` : ''}
+        ${pending ? '<div class="pending-pill">এডিট/ডিলিট অনুমতির অপেক্ষায়</div>' : ''}
+      </div>`;
+    openModal('modal-txn-detail');
+  }
+
+  function hydrateTxnForm(t) {
+    editingTxnId = String(t.id);
+    const meta = t.metadata || {};
+    lineItems = t.type === 'income'
+      ? (Array.isArray(meta.line_items) && meta.line_items.length ? meta.line_items.map(i => ({
+          product_id:String(i.product_id || ''),
+          product_name:i.product_name || i.name || '',
+          unit:i.unit || 'পিস',
+          qty:i.qty || i.quantity || '',
+          rate:i.rate || i.unit_price || '',
+          amount:Number(i.amount || 0)
+        })) : [blankSaleItem()])
+      : (Array.isArray(meta.line_items) ? meta.line_items.slice() : []);
+    document.getElementById('txn-date').value = t.date || t.txn_date || new Date().toISOString().split('T')[0];
+    document.getElementById('txn-desc').value = t.description || '';
+    document.getElementById('txn-amount').value = t.amount || '';
+    document.getElementById('txn-honor').value = t.honor_amount || meta.honor_amount || '';
+    document.getElementById('txn-buyer-name').value = meta.buyer_name || t.buyer_name || '';
+    renderSaleItems();
+    selType(t.type);
+    document.getElementById('modal-txn-title').innerHTML = (t.type === 'income' ? 'আয় এডিট' : 'ব্যয় এডিট') + " <button class=\"modal-close\" onclick=\"closeModal('modal-txn')\">✕</button>";
+  }
+
+  function startEditActiveTxn() {
+    const t = txnById(activeTxnId);
+    if (!t) return;
+    closeModal('modal-txn-detail');
+    hydrateTxnForm(t);
+    document.getElementById('txn-delete-btn').style.display = '';
+    openModal('modal-txn');
+  }
+
+  function openEditTxn(id) {
+    const t = txnById(id);
+    if (!t) return;
+    activeTxnId = id;
+    hydrateTxnForm(t);
+    document.getElementById('txn-delete-btn').style.display = '';
+    openModal('modal-txn');
+  }
+
+  async function deleteFromEditModal() {
+    const id = editingTxnId || activeTxnId;
+    const t = txnById(id);
+    if (!t) return;
+    if (!confirm('এই লেনদেন ডিলিট করবেন?')) return;
+    const isLocalOnly = String(t.id).startsWith('txn_');
+    try {
+      if (canDirectModify(t)) {
+        if (!isLocalOnly && window.DeptSync && staffUserId && staffPin) {
+          await DeptSync.deleteTransaction(staffUserId, staffPin, deptId, t.id);
+        }
+        DeptAPI.Transactions.remove(String(t.id));
+        showToast('লেনদেন ডিলিট হয়েছে');
+      } else {
+        await requestTxnApproval('dept_transaction_delete', t, null);
+        showToast('এডমিন অনুমতির জন্য পাঠানো হয়েছে');
+      }
+      closeModal('modal-txn');
+      editingTxnId = null;
+      renderTxn();
+    } catch (e) {
+      console.warn('[Dept] delete/request failed', e);
+      showToast('ডিলিট/অনুরোধ সম্পন্ন হয়নি');
+    }
+  }
+
+  async function requestTxnApproval(kind, txn, proposed) {
+    const text = (kind === 'dept_transaction_edit' ? 'লেনদেন এডিটের অনুমতি চাই।' : 'লেনদেন ডিলিটের অনুমতি চাই।') + '\n' +
+      `তারিখ: ${txn.date || txn.txn_date}\nপরিমাণ: ${fmtAmt(txn.amount)}\nবিবরণ: ${txn.description || 'বিবরণ নেই'}`;
+    const req = {
+      kind,
+      status:'pending',
+      entryId:String(txn.id),
+      deptCode:deptId,
+      entryType:txn.type,
+      original:txn,
+      proposed:proposed || null,
+      requestedAt:new Date().toISOString()
+    };
+    const res = await ChatAPI.sendRemote(staffUserId, staffPin, 'dept-' + deptId, text, false, { request:req });
+    if (!res || !res.ok) throw new Error((res && res.error) || 'request_failed');
+    await syncChatForPending();
+  }
+
+  async function deleteActiveTxn() {
+    const t = txnById(activeTxnId);
+    if (!t) return;
+    if (!confirm('এই লেনদেন ডিলিট করবেন?')) return;
+    const isLocalOnly = String(t.id).startsWith('txn_');
+    try {
+      if (canDirectModify(t)) {
+        if (!isLocalOnly && window.DeptSync && staffUserId && staffPin) {
+          await DeptSync.deleteTransaction(staffUserId, staffPin, deptId, t.id);
+        }
+        DeptAPI.Transactions.remove(String(t.id));
+        showToast('লেনদেন ডিলিট হয়েছে');
+      } else {
+        await requestTxnApproval('dept_transaction_delete', t, null);
+        showToast('এডমিন অনুমতির জন্য পাঠানো হয়েছে');
+      }
+      closeModal('modal-txn-detail');
+      renderTxn();
+    } catch (e) {
+      console.warn('[Dept] delete/request failed', e);
+      showToast('ডিলিট/অনুরোধ সম্পন্ন হয়নি');
+    }
   }
 
   function renderTxnExtraFields() {
@@ -620,20 +822,43 @@
       items: lineItems.slice()
     };
     try {
-      if (window.DeptSync && staffUserId && staffPin) {
+      if (editingTxnId) {
+        const original = txnById(editingTxnId);
+        const isLocalEdit = String(editingTxnId).startsWith('txn_');
+        if (original && canDirectModify(original)) {
+          if (!isLocalEdit && window.DeptSync && staffUserId && staffPin) {
+            await DeptSync.updateTransaction(staffUserId, staffPin, deptId, editingTxnId, payload);
+          } else {
+            DeptAPI.Transactions.update(editingTxnId, { ...payload, id: editingTxnId });
+          }
+          showToast('লেনদেন আপডেট হয়েছে');
+        } else if (original) {
+          await requestTxnApproval('dept_transaction_edit', original, payload);
+          showToast('এডমিন অনুমতির জন্য পাঠানো হয়েছে');
+        }
+      } else if (window.DeptSync && staffUserId && staffPin) {
         await DeptSync.saveTransaction(staffUserId, staffPin, deptId, payload);
+        showToast('লেনদেন সংরক্ষিত হয়েছে');
       } else {
         DeptAPI.Transactions.add(payload);
+        localInventoryDeductForSale(payload);
+        showToast('লেনদেন সংরক্ষিত হয়েছে');
       }
     } catch (e) {
       console.warn('[Dept] transaction save failed, using local fallback:', e);
-      DeptAPI.Transactions.add(payload);
-      showToast('Supabase সংযোগ হয়নি, লোকালভাবে সংরক্ষিত');
+      if (editingTxnId) {
+        DeptAPI.Transactions.update(editingTxnId, { ...payload, id: editingTxnId });
+        showToast('Supabase সংযোগ নেই — লোকালভাবে আপডেট হয়েছে');
+      } else {
+        DeptAPI.Transactions.add(payload);
+        localInventoryDeductForSale(payload);
+        showToast('Supabase সংযোগ নেই — লোকালভাবে সংরক্ষিত');
+      }
     }
     closeModal('modal-txn');
+    editingTxnId = null;
     renderTxn();
     renderInv();
-    showToast('লেনদেন সংরক্ষিত হয়েছে');
   }
 
   /* ── LINE ITEMS PANEL ── */
@@ -973,10 +1198,27 @@
     showToast('মজুদ আপডেট হয়েছে');
   }
 
+  function localInventoryDeductForSale(payload) {
+    if (payload.type !== 'income' || !Array.isArray(payload.items)) return;
+    payload.items.forEach(item => {
+      const qty = Number(item.qty || item.quantity || 0);
+      if (qty > 0) {
+        DeptAPI.Inventory.add({
+          dept_id: deptId,
+          product_id: item.product_id || null,
+          item_name: item.product_name || item.name || '',
+          unit: item.unit || 'পিস',
+          quantity: -qty
+        });
+      }
+    });
+  }
+
   async function initDeptPage() {
     if (window.DeptSync && staffUserId && staffPin && deptId) {
       await DeptSync.bootstrapData(staffUserId, staffPin, deptId);
     }
+    await syncChatForPending();
     renderTxn();
   }
 

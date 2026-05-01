@@ -20,6 +20,9 @@ var _detailSort = 'date_asc';
 var _accDefaulted = false;
 var _metricModalKind = '';
 var _settingsModalOpen = false;
+var _yearF        = 'all';
+var _editEntryId  = null;
+var _editEntryType = '';
 
 (function () {
   var A   = MdrAccAPI;
@@ -39,6 +42,18 @@ var _settingsModalOpen = false;
   function normalizeMonthFilters() {
     if (_monF !== 'all') _monF = A.monthKey(_monF);
     if (_sumMonth !== 'all') _sumMonth = A.monthKey(_sumMonth);
+  }
+
+  function getAllYears() {
+    var years = new Set();
+    A.Income.getAll().forEach(function (r) { if (r.hijriYear) years.add(String(r.hijriYear)); });
+    A.Expense.getAll().forEach(function (r) { if (r.hijriYear) years.add(String(r.hijriYear)); });
+    return Array.from(years).sort();
+  }
+  function yearOptions(selected) {
+    return '<option value="all">সব বছর</option>' + getAllYears().map(function (y) {
+      return '<option value="' + y + '"' + (selected === y ? ' selected' : '') + '>' + A.bn(y) + '</option>';
+    }).join('');
   }
 
   /* ── inject CSS once ── */
@@ -138,8 +153,9 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
 .acc-detail-table th:nth-child(4),.acc-detail-table td:nth-child(4){min-width:104px}
 .acc-detail-table th:nth-child(5),.acc-detail-table td:nth-child(5){min-width:74px}
 .acc-detail-table th:nth-child(6),.acc-detail-table td:nth-child(6){min-width:78px}
-.acc-detail-table th:nth-child(7),.acc-detail-table td:nth-child(7){min-width:64px}
-.acc-detail-table th:nth-child(8),.acc-detail-table td:nth-child(8){min-width:58px}
+.acc-detail-table th:nth-child(7),.acc-detail-table td:nth-child(7){min-width:58px}
+.acc-detail-table th:nth-child(8),.acc-detail-table td:nth-child(8){min-width:64px}
+.acc-detail-table th:nth-child(9),.acc-detail-table td:nth-child(9){min-width:58px}
 @media (min-width:520px){.acc-detail-tools{grid-template-columns:1fr 1fr 1fr 1.4fr 1fr auto}}
 .acc-expense-wrap{overflow:auto;border:1px solid rgba(26,18,8,.07);border-radius:17px;background:#fff;max-height:60vh;box-shadow:0 10px 24px rgba(26,18,8,.055)}
 .acc-expense-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
@@ -365,13 +381,14 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     if (field === 'month') { _monF = value === 'all' ? 'all' : A.monthKey(value); _dayF = 'all'; _fromKey = 'all'; _toKey = 'all'; }
     if (field === 'day') _dayF = value;
     if (field === 'account') _accF = value;
+    if (field === 'year') _yearF = value;
   };
   window.applyAccFilters = function () {
     window.closeAccSheet();
     rerenderAccountsView();
   };
   window.resetAccFilters = function () {
-    _monF = 'all'; _dayF = 'all'; _accF = 'all';
+    _monF = 'all'; _dayF = 'all'; _accF = 'all'; _yearF = 'all';
     window.applyAccFilters();
   };
   window.openAccFilterSheet = function () {
@@ -380,7 +397,9 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     var dayOpts = '<option value="all">সব দিন</option>' + Array.from({ length: 30 }, function (_, i) { var d = String(i + 1); return '<option value="' + d + '"' + (String(_dayF) === d ? ' selected' : '') + '>' + bn(d) + ' তারিখ</option>'; }).join('') +
       '<option value="__none"' + (_dayF === '__none' ? ' selected' : '') + '>দিন নেই</option>';
     var accOpts = '<option value="all">সব হিসাব</option>' + Object.entries(A.ACCOUNT_LABELS).map(function (e) { return '<option value="' + e[0] + '"' + (_accF === e[0] ? ' selected' : '') + '>' + esc(e[1]) + '</option>'; }).join('');
+    var yearOpts = yearOptions(_yearF);
     _sheet('ফিল্টার নির্বাচন', '<div class="acc-sheet-grid">' +
+      '<div class="acc-sheet-field"><label>বছর (হিজরী)</label><select class="acc-sel" onchange="setAccFilter(\'year\',this.value)">' + yearOpts + '</select></div>' +
       '<div class="acc-sheet-field"><label>মাস</label><select class="acc-sel" onchange="setAccFilter(\'month\',this.value)">' + monOpts + '</select></div>' +
       '<div class="acc-sheet-field"><label>দিন</label><select class="acc-sel" onchange="setAccFilter(\'day\',this.value)">' + dayOpts + '</select></div>' +
       '<div class="acc-sheet-field"><label>হিসাব বই</label><select class="acc-sel" onchange="setAccFilter(\'account\',this.value)">' + accOpts + '</select></div>' +
@@ -441,69 +460,119 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     if (_fromKey !== 'all' && _toKey !== 'all') { window.closeAccSheet(); rerenderAccountsView(); }
   };
 
-  /* ══════════════ OPEN MODAL ══════════════ */
-  window.openAccModal = function (type) {
+  /* ══════════════ OPEN MODAL (new + edit) ══════════════ */
+  window.openAccModal = function (type, entryId) {
+    _editEntryId   = entryId || null;
+    _editEntryType = type;
+    var entry = entryId
+      ? (type === 'income' ? A.Income.getById(entryId) : A.Expense.getById(entryId))
+      : null;
+
     _items = [_blank()];
     var incF = document.getElementById('acc-income-fields');
     var expF = document.getElementById('acc-expense-fields');
     if (incF) incF.style.display = type === 'income' ? '' : 'none';
     if (expF) expF.style.display = type === 'expense' ? '' : 'none';
     var t = document.getElementById('account-modal-title');
-    if (t) t.textContent = type === 'income' ? 'আয় এন্ট্রি' : 'ব্যয় এন্ট্রি';
+    if (t) t.textContent = entryId
+      ? (type === 'income' ? 'আয় এডিট' : 'ব্যয় এডিট')
+      : (type === 'income' ? 'আয় এন্ট্রি' : 'ব্যয় এন্ট্রি');
     document.getElementById('account-entry-type').value = type;
+
     var hd = A.todayHijri();
     var dateEl = document.getElementById('acc-date');
     if (dateEl) {
-      dateEl.value = A.dateKey(hd.year, A.monthFromNo(hd.monthNo), hd.day);
+      dateEl.value = entry
+        ? (entry.dateKey || A.dateKey(entry.hijriYear, entry.month, entry.day))
+        : A.dateKey(hd.year, A.monthFromNo(hd.monthNo), hd.day);
       dateEl.readOnly = true;
       dateEl.onclick = function () { window.openAccDatePicker('entry'); };
       dateEl.onfocus = dateEl.onclick;
       dateEl.style.cursor = 'pointer';
     }
+
     if (type === 'income') {
-      var ae = document.getElementById('acc-inc-amount'); if (ae) ae.value = '';
-      var ne = document.getElementById('acc-inc-note');   if (ne) ne.value = '';
+      var ae = document.getElementById('acc-inc-amount');
+      var ne = document.getElementById('acc-inc-note');
+      if (ae) ae.value = entry ? (entry.amount || '') : '';
+      if (ne) ne.value = entry ? (A.clean(entry.note, '') || A.clean(entry.source, '')) : '';
     } else {
-      var se = document.getElementById('acc-exp-supplier'); if (se) se.value = '';
+      var accSel     = document.getElementById('acc-exp-account');
+      var se         = document.getElementById('acc-exp-supplier');
+      var receiptEl  = document.getElementById('acc-exp-receipt');
+      if (accSel && entry) accSel.value = entry.account || 'general';
+      if (se) se.value = entry ? A.clean(entry.supplier, '') : '';
+      if (receiptEl) receiptEl.value = entry ? (entry.receiptNo || '') : '';
+      if (entry) {
+        _items = [{ category: A.clean(entry.category, ''), description: A.clean(entry.description, ''), quantity: entry.quantity || '', unit: entry.unit || 'কেজি', unitPrice: entry.unitPrice || '', amount: entry.amount || '' }];
+      }
       _renderItems();
     }
     openModal('account-entry');
   };
 
-  /* ══════════════ SAVE ══════════════ */
+  /* ══════════════ SAVE (new + edit) ══════════════ */
   window.saveAccountEntry = function () {
-    var type  = document.getElementById('account-entry-type').value;
+    var type   = document.getElementById('account-entry-type').value;
     var parsed = A.parseDateInput((document.getElementById('acc-date') || {}).value);
     if (!parsed || !parsed.year || !parsed.month || !parsed.day) { showToast('তারিখ লিখুন: সন-মাস-দিন'); return; }
+    var isEdit = !!_editEntryId;
+
     if (type === 'income') {
       var amt  = parseFloat(document.getElementById('acc-inc-amount').value) || 0;
       var note = (document.getElementById('acc-inc-note').value || '').trim();
       if (!amt) { showToast('পরিমাণ লিখুন'); return; }
-      A.Income.add({ hijriYear: parsed.year, month: parsed.month, day: parsed.day, amount: amt, note });
-      showToast('আয় সংরক্ষিত ✓');
+      if (isEdit) {
+        A.Income.update(_editEntryId, { hijriYear: parsed.year, month: parsed.month, day: parsed.day, amount: amt, note });
+        showToast('আয় আপডেট হয়েছে ✓');
+      } else {
+        A.Income.add({ hijriYear: parsed.year, month: parsed.month, day: parsed.day, amount: amt, note });
+        showToast('আয় সংরক্ষিত ✓');
+      }
     } else {
-      var account  = document.getElementById('acc-exp-account').value;
-      var supplier = (document.getElementById('acc-exp-supplier').value || '').trim();
-      var valid    = _items.filter(function (x) { return parseFloat(x.amount) > 0; });
+      var account   = document.getElementById('acc-exp-account').value;
+      var supplier  = (document.getElementById('acc-exp-supplier').value || '').trim();
+      var receiptNo = (document.getElementById('acc-exp-receipt') ? document.getElementById('acc-exp-receipt').value : '').trim();
+      var valid     = _items.filter(function (x) { return parseFloat(x.amount) > 0; });
       if (!valid.length) { showToast('কমপক্ষে একটি আইটেমের মোট টাকা দিন'); return; }
-      valid.forEach(function (x) {
-        var e = A.Expense.add({ account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: x.category, description: x.description, quantity: x.quantity, unit: x.unit, unitPrice: x.unitPrice, amount: parseFloat(x.amount), supplier });
+      if (isEdit) {
+        var x = valid[0];
+        var oldEntry = A.Expense.getById(_editEntryId);
+        A.Expense.update(_editEntryId, { account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: x.category, description: x.description, quantity: x.quantity, unit: x.unit, unitPrice: x.unitPrice, amount: parseFloat(x.amount), supplier, receiptNo });
+        if (oldEntry) {
+          var oldSup = A.clean(oldEntry.supplier, '');
+          if (oldSup) A.Dues.cancelPurchase(oldSup, oldEntry.account, A.num(oldEntry.amount));
+        }
         if (supplier) A.Dues.addOrUpdate(supplier, account, parseFloat(x.amount));
-      });
-      showToast(count(valid.length, 'টি') + ' ব্যয় সংরক্ষিত ✓');
+        showToast('ব্যয় আপডেট হয়েছে ✓');
+      } else {
+        valid.forEach(function (x) {
+          A.Expense.add({ account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: x.category, description: x.description, quantity: x.quantity, unit: x.unit, unitPrice: x.unitPrice, amount: parseFloat(x.amount), supplier, receiptNo });
+          if (supplier) A.Dues.addOrUpdate(supplier, account, parseFloat(x.amount));
+        });
+        showToast(count(valid.length, 'টি') + ' ব্যয় সংরক্ষিত ✓');
+      }
     }
+    _editEntryId  = null;
+    _editEntryType = '';
     closeModal('account-entry');
     rerenderAccountsView();
   };
 
-  /* ══════════════ SUMMARY (Excel table + month filter) ══════════════ */
+  /* ══════════════ SUMMARY (Excel table + month + year filter) ══════════════ */
   function buildSummary() {
     normalizeMonthFilters();
-    var monOpts = monthOptions(_sumMonth);
     var AL   = A.ACCOUNT_LABELS;
     var accs = Object.keys(AL);
-    var s    = A.Summary.get(_sumMonth === 'all' ? null : _sumMonth);
-    var allExp = _sumMonth === 'all' ? A.Expense.getAll() : A.Expense.getByMonth(_sumMonth);
+    var allExp = (_sumMonth === 'all' ? A.Expense.getAll() : A.Expense.getByMonth(_sumMonth))
+      .filter(function (r) { return _yearF === 'all' || String(r.hijriYear) === _yearF; });
+    var allInc = (_sumMonth === 'all' ? A.Income.getAll() : A.Income.getByMonth(_sumMonth))
+      .filter(function (r) { return _yearF === 'all' || String(r.hijriYear) === _yearF; });
+    var s = {
+      ti: allInc.reduce(function (sum, r) { return sum + A.num(r.amount); }, 0),
+      te: allExp.reduce(function (sum, r) { return sum + A.num(r.amount); }, 0),
+      td: A.Dues.totalDue(),
+    };
     var rows = accs.map(function (acc) {
       var accRows = allExp.filter(function (r) { return r.account === acc; });
       var exp = accRows.reduce(function (sum, r) { return sum + A.num(r.amount); }, 0);
@@ -528,7 +597,9 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     var tfoot = '<tr><td><strong>সর্বমোট</strong></td>' +
       '<td style="color:var(--red);font-weight:700">৳' + fa(s.te) + '</td>' +
       '<td>' + pct(100) + '</td><td>' + count(allExp.length, 'টি') + '</td></tr>';
+    var yearSel = '<select class="acc-sel" style="margin-bottom:8px" onchange="_yearF=this.value;renderAccounts()">' + yearOptions(_yearF) + '</select>';
     return '<div class="acc-dashboard">' +
+      yearSel +
       '<div class="acc-money-hero"><div class="acc-money-label">বর্তমান অবস্থা</div><div class="acc-money-main ' + balCls + '">' + (tb < 0 ? '−' : '+') + '৳' + fa(Math.abs(tb)) + '</div></div>' +
       metrics +
       '<div class="acc-ledger-card"><div class="acc-ledger-title"><span>ব্যয়ের বই অনুযায়ী</span>' + (s.td ? '<span style="color:var(--red)">বকেয়া ৳' + fa(s.td) + '</span>' : '<span style="color:var(--green)">বকেয়া নেই</span>') + '</div>' +
@@ -586,8 +657,9 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     }
     if (root) {
       var body = rows.map(function (r) {
-        var category = A.clean(r.category, '');
-        var supplier = A.clean(r.supplier, '');
+        var category  = A.clean(r.category, '');
+        var supplier  = A.clean(r.supplier, '');
+        var receiptNo = A.clean(r.receiptNo, '');
         var desc = A.clean(r.description, '') || category || 'ব্যয়';
         var qInfo = r.quantity ? bn(A.num(r.quantity)) + (r.unit ? ' ' + esc(r.unit) : '') + (r.unitPrice ? ' × ৳' + fa(r.unitPrice) : '') : 'উল্লেখ নেই';
         return '<tr>' +
@@ -597,6 +669,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
           '<td class="acc-desc-cell">' + esc(desc) + '</td>' +
           '<td>' + qInfo + '</td>' +
           '<td>' + esc(supplier || 'উল্লেখ নেই') + '</td>' +
+          '<td style="color:var(--ink3);font-size:11px">' + (receiptNo ? esc(receiptNo) : '—') + '</td>' +
           '<td class="acc-ledger-amt">৳' + fa(r.amount) + '</td>' +
           '<td><div class="acc-row-actions"><button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'expense\',\'' + esc(r.id) + '\')">✎</button><button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button></div></td>' +
           '</tr>';
@@ -617,8 +690,8 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
         '</div>';
       root.innerHTML =
         filters +
-        '<div class="acc-table-wrap"><table class="acc-detail-table"><thead><tr><th>তারিখ</th><th>মাস</th><th>খাত</th><th>বিবরণ</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>টাকা</th><th></th></tr></thead><tbody>' +
-        (body || '<tr><td colspan="8" style="text-align:center;color:var(--ink3)">এই হিসাব বইতে তথ্য নেই</td></tr>') +
+        '<div class="acc-table-wrap"><table class="acc-detail-table"><thead><tr><th>তারিখ</th><th>মাস</th><th>খাত</th><th>বিবরণ</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>রশিদ নং</th><th>টাকা</th><th></th></tr></thead><tbody>' +
+        (body || '<tr><td colspan="9" style="text-align:center;color:var(--ink3)">এই হিসাব বইতে তথ্য নেই</td></tr>') +
         '</tbody></table></div>';
     }
   }
@@ -704,6 +777,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     normalizeMonthFilters();
     var monOpts = monthOptions(_monF);
     var rows = A.Income.getAll();
+    if (_yearF !== 'all') rows = rows.filter(function (r) { return String(r.hijriYear) === _yearF; });
     if (_monF !== 'all') rows = rows.filter(function (r) { return A.monthKey(r.month) === _monF; });
     rows = rows.slice().sort(function (a, b) { return (b._at || 0) - (a._at || 0); });
     var total = rows.reduce(function (s, r) { return s + A.num(r.amount); }, 0);
@@ -724,6 +798,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
   function buildExpenseList() {
     normalizeMonthFilters();
     var rows = A.Expense.getAll();
+    if (_yearF !== 'all') rows = rows.filter(function (r) { return String(r.hijriYear) === _yearF; });
     if (_monF !== 'all') rows = rows.filter(function (r) { return A.monthKey(r.month) === _monF; });
     if (_accF !== 'all') rows = rows.filter(function (r) { return r.account === _accF; });
     _fromKey = A.toDateKey(_fromKey);
@@ -740,8 +815,9 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     });
     var total = rows.reduce(function (s, r) { return s + A.num(r.amount); }, 0);
     function rowHtml(r) {
-      var category = A.clean(r.category, '');
-      var supplier = A.clean(r.supplier, '');
+      var category  = A.clean(r.category, '');
+      var supplier  = A.clean(r.supplier, '');
+      var receiptNo = A.clean(r.receiptNo, '');
       var desc = A.clean(r.description, '') || category || 'ব্যয়';
       var qInfo = r.quantity ? bn(A.num(r.quantity)) + (r.unit ? ' ' + esc(r.unit) : '') + (r.unitPrice ? ' × ৳' + fa(r.unitPrice) : '') : 'উল্লেখ নেই';
       return '<tr>' +
@@ -751,6 +827,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
         '<td class="acc-desc-cell">' + esc(desc) + '</td>' +
         '<td>' + qInfo + '</td>' +
         '<td>' + esc(supplier || 'উল্লেখ নেই') + '</td>' +
+        '<td style="color:var(--ink3);font-size:11px">' + (receiptNo ? esc(receiptNo) : '—') + '</td>' +
         '<td class="acc-ledger-amt">৳' + fa(r.amount) + '</td>' +
         '<td><div class="acc-row-actions"><button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'expense\',\'' + esc(r.id) + '\')">✎</button><button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button></div></td>' +
         '</tr>';
@@ -770,8 +847,8 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
       '<button type="button" class="acc-tool-btn' + (rangeOn ? ' is-on' : '') + '" onclick="openAccRangeSheet()">তারিখ সীমা</button>' +
       '<button type="button" class="acc-tool-btn acc-sort-btn" onclick="openAccSortSheet()" title="সাজান">⇅</button>' +
       '</div><div class="acc-chipline">' + chips + '</div>' +
-      '<div class="acc-expense-wrap"><table class="acc-expense-table"><thead><tr><th>তারিখ</th><th>হিসাব বই</th><th>খাত</th><th>বিবরণ</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>টাকা</th><th></th></tr></thead><tbody>' +
-      (items || '<tr><td colspan="8" style="text-align:center;color:var(--ink3)">কোনো ব্যয়ের রেকর্ড নেই</td></tr>') +
+      '<div class="acc-expense-wrap"><table class="acc-expense-table"><thead><tr><th>তারিখ</th><th>হিসাব বই</th><th>খাত</th><th>বিবরণ</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>রশিদ নং</th><th>টাকা</th><th></th></tr></thead><tbody>' +
+      (items || '<tr><td colspan="9" style="text-align:center;color:var(--ink3)">কোনো ব্যয়ের রেকর্ড নেই</td></tr>') +
       '</tbody></table></div>';
   }
 
@@ -975,38 +1052,24 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     openModal('account-details');
   };
 
-  function ensureAccountSettingsTopbar() {
-    var actions = document.querySelector('.topbar-actions');
-    var logout = document.getElementById('topbar-lockout');
-    if (!actions || document.getElementById('topbar-acc-settings')) return;
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.id = 'topbar-acc-settings';
-    btn.className = 'topbar-btn acc-top-settings';
-    btn.textContent = 'সেটিংস';
-    btn.onclick = window.openAccSettingsPanel;
-    actions.insertBefore(btn, logout || null);
-  }
+  function ensureAccountSettingsTopbar() { /* settings button এখন acc-add-btns-এ */ }
 
   /* ══════════════ MAIN RENDER ══════════════ */
   window.renderAccounts = function () {
     A.ensureSeed();
-    ensureAccountSettingsTopbar();
     ensureCurrentMonthDefault();
     normalizeMonthFilters();
     var root = document.getElementById('accounts-root');
     if (!root) return;
-    if (_tab === 'income' || _tab === 'expense' || _tab === 'dues' || _tab === 'reports') _tab = 'summary';
-    var monthControl = _tab === 'summary'
-      ? '<select class="acc-top-month" onchange="_sumMonth=this.value;renderAccounts()">' + monthOptions(_sumMonth) + '</select>'
-      : '';
+    var monthControl = '<select class="acc-top-month" onchange="_sumMonth=this.value;renderAccounts()">' + monthOptions(_sumMonth) + '</select>';
+    var actionBtns = '<div style="display:flex;gap:4px;align-items:stretch"><button type="button" class="acc-report-top" style="flex:1" onclick="openAccReportsPanel()">রিপোর্ট</button><button type="button" class="acc-report-top" onclick="openAccSettingsPanel()" title="হিসাব সেটিংস" style="padding:0 8px">⚙</button></div>';
     root.innerHTML =
       '<div class="acc-shell">' +
-      '<div class="acc-add-btns' + (monthControl ? ' has-month' : '') + '"><button class="acc-btn acc-btn-inc" onclick="openAccModal(\'income\')">＋ আয়</button><button class="acc-btn acc-btn-exp" onclick="openAccModal(\'expense\')">＋ ব্যয়</button>' + monthControl + '<button type="button" class="acc-report-top" onclick="openAccReportsPanel()">রিপোর্ট</button></div>' +
+      '<div class="acc-add-btns has-month"><button class="acc-btn acc-btn-inc" onclick="openAccModal(\'income\')">＋ আয়</button><button class="acc-btn acc-btn-exp" onclick="openAccModal(\'expense\')">＋ ব্যয়</button>' + monthControl + actionBtns + '</div>' +
       '<div class="acc-content" id="acc-body"></div></div>';
     var body = document.getElementById('acc-body');
-    if      (_tab === 'summary')  body.innerHTML = buildSummary();
-    else if (_tab === 'settings') body.innerHTML = buildSettings();
+    if (_tab === 'settings') body.innerHTML = buildSettings();
+    else body.innerHTML = buildSummary();
   };
 
   /* ══════════════ HELPERS ══════════════ */
@@ -1021,25 +1084,30 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
       return;
     }
     if (!confirm('এই এন্ট্রি মুছে ফেলবেন?')) return;
-    if (type === 'income') A.Income.del(id); else A.Expense.del(id);
+    if (type === 'expense') {
+      var sup = A.clean(entry.supplier, '');
+      if (sup) A.Dues.cancelPurchase(sup, entry.account, A.num(entry.amount));
+      A.Expense.del(id);
+    } else {
+      A.Income.del(id);
+    }
     refreshAccountsViews();
   };
 
   window.editAccEntry = async function (type, id) {
     var entry = type === 'income' ? A.Income.getById(id) : A.Expense.getById(id);
     if (!entry) { showToast('এন্ট্রি পাওয়া যায়নি'); return; }
-    var proposed = collectEntryEdit(type, entry);
-    if (!proposed) return;
     if (!isAdminSession() && entryAgeHours(entry) > 24) {
+      var proposed = collectEntryEdit(type, entry);
+      if (!proposed) return;
       var reason = prompt('২৪ ঘণ্টার বেশি পুরনো এন্ট্রি এডিট করতে জিম্মাদারের অনুমতি লাগবে। কারণ লিখুন:');
       if (!reason || !reason.trim()) return;
       if (await requestEntryChange('edit', type, entry, reason.trim(), proposed)) showToast('এডিট অনুরোধ বার্তায় পাঠানো হয়েছে');
       else showToast('অনুরোধ পাঠানো যায়নি');
       return;
     }
-    applyEntryEdit(type, id, proposed);
-    showToast('এন্ট্রি আপডেট হয়েছে');
-    refreshAccountsViews();
+    closeModal('account-details');
+    window.openAccModal(type, id);
   };
 
   window.payDue = function (dueId) {

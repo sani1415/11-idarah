@@ -94,6 +94,22 @@
     return res.id;
   }
 
+  async function updateTransaction(actorId, pin, deptCode, txnId, txn) {
+    if (!global.MMSharedAPI) return null;
+    var res = await MMSharedAPI.updateDeptTransaction(actorId, pin, deptCode, txnId, txn || {});
+    if (!res || !res.ok) throw new Error((res && res.error) || 'update_transaction_failed');
+    await bootstrapData(actorId, pin, deptCode);
+    return res.id;
+  }
+
+  async function deleteTransaction(actorId, pin, deptCode, txnId) {
+    if (!global.MMSharedAPI) return null;
+    var res = await MMSharedAPI.deleteDeptTransaction(actorId, pin, deptCode, txnId);
+    if (!res || !res.ok) throw new Error((res && res.error) || 'delete_transaction_failed');
+    await bootstrapData(actorId, pin, deptCode);
+    return res.id;
+  }
+
   async function adjustInventory(actorId, pin, deptCode, item) {
     if (!global.MMSharedAPI) return null;
     var res = await MMSharedAPI.adjustDeptInventory(actorId, pin, deptCode, item || {});
@@ -109,6 +125,8 @@
     bootstrapData: bootstrapData,
     saveProduct: saveProduct,
     saveTransaction: saveTransaction,
+    updateTransaction: updateTransaction,
+    deleteTransaction: deleteTransaction,
     adjustInventory: adjustInventory
   };
 })(typeof window !== 'undefined' ? window : globalThis);

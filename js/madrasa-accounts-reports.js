@@ -178,10 +178,11 @@ var _rptSearch = '';
     var rows = records.map(function (r) {
       var p = num(r.unitPrice);
       var chip = p === maxP && prices.length > 1 ? '<span class="rpt-chip rpt-chip-hi">সর্বোচ্চ</span>' : p === minP && prices.length > 1 ? '<span class="rpt-chip rpt-chip-lo">সর্বনিম্ন</span>' : '';
-      return '<tr><td>' + esc(A.dateLabel(r)) + '</td><td>' + fa(r.quantity) + '</td><td>' + (p ? money(p) + chip : '—') + '</td><td>' + money(r.amount) + '</td><td>' + esc(A.clean(r.supplier, '—')) + '</td></tr>';
+      var receipt = A.clean(r.receiptNo, '');
+      return '<tr><td>' + esc(A.dateLabel(r)) + '</td><td>' + fa(r.quantity) + '</td><td>' + (p ? money(p) + chip : '—') + '</td><td>' + money(r.amount) + '</td><td>' + esc(A.clean(r.supplier, '—')) + '</td><td style="color:var(--ink3)">' + (receipt ? esc(receipt) : '—') + '</td></tr>';
     }).join('');
     return selHTML + '<div class="rpt-stat-row"><div class="rpt-stat"><div class="rpt-stat-lbl">মোট পরিমাণ</div><div class="rpt-stat-val">' + fa(totalQty) + '</div></div><div class="rpt-stat"><div class="rpt-stat-lbl">মোট খরচ</div><div class="rpt-stat-val">' + money(totalAmt) + '</div></div><div class="rpt-stat"><div class="rpt-stat-lbl">দর ফারাক</div><div class="rpt-stat-val rpt-up">' + money(maxP - minP) + '</div></div></div>' +
-      '<div style="overflow-x:auto"><table class="rpt-tbl"><thead><tr><th>তারিখ</th><th>পরিমাণ</th><th>একক দর</th><th>মোট</th><th>সরবরাহকারী</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+      '<div style="overflow-x:auto"><table class="rpt-tbl"><thead><tr><th>তারিখ</th><th>পরিমাণ</th><th>একক দর</th><th>মোট</th><th>সরবরাহকারী</th><th>রশিদ নং</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
   function buildSupplierReport() {
     var bySup = groupedExpense('supplier');

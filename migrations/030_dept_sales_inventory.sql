@@ -36,6 +36,11 @@ create table if not exists public.dept_transactions (
 create index if not exists dept_transactions_dept_date_idx
 on public.dept_transactions (dept_id, txn_date desc);
 
+alter table public.dept_transactions
+add column if not exists updated_at timestamptz,
+add column if not exists deleted_at timestamptz,
+add column if not exists deleted_by uuid references public.shared_users(id);
+
 create table if not exists public.dept_transaction_items (
   id uuid primary key default gen_random_uuid(),
   transaction_id uuid not null references public.dept_transactions(id) on delete cascade,
@@ -288,6 +293,8 @@ begin
         'category', t.category,
         'buyer_name', t.buyer_name,
         'buyer_phone', t.buyer_phone,
+        'created_at', t.created_at,
+        'updated_at', t.updated_at,
         'metadata', t.metadata || jsonb_build_object(
           'honor_amount', t.honor_amount,
           'buyer_name', t.buyer_name,
@@ -308,7 +315,7 @@ begin
         )
       ) order by t.txn_date desc, t.created_at desc)
       from public.dept_transactions t
-      where t.dept_id = v_dept_id
+      where t.dept_id = v_dept_id and t.deleted_at is null
     ), '[]'::jsonb)
   );
 end;
@@ -496,6 +503,140 @@ end;
 $$;
 
 grant execute on function public.dept_rel_save_transaction(uuid, text, text, text, text, date, text, numeric, numeric, text, text, jsonb, jsonb) to anon;
+
+create or replace function public.dept_rel_update_transaction(
+  p_actor_id uuid,
+  p_pin text,
+  p_dept_code text,
+  p_transaction_id uuid,
+  p_description text,
+  p_date date,
+  p_category text default null,
+  p_amount numeric default 0,
+  p_honor_amount numeric default 0,
+  p_buyer_name text default null,
+  p_buyer_phone text default null,
+  p_items jsonb default '[]'::jsonb,
+  p_metadata jsonb default '{}'::jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+declare
+  v_actor public.shared_users%rowtype;
+  v_txn public.dept_transactions%rowtype;
+  v_item record;
+  v_new jsonb;
+begin
+  v_actor := private.dept_authorized_actor(p_actor_id, p_pin, p_dept_code);
+  if v_actor.id is null and not private.verify_admin_pin(p_pin) then
+    return jsonb_build_object('ok', false, 'error', 'invalid_login');
+  end if;
+
+  select t.* into v_txn
+  from public.dept_transactions t
+  join public.dept_departments d on d.id = t.dept_id
+  where t.id = p_transaction_id and d.code = p_dept_code and t.deleted_at is null;
+  if v_txn.id is null then return jsonb_build_object('ok', false, 'error', 'not_found'); end if;
+
+  if v_txn.type = 'income' then
+    for v_item in select * from public.dept_transaction_items where transaction_id = v_txn.id and product_id is not null loop
+      perform private.dept_inventory_apply(v_txn.dept_id, v_item.product_id, v_item.product_name, v_item.unit, v_item.quantity, 'adjustment', v_txn.id, v_actor.id, 'লেনদেন এডিটের আগে পুরনো বিক্রি ফেরত');
+    end loop;
+  end if;
+
+  delete from public.dept_transaction_items where transaction_id = v_txn.id;
+
+  update public.dept_transactions
+  set description = btrim(coalesce(p_description, '')),
+      txn_date = coalesce(p_date, current_date),
+      category = p_category,
+      amount = 0,
+      base_amount = 0,
+      honor_amount = case when v_txn.type = 'income' then greatest(coalesce(p_honor_amount, 0), 0) else 0 end,
+      buyer_name = nullif(btrim(coalesce(p_buyer_name, '')), ''),
+      buyer_phone = nullif(btrim(coalesce(p_buyer_phone, '')), ''),
+      metadata = coalesce(p_metadata, '{}'::jsonb),
+      updated_at = now()
+  where id = v_txn.id;
+
+  v_new := public.dept_rel_save_transaction(
+    p_actor_id, p_pin, p_dept_code, v_txn.type, p_description, p_date, p_category,
+    p_amount, p_honor_amount, p_buyer_name, p_buyer_phone, p_items, p_metadata
+  );
+
+  update public.dept_transaction_items
+  set transaction_id = v_txn.id
+  where transaction_id = (v_new->>'id')::uuid;
+
+  update public.dept_transactions src
+  set deleted_at = now(), deleted_by = v_actor.id
+  where src.id = (v_new->>'id')::uuid;
+
+  update public.dept_transactions tgt
+  set amount = src.amount,
+      base_amount = src.base_amount,
+      honor_amount = src.honor_amount,
+      description = src.description,
+      txn_date = src.txn_date,
+      category = src.category,
+      buyer_name = src.buyer_name,
+      buyer_phone = src.buyer_phone,
+      metadata = src.metadata,
+      updated_at = now()
+  from public.dept_transactions src
+  where tgt.id = v_txn.id and src.id = (v_new->>'id')::uuid;
+
+  return jsonb_build_object('ok', true, 'id', v_txn.id);
+end;
+$$;
+
+grant execute on function public.dept_rel_update_transaction(uuid, text, text, uuid, text, date, text, numeric, numeric, text, text, jsonb, jsonb) to anon;
+
+create or replace function public.dept_rel_delete_transaction(
+  p_actor_id uuid,
+  p_pin text,
+  p_dept_code text,
+  p_transaction_id uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+declare
+  v_actor public.shared_users%rowtype;
+  v_txn public.dept_transactions%rowtype;
+  v_item record;
+begin
+  v_actor := private.dept_authorized_actor(p_actor_id, p_pin, p_dept_code);
+  if v_actor.id is null and not private.verify_admin_pin(p_pin) then
+    return jsonb_build_object('ok', false, 'error', 'invalid_login');
+  end if;
+
+  select t.* into v_txn
+  from public.dept_transactions t
+  join public.dept_departments d on d.id = t.dept_id
+  where t.id = p_transaction_id and d.code = p_dept_code and t.deleted_at is null;
+  if v_txn.id is null then return jsonb_build_object('ok', false, 'error', 'not_found'); end if;
+
+  if v_txn.type = 'income' then
+    for v_item in select * from public.dept_transaction_items where transaction_id = v_txn.id and product_id is not null loop
+      perform private.dept_inventory_apply(v_txn.dept_id, v_item.product_id, v_item.product_name, v_item.unit, v_item.quantity, 'adjustment', v_txn.id, v_actor.id, 'লেনদেন ডিলিটের কারণে বিক্রি ফেরত');
+    end loop;
+  end if;
+
+  update public.dept_transactions
+  set deleted_at = now(), deleted_by = v_actor.id, updated_at = now()
+  where id = v_txn.id;
+
+  return jsonb_build_object('ok', true, 'id', v_txn.id);
+end;
+$$;
+
+grant execute on function public.dept_rel_delete_transaction(uuid, text, text, uuid) to anon;
 
 create or replace function public.dept_rel_adjust_inventory(
   p_actor_id uuid,

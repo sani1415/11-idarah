@@ -6,23 +6,26 @@
 <title>মাদ্রাসা — দফতর</title>
 <link rel="stylesheet" href="../css/style.css">
 <style>
-body.page-daftar .content { padding:10px 12px; }
+body.page-daftar .content { padding:10px 8px; }
 body.page-daftar .pb-safe { height:80px; }
 body.page-daftar .topbar { padding:9px 12px 7px; }
 body.page-daftar .topbar-name { font-size:16px; }
 body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-size:11px; }
-.mdr-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:0 0 10px; }
+.mdr-metrics { display:flex; flex-direction:column; gap:7px; margin:0 0 10px; }
+.mdr-metrics-row { display:grid; gap:5px; grid-template-columns:repeat(3,1fr); }
+.mdr-metrics-row--2 { grid-template-columns:repeat(2,1fr); }
 .mdr-metric {
   background:#fff; border:1px solid rgba(26,18,8,.06); border-radius:14px;
-  box-shadow:0 5px 13px rgba(26,18,8,.055); padding:9px 5px; text-align:center; min-width:0;
+  box-shadow:0 5px 13px rgba(26,18,8,.055); padding:10px 7px; text-align:center; min-width:0;
 }
 .mdr-metric.is-clickable { cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; }
 .mdr-metric.is-clickable:active { transform:scale(.98); }
-.mdr-metric strong { display:block; font-family:'Noto Serif Bengali',serif; font-size:16px; color:var(--ink2); line-height:1.1; }
-.mdr-metric span { display:block; font-size:9px; color:var(--ink3); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mdr-metric strong { display:block; font-family:'Noto Serif Bengali',serif; font-size:16px; color:var(--ink2); line-height:1.15; word-break:break-word; }
+.mdr-metric span { display:block; font-size:10px; color:var(--ink3); margin-top:4px; line-height:1.35; white-space:normal; overflow:visible; word-break:break-word; }
 .mdr-metric.good strong { color:var(--green); }
 .mdr-metric.bad strong { color:var(--red); }
 .mdr-metric.gold strong { color:var(--gold); }
+.mdr-metric--solo span { display:none !important; }
 .class-summary-wrap { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin:8px 0 12px; overflow:hidden; }
 .class-summary-head { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 11px; border-bottom:1px solid var(--cream2); }
 .class-summary-title { font-size:13px; font-weight:800; color:var(--ink2); }
@@ -74,9 +77,6 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
 .csv-table tr.row-err td { color:var(--red); background:var(--red-light); }
 .err-tag { font-size:10px; color:var(--red); background:var(--red-light); border-radius:4px; padding:1px 5px; margin-right:4px; }
 .dl-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:var(--cream2); border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink2); cursor:pointer; margin-bottom:12px; text-decoration:none; }
-@media(max-width:420px){
-  .mdr-metrics { grid-template-columns:repeat(2,1fr); }
-}
 </style>
 </head>
 <body class="page-daftar">
@@ -94,9 +94,15 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
 
 <div class="content">
   <div class="mdr-metrics">
-    <button type="button" class="mdr-metric is-clickable" onclick="openStudentManager()"><strong id="m-total">—</strong><span>মোট ছাত্র</span></button>
-    <button type="button" class="mdr-metric is-clickable gold" onclick="MDRHomePanels.openKhadimin()"><strong id="m-khadimin">—</strong><span>খাদিমিন</span></button>
-    <button type="button" class="mdr-metric is-clickable bad" onclick="MDRHomePanels.openAbsent()"><strong id="m-absent-list">—</strong><span>অনুপস্থিত তালিকা</span></button>
+    <div class="mdr-metrics-row">
+      <button type="button" class="mdr-metric is-clickable" onclick="openStudentManager()"><strong id="m-total">—</strong><span>মোট ছাত্র</span></button>
+      <button type="button" class="mdr-metric is-clickable gold" onclick="MDRHomePanels.openKhadimin()"><strong id="m-khadimin">—</strong><span>খাদিমিন</span></button>
+      <button type="button" class="mdr-metric is-clickable bad" onclick="MDRHomePanels.openAbsent()"><strong id="m-absent-list">—</strong><span>অনুপস্থিত তালিকা</span></button>
+    </div>
+    <div class="mdr-metrics-row mdr-metrics-row--2">
+      <button type="button" class="mdr-metric is-clickable good mdr-metric--solo" onclick="MDRDastarkhan.open()"><strong>দস্তরখান</strong><span></span></button>
+      <button type="button" class="mdr-metric is-clickable" onclick="MDRDaftarNotes.open()"><strong>নোট</strong><span>দফতর দায়িত্বশীল</span></button>
+    </div>
   </div>
 
   <div class="class-summary-wrap">
@@ -229,6 +235,8 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script src="../js/mdr-home-panels.js"></script>
+<script src="../js/mdr-dastarkhan.js"></script>
+<script src="../js/mdr-daftar-notes.js"></script>
 <script>
   if (!MMSession.requireStaffRoleOrAdminPerm('daftar', 'daftar', '../main-admin-madrasa.html')) { throw new Error('daftar permission denied'); }
   mmInsertMonitorBanner();
@@ -464,7 +472,15 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
     if (window.MDRKhadiminSupabase && window.MMSharedAPI) {
       try { await MDRKhadiminSupabase.sync(); } catch (e) {}
     }
+    if (window.MDRDastarkhan && window.MDRDastarkhan.sync) {
+      try { await MDRDastarkhan.sync(); } catch (e) {}
+    }
+    if (window.MDRDaftarNotes && window.MDRDaftarNotes.sync) {
+      try { await MDRDaftarNotes.sync(); } catch (e) {}
+    }
     MDRHomePanels.init({ toBn, showToast });
+    if (window.MDRDastarkhan) MDRDastarkhan.init({ showToast });
+    if (window.MDRDaftarNotes) MDRDaftarNotes.init({ showToast });
     populateStudentListFilter();
     populateAddForm();
     renderClassSummary();

@@ -165,6 +165,9 @@ const DeptAPI = (() => {
         ...d, ...this.getSummary(d.id, month)
       }));
     },
+    remove(id) {
+      save(KEYS.transactions, load(KEYS.transactions).filter(t => String(t.id) !== String(id)));
+    },
   };
 
   /* ── INVENTORY ── */

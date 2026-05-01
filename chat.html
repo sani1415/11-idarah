@@ -355,10 +355,11 @@
   /* ── RENDER MESSAGES ── */
   function renderRequestHtml(m) {
     const req = m.request;
-    if (!req || !['account_entry_delete', 'account_entry_edit'].includes(req.kind)) return '';
+    if (!req || !['account_entry_delete', 'account_entry_edit', 'dept_transaction_edit', 'dept_transaction_delete'].includes(req.kind)) return '';
     const status = req.status || 'pending';
     const statusLabel = status === 'approved' ? 'অনুমোদিত' : status === 'rejected' ? 'রিজেক্টেড' : 'অপেক্ষমান';
-    const actionLabel = req.kind === 'account_entry_edit' ? 'এডিট অনুরোধ' : 'ডিলিট অনুরোধ';
+    const isEdit = req.kind === 'account_entry_edit' || req.kind === 'dept_transaction_edit';
+    const actionLabel = isEdit ? 'এডিট অনুরোধ' : 'ডিলিট অনুরোধ';
     const buttons = isAdmin && status === 'pending'
       ? `<div class="msg-request-actions">
           <button type="button" class="msg-request-btn approve" onclick="decideAccountRequest('${ChatAPI.esc(m.id)}','approved')">অনুমোদন</button>
@@ -401,14 +402,30 @@
     const req = msg && msg.request;
     if (!req || req.status !== 'pending') return;
     if (decision === 'approved') {
-      const entryType = req.entryType;
-      const entryId = req.entryId;
-      if (req.kind === 'account_entry_edit') {
-        if (entryType === 'income') MdrAccAPI.Income.update(entryId, req.proposed || {});
-        else if (entryType === 'expense') MdrAccAPI.Expense.update(entryId, req.proposed || {});
+      if (req.kind === 'dept_transaction_edit' || req.kind === 'dept_transaction_delete') {
+        try {
+          if (req.kind === 'dept_transaction_edit') {
+            const res = await MMSharedAPI.updateDeptTransaction(chatActorId(), chatPin(), req.deptCode, req.entryId, req.proposed || {});
+            if (!res || !res.ok) throw new Error((res && res.error) || 'dept_update_failed');
+          } else {
+            const res = await MMSharedAPI.deleteDeptTransaction(chatActorId(), chatPin(), req.deptCode, req.entryId);
+            if (!res || !res.ok) throw new Error((res && res.error) || 'dept_delete_failed');
+          }
+        } catch (e) {
+          console.warn('Dept request apply failed', e);
+          alert('বিভাগের লেনদেন আপডেট/ডিলিট করা যায়নি।');
+          return;
+        }
       } else {
-        if (entryType === 'income') MdrAccAPI.Income.del(entryId);
-        else if (entryType === 'expense') MdrAccAPI.Expense.del(entryId);
+        const entryType = req.entryType;
+        const entryId = req.entryId;
+        if (req.kind === 'account_entry_edit') {
+          if (entryType === 'income') MdrAccAPI.Income.update(entryId, req.proposed || {});
+          else if (entryType === 'expense') MdrAccAPI.Expense.update(entryId, req.proposed || {});
+        } else {
+          if (entryType === 'income') MdrAccAPI.Income.del(entryId);
+          else if (entryType === 'expense') MdrAccAPI.Expense.del(entryId);
+        }
       }
     }
     const reviewedRequest = {

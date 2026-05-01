@@ -41,8 +41,6 @@ const MdrAccAPI = (() => {
 
   /* Islamic calendar month index: Intl month 1–12 → MONTHS index
      Intl 9=Ramadan → idx 0; formula: (intlMonth + 3) % 12 */
-  const INTL_TO_IDX = [4,5,6,7,8,9,10,11,0,1,2,3]; /* index: intlMonth-1 */
-
   const ACCOUNT_LABELS = {
     matbakh:'মাতবাখ', madrasa:'মাদরাসা', tamirat:'তামিরাত', general:'সাধারণ',
   };
@@ -108,10 +106,9 @@ const MdrAccAPI = (() => {
 
   /* ── Income ── */
   const Income = {
-    getAll()          { return load(INC_KEY).map(norm); },
-    getById(id)       { const r = load(INC_KEY).find(x => x.id === id); return r ? norm(r) : null; },
-    getByAccount(acc) { return load(INC_KEY).filter(x => x.account === acc); },
-    getByMonth(m)     { const mm = monthKey(m); return load(INC_KEY).filter(x => monthKey(x.month) === mm); },
+    getAll()      { return load(INC_KEY).map(norm); },
+    getById(id)   { const r = load(INC_KEY).find(x => x.id === id); return r ? norm(r) : null; },
+    getByMonth(m) { const mm = monthKey(m); return load(INC_KEY).filter(x => monthKey(x.month) === mm); },
     total()           { return Income.getAll().reduce((s,x) => s + num(x.amount), 0); },
     add(data)         { const a = load(INC_KEY); const e = norm({ id: uid('inc-'), ...data, _at: Date.now() }); a.push(e); store(INC_KEY, a); return e; },
     update(id, patch) {
@@ -168,6 +165,14 @@ const MdrAccAPI = (() => {
       if (!d) { d = { id: uid('due-'), supplier, account, total: 0, paid: 0, due: 0 }; arr.push(d); }
       d.total = num(d.total) + purchaseAmt;
       d.due   = num(d.total) - num(d.paid);
+      store(DUE_KEY, arr);
+    },
+    cancelPurchase(supplier, account, purchaseAmt) {
+      const arr = load(DUE_KEY);
+      const d = arr.find(x => x.supplier === supplier && x.account === account);
+      if (!d) return;
+      d.total = Math.max(0, num(d.total) - purchaseAmt);
+      d.due   = Math.max(0, num(d.due)   - purchaseAmt);
       store(DUE_KEY, arr);
     },
   };
