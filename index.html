@@ -359,15 +359,20 @@
     let redirect = '';
 
     if (currentRole === 'admin') {
+      const supaOn = !!(window.MMSharedAPI && MMSharedAPI.supabaseClient);
       try {
         const res = window.MMSharedAPI ? await MMSharedAPI.loginAdmin(pinVal) : null;
         if (res && res.ok && res.user) {
           ok = true;
           MMSession.setAdminSession(res.user.name || 'জিম্মাদার', res.user.admin_perms, res.user.id, pinVal);
           redirect = 'main-admin-madrasa.html';
+          if (settings.admin_pin !== pinVal) {
+            settings.admin_pin = pinVal;
+            API.Settings.save(settings);
+          }
         }
       } catch (e) {}
-      if (!ok && pinVal === settings.admin_pin) {
+      if (!ok && !supaOn && pinVal === settings.admin_pin) {
         ok = true;
         MMSession.setAdminSession('জিম্মাদার', null, null, pinVal);
         redirect = 'main-admin-madrasa.html';
