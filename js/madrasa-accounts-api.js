@@ -93,7 +93,15 @@ const MdrAccAPI = (() => {
 
   /* ── Seed loader ── */
   function ensureSeed() {
-    /* Production prototype: do not auto-create sample account entries. */
+    const seed = window.MM_ACCOUNTS_SEED;
+    if (!seed || !seed.version) return;
+    const marker = 'accounts-seed-v' + seed.version + '-' + (seed.source || 'default');
+    if (localStorage.getItem(SV_KEY) === marker) return;
+
+    store(INC_KEY, Array.isArray(seed.incomes) ? seed.incomes : []);
+    store(EXP_KEY, Array.isArray(seed.expenses) ? seed.expenses : []);
+    store(DUE_KEY, Array.isArray(seed.dues) ? seed.dues : []);
+    localStorage.setItem(SV_KEY, marker);
   }
 
   /* ── Categories ── */
