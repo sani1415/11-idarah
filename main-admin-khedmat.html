@@ -11,13 +11,13 @@
   .type-emoji { font-size:24px; width:42px; height:42px; background:var(--teal-light); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .type-name { flex:1; font-size:14px; font-weight:600; color:var(--ink); }
   .type-stats { text-align:right; }
-  .type-count { font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; color:var(--ink2); }
+  .type-count { font-family:'Tiro Bangla',serif; font-size:14px; font-weight:700; color:var(--ink2); }
   .type-total { font-size:11px; color:var(--ink3); }
   .ben-row { display:flex; align-items:center; padding:11px 0; border-bottom:1px solid var(--cream2); gap:10px; }
   .ben-row:last-child { border-bottom:none; }
   .ben-row-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
   .ben-row-sub { font-size:11px; color:var(--ink3); margin-top:2px; }
-  .month-sel { background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:10px 14px; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; color:var(--ink); width:100%; margin-bottom:14px; outline:none; }
+  .month-sel { background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:10px 14px; font-family:'Tiro Bangla',serif; font-size:13px; color:var(--ink); width:100%; margin-bottom:14px; outline:none; }
 
   /* ══ Desktop (≥ 960px) ══ */
   @media (min-width: 960px) {
@@ -41,7 +41,7 @@
 <div class="adt-wrap" style="max-width:520px;margin:0 auto;padding:8px 16px 0;">
   <div class="tab-bar" style="padding-bottom:0;margin-bottom:0;">
     <button class="tab-btn active" id="nav-overview" onclick="switchPanel('overview')">সারসংক্ষেপ</button>
-    <button class="tab-btn" id="nav-bens" onclick="switchPanel('bens')">উপকারভোগী</button>
+    <button class="tab-btn" id="nav-bens" onclick="switchPanel('bens')">মাখদুম</button>
     <button class="tab-btn" id="nav-finance" onclick="switchPanel('finance')">তহবিল</button>
     <button class="tab-btn" id="nav-settings" onclick="switchPanel('settings')">সেটিং</button>
   </div>
@@ -59,7 +59,7 @@
 
 <!-- PANEL: BENEFICIARIES -->
 <div class="content" id="panel-bens" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
-  <div class="sec-header" style="margin-top:10px;"><div class="sec-title">উপকারভোগী তালিকা</div></div>
+  <div class="sec-header" style="margin-top:10px;"><div class="sec-title">মাখদুম তালিকা</div></div>
   <div class="card-static" id="ben-table"></div>
 </div>
 
@@ -186,7 +186,7 @@
     const bens = KhAPI.Beneficiaries.getAll();
     const totalSpent = monthActs.reduce((s,a) => s+(a.amount||0), 0);
     document.getElementById('stats-row').innerHTML =
-      `<div class="stat-card"><span class="stat-num">${toBn(bens.length)}</span><span class="stat-label">উপকারভোগী</span></div>
+      `<div class="stat-card"><span class="stat-num">${toBn(bens.length)}</span><span class="stat-label">মাখদুম</span></div>
        <div class="stat-card"><span class="stat-num">${toBn(monthActs.length)}</span><span class="stat-label">এই মাসে কার্যক্রম</span></div>
        <div class="stat-card"><span class="stat-num" style="font-size:14px;color:var(--red);">${fmtAmt(totalSpent)}</span><span class="stat-label">ব্যয়</span></div>`;
     const breakdown = KhAPI.Activities.getSummaryByType();
@@ -204,9 +204,9 @@
     document.getElementById('ben-table').innerHTML = bens.length
       ? bens.map(b => {
           const acts = KhAPI.Activities.getByBeneficiary(b.id);
-          return `<div class="ben-row"><div style="flex:1;"><div class="ben-row-name">${KhAPI.esc(b.name)}</div><div class="ben-row-sub">${KhAPI.esc(b.address||'—')} · ${KhAPI.esc(b.phone||'')}</div></div><div style="text-align:right;"><div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;">${toBn(acts.length)} বার</div><div style="font-size:11px;color:var(--ink3);">${fmtAmt(acts.reduce((s,a)=>s+(a.amount||0),0))}</div></div></div>`;
+          return `<div class="ben-row"><div style="flex:1;"><div class="ben-row-name">${KhAPI.esc(b.name)}</div><div class="ben-row-sub">${KhAPI.esc(b.address||'—')} · ${KhAPI.esc(b.phone||'')}</div></div><div style="text-align:right;"><div style="font-family:'Tiro Bangla',serif;font-size:14px;font-weight:700;">${toBn(acts.length)} বার</div><div style="font-size:11px;color:var(--ink3);">${fmtAmt(acts.reduce((s,a)=>s+(a.amount||0),0))}</div></div></div>`;
         }).join('')
-      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো উপকারভোগী নেই</div>';
+      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো মাখদুম নেই</div>';
   }
 
   function renderFinance() {
@@ -216,7 +216,7 @@
        <div class="stat-card"><span class="stat-num" style="color:${sum.balance<0?'var(--red)':'var(--ink2)'}">${fmtAmt(sum.balance)}</span><span class="stat-label">ব্যালেন্স</span></div>`;
     const fins = KhAPI.Finance.getAll();
     document.getElementById('fin-list').innerHTML = fins.length
-      ? fins.map(f => `<div style="background:#fff;border-radius:var(--radius-sm);padding:13px;box-shadow:var(--shadow);margin-bottom:8px;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">${f.type==='income'?'↑':'↓'}</span><div style="flex:1;"><div style="font-size:13px;font-weight:600;">${KhAPI.esc(f.description)}</div><div style="font-size:11px;color:var(--ink3);">${KhAPI.esc(f.source||'—')} · ${fmtDate(f.date)}</div></div><span style="font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:700;color:${f.type==='income'?'var(--green)':'var(--red)'};">${fmtAmt(f.amount)}</span></div>`).join('')
+      ? fins.map(f => `<div style="background:#fff;border-radius:var(--radius-sm);padding:13px;box-shadow:var(--shadow);margin-bottom:8px;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">${f.type==='income'?'↑':'↓'}</span><div style="flex:1;"><div style="font-size:13px;font-weight:600;">${KhAPI.esc(f.description)}</div><div style="font-size:11px;color:var(--ink3);">${KhAPI.esc(f.source||'—')} · ${fmtDate(f.date)}</div></div><span style="font-family:'Tiro Bangla',serif;font-size:15px;font-weight:700;color:${f.type==='income'?'var(--green)':'var(--red)'};">${fmtAmt(f.amount)}</span></div>`).join('')
       : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো লেনদেন নেই</div>';
   }
 

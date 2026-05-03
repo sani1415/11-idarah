@@ -10,7 +10,7 @@
   .type-emoji { font-size:24px; width:42px; height:42px; background:var(--teal-light); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .type-name { flex:1; font-size:14px; font-weight:600; color:var(--ink); }
   .type-stats { text-align:right; }
-  .type-count { font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:700; color:var(--ink2); }
+  .type-count { font-family:'Tiro Bangla',serif; font-size:14px; font-weight:700; color:var(--ink2); }
   .type-total { font-size:11px; color:var(--ink3); }
 
   .ben-row { display:flex; align-items:center; padding:11px 0; border-bottom:1px solid var(--cream2); gap:10px; }
@@ -18,7 +18,7 @@
   .ben-row-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
   .ben-row-sub  { font-size:11px; color:var(--ink3); margin-top:2px; }
 
-  .month-sel { background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:10px 14px; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; color:var(--ink); width:100%; margin-bottom:14px; outline:none; }
+  .month-sel { background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:10px 14px; font-family:'Tiro Bangla',serif; font-size:13px; color:var(--ink); width:100%; margin-bottom:14px; outline:none; }
 
   /* ══ Desktop (≥ 960px) ══ */
   @media (min-width: 960px) {
@@ -50,7 +50,7 @@
 
 <!-- PANEL: BENEFICIARIES -->
 <div class="content" id="panel-bens" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
-  <div class="sec-header" style="margin-top:10px;"><div class="sec-title">উপকারভোগী তালিকা</div></div>
+  <div class="sec-header" style="margin-top:10px;"><div class="sec-title">মাখদুম তালিকা</div></div>
   <div class="card-static" id="ben-table"></div>
 </div>
 
@@ -76,7 +76,7 @@
   </div>
   <div class="nav-item" id="nav-bens" onclick="switchPanel('bens')">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="nav-label">উপকারভোগী</span>
+    <span class="nav-label">মাখদুম</span>
   </div>
   <div class="nav-item" id="nav-finance" onclick="switchPanel('finance')">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -176,7 +176,7 @@
     const finSum = KhAPI.Finance.getSummary(selectedMonth);
 
     document.getElementById('stats-row').innerHTML =
-      `<div class="stat-card"><span class="stat-num">${toBn(bens.length)}</span><span class="stat-label">উপকারভোগী</span></div>
+      `<div class="stat-card"><span class="stat-num">${toBn(bens.length)}</span><span class="stat-label">মাখদুম</span></div>
        <div class="stat-card"><span class="stat-num">${toBn(monthActs.length)}</span><span class="stat-label">এই মাসে কার্যক্রম</span></div>
        <div class="stat-card"><span class="stat-num" style="font-size:14px;color:var(--red);">${fmtAmt(totalSpent)}</span><span class="stat-label">ব্যয়</span></div>`;
 
@@ -209,12 +209,12 @@
               <div class="ben-row-sub">${KhAPI.esc(b.address||'—')} · ${KhAPI.esc(b.phone||'')}</div>
             </div>
             <div style="text-align:right;">
-              <div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;color:var(--ink2);">${toBn(acts.length)} বার</div>
+              <div style="font-family:'Tiro Bangla',serif;font-size:14px;font-weight:700;color:var(--ink2);">${toBn(acts.length)} বার</div>
               <div style="font-size:11px;color:var(--ink3);">${fmtAmt(acts.reduce((s,a)=>s+(a.amount||0),0))}</div>
             </div>
           </div>`;
         }).join('')
-      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো উপকারভোগী নেই</div>';
+      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো মাখদুম নেই</div>';
   }
 
   function renderFinance() {
@@ -228,7 +228,7 @@
         <div style="background:#fff;border-radius:var(--radius-sm);padding:13px;box-shadow:var(--shadow);margin-bottom:8px;display:flex;align-items:center;gap:10px;">
           <span style="font-size:18px;">${f.type==='income'?'↑':'↓'}</span>
           <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${KhAPI.esc(f.description)}</div><div style="font-size:11px;color:var(--ink3);">${KhAPI.esc(f.source||'—')} · ${fmtDate(f.date)}</div></div>
-          <span style="font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:700;color:${f.type==='income'?'var(--green)':'var(--red)'};">${fmtAmt(f.amount)}</span>
+          <span style="font-family:'Tiro Bangla',serif;font-size:15px;font-weight:700;color:${f.type==='income'?'var(--green)':'var(--red)'};">${fmtAmt(f.amount)}</span>
         </div>`).join('')
       : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো লেনদেন নেই</div>';
   }

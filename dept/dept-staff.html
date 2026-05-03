@@ -17,28 +17,28 @@
   .txn-line-main { display:flex; align-items:center; gap:8px; min-width:0; }
   .txn-line-date { font-size:11px; color:var(--ink3); white-space:nowrap; }
   .pending-pill { display:inline-block; background:#fff4d9; color:#9a6a21; border-radius:999px; padding:1px 7px; font-size:10px; font-weight:800; margin-top:3px; }
-  .txn-amt { font-family:'Noto Serif Bengali',serif; font-size:15px; font-weight:700; flex-shrink:0; }
+  .txn-amt { font-family:'Tiro Bangla',serif; font-size:15px; font-weight:700; flex-shrink:0; }
   .txn-amt.income { color:var(--green); }
   .txn-amt.expense { color:var(--red); }
   .inv-item { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
   .prd-item { background:#fff; border-radius:var(--radius-sm); padding:11px 13px; box-shadow:var(--shadow); margin-bottom:7px; display:flex; align-items:center; gap:10px; }
   .month-nav { display:flex; align-items:center; justify-content:space-between; background:#fff; border-radius:var(--radius-sm); padding:10px 14px; box-shadow:var(--shadow); margin-bottom:12px; }
   .month-nav-btn { background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3); padding:4px; }
-  .month-label { font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:600; color:var(--ink2); }
+  .month-label { font-family:'Tiro Bangla',serif; font-size:14px; font-weight:600; color:var(--ink2); }
   .type-toggle { display:flex; gap:8px; margin-bottom:14px; }
-  .type-btn { flex:1; padding:10px; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; cursor:pointer; text-align:center; transition:.15s; }
+  .type-btn { flex:1; padding:10px; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Tiro Bangla',serif; font-size:13px; cursor:pointer; text-align:center; transition:.15s; }
   .type-btn.sel-income { background:var(--green-light); border-color:var(--green2); color:var(--green); font-weight:600; }
   .type-btn.sel-expense { background:var(--red-light); border-color:var(--red); color:var(--red); font-weight:600; }
   .cat-pill { display:inline-block; font-size:10px; padding:2px 7px; border-radius:10px; background:var(--cream2); color:var(--ink3); margin-right:4px; }
   .cat-pill.production { background:var(--teal-light); color:var(--teal); }
   .cat-pill.operational { background:var(--blue-light); color:var(--blue); }
   .add-btn-row { display:flex; gap:8px; margin-bottom:12px; }
-  .add-btn-half { flex:1; padding:11px 0; background:#fff; border:1.5px dashed var(--cream3); border-radius:var(--radius-sm); font-family:'Noto Sans Bengali',sans-serif; font-size:13px; cursor:pointer; color:var(--ink3); text-align:center; transition:.15s; }
+  .add-btn-half { flex:1; padding:11px 0; background:#fff; border:1.5px dashed var(--cream3); border-radius:var(--radius-sm); font-family:'Tiro Bangla',serif; font-size:13px; cursor:pointer; color:var(--ink3); text-align:center; transition:.15s; }
   .add-btn-half:active { background:var(--cream2); }
   /* line items in slide panel */
   .li-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--cream2); }
   .li-name { flex:1; font-size:13px; color:var(--ink); }
-  .li-amt { font-family:'Noto Serif Bengali',serif; font-size:13px; font-weight:600; color:var(--ink2); }
+  .li-amt { font-family:'Tiro Bangla',serif; font-size:13px; font-weight:600; color:var(--ink2); }
   .li-del { background:none; border:none; color:var(--red); font-size:16px; cursor:pointer; padding:2px 4px; }
   .items-total-bar { display:flex; justify-content:space-between; align-items:center; padding:10px 0 6px; border-top:2px solid var(--cream2); margin-top:4px; }
   #modal-txn .modal { max-width:min(760px, calc(100vw - 24px)); overflow-y:auto; }
@@ -49,29 +49,29 @@
   .sale-row { display:grid; grid-template-columns:minmax(190px,2fr) 86px 112px 104px 100px 42px; gap:8px; align-items:end; min-width:650px; }
   .sale-row .form-group { margin-bottom:0; }
   .sale-row .form-input { height:42px; }
-  .sale-total { height:42px; display:flex; align-items:center; justify-content:flex-end; padding:0 10px; background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Noto Serif Bengali',serif; font-weight:700; color:var(--ink2); white-space:nowrap; }
+  .sale-total { height:42px; display:flex; align-items:center; justify-content:flex-end; padding:0 10px; background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Tiro Bangla',serif; font-weight:700; color:var(--ink2); white-space:nowrap; }
   .sale-action-btn { width:42px; height:42px; border:0; border-radius:var(--radius-sm); background:var(--ink); color:var(--gold2); font-size:18px; cursor:pointer; }
   .sale-action-btn.remove { background:#fff; color:var(--red); border:1px solid var(--cream3); }
   .sale-hint { font-size:11px; color:var(--ink3); margin:0 0 8px; }
   .stock-mode { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
-  .stock-mode button { padding:10px; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Noto Sans Bengali',sans-serif; cursor:pointer; }
+  .stock-mode button { padding:10px; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Tiro Bangla',serif; cursor:pointer; }
   .stock-mode button.active { border-color:var(--ink); background:var(--cream2); font-weight:700; }
   .report-filter { display:flex; gap:6px; overflow-x:auto; padding:2px 0 10px; }
-  .report-filter button { flex:0 0 auto; border:1px solid var(--cream3); background:#fff; color:var(--ink3); border-radius:999px; padding:8px 11px; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; cursor:pointer; }
+  .report-filter button { flex:0 0 auto; border:1px solid var(--cream3); background:#fff; color:var(--ink3); border-radius:999px; padding:8px 11px; font-family:'Tiro Bangla',serif; font-size:12px; cursor:pointer; }
   .report-filter button.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); font-weight:700; }
   .report-custom { display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
   .report-custom.open { display:grid; }
   .report-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
   .report-card { background:#fff; border-radius:var(--radius-sm); box-shadow:var(--shadow); padding:12px; min-width:0; }
   .report-card .label { font-size:11px; color:var(--ink3); }
-  .report-card .value { font-family:'Noto Serif Bengali',serif; font-size:18px; font-weight:800; color:var(--ink2); margin-top:3px; }
+  .report-card .value { font-family:'Tiro Bangla',serif; font-size:18px; font-weight:800; color:var(--ink2); margin-top:3px; }
   .report-section { background:#fff; border-radius:var(--radius-sm); box-shadow:var(--shadow); padding:12px; margin-bottom:10px; }
-  .report-section-title { font-family:'Noto Serif Bengali',serif; font-weight:800; color:var(--ink2); font-size:14px; margin-bottom:10px; }
+  .report-section-title { font-family:'Tiro Bangla',serif; font-weight:800; color:var(--ink2); font-size:14px; margin-bottom:10px; }
   .rank-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--cream2); }
   .rank-row:last-child { border-bottom:0; }
   .rank-name { font-size:13px; font-weight:700; color:var(--ink); }
   .rank-sub { font-size:11px; color:var(--ink3); margin-top:2px; }
-  .rank-value { text-align:right; font-family:'Noto Serif Bengali',serif; font-weight:800; color:var(--ink2); white-space:nowrap; }
+  .rank-value { text-align:right; font-family:'Tiro Bangla',serif; font-weight:800; color:var(--ink2); white-space:nowrap; }
   .chart-scroll { overflow-x:auto; padding-bottom:4px; }
   .month-chart { display:grid; grid-template-columns:repeat(12, 52px); gap:8px; min-width:680px; align-items:end; }
   .month-bar-wrap { height:150px; display:flex; align-items:end; gap:4px; justify-content:center; border-bottom:1px solid var(--cream3); }
@@ -81,7 +81,7 @@
   .month-chart-label { text-align:center; font-size:10px; color:var(--ink3); margin-top:5px; }
   .empty-report { text-align:center; color:var(--ink3); padding:18px 0; font-size:12px; }
   .txn-action-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
-  .txn-action-row button { border:0; border-radius:var(--radius-sm); padding:10px; font-family:'Noto Sans Bengali',sans-serif; font-weight:800; cursor:pointer; }
+  .txn-action-row button { border:0; border-radius:var(--radius-sm); padding:10px; font-family:'Tiro Bangla',serif; font-weight:800; cursor:pointer; }
   .txn-action-row .edit { background:var(--cream2); color:var(--ink2); }
   .txn-action-row .delete { background:var(--red-light); color:var(--red); }
   @media (max-width:640px) {
@@ -240,14 +240,14 @@
     <!-- ব্যয়: বিস্তারিত লাইন বোতাম -->
     <div id="area-items-btn" style="display:none;margin-bottom:12px;">
       <button type="button" onclick="openItemsPanel()"
-        style="width:100%;padding:10px;border:1.5px dashed var(--cream3);border-radius:var(--radius-sm);background:#fff;font-family:'Noto Sans Bengali',sans-serif;font-size:13px;cursor:pointer;color:var(--ink3);text-align:center;">
+        style="width:100%;padding:10px;border:1.5px dashed var(--cream3);border-radius:var(--radius-sm);background:#fff;font-family:'Tiro Bangla',serif;font-size:13px;cursor:pointer;color:var(--ink3);text-align:center;">
         ≡ বিস্তারিত লাইন যোগ করুন <span id="items-badge" style="display:none;background:var(--gold);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:6px;"></span>
       </button>
     </div>
 
     <div id="txn-extra-wrap"></div>
     <button class="submit-btn" onclick="saveTxn()">সংরক্ষণ করুন</button>
-    <button id="txn-delete-btn" onclick="deleteFromEditModal()" style="display:none;margin-top:8px;width:100%;padding:10px;border:0;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);font-family:'Noto Sans Bengali',sans-serif;font-weight:800;cursor:pointer;">ডিলিট করুন</button>
+    <button id="txn-delete-btn" onclick="deleteFromEditModal()" style="display:none;margin-top:8px;width:100%;padding:10px;border:0;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);font-family:'Tiro Bangla',serif;font-weight:800;cursor:pointer;">ডিলিট করুন</button>
   </div>
 </div>
 
@@ -256,7 +256,7 @@
   <div class="side-panel-backdrop" onclick="closeItemsPanel()"></div>
   <div class="side-panel-drawer">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div style="font-family:'Noto Serif Bengali',serif;font-size:16px;font-weight:700;color:var(--ink2);">ব্যয়ের বিস্তারিত</div>
+      <div style="font-family:'Tiro Bangla',serif;font-size:16px;font-weight:700;color:var(--ink2);">ব্যয়ের বিস্তারিত</div>
       <button onclick="closeItemsPanel()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);">✕</button>
     </div>
     <div id="li-list"></div>
@@ -270,7 +270,7 @@
     </div>
     <div class="items-total-bar">
       <div style="font-size:13px;color:var(--ink3);font-weight:600;">মোট</div>
-      <div id="li-total" style="font-family:'Noto Serif Bengali',serif;font-size:18px;font-weight:700;color:var(--ink2);">৳০</div>
+      <div id="li-total" style="font-family:'Tiro Bangla',serif;font-size:18px;font-weight:700;color:var(--ink2);">৳০</div>
     </div>
     <button class="submit-btn" onclick="applyItems()" style="background:var(--ink);color:var(--gold2);">← মোট প্রয়োগ করুন</button>
   </div>
@@ -1140,7 +1140,7 @@
             <div style="font-size:11px;color:var(--ink3);">${DeptAPI.esc(i.unit)}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:700;">${toBn(i.quantity)}</div>
+            <div style="font-family:'Tiro Bangla',serif;font-size:15px;font-weight:700;">${toBn(i.quantity)}</div>
           </div>
         </div>`).join('')
       : '<div style="text-align:center;color:var(--ink3);padding:32px 0;font-size:13px;">কোনো মজুদ নেই</div>';

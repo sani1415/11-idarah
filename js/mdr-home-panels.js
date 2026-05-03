@@ -4,7 +4,13 @@
   const KHADIMIN_KEY = 'mm_khadimin';
   const LEAVES_KEY = 'mm_khadimin_leaves';
   const KHD_MODAL_ID = 'modal-khadim-detail';
-  let helpers = { toBn: (n) => String(n), showToast: () => {} };
+  function digitsToBn(v) {
+    return String(v == null ? '' : v).replace(/\d/g, (ch) => String.fromCharCode(0x09e6 + ch.charCodeAt(0) - 48));
+  }
+  let helpers = {
+    toBn: (n) => (typeof global.toBn === 'function' ? global.toBn(n) : digitsToBn(n)),
+    showToast: () => {},
+  };
   /** @type {string|null} */
   let _openKhadimId = null;
   /** @type {Record<string, { vy: number, vm: number, a: string|null, b: string|null }>} */
@@ -315,17 +321,17 @@
       .kh-panel-form{display:none}.kh-panel-form.active{display:block}
       .kh-panel-list{display:block}.kh-panel-list.hidden{display:none}
       .kh-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0}
-      .kh-modal-title{font-family:'Noto Serif Bengali',serif;font-size:17px;font-weight:800;color:var(--ink)}
-      .kh-add-btn{border:none;background:var(--ink);color:var(--gold2);border-radius:10px;padding:8px 14px;font-family:'Noto Sans Bengali',sans-serif;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
-      .kh-back-btn{border:1px solid var(--cream3);background:#fff;color:var(--ink2);border-radius:10px;padding:7px 12px;font-family:'Noto Sans Bengali',sans-serif;font-size:12px;font-weight:800;cursor:pointer}
+      .kh-modal-title{font-family:'Tiro Bangla',serif;font-size:17px;font-weight:800;color:var(--ink)}
+      .kh-add-btn{border:none;background:var(--ink);color:var(--gold2);border-radius:10px;padding:8px 14px;font-family:'Tiro Bangla',serif;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
+      .kh-back-btn{border:1px solid var(--cream3);background:#fff;color:var(--ink2);border-radius:10px;padding:7px 12px;font-family:'Tiro Bangla',serif;font-size:12px;font-weight:800;cursor:pointer}
       .kh-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
       #kh-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));gap:8px;align-content:start}
       .kh-card-wrap{background:#fff;border:1px solid rgba(26,18,8,.07);border-radius:14px;box-shadow:0 4px 12px rgba(26,18,8,.05);overflow:hidden}
       .kh-compact{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 10px 10px 12px}
       .kh-main-row{display:flex;align-items:flex-start;gap:10px;min-width:0;flex:1}
-      .kh-av{flex-shrink:0;width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--gold2);display:flex;align-items:center;justify-content:center;font-family:'Noto Serif Bengali',serif;font-size:16px;font-weight:800}
+      .kh-av{flex-shrink:0;width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--gold2);display:flex;align-items:center;justify-content:center;font-family:'Tiro Bangla',serif;font-size:16px;font-weight:800}
       .kh-row-text{flex:1;min-width:0}
-      .kh-name-btn{display:block;width:100%;font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:800;color:var(--ink);background:none;border:none;padding:0;margin:0;cursor:pointer;text-align:left;line-height:1.25}
+      .kh-name-btn{display:block;width:100%;font-family:'Tiro Bangla',serif;font-size:14px;font-weight:800;color:var(--ink);background:none;border:none;padding:0;margin:0;cursor:pointer;text-align:left;line-height:1.25}
       .kh-name-btn:hover{color:var(--blue);text-decoration:underline}
       .kh-name-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
       .kh-meta--1l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -334,8 +340,8 @@
       .kh-pill--away{background:rgba(180,120,40,.18);color:#6a4a12}
       .kh-pill--inactive{background:rgba(120,120,120,.15);color:var(--ink3)}
       .kh-pill--active{background:rgba(40,120,80,.12);color:#1d5c3a}
-      .kh-edit{border:1px solid var(--cream3);background:#fff;border-radius:10px;padding:8px 9px;font-family:'Noto Sans Bengali',sans-serif;font-size:10px;font-weight:800;color:var(--ink2);cursor:pointer;align-self:center}
-      .kh-mini-btn{border:1px solid var(--cream3);background:#fff;border-radius:10px;padding:8px;font-family:'Noto Sans Bengali',sans-serif;font-size:11px;font-weight:800;color:var(--ink2);cursor:pointer}
+      .kh-edit{border:1px solid var(--cream3);background:#fff;border-radius:10px;padding:8px 9px;font-family:'Tiro Bangla',serif;font-size:10px;font-weight:800;color:var(--ink2);cursor:pointer;align-self:center}
+      .kh-mini-btn{border:1px solid var(--cream3);background:#fff;border-radius:10px;padding:8px;font-family:'Tiro Bangla',serif;font-size:11px;font-weight:800;color:var(--ink2);cursor:pointer}
       .kh-mini-btn.gold{background:var(--ink);color:var(--gold2);border-color:var(--ink)}
       .kh-subtitle{font-size:12px;font-weight:900;color:var(--ink2);margin:10px 0 6px}
       .kh-leave-scroll{max-height:112px;overflow-y:auto;margin:4px 0 8px;padding-right:4px;border-radius:8px}
@@ -344,7 +350,7 @@
       .kh-cal{border:1px solid rgba(26,18,8,.1);border-radius:14px;padding:8px 8px 6px;background:#fff;margin-top:6px}
       .kh-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding:0 2px}
       .kh-cal-nav{border:none;background:var(--cream2);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:18px;line-height:1;color:var(--ink2)}
-      .kh-cal-mo{font-size:13px;font-weight:800;color:var(--ink);font-family:'Noto Sans Bengali',sans-serif}
+      .kh-cal-mo{font-size:13px;font-weight:800;color:var(--ink);font-family:'Tiro Bangla',serif}
       .kh-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
       .kh-cal-dow{font-size:9px;color:var(--ink3);padding:4px 0;font-weight:700}
       .kh-cal-pad{min-height:32px}
@@ -355,11 +361,11 @@
       .kh-cal-day.kh-cal-edge{background:var(--ink);color:var(--gold2);font-weight:800}
       .kh-cal-hint{font-size:10px;color:var(--ink3);line-height:1.45;margin:8px 2px 4px;min-height:2.8em}
       .kh-cal-tools{text-align:center}
-      .kh-cal-clear{border:none;background:transparent;color:var(--blue);font-size:11px;cursor:pointer;text-decoration:underline;padding:2px;font-family:'Noto Sans Bengali',sans-serif}
+      .kh-cal-clear{border:none;background:transparent;color:var(--blue);font-size:11px;cursor:pointer;text-decoration:underline;padding:2px;font-family:'Tiro Bangla',serif}
       .abs-row-home{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid rgba(26,18,8,.07);border-radius:14px;box-shadow:0 5px 14px rgba(26,18,8,.06);padding:12px;margin-bottom:8px}
-      .abs-rank-home{font-family:'Noto Serif Bengali',serif;font-size:18px;font-weight:800;color:var(--gold);min-width:34px;text-align:center}
+      .abs-rank-home{font-family:'Tiro Bangla',serif;font-size:18px;font-weight:800;color:var(--gold);min-width:34px;text-align:center}
       .abs-info-home{flex:1;min-width:0}.abs-name-home{font-size:14px;font-weight:700;color:var(--ink)}
-      .abs-days-home{font-family:'Noto Serif Bengali',serif;font-size:17px;font-weight:800;color:var(--red);white-space:nowrap}
+      .abs-days-home{font-family:'Tiro Bangla',serif;font-size:17px;font-weight:800;color:var(--red);white-space:nowrap}
       @media(max-width:520px){.kh-grid{grid-template-columns:1fr}#kh-list{grid-template-columns:1fr}}
       .kh-list-empty{grid-column:1/-1}
       #modal-khadim-detail.modal-bg{
@@ -378,7 +384,7 @@
         border:1px solid rgba(201,149,42,.12);
       }
       #modal-khadim-detail #khd-tabs-wrap{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden}
-      #modal-khadim-detail #khd-title{font-family:'Noto Serif Bengali',serif;font-size:18px;font-weight:700;color:var(--ink2);margin:0 0 4px 0;line-height:1.2;word-break:break-word}
+      #modal-khadim-detail #khd-title{font-family:'Tiro Bangla',serif;font-size:18px;font-weight:700;color:var(--ink2);margin:0 0 4px 0;line-height:1.2;word-break:break-word}
       .khd-notes-list{max-height:min(200px,35vh);overflow-y:auto;margin-bottom:8px}
       .khd-leave-summary{font-size:12px;color:var(--ink2);margin:0 0 8px;font-weight:600}
       #modal-khadim-detail .st-tab-panels{padding:12px 14px 16px;overflow-y:auto;flex:1;min-height:0}
@@ -722,7 +728,7 @@
         <div class="abs-rank-home">${helpers.toBn(i + 1)}</div>
         <div class="abs-info-home">
           <div class="abs-name-home"><button type="button" class="s-name-btn" style="font-size:14px;font-weight:600" onclick="MMStudentModal.open('${x.student.id}')">${esc(x.student.name)}</button></div>
-          <div class="abs-meta-home">${esc(cls ? cls.name : '—')} · ${esc(deptLabel)} · রোল ${esc(x.student.roll || '—')}</div>
+          <div class="abs-meta-home">${esc(cls ? cls.name : '—')} · ${esc(deptLabel)} · রোল ${helpers.toBn(esc(x.student.roll || '—'))}</div>
         </div>
         <div class="abs-days-home">${helpers.toBn(x.absentDays)} দিন</div>
       </div>`;

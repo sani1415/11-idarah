@@ -22,7 +22,7 @@
   .book-author { font-size: 11px; color: var(--ink3); margin-top: 2px; }
   .book-meta { font-size: 11px; color: var(--ink3); margin-top: 4px; }
   .book-right { text-align: right; flex-shrink: 0; }
-  .book-copies { font-family: 'Noto Serif Bengali', serif; font-size: 16px; font-weight: 700; }
+  .book-copies { font-family: 'Tiro Bangla', serif; font-size: 16px; font-weight: 700; }
   .book-available { font-size: 10px; color: var(--ink3); }
 
   .issue-row {
@@ -42,7 +42,7 @@
   }
   .search-input {
     flex: 1; background: #fff; border: 1px solid var(--cream3); border-radius: var(--radius-sm);
-    padding: 11px 14px; font-family: 'Noto Sans Bengali', sans-serif; font-size: 14px;
+    padding: 11px 14px; font-family: 'Tiro Bangla', serif; font-size: 14px;
     color: var(--ink); outline: none;
   }
   .search-input:focus { border-color: var(--gold); }
@@ -51,7 +51,7 @@
   .cat-btn {
     background: #fff; border: 1px solid var(--cream3); border-radius: 20px;
     padding: 6px 12px; font-size: 11px; white-space: nowrap; cursor: pointer;
-    font-family: 'Noto Sans Bengali', sans-serif; color: var(--ink3); transition: all .15s;
+    font-family: 'Tiro Bangla', serif; color: var(--ink3); transition: all .15s;
   }
   .cat-btn.active { background: var(--ink); color: var(--gold2); border-color: var(--ink); }
 </style>
@@ -76,9 +76,9 @@
 
     <div style="background:linear-gradient(135deg,#1a5276,#2980b9);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-books">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">মোট বই</div></div>
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="issued-books">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">ইস্যু করা</div></div>
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="overdue-books">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">মেয়াদ শেষ</div></div>
+        <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="total-books">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">মোট বই</div></div>
+        <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="issued-books">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">ইস্যু করা</div></div>
+        <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="overdue-books">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">মেয়াদ শেষ</div></div>
       </div>
     </div>
 
@@ -293,7 +293,7 @@
 
     /* populate issue modal */
     document.getElementById('iss-book').innerHTML = books.map(b => `<option value="${b.id}">${API.esc(b.title)}</option>`).join('');
-    document.getElementById('iss-student').innerHTML = API.Students.getAll().filter(s=>s.active).map(s => `<option value="${s.id}">${API.esc(s.name)} (${API.esc(s.permanent_id)})</option>`).join('');
+    document.getElementById('iss-student').innerHTML = API.Students.getAll().filter(s=>s.active).map(s => `<option value="${s.id}">${API.esc(s.name)} (${API.escBn(s.permanent_id)})</option>`).join('');
     document.getElementById('iss-date').value = today;
     const dueD = new Date(); dueD.setDate(dueD.getDate()+14);
     document.getElementById('iss-due').value = dueD.toISOString().split('T')[0];
@@ -334,7 +334,7 @@
             <div class="issue-book">${book ? API.esc(book.title) : '—'}</div>
             <div class="issue-student">${student ? `<button type="button" class="s-name-btn" style="font-size:12px;font-weight:600;color:var(--ink3);" onclick="MMStudentModal.open('${student.id}')">${API.esc(student.name)}</button> · ${API.esc(student.permanent_id)}` : '—'}</div>
           </div>
-          ${!i.returned ? `<button onclick="returnBook('${i.id}')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:'Noto Sans Bengali',sans-serif;font-size:12px;cursor:pointer;">ফেরত</button>` : '<span class="list-badge badge-green">ফেরত দেওয়া</span>'}
+          ${!i.returned ? `<button onclick="returnBook('${i.id}')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:'Tiro Bangla',serif;font-size:12px;cursor:pointer;">ফেরত</button>` : '<span class="list-badge badge-green">ফেরত দেওয়া</span>'}
         </div>
         <div class="issue-dates">
           ইস্যু: ${API.esc(i.issued||'—')} · 

@@ -143,7 +143,7 @@
       'flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;' +
       'padding:18px 20px 12px;border-bottom:1px solid rgba(26,18,8,.06)}' +
       '.dan-title{' +
-      'font-family:\"Noto Serif Bengali\",serif;font-size:19px;font-weight:800;color:var(--ink);line-height:1.25}' +
+      'font-family:\"Tiro Bangla\",serif;font-size:19px;font-weight:800;color:var(--ink);line-height:1.25}' +
       '.dan-title-sub{font-size:11px;font-weight:600;color:var(--ink3);margin-top:4px}' +
       '.dan-hint{' +
       'flex-shrink:0;font-size:12px;color:var(--ink2);line-height:1.55;margin:0;padding:10px 20px 14px;' +
@@ -173,13 +173,13 @@
       '.dan-editor-label::before{content:\"\";width:4px;height:14px;border-radius:2px;background:var(--gold)}' +
       '.dan-ta{width:100%;min-height:110px;max-height:min(240px,35vh);box-sizing:border-box;' +
       'border:1px solid var(--cream3);border-radius:14px;padding:12px 14px;' +
-      'font-family:\"Noto Sans Bengali\",sans-serif;font-size:14px;line-height:1.5;resize:vertical;background:#fff}' +
+      'font-family:\"Tiro Bangla\",serif;font-size:14px;line-height:1.5;resize:vertical;background:#fff}' +
       '.dan-ta:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,149,42,.15)}' +
       '.dan-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}' +
       '.dan-actions .submit-btn.gold{flex:1;min-width:140px;margin:0}' +
       '.dan-btn-cancel{' +
       'border:1px solid var(--cream3);background:#fff;color:var(--ink2);border-radius:12px;padding:10px 18px;' +
-      'font-family:\"Noto Sans Bengali\",sans-serif;font-size:13px;font-weight:800;cursor:pointer}' +
+      'font-family:\"Tiro Bangla\",serif;font-size:13px;font-weight:800;cursor:pointer}' +
       '.dan-btn-cancel:hover{background:var(--cream2)}';
     document.head.appendChild(style);
 

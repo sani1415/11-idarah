@@ -28,7 +28,7 @@
       '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
       '<title>', esc(title), '</title>',
       '<style>',
-      'body{font-family:"Noto Sans Bengali",sans-serif;padding:18px;color:#1a1208;font-size:12px;line-height:1.45;}',
+      'body{font-family:"Tiro Bangla",serif;padding:18px;color:#1a1208;font-size:12px;line-height:1.45;}',
       'h1{font-size:16px;margin:0 0 12px;font-weight:700;}',
       'table{width:100%;border-collapse:collapse;margin-top:8px;}',
       'th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;}',

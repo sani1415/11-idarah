@@ -263,6 +263,65 @@ const MMSharedAPI = (() => {
         p_payload: payload || {},
       });
     },
+    accountsBootstrap(actorId, pin) {
+      return rpc('mdr_rel_accounts_bootstrap', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+      });
+    },
+    upsertAccountIncome(actorId, pin, entry) {
+      return rpc('mdr_rel_account_upsert_income', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_entry: entry || {},
+      });
+    },
+    upsertAccountExpense(actorId, pin, entry) {
+      return rpc('mdr_rel_account_upsert_expense', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_entry: entry || {},
+      });
+    },
+    deleteAccountEntry(actorId, pin, type, id) {
+      return rpc('mdr_rel_account_delete_entry', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_type: type,
+        p_id: id,
+      });
+    },
+    adjustAccountDuePurchase(actorId, pin, supplier, account, amountDelta) {
+      return rpc('mdr_rel_account_adjust_due_purchase', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_supplier: supplier || '',
+        p_account: account || 'general',
+        p_amount_delta: Number(amountDelta || 0),
+      });
+    },
+    recordAccountDuePayment(actorId, pin, dueId, amount) {
+      return rpc('mdr_rel_account_record_due_payment', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_due_id: dueId,
+        p_amount: Number(amount || 0),
+      });
+    },
+    addAccountCategory(actorId, pin, name) {
+      return rpc('mdr_rel_account_add_category', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_name: name,
+      });
+    },
+    deleteAccountCategory(actorId, pin, name) {
+      return rpc('mdr_rel_account_delete_category', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_name: name,
+      });
+    },
     saveExam(actorId, pin, name, type, subjects) {
       return rpc('mdr_rel_save_exam', {
         p_actor_id: actorId,

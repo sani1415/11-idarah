@@ -520,7 +520,7 @@ INSERT INTO kh_activity_types (name, emoji) VALUES
   ('অন্যান্য সেবা', '🤝');
 ```
 
-#### kh_beneficiaries (উপকারভোগী)
+#### kh_beneficiaries (মাখদুম)
 ```sql
 CREATE TABLE IF NOT EXISTS kh_beneficiaries (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -721,7 +721,7 @@ Supabase মাইগ্রেশনে `dept_transactions.metadata jsonb` (উ�
 
 ## UI Guidelines
 
-- Mobile-first, বাংলা ফন্ট: `Noto Sans Bengali` + `Noto Serif Bengali`
+- Mobile-first, বাংলা ফন্ট: `Tiro Bangla` (Google Fonts, `--font-bn` / `css/style.css`)
 - Color palette: বিদ্যমান prototype থেকে নাও (`css/style.css` + `main-admin-madrasa.html` দেখো)
 - Bottom navigation: প্রতিটি পোর্টালে
 - PIN-based login: numpad UI (বিদ্যমান prototype দেখো)

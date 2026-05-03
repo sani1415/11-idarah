@@ -180,7 +180,7 @@
       var preview = students
         .slice(0, 6)
         .map(function (s) {
-          return '<li style="margin:4px 0;font-size:13px;">' + API.esc(s.name) + (s.roll ? ' <span style="color:var(--ink3);font-size:11px">· ' + API.esc(String(s.roll)) + '</span>' : '') + '</li>';
+          return '<li style="margin:4px 0;font-size:13px;">' + API.esc(s.name) + (s.roll ? ' <span style="color:var(--ink3);font-size:11px">· ' + API.escBn(String(s.roll)) + '</span>' : '') + '</li>';
         })
         .join('');
       classPanel =

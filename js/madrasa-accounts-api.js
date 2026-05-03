@@ -6,6 +6,7 @@ const MdrAccAPI = (() => {
   const INC_KEY = 'mdr_acc_inc';
   const EXP_KEY = 'mdr_acc_exp';
   const DUE_KEY = 'mdr_acc_due';
+  const DUE_PAY_KEY = 'mdr_acc_due_pay';
   const CAT_KEY = 'mdr_acc_cats';
 
   /* MONTHS in academic-year order (Ramadan = start) */
@@ -72,7 +73,7 @@ const MdrAccAPI = (() => {
   const dateYear = (year, month) => year ? num(en(year)) : (monthNo(month) <= 8 ? systemHijriYear() + 1 : systemHijriYear());
   const dateKey = (year, month, day) => String(dateYear(year, month)).padStart(4,'0') + '-' + String(monthNo(month)).padStart(2,'0') + '-' + String(num(day)).padStart(2,'0');
   const norm = (r) => ({ ...r, month: monthKey(r.month), hijriYear: String(dateYear(r.hijriYear || r.year, r.month)), dateKey: dateKey(r.hijriYear || r.year, r.month, r.day) });
-  const bn = (s) => String(s || '').replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  const bn = (s) => String(s || '').replace(/\d/g, (d) => String.fromCharCode(0x09e6 + (+d)));
   const en = (s) => String(s || '').replace(/[০-৯٠-٩۰-۹]/g, d => {
     const b = '০১২৩৪৫৬৭৮৯'.indexOf(d); if (b >= 0) return b;
     const a = '٠١٢٣٤٥٦٧٨٩'.indexOf(d); if (a >= 0) return a;
@@ -91,24 +92,70 @@ const MdrAccAPI = (() => {
     return (from === 'all' || r.dateKey >= from) && (to === 'all' || r.dateKey <= to);
   };
 
-  /* ── Seed loader ── */
-  function ensureSeed() {
-    const seed = window.MM_ACCOUNTS_SEED;
-    if (!seed || !seed.version) return;
-    const marker = 'accounts-seed-v' + seed.version + '-' + (seed.source || 'default');
-    if (localStorage.getItem(SV_KEY) === marker) return;
+  function actor() {
+    if (!window.MMSession) return null;
+    if (MMSession.isAdmin && MMSession.isAdmin()) {
+      return { id: MMSession.getAdminUserId && MMSession.getAdminUserId(), pin: MMSession.getAdminPin && MMSession.getAdminPin() };
+    }
+    return { id: MMSession.getStaffUserId && MMSession.getStaffUserId(), pin: MMSession.getStaffPin && MMSession.getStaffPin() };
+  }
 
-    store(INC_KEY, Array.isArray(seed.incomes) ? seed.incomes : []);
-    store(EXP_KEY, Array.isArray(seed.expenses) ? seed.expenses : []);
-    store(DUE_KEY, Array.isArray(seed.dues) ? seed.dues : []);
-    localStorage.setItem(SV_KEY, marker);
+  function remoteReady() {
+    const a = actor();
+    return !!(window.MMSharedAPI && MMSharedAPI.supabaseClient && a && a.pin);
+  }
+
+  function remoteActor() {
+    const a = actor() || {};
+    return { id: a.id || null, pin: a.pin || '' };
+  }
+
+  function cacheBootstrap(res) {
+    store(INC_KEY, Array.isArray(res.incomes) ? res.incomes : []);
+    store(EXP_KEY, Array.isArray(res.expenses) ? res.expenses : []);
+    store(DUE_KEY, Array.isArray(res.dues) ? res.dues : []);
+    store(DUE_PAY_KEY, Array.isArray(res.duePayments) ? res.duePayments : []);
+    store(CAT_KEY, Array.isArray(res.categories) ? res.categories : []);
+    localStorage.setItem(SV_KEY, 'accounts-db-' + Date.now());
+  }
+
+  async function bootstrapRemote() {
+    if (!remoteReady()) return false;
+    const a = remoteActor();
+    const res = await MMSharedAPI.accountsBootstrap(a.id, a.pin);
+    if (!res || !res.ok) throw new Error((res && res.error) || 'accounts_bootstrap_failed');
+    cacheBootstrap(res);
+    return true;
+  }
+
+  async function remoteRefreshAfter(res) {
+    if (!res || !res.ok) throw new Error((res && res.error) || 'accounts_save_failed');
+    await bootstrapRemote();
+    return res;
+  }
+
+  async function remoteCall(fn) {
+    if (!remoteReady()) return null;
+    return remoteRefreshAfter(await fn(remoteActor()));
+  }
+
+  /* Database is the source of truth; this no-op keeps older render calls compatible. */
+  function ensureSeed() {
+    return false;
   }
 
   /* ── Categories ── */
   const Categories = {
     getAll()        { const c = load(CAT_KEY); return [...DEFAULT_CATS, ...c.filter(x => !DEFAULT_CATS.includes(x))]; },
-    add(name)       { const a = load(CAT_KEY); if (!a.includes(name) && !DEFAULT_CATS.includes(name)) { a.push(name); store(CAT_KEY, a); } },
-    del(name)       { store(CAT_KEY, load(CAT_KEY).filter(c => c !== name)); },
+    async add(name) {
+      const a = load(CAT_KEY);
+      if (!a.includes(name) && !DEFAULT_CATS.includes(name)) { a.push(name); store(CAT_KEY, a); }
+      await remoteCall((ra) => MMSharedAPI.addAccountCategory(ra.id, ra.pin, name));
+    },
+    async del(name) {
+      store(CAT_KEY, load(CAT_KEY).filter(c => c !== name));
+      await remoteCall((ra) => MMSharedAPI.deleteAccountCategory(ra.id, ra.pin, name));
+    },
     isDefault(name) { return DEFAULT_CATS.includes(name); },
   };
 
@@ -118,15 +165,23 @@ const MdrAccAPI = (() => {
     getById(id)   { const r = load(INC_KEY).find(x => x.id === id); return r ? norm(r) : null; },
     getByMonth(m) { const mm = monthKey(m); return load(INC_KEY).filter(x => monthKey(x.month) === mm); },
     total()           { return Income.getAll().reduce((s,x) => s + num(x.amount), 0); },
-    add(data)         { const a = load(INC_KEY); const e = norm({ id: uid('inc-'), ...data, _at: Date.now() }); a.push(e); store(INC_KEY, a); return e; },
-    update(id, patch) {
+    async add(data) {
+      const a = load(INC_KEY);
+      const e = norm({ id: uid('inc-'), ...data, _at: Date.now() });
+      a.push(e); store(INC_KEY, a);
+      await remoteCall((ra) => MMSharedAPI.upsertAccountIncome(ra.id, ra.pin, e));
+      return e;
+    },
+    async update(id, patch) {
       const a = load(INC_KEY);
       const idx = a.findIndex(x => x.id === id);
       if (idx < 0) return null;
       const e = norm({ ...a[idx], ...(patch || {}), id, _updatedAt: Date.now() });
-      a[idx] = e; store(INC_KEY, a); return e;
+      a[idx] = e; store(INC_KEY, a);
+      await remoteCall((ra) => MMSharedAPI.upsertAccountIncome(ra.id, ra.pin, e));
+      return e;
     },
-    del(id)           { store(INC_KEY, load(INC_KEY).filter(x => x.id !== id)); },
+    async del(id)     { store(INC_KEY, load(INC_KEY).filter(x => x.id !== id)); await remoteCall((ra) => MMSharedAPI.deleteAccountEntry(ra.id, ra.pin, 'income', id)); },
     months()          { return [...new Set(load(INC_KEY).map(x => monthKey(x.month)).filter(Boolean))]; },
   };
 
@@ -139,15 +194,23 @@ const MdrAccAPI = (() => {
     getByItem(desc)     { return load(EXP_KEY).filter(x => x.description === desc); },
     total()             { return Expense.getAll().reduce((s,x) => s + num(x.amount), 0); },
     totalByAccount(acc) { return Expense.getByAccount(acc).reduce((s,x) => s + num(x.amount), 0); },
-    add(data)           { const a = load(EXP_KEY); const e = norm({ id: uid('exp-'), ...data, _at: Date.now() }); a.push(e); store(EXP_KEY, a); return e; },
-    update(id, patch) {
+    async add(data) {
+      const a = load(EXP_KEY);
+      const e = norm({ id: uid('exp-'), ...data, _at: Date.now() });
+      a.push(e); store(EXP_KEY, a);
+      await remoteCall((ra) => MMSharedAPI.upsertAccountExpense(ra.id, ra.pin, e));
+      return e;
+    },
+    async update(id, patch) {
       const a = load(EXP_KEY);
       const idx = a.findIndex(x => x.id === id);
       if (idx < 0) return null;
       const e = norm({ ...a[idx], ...(patch || {}), id, _updatedAt: Date.now() });
-      a[idx] = e; store(EXP_KEY, a); return e;
+      a[idx] = e; store(EXP_KEY, a);
+      await remoteCall((ra) => MMSharedAPI.upsertAccountExpense(ra.id, ra.pin, e));
+      return e;
     },
-    del(id)             { store(EXP_KEY, load(EXP_KEY).filter(x => x.id !== id)); },
+    async del(id)       { store(EXP_KEY, load(EXP_KEY).filter(x => x.id !== id)); await remoteCall((ra) => MMSharedAPI.deleteAccountEntry(ra.id, ra.pin, 'expense', id)); },
     itemNames()         { const nm = new Set(); load(EXP_KEY).forEach(x => { if (x.description && num(x.quantity) > 0) nm.add(x.description); }); return [...nm].sort((a,b) => a.localeCompare(b,'bn')); },
     months()            { return [...new Set(load(EXP_KEY).map(x => monthKey(x.month)).filter(Boolean))]; },
     categories()        { return [...new Set(load(EXP_KEY).map(x => x.category).filter(Boolean))]; },
@@ -159,29 +222,32 @@ const MdrAccAPI = (() => {
     getAll()   { return load(DUE_KEY); },
     withDue()  { return load(DUE_KEY).filter(x => num(x.due) !== 0); },
     totalDue() { return load(DUE_KEY).reduce((s,x) => s + Math.max(0, num(x.due)), 0); },
-    recordPayment(id, amt) {
+    async recordPayment(id, amt) {
       const arr = load(DUE_KEY);
       const d = arr.find(x => x.id === id);
       if (!d) return;
       d.paid = num(d.paid) + amt;
       d.due  = num(d.total) - num(d.paid);
       store(DUE_KEY, arr);
+      await remoteCall((ra) => MMSharedAPI.recordAccountDuePayment(ra.id, ra.pin, id, amt));
     },
-    addOrUpdate(supplier, account, purchaseAmt) {
+    async addOrUpdate(supplier, account, purchaseAmt) {
       const arr = load(DUE_KEY);
       let d = arr.find(x => x.supplier === supplier && x.account === account);
       if (!d) { d = { id: uid('due-'), supplier, account, total: 0, paid: 0, due: 0 }; arr.push(d); }
       d.total = num(d.total) + purchaseAmt;
       d.due   = num(d.total) - num(d.paid);
       store(DUE_KEY, arr);
+      await remoteCall((ra) => MMSharedAPI.adjustAccountDuePurchase(ra.id, ra.pin, supplier, account, purchaseAmt));
     },
-    cancelPurchase(supplier, account, purchaseAmt) {
+    async cancelPurchase(supplier, account, purchaseAmt) {
       const arr = load(DUE_KEY);
       const d = arr.find(x => x.supplier === supplier && x.account === account);
       if (!d) return;
       d.total = Math.max(0, num(d.total) - purchaseAmt);
       d.due   = Math.max(0, num(d.due)   - purchaseAmt);
       store(DUE_KEY, arr);
+      await remoteCall((ra) => MMSharedAPI.adjustAccountDuePurchase(ra.id, ra.pin, supplier, account, -Math.abs(purchaseAmt)));
     },
   };
 
@@ -249,5 +315,5 @@ const MdrAccAPI = (() => {
     }
   }
 
-  return { ensureSeed, Income, Expense, Dues, Summary, Categories, Settings, MONTHS, HIJRI_MONTHS, ACCOUNT_LABELS, esc, bn, fa, pct, count, clean, monthKey, monthFromNo, monthNo, dateKey, dateLabel, parseDateInput, toDateKey, inRange, num, todayHijri };
+  return { ensureSeed, bootstrapRemote, remoteReady, Income, Expense, Dues, Summary, Categories, Settings, MONTHS, HIJRI_MONTHS, ACCOUNT_LABELS, esc, bn, fa, pct, count, clean, monthKey, monthFromNo, monthNo, dateKey, dateLabel, parseDateInput, toDateKey, inRange, num, todayHijri };
 })();

@@ -170,10 +170,10 @@
       'border-radius:20px;padding:14px 14px 16px;box-sizing:border-box;background:#fffef9;' +
       'border:1px solid rgba(201,149,42,.12);box-shadow:0 24px 64px rgba(26,18,8,.14);display:flex;flex-direction:column;overflow:hidden}' +
       '.dst-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;flex-shrink:0}' +
-      '.dst-modal-title{font-family:\"Noto Serif Bengali\",serif;font-size:16px;font-weight:800;color:var(--ink)}' +
+      '.dst-modal-title{font-family:\"Tiro Bangla\",serif;font-size:16px;font-weight:800;color:var(--ink)}' +
       '.dst-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;flex-shrink:0}' +
       '.dst-tab{border:1px solid var(--cream3);background:#fff;color:var(--ink2);border-radius:10px;' +
-      'padding:8px 14px;font-family:\"Noto Sans Bengali\",sans-serif;font-size:12px;font-weight:800;cursor:pointer;line-height:1.2}' +
+      'padding:8px 14px;font-family:\"Tiro Bangla\",serif;font-size:12px;font-weight:800;cursor:pointer;line-height:1.2}' +
       '.dst-tab:hover{background:var(--cream2)}' +
       '.dst-tab--active{background:linear-gradient(180deg,rgba(201,149,42,.22),rgba(201,149,42,.12));color:var(--ink);border-color:rgba(201,149,42,.45)}' +
       '.dst-tab:focus-visible{outline:2px solid var(--gold);outline-offset:2px}' +
@@ -185,7 +185,7 @@
       '.dst-sheet th,.dst-sheet td{border:1px solid var(--cream2);padding:0;vertical-align:top}' +
       '.dst-sheet thead th{background:var(--ink);color:var(--gold2);padding:8px 6px;text-align:left;font-weight:700;font-size:10px}' +
       '.dst-sheet .dst-day-col{width:22%;background:var(--cream2);font-weight:800;color:var(--ink2);padding:8px 6px;white-space:nowrap}' +
-      '.dst-cell{width:100%;min-height:48px;border:0;resize:vertical;margin:0;font-family:\"Noto Sans Bengali\",sans-serif;font-size:11px;' +
+      '.dst-cell{width:100%;min-height:48px;border:0;resize:vertical;margin:0;font-family:\"Tiro Bangla\",serif;font-size:11px;' +
       'padding:8px;box-sizing:border-box;background:#fff;color:var(--ink2);line-height:1.4}' +
       '.dst-cell:focus{outline:2px solid var(--gold);outline-offset:-2px}' +
       '.dst-sheet tbody tr:nth-child(even) .dst-cell{background:#fffaf5}';

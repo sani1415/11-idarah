@@ -13,7 +13,7 @@
   .ma-sum-row:last-child { margin-bottom:0; }
   .ma-sum-card { flex:1; min-width:0; background:var(--cream); border-radius:var(--radius-sm); padding:8px 6px 10px; text-align:center; border:1px solid rgba(26,18,8,.06); }
   .ma-sum-label { display:block; font-size:8px; color:var(--ink3); line-height:1.25; margin-bottom:4px; }
-  .ma-sum-val { font-family:'Noto Serif Bengali',serif; font-size:15px; font-weight:700; color:var(--ink2); line-height:1.15; display:block; }
+  .ma-sum-val { font-family:'Tiro Bangla',serif; font-size:15px; font-weight:700; color:var(--ink2); line-height:1.15; display:block; }
   .ma-sum-val.v-green { color:var(--green); }
   .ma-sum-val.v-red { color:var(--red); }
   .ma-sum-val.v-gold { color:var(--gold); }
@@ -26,7 +26,7 @@
   .watch-card--special { border-color:rgba(108,52,131,.35); background:linear-gradient(180deg,#faf7fc,#fff); }
   .watch-card--khuluk { border-color:rgba(20,122,80,.35); background:linear-gradient(180deg,#f3fbf7,#fff); }
   .watch-card--ah { border-color:rgba(180,83,9,.38); background:linear-gradient(180deg,#fffbeb,#fff); }
-  .watch-val { font-family:'Noto Serif Bengali',serif; font-size:clamp(13px,3.4vw,18px); font-weight:700; line-height:1.1; }
+  .watch-val { font-family:'Tiro Bangla',serif; font-size:clamp(13px,3.4vw,18px); font-weight:700; line-height:1.1; }
   .watch-val--absent { color:var(--red); }
   .watch-val--special { color:#7c3aed; }
   .watch-val--ah { color:#b45309; }
@@ -36,19 +36,19 @@
   .dept-choice-bg { position:fixed; inset:0; z-index:260; background:rgba(26,18,8,.32); display:none; align-items:flex-end; justify-content:center; padding:16px; box-sizing:border-box; }
   .dept-choice-bg.is-open { display:flex; }
   .dept-choice-card { width:100%; max-width:420px; background:#fff; border-radius:var(--radius); box-shadow:0 18px 50px rgba(26,18,8,.22); padding:16px; }
-  .dept-choice-title { font-family:'Noto Serif Bengali',serif; font-size:17px; font-weight:700; color:var(--ink2); }
+  .dept-choice-title { font-family:'Tiro Bangla',serif; font-size:17px; font-weight:700; color:var(--ink2); }
   .dept-choice-sub { font-size:12px; color:var(--ink3); margin-top:4px; line-height:1.5; }
   .dept-choice-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
-  .dept-choice-btn { border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:var(--cream); color:var(--ink2); padding:12px 8px; font-family:'Noto Sans Bengali',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
+  .dept-choice-btn { border:1.5px solid var(--cream3); border-radius:var(--radius-sm); background:var(--cream); color:var(--ink2); padding:12px 8px; font-family:'Tiro Bangla',serif; font-size:13px; font-weight:700; cursor:pointer; }
   .dept-choice-btn:active { transform:scale(.98); }
-  .dept-choice-cancel { width:100%; margin-top:10px; border:none; background:transparent; color:var(--ink3); font-family:'Noto Sans Bengali',sans-serif; font-size:12px; padding:8px; cursor:pointer; }
+  .dept-choice-cancel { width:100%; margin-top:10px; border:none; background:transparent; color:var(--ink3); font-family:'Tiro Bangla',serif; font-size:12px; padding:8px; cursor:pointer; }
 
   /* হুসনুল খুলুক tier overlay */
   .kh-overlay { position:fixed; inset:0; z-index:200; background:var(--bg,#faf6ef); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .25s ease; }
   .kh-overlay.is-open { transform:translateX(0); }
   .kh-ov-header { display:flex; align-items:center; gap:10px; padding:14px 16px 10px; background:var(--ink); color:var(--gold2); flex-shrink:0; }
   .kh-ov-back { background:none; border:none; color:inherit; font-size:22px; cursor:pointer; padding:4px 10px 4px 0; line-height:1; }
-  .kh-ov-title { font-family:'Noto Serif Bengali',serif; font-size:16px; font-weight:700; }
+  .kh-ov-title { font-family:'Tiro Bangla',serif; font-size:16px; font-weight:700; }
   .kh-ov-sub { font-size:11px; color:rgba(255,255,255,.65); margin-top:2px; }
   .kh-ov-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px; padding-bottom:32px; }
   .kh-tier-card { background:#fff; border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow); margin-bottom:10px; cursor:pointer; transition:background .12s; border-left:4px solid transparent; }
@@ -57,8 +57,8 @@
   .kh-tier-card--mid  { border-left-color:var(--gold); }
   .kh-tier-card--low  { border-left-color:var(--red); }
   .kh-tier-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
-  .kh-tier-name { font-size:14px; font-weight:700; font-family:'Noto Serif Bengali',serif; }
-  .kh-tier-count { font-size:18px; font-weight:700; font-family:'Noto Serif Bengali',serif; }
+  .kh-tier-name { font-size:14px; font-weight:700; font-family:'Tiro Bangla',serif; }
+  .kh-tier-count { font-size:18px; font-weight:700; font-family:'Tiro Bangla',serif; }
   .kh-tier-count--high { color:var(--green); }
   .kh-tier-count--mid  { color:var(--gold); }
   .kh-tier-count--low  { color:var(--red); }
@@ -66,12 +66,12 @@
   .kh-tier-list { margin-top:8px; display:none; }
   .kh-tier-list.open { display:block; }
   .kh-tier-student { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--cream); border-radius:8px; margin-bottom:6px; }
-  .kh-ts-name { flex:1; min-width:0; text-align:left; font-size:13px; font-family:'Noto Serif Bengali',serif; color:var(--ink); }
+  .kh-ts-name { flex:1; min-width:0; text-align:left; font-size:13px; font-family:'Tiro Bangla',serif; color:var(--ink); }
   .kh-tier-student .s-name-btn.kh-ts-name { display:block; width:100%; }
-  .kh-ts-score { font-size:13px; font-weight:700; font-family:'Noto Serif Bengali',serif; }
+  .kh-ts-score { font-size:13px; font-weight:700; font-family:'Tiro Bangla',serif; }
   .kh-ts-class { font-size:10px; color:var(--ink3); }
   .kh-avg-banner { background:#fff; border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow); margin-bottom:14px; display:flex; align-items:center; gap:12px; }
-  .kh-avg-num { font-family:'Noto Serif Bengali',serif; font-size:32px; font-weight:700; color:var(--green); min-width:60px; text-align:center; }
+  .kh-avg-num { font-family:'Tiro Bangla',serif; font-size:32px; font-weight:700; color:var(--green); min-width:60px; text-align:center; }
   .kh-avg-info { flex:1; }
   .kh-avg-label { font-size:11px; color:var(--ink3); }
   .kh-avg-note { font-size:12px; color:var(--ink2); margin-top:2px; }
@@ -87,13 +87,13 @@
 
   /* dept tab — এডমিন কনটেন্টের সবার উপর (টপবারের নিচে) */
   .dept-tab { display:flex; gap:8px; margin-top:0; margin-bottom:14px; }
-  .dept-tab-btn { flex:1; padding:10px 6px; background:#fff; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink3); transition:all .15s; }
+  .dept-tab-btn { flex:1; padding:10px 6px; background:#fff; border:1.5px solid var(--cream3); border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-family:'Tiro Bangla',serif; font-size:12px; color:var(--ink3); transition:all .15s; }
   .dept-tab-btn[aria-selected="true"] { border-color:var(--ink); background:var(--ink); color:var(--gold2); }
 
   /* class table */
   .class-table-wrap { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:12px; overflow:hidden; }
   .class-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  .class-table { width:100%; table-layout:fixed; border-collapse:collapse; font-family:'Noto Sans Bengali',sans-serif; font-size:11px; }
+  .class-table { width:100%; table-layout:fixed; border-collapse:collapse; font-family:'Tiro Bangla',serif; font-size:11px; }
   .class-table thead th { background:var(--ink); color:var(--gold2); font-weight:600; padding:7px 4px; text-align:left; white-space:nowrap; font-size:10px; }
   .class-table thead th:nth-child(1), .class-table tbody td.td-name { width:18%; }
   .class-table thead th:nth-child(2), .class-table tbody td.td-teacher { width:22%; }
@@ -106,11 +106,11 @@
   .class-table tbody tr.class-row:hover { background:rgba(0,0,0,.03); }
   .class-table tbody tr.class-row:active { background:rgba(0,0,0,.06); }
   .class-table tbody tr.dept-section-row td { background:var(--cream2); color:var(--ink2); font-size:10px; font-weight:700; padding:6px 8px; border-bottom:1px solid var(--cream3); }
-  .class-table .td-name { font-family:'Noto Serif Bengali',serif; font-size:12px; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .class-table .td-name { font-family:'Tiro Bangla',serif; font-size:12px; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .class-table .td-teacher { font-size:10px; color:var(--ink3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .class-table .td-teacher--tch { color: var(--ink2); text-decoration: underline; text-decoration-color: rgba(14, 165, 233, 0.5); cursor: pointer; }
   .class-table .td-teacher--tch:active { opacity: 0.85; }
-  .class-table .td-num { font-family:'Noto Serif Bengali',serif; font-size:12px; font-weight:700; text-align:center; white-space:nowrap; }
+  .class-table .td-num { font-family:'Tiro Bangla',serif; font-size:12px; font-weight:700; text-align:center; white-space:nowrap; }
   .class-table .td-num.n-in { color:var(--ink); }
   .class-table .td-num.n-pr { color:var(--green); }
   .class-table .td-num.n-ab { color:var(--red); }
@@ -122,19 +122,19 @@
   .cls-ov-header { display:flex; align-items:center; gap:10px; padding:14px 16px 10px; background:var(--ink); color:var(--gold2); flex-shrink:0; }
   .cls-ov-back { background:none; border:none; color:inherit; font-size:22px; cursor:pointer; padding:4px 10px 4px 0; line-height:1; }
   .cls-ov-info { flex:1; min-width:0; }
-  .cls-ov-title { font-family:'Noto Serif Bengali',serif; font-size:16px; font-weight:700; }
+  .cls-ov-title { font-family:'Tiro Bangla',serif; font-size:16px; font-weight:700; }
   .cls-ov-teacher { font-size:11px; color:rgba(255,255,255,.65); margin-top:2px; }
   .cls-ov-tabs { display:flex; border-bottom:2px solid var(--cream2); background:#fff; flex-shrink:0; }
-  .cls-ov-tab { flex:1; padding:10px 4px; border:none; background:none; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink3); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; transition:color .15s; }
+  .cls-ov-tab { flex:1; padding:10px 4px; border:none; background:none; font-family:'Tiro Bangla',serif; font-size:12px; color:var(--ink3); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; transition:color .15s; }
   .cls-ov-tab.active { color:var(--ink); font-weight:700; border-bottom-color:var(--gold); }
   .cls-ov-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px; padding-bottom:32px; }
   .ov-list { display:flex; flex-direction:column; gap:8px; }
   .ov-student-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
   .ov-s-id { font-size:10px; color:var(--ink3); min-width:30px; }
-  .ov-s-name { flex:1; font-size:13px; font-family:'Noto Serif Bengali',serif; color:var(--ink); }
+  .ov-s-name { flex:1; font-size:13px; font-family:'Tiro Bangla',serif; color:var(--ink); }
   .ov-s-status { font-size:11px; font-weight:700; min-width:60px; text-align:right; }
   .ov-kitab-row { padding:12px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-  .ov-k-name { font-size:13px; font-family:'Noto Serif Bengali',serif; color:var(--ink); margin-bottom:4px; }
+  .ov-k-name { font-size:13px; font-family:'Tiro Bangla',serif; color:var(--ink); margin-bottom:4px; }
   .ov-k-pct { font-size:12px; font-weight:700; color:var(--green); margin-bottom:6px; }
   .ov-k-bar { height:6px; background:var(--cream2); border-radius:3px; overflow:hidden; }
   .ov-k-fill { height:100%; background:var(--green); border-radius:3px; }

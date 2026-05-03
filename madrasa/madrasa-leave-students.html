@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="../css/style.css">
 <style>
   .leave-page { max-width: 520px; margin: 0 auto; padding: 12px 16px calc(24px + env(safe-area-inset-bottom)); }
-  .leave-head { font-family: 'Noto Serif Bengali', serif; font-size: 18px; font-weight: 700; color: var(--ink2); margin-bottom: 6px; }
+  .leave-head { font-family: 'Tiro Bangla', serif; font-size: 18px; font-weight: 700; color: var(--ink2); margin-bottom: 6px; }
   .leave-sub { font-size: 12px; color: var(--ink3); line-height: 1.5; margin-bottom: 16px; }
   .leave-row {
     background: #fff;
@@ -21,7 +21,7 @@
     border: 1px solid rgba(26, 18, 8, 0.06);
   }
   .leave-rank {
-    font-family: 'Noto Serif Bengali', serif;
+    font-family: 'Tiro Bangla', serif;
     font-size: 18px;
     font-weight: 700;
     color: var(--gold);
@@ -32,7 +32,7 @@
   .leave-name { font-size: 14px; font-weight: 600; color: var(--ink); }
   .leave-meta { font-size: 11px; color: var(--ink3); margin-top: 3px; }
   .leave-days {
-    font-family: 'Noto Serif Bengali', serif;
+    font-family: 'Tiro Bangla', serif;
     font-size: 17px;
     font-weight: 700;
     color: var(--red);
@@ -89,7 +89,7 @@
           <div class="leave-rank">${toBn(i + 1)}</div>
           <div class="leave-info">
             <div class="leave-name"><button type="button" class="s-name-btn" style="font-size:14px;font-weight:600;" onclick="MMStudentModal.open('${x.student.id}')">${API.esc(x.student.name)}</button></div>
-            <div class="leave-meta">${API.esc(cls ? cls.name : '—')} · রোল ${API.esc(x.student.roll || '—')}</div>
+            <div class="leave-meta">${API.esc(cls ? cls.name : '—')} · রোল ${API.escBn(x.student.roll || '—')}</div>
           </div>
           <div class="leave-days">${toBn(x.leaveDays)} দিন</div>
         </div>`;

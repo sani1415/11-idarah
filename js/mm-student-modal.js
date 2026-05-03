@@ -278,8 +278,8 @@
       : kv('ঠিকানা', API.esc(s.address || '—'));
     var infoBlock =
       '<div class="st-kv-grid">' +
-      kv('স্থায়ী আইডি', API.esc(s.permanent_id || '—')) +
-      kv('রোল', API.esc(s.roll || '—')) +
+      kv('স্থায়ী আইডি', API.escBn(s.permanent_id || '—')) +
+      kv('রোল', API.escBn(s.roll || '—')) +
       kv('বর্তমান বর্ষ', API.esc(clsName)) +
       kv('বিভাগ', API.esc(deptLbl)) +
       kv(

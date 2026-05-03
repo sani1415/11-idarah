@@ -14,7 +14,7 @@
     display: flex; justify-content: space-between; align-items: flex-start;
     margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--cream2);
   }
-  .group-name { font-family: 'Noto Serif Bengali', serif; font-size: 16px; font-weight: 700; color: var(--ink2); }
+  .group-name { font-family: 'Tiro Bangla', serif; font-size: 16px; font-weight: 700; color: var(--ink2); }
   .group-meta { font-size: 11px; color: var(--ink3); margin-top: 3px; }
 
   .para-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 10px 0; }
@@ -34,7 +34,7 @@
   .progress-ring { transform: rotate(-90deg); }
   .ring-bg { fill: none; stroke: var(--cream3); stroke-width: 4; }
   .ring-fill { fill: none; stroke: var(--green); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .5s; }
-  .ring-label { font-family: 'Noto Serif Bengali', serif; font-size: 13px; font-weight: 700; color: var(--green); }
+  .ring-label { font-family: 'Tiro Bangla', serif; font-size: 13px; font-weight: 700; color: var(--green); }
 
   .member-row {
     display: flex; align-items: center; padding: 9px 0;
@@ -76,9 +76,9 @@
     <div style="background:linear-gradient(135deg,#6c3483,#8e44ad);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
       <div style="font-size:13px;opacity:.6;margin-bottom:10px;">হিফজ বিভাগ · সামগ্রিক</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-hifz">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">হাফেজ ছাত্র</div></div>
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="total-groups">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">সক্রিয় ফরিক</div></div>
-        <div><div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:700;" id="avg-para">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">গড় পারা</div></div>
+        <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="total-hifz">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">হাফেজ ছাত্র</div></div>
+        <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="total-groups">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">সক্রিয় ফরিক</div></div>
+        <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="avg-para">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">গড় পারা</div></div>
       </div>
     </div>
 
@@ -111,17 +111,17 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <div>
             <div style="font-size:13px;color:var(--ink3);">সম্পন্ন পারা</div>
-            <div style="font-family:'Noto Serif Bengali',serif;font-size:24px;font-weight:700;color:var(--green);" id="g-para-done">—</div>
+            <div style="font-family:'Tiro Bangla',serif;font-size:24px;font-weight:700;color:var(--green);" id="g-para-done">—</div>
           </div>
           <div id="progress-ring-container"></div>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:4px;">
           <div style="flex:1;background:var(--green-light);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-            <div style="font-family:'Noto Serif Bengali',serif;font-size:16px;font-weight:700;color:var(--green);" id="g-surah-done">—</div>
+            <div style="font-family:'Tiro Bangla',serif;font-size:16px;font-weight:700;color:var(--green);" id="g-surah-done">—</div>
             <div style="font-size:10px;color:var(--green);">সূরা সম্পন্ন</div>
           </div>
           <div style="flex:1;background:var(--blue-light);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-            <div style="font-family:'Noto Serif Bengali',serif;font-size:16px;font-weight:700;color:var(--blue);" id="g-revision">—</div>
+            <div style="font-family:'Tiro Bangla',serif;font-size:16px;font-weight:700;color:var(--blue);" id="g-revision">—</div>
             <div style="font-size:10px;color:var(--blue);">মুরাজাআ পারা</div>
           </div>
         </div>
@@ -334,7 +334,7 @@
             <div class="group-meta">${toBn(mems.length)} সদস্য · শুরু ${API.esc(g.start || '')}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-family:'Noto Serif Bengali',serif;font-size:20px;font-weight:700;color:var(--purple);">${latest ? toBn(latest.para_done) : '০'}/৩০</div>
+            <div style="font-family:'Tiro Bangla',serif;font-size:20px;font-weight:700;color:var(--purple);">${latest ? toBn(latest.para_done) : '০'}/৩০</div>
             <div style="font-size:10px;color:var(--ink3);">পারা সম্পন্ন</div>
           </div>
         </div>
@@ -438,7 +438,7 @@
           <div class="member-name"><button type="button" class="s-name-btn" style="font-size:14px;font-weight:600;color:var(--ink);" onclick="MMStudentModal.open('${s.id}')">${API.esc(s.name)}</button></div>
           <div class="member-class">${cls ? API.esc(cls.name) : ''} · যোগদান: ${API.esc(m.joined || '')}</div>
         </div>
-        <span class="list-badge badge-ink">${API.esc(s.permanent_id)}</span>
+        <span class="list-badge badge-ink">${API.escBn(s.permanent_id)}</span>
       </div>` : '';
     }).join('') || '<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো সদস্য নেই</div></div>';
 

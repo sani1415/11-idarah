@@ -14,7 +14,7 @@
   .student-row { display:flex; align-items:center; gap:10px; background:#fff; border-radius:12px; padding:9px 10px; box-shadow:0 1px 5px rgba(0,0,0,.06); margin-bottom:7px; }
   .student-roll { min-width:36px; padding:4px 7px; border-radius:999px; background:var(--cream2); color:var(--ink3); text-align:center; font-size:11px; font-weight:700; }
   .student-main { flex:1; min-width:0; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
-  .student-name { border:none; background:none; padding:0; margin:0; font:inherit; font-family:'Noto Serif Bengali',serif; font-size:14px; font-weight:800; color:var(--ink); cursor:pointer; text-align:left; }
+  .student-name { border:none; background:none; padding:0; margin:0; font:inherit; font-family:'Tiro Bangla',serif; font-size:14px; font-weight:800; color:var(--ink); cursor:pointer; text-align:left; }
   .student-name:hover { color:var(--blue); text-decoration:underline; }
   .student-id { font-size:10px; color:var(--ink3); white-space:nowrap; }
   .student-id::before { content:'·'; margin-right:5px; opacity:.55; }
@@ -81,7 +81,6 @@
 <script src="../js/mdr-supabase-sync.js"></script>
 <script>
   if (!MMSession.requireAdminPerm('dashboard', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
-  const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮۹'[d]);
   const allowedDepts = MMSession.getAllowedMadrasaDepts();
   const bnNum = n => String(n).replace(/[0-9]/g, d => String.fromCharCode(0x09E6 + Number(d)));
   const params = new URLSearchParams(location.search);
@@ -160,10 +159,10 @@
     document.getElementById('student-list').innerHTML = list.map(s => {
       const cls = cMap[s.class_id] || {};
       return `<div class="student-row">
-        <div class="student-roll">${API.esc(s.roll || '—')}</div>
+        <div class="student-roll">${API.escBn(s.roll || '—')}</div>
         <div class="student-main">
           <button class="student-name" onclick="MMStudentModal.open('${API.esc(s.id)}')">${API.esc(s.name)}</button>
-          <span class="student-id">${API.esc(s.permanent_id || '—')}</span>
+          <span class="student-id">${API.escBn(s.permanent_id || '—')}</span>
         </div>
         ${currentDept === 'all' ? `<div class="student-class">${API.esc(deptLabel(cls.dept) + ' · ' + (cls.name || '—'))}</div>` : ''}
       </div>`;

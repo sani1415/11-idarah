@@ -14,14 +14,14 @@ body.page-daftar .topbar-name { font-size:16px; }
 body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-size:11px; }
 
 .top-tabs { display:flex; border-bottom:2px solid var(--cream2); background:#fff; position:sticky; top:0; z-index:10; }
-.top-tab { flex:1; padding:11px 4px; border:none; background:none; font-family:'Noto Sans Bengali',sans-serif; font-size:12px; font-weight:600; color:var(--ink3); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; transition:color .15s; }
+.top-tab { flex:1; padding:11px 4px; border:none; background:none; font-family:'Tiro Bangla',serif; font-size:12px; font-weight:600; color:var(--ink3); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; transition:color .15s; }
 .top-tab.active { color:var(--ink); border-bottom-color:var(--gold); }
 
 .stu-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); margin-bottom:6px; }
 .stu-roll { font-size:11px; color:var(--ink3); min-width:28px; text-align:center; }
 .stu-info { flex:1; min-width:0; }
 .stu-name { font-size:13px; font-weight:600; color:var(--ink); }
-.s-name-btn { display:inline; text-align:left; background:none; border:none; font:inherit; font-weight:600; color:var(--ink); font-family:'Noto Sans Bengali',sans-serif; padding:0; margin:0; cursor:pointer; max-width:100%; }
+.s-name-btn { display:inline; text-align:left; background:none; border:none; font:inherit; font-weight:600; color:var(--ink); font-family:'Tiro Bangla',serif; padding:0; margin:0; cursor:pointer; max-width:100%; }
 .s-name-btn:hover { text-decoration:underline; color:var(--blue); }
 .stu-meta { font-size:11px; color:var(--ink3); margin-top:2px; }
 .cls-label { display:inline-block; font-size:10px; padding:1px 8px; border-radius:20px; background:var(--cream2); color:var(--ink3); margin-bottom:6px; }
@@ -38,7 +38,7 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
 .csv-table tr:last-child td { border-bottom:none; }
 .csv-table tr.row-err td { color:var(--red); background:var(--red-light); }
 .err-tag { font-size:10px; color:var(--red); background:var(--red-light); border-radius:4px; padding:1px 5px; margin-right:4px; }
-.dl-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:var(--cream2); border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Noto Sans Bengali',sans-serif; font-size:12px; color:var(--ink2); cursor:pointer; margin-bottom:12px; text-decoration:none; }
+.dl-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:var(--cream2); border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Tiro Bangla',serif; font-size:12px; color:var(--ink2); cursor:pointer; margin-bottom:12px; text-decoration:none; }
 .dl-btn:hover { background:var(--cream3); }
 </style>
 </head>
@@ -241,10 +241,10 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
         html += `<div class="cls-label">${API.esc(lastCls)}</div>`;
       }
       html += `<div class="stu-row">
-        <div class="stu-roll">${API.esc(s.roll||'—')}</div>
+        <div class="stu-roll">${API.escBn(s.roll||'—')}</div>
         <div class="stu-info">
           <div class="stu-name"><button type="button" class="s-name-btn" onclick="MMStudentModal.open('${s.id}')">${API.esc(s.name)}</button></div>
-          <div class="stu-meta">${API.esc(s.permanent_id||'—')} · ${API.esc(s.guardian||'—')} · ${API.esc(s.phone||'—')}</div>
+          <div class="stu-meta">${API.escBn(s.permanent_id||'—')} · ${API.esc(s.guardian||'—')} · ${API.esc(s.phone||'—')}</div>
         </div>
       </div>`;
     });
@@ -344,7 +344,7 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
     const tbody = '<tbody>' + csvRows.map((r) => {
       const st = r.err ? ('<span class="err-tag">' + API.esc(r.err) + '</span>') : '✓';
       const idCell = r.err ? '—' : API.esc(r.resolved_pid || '—');
-      return `<tr class="${r.err ? 'row-err' : ''}"><td>${toBn(r.idx)}</td><td>${API.esc(r.name)}</td><td>${API.esc(r.clsName)}</td><td>${API.esc(r.roll)}</td><td>${API.esc(r.district || '—')}</td><td>${API.esc(r.upazila || '—')}</td><td>${idCell}</td><td>${API.esc(r.guardian)}</td><td>${API.esc(r.phone)}</td><td>${st}</td></tr>`;
+      return `<tr class="${r.err ? 'row-err' : ''}"><td>${toBn(r.idx)}</td><td>${API.esc(r.name)}</td><td>${API.esc(r.clsName)}</td><td>${API.escBn(r.roll)}</td><td>${API.esc(r.district || '—')}</td><td>${API.esc(r.upazila || '—')}</td><td>${idCell}</td><td>${API.esc(r.guardian)}</td><td>${API.esc(r.phone)}</td><td>${st}</td></tr>`;
     }).join('') + '</tbody>';
     document.getElementById('csv-table').innerHTML = thead + tbody;
     document.getElementById('csv-confirm-btn').textContent = toBn(validN) + ' জন ছাত্র ভর্তি করুন';

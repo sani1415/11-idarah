@@ -83,6 +83,67 @@
   }
   .pin-role-icon svg { width: 25px; height: 25px; }
   .teacher-login-fields { display:none; margin-bottom:12px; }
+
+  /* ভূমিকা স্ক্রিন: উপরের অংশ ও গ্রিড — আগের চেয়ে একটু আরাম (স্ক্রল এড়াতে মাঝামাঝি) */
+  #role-screen.login-screen {
+    justify-content: flex-start;
+    padding: 12px 14px 14px;
+    padding-top: max(10px, env(safe-area-inset-top));
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  #role-screen .login-logo {
+    font-size: 23px;
+    line-height: 1.18;
+    margin-bottom: 2px;
+  }
+  #role-screen .login-inst-bn {
+    font-family: 'Tiro Bangla', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold2);
+    text-align: center;
+    margin-bottom: 4px;
+    line-height: 1.22;
+  }
+  #role-screen .login-subtitle {
+    margin-bottom: 14px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  #role-screen .role-grid.role-grid-index {
+    gap: 8px;
+    margin-top: 0;
+  }
+  #role-screen .role-grid.role-grid-index .role-btn {
+    padding: 13px 11px;
+    gap: 7px;
+  }
+  #role-screen .role-grid.role-grid-index .role-icon {
+    width: 37px;
+    height: 37px;
+    border-radius: 13px;
+  }
+  #role-screen .role-grid.role-grid-index .role-btn-admin .role-icon {
+    width: 43px;
+    height: 43px;
+    border-radius: 15px;
+  }
+  #role-screen .role-grid.role-grid-index .role-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+  #role-screen .role-grid.role-grid-index .role-btn-admin .role-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+  #role-screen .role-grid.role-grid-index .role-name {
+    font-size: 13px;
+    line-height: 1.22;
+  }
+  #role-screen .role-grid.role-grid-index .role-btn-admin .role-name {
+    font-size: 15px;
+  }
 </style>
 </head>
 <body>
@@ -90,7 +151,7 @@
 <!-- ROLE SELECT -->
 <div class="login-screen" id="role-screen">
   <div class="login-logo">مدرسة المدينة</div>
-  <div style="font-family:'Noto Serif Bengali',serif;font-size:20px;font-weight:700;color:var(--gold2);text-align:center;margin-bottom:4px;">মাদরাসাতুল মদীনা</div>
+  <div class="login-inst-bn">মাদরাসাতুল মদীনা</div>
   <div class="login-subtitle">আপনার ভূমিকা নির্বাচন করুন</div>
 
   <div class="role-grid role-grid-index">
@@ -137,7 +198,7 @@
 <div class="login-screen" id="pin-screen" style="display:none;">
   <div style="text-align:center;margin-bottom:32px;position:relative;">
     <div class="pin-role-icon" id="pin-icon" data-icon="admin"></div>
-    <div style="font-family:'Noto Serif Bengali',serif;font-size:19px;font-weight:700;color:var(--ink2);" id="pin-title">জিম্মাদার লগইন</div>
+    <div style="font-family:'Tiro Bangla',serif;font-size:19px;font-weight:700;color:var(--ink2);" id="pin-title">জিম্মাদার লগইন</div>
     <div style="font-size:12px;color:var(--ink3);margin-top:4px;" id="pin-sub">অ্যাডমিন পিন দিন</div>
   </div>
 

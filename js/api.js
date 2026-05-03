@@ -29,6 +29,13 @@ const API = (() => {
   const today = () => new Date().toISOString().split('T')[0];
   const now = () => new Date().toISOString();
   const esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  /** UI-তে লাতিন অংক → বাংলা অংক (০–৯); তারিখ/ফোন ইত্যাদি স্ট্রিংও পাস করা যায় */
+  function toBn(v) {
+    return String(v == null ? '' : v).replace(/\d/g, (ch) => String.fromCharCode(0x09e6 + ch.charCodeAt(0) - 48));
+  }
+  function escBn(v) {
+    return esc(toBn(v));
+  }
 
   function load(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
@@ -902,11 +909,13 @@ const API = (() => {
     Settings, Sessions, Holidays,
     OldMadrasaImport,
     persistLoadArr, persistSaveArr,
-    uid, today, now, esc,
+    uid, today, now, esc, escBn, toBn,
   };
 
 })();
 
 if (typeof globalThis !== 'undefined' && typeof API !== 'undefined') {
   globalThis.API = API;
+  globalThis.toBn = API.toBn;
+  globalThis.escBn = API.escBn;
 }

@@ -11,7 +11,7 @@
   .ben-top { display:flex; align-items:center; gap:12px; }
   .ben-avatar { width:44px; height:44px; border-radius:50%; background:var(--teal-light); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
   .ben-info { flex:1; }
-  .ben-name { font-family:'Noto Serif Bengali',serif; font-size:15px; font-weight:700; color:var(--ink2); }
+  .ben-name { font-family:'Tiro Bangla',serif; font-size:15px; font-weight:700; color:var(--ink2); }
   .ben-addr { font-size:11px; color:var(--ink3); margin-top:2px; }
   .ben-count { font-size:11px; color:var(--ink3); padding:4px 8px; background:var(--cream2); border-radius:10px; }
 
@@ -19,7 +19,7 @@
   .act-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
   .act-emoji { font-size:18px; }
   .act-title { font-size:13px; font-weight:600; color:var(--ink); flex:1; }
-  .act-amt { font-family:'Noto Serif Bengali',serif; font-size:13px; font-weight:700; color:var(--red); }
+  .act-amt { font-family:'Tiro Bangla',serif; font-size:13px; font-weight:700; color:var(--red); }
   .act-desc { font-size:12px; color:var(--ink3); line-height:1.5; }
   .act-date { font-size:10px; color:var(--ink3); margin-top:4px; }
 
@@ -28,7 +28,7 @@
   .fin-desc { flex:1; }
   .fin-title { font-size:13px; font-weight:600; color:var(--ink); }
   .fin-source { font-size:11px; color:var(--ink3); margin-top:2px; }
-  .fin-amt { font-family:'Noto Serif Bengali',serif; font-size:15px; font-weight:700; }
+  .fin-amt { font-family:'Tiro Bangla',serif; font-size:15px; font-weight:700; }
   .fin-amt.income { color:var(--green); }
   .fin-amt.expense { color:var(--red); }
 
@@ -59,8 +59,8 @@
 
 <!-- PANEL: BENEFICIARIES -->
 <div class="content" id="panel-ben" style="padding-bottom: var(--app-content-pad-bottom);">
-  <div class="sec-header" style="margin-top:6px;"><div class="sec-title">উপকারভোগী তালিকা</div></div>
-  <button class="add-btn" onclick="openAddBen()">+ নতুন উপকারভোগী যোগ করুন</button>
+  <div class="sec-header" style="margin-top:6px;"><div class="sec-title">মাখদুম তালিকা</div></div>
+  <button class="add-btn" onclick="openAddBen()">+ নতুন মাখদুম যোগ করুন</button>
   <div id="ben-list"></div>
 </div>
 
@@ -89,7 +89,7 @@
 <nav class="bottom-nav" aria-label="নিচের নেভিগেশন">
   <div class="nav-item active" id="nav-ben" onclick="switchPanel('ben')">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="nav-label">উপকারভোগী</span>
+    <span class="nav-label">মাখদুম</span>
   </div>
   <div class="nav-item" id="nav-log" onclick="switchPanel('log')">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V12.75a9 9 0 00-9-9z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -108,7 +108,7 @@
 <!-- ADD BENEFICIARY MODAL -->
 <div class="modal-bg" id="modal-ben">
   <div class="modal">
-    <div class="modal-title">নতুন উপকারভোগী <button class="modal-close" onclick="closeModal('modal-ben')">✕</button></div>
+    <div class="modal-title">নতুন মাখদুম <button class="modal-close" onclick="closeModal('modal-ben')">✕</button></div>
     <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="b-name" placeholder="পুরো নাম"></div>
     <div class="form-group"><label class="form-label">ঠিকানা</label><input class="form-input" id="b-addr" placeholder="গ্রাম / পাড়া"></div>
     <div class="form-group"><label class="form-label">ফোন (ঐচ্ছিক)</label><input class="form-input" id="b-phone" placeholder="০১..."></div>
@@ -218,7 +218,7 @@
             </div>
           </div>`;
         }).join('')
-      : '<div style="text-align:center;color:var(--ink3);padding:40px 0;font-size:13px;">কোনো উপকারভোগী নেই</div>';
+      : '<div style="text-align:center;color:var(--ink3);padding:40px 0;font-size:13px;">কোনো মাখদুম নেই</div>';
   }
 
   function renderLog() {
@@ -267,7 +267,7 @@
     KhAPI.Beneficiaries.add({ name, address:addr, phone, family_info:family, notes });
     closeModal('modal-ben');
     renderBen();
-    showToast('উপকারভোগী যোগ হয়েছে');
+    showToast('মাখদুম যোগ হয়েছে');
   }
 
   function saveLog() {
@@ -323,7 +323,7 @@
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div style="font-family:'Noto Serif Bengali',serif;font-size:15px;font-weight:700;color:var(--ink2);">কার্যক্রম সমূহ</div>
+        <div style="font-family:'Tiro Bangla',serif;font-size:15px;font-weight:700;color:var(--ink2);">কার্যক্রম সমূহ</div>
         <button class="topbar-btn" style="color:var(--gold2);border-color:var(--gold);" onclick="openAddAct()">+ যোগ করুন</button>
       </div>
       ${acts.length

@@ -5,7 +5,7 @@
 (function() {
   const s = document.createElement('style');
   s.textContent = '.cls-overlay{will-change:transform;}.kh-overlay{will-change:transform;}' +
-    '.ov-s-name--btn{display:block;width:100%;text-align:left;background:none;border:none;font:inherit;padding:0;margin:0;cursor:pointer;color:inherit;font-size:13px;font-family:"Noto Serif Bengali",serif;}' +
+    '.ov-s-name--btn{display:block;width:100%;text-align:left;background:none;border:none;font:inherit;padding:0;margin:0;cursor:pointer;color:inherit;font-size:13px;font-family:"Tiro Bangla",serif;}' +
     '.ov-s-name--btn:hover{text-decoration:underline;color:var(--blue);}';
   document.head.appendChild(s);
 })();
@@ -114,15 +114,15 @@ function _renderOvStudents(body) {
   const summary = `<div style="display:flex;gap:10px;margin-bottom:12px;">
     <div style="flex:1;background:#fff;border-radius:10px;padding:10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06);">
       <div style="font-size:10px;color:var(--ink3);">মোট</div>
-      <div style="font-family:'Noto Serif Bengali',serif;font-size:18px;font-weight:700;color:var(--ink);">${_toBn(totalCount)}</div>
+      <div style="font-family:'Tiro Bangla',serif;font-size:18px;font-weight:700;color:var(--ink);">${_toBn(totalCount)}</div>
     </div>
     <div style="flex:1;background:#fff;border-radius:10px;padding:10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06);">
       <div style="font-size:10px;color:var(--ink3);">উপস্থিত</div>
-      <div style="font-family:'Noto Serif Bengali',serif;font-size:18px;font-weight:700;color:var(--green);">${_toBn(presentCount)}</div>
+      <div style="font-family:'Tiro Bangla',serif;font-size:18px;font-weight:700;color:var(--green);">${_toBn(presentCount)}</div>
     </div>
     <div style="flex:1;background:#fff;border-radius:10px;padding:10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06);">
       <div style="font-size:10px;color:var(--ink3);">অনুপস্থিত</div>
-      <div style="font-family:'Noto Serif Bengali',serif;font-size:18px;font-weight:700;color:var(--red);">${_toBn(absentCount)}</div>
+      <div style="font-family:'Tiro Bangla',serif;font-size:18px;font-weight:700;color:var(--red);">${_toBn(absentCount)}</div>
     </div>
   </div>`;
 
@@ -131,7 +131,7 @@ function _renderOvStudents(body) {
     const label  = status ? _STATUS_LABEL[status] : '—';
     const color  = status ? _STATUS_COLOR[status]  : 'var(--ink3)';
     return `<div class="ov-student-row">
-      <div class="ov-s-id">${API.esc(s.permanent_id || s.roll || '—')}</div>
+      <div class="ov-s-id">${API.escBn(s.permanent_id || s.roll || '—')}</div>
       ${_ovNameHtml(s.id, API.esc(s.name))}
       <div class="ov-s-status" style="color:${color};">${label}</div>
     </div>`;
@@ -169,7 +169,7 @@ function _renderOvKhuluk(body) {
   const avgBanner = avg !== null
     ? `<div style="background:#fff;border-radius:10px;padding:12px;text-align:center;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
         <div style="font-size:10px;color:var(--ink3);">বর্ষের গড় হুসনুল খুলুক</div>
-        <div style="font-family:'Noto Serif Bengali',serif;font-size:24px;font-weight:700;color:#7c3aed;">${_toBn(avg)}</div>
+        <div style="font-family:'Tiro Bangla',serif;font-size:24px;font-weight:700;color:#7c3aed;">${_toBn(avg)}</div>
        </div>`
     : '';
 
@@ -180,7 +180,7 @@ function _renderOvKhuluk(body) {
     const color = scn === null || Number.isNaN(scn) ? 'var(--ink3)' : (scn >= 81 ? 'var(--green)' : scn >= 60 ? 'var(--gold)' : 'var(--red)');
     const label = score !== null ? _toBn(score) : '—';
     return `<div class="ov-student-row">
-      <div class="ov-s-id">${API.esc(s.permanent_id || s.roll || '—')}</div>
+      <div class="ov-s-id">${API.escBn(s.permanent_id || s.roll || '—')}</div>
       ${_ovNameHtml(s.id, API.esc(s.name))}
       <div class="ov-s-status" style="color:${color};">${label}</div>
     </div>`;
