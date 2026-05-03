@@ -441,6 +441,13 @@ const API = (() => {
         });
     },
     verifyPin(id, pin) { const t = load(KEYS.teachers).find(t => t.id === id); return t && t.pin === pin; },
+    changeOwnPin(id, currentPin, newPin) {
+      const list = load(KEYS.teachers);
+      const t = list.find(t => t.id === id);
+      if (!t || t.pin !== currentPin) return false;
+      save(KEYS.teachers, list.map(t => t.id === id ? { ...t, pin: newPin } : t));
+      return true;
+    },
     update(id, data) {
       save(KEYS.teachers, load(KEYS.teachers).map(t => t.id === id ? { ...t, ...data } : t));
     },

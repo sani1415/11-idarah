@@ -6,7 +6,7 @@ var _tab      = 'summary';
 var _accF     = 'all';
 var _monF     = 'all';
 var _dayF     = 'all';
-var _sortF    = 'date_asc';
+var _sortF    = 'date_desc';
 var _dueAccF  = 'all';
 var _fromKey  = 'all';
 var _toKey    = 'all';
@@ -16,7 +16,7 @@ var _detailMonth = 'all';
 var _detailCategory = 'all';
 var _detailSupplier = 'all';
 var _detailSearch = '';
-var _detailSort = 'date_asc';
+var _detailSort = 'date_desc';
 var _accDefaulted = false;
 var _metricModalKind = '';
 var _settingsModalOpen = false;
@@ -806,7 +806,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     _detailCategory = 'all';
     _detailSupplier = 'all';
     _detailSearch = '';
-    _detailSort = 'date_asc';
+    _detailSort = 'date_desc';
     renderAccAccountDetails(account);
     openModal('account-details');
   };
@@ -868,7 +868,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     else if (field === 'category') _detailCategory = value || 'all';
     else if (field === 'supplier') _detailSupplier = value || 'all';
     else if (field === 'search') _detailSearch = value || '';
-    else if (field === 'sort') _detailSort = value || 'date_asc';
+    else if (field === 'sort') _detailSort = value || 'date_desc';
     renderAccAccountDetails(_detailAccount);
     if (field === 'search') {
       var searchEl = document.getElementById('acc-detail-search');
@@ -885,7 +885,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     _detailCategory = 'all';
     _detailSupplier = 'all';
     _detailSearch = '';
-    _detailSort = 'date_asc';
+    _detailSort = 'date_desc';
     renderAccAccountDetails(_detailAccount);
   };
 
