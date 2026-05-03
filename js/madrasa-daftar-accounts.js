@@ -61,9 +61,8 @@ var _editNeedsApproval = false;
 
   function ensureCurrentMonthDefault() {
     if (_accDefaulted) return;
-    var current = A.todayHijri().month;
-    _sumMonth = current || 'all';
-    _monF = current || 'all';
+    _sumMonth = 'all';
+    _monF = 'all';
     _accDefaulted = true;
   }
 
