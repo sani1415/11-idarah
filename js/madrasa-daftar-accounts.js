@@ -568,6 +568,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
       .filter(function (r) { return _yearF === 'all' || String(r.hijriYear) === _yearF; });
     var allInc = (_sumMonth === 'all' ? A.Income.getAll() : A.Income.getByMonth(_sumMonth))
       .filter(function (r) { return _yearF === 'all' || String(r.hijriYear) === _yearF; });
+    var allDues = A.Dues.getAll();
     var s = {
       ti: allInc.reduce(function (sum, r) { return sum + A.num(r.amount); }, 0),
       te: allExp.reduce(function (sum, r) { return sum + A.num(r.amount); }, 0),
@@ -576,14 +577,19 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     var rows = accs.map(function (acc) {
       var accRows = allExp.filter(function (r) { return r.account === acc; });
       var exp = accRows.reduce(function (sum, r) { return sum + A.num(r.amount); }, 0);
-      if (!exp) return null;
-      return { id: acc, label: AL[acc], exp: exp, count: accRows.length, pct: s.te ? Math.round(exp / s.te * 100) : 0 };
+      var due = allDues.filter(function (d) { return d.account === acc; }).reduce(function (sum, d) { return sum + Math.max(0, A.num(d.due)); }, 0);
+      if (!exp && !due) return null;
+      return { id: acc, label: AL[acc], exp: exp, due: due, count: accRows.length, pct: s.te ? Math.round(exp / s.te * 100) : 0 };
     }).filter(Boolean);
     var tblRows = rows.map(function (r) {
-      return '<tr class="acc-sum-row" role="button" tabindex="0" onclick="openAccAccountDetails(\'' + esc(r.id) + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openAccAccountDetails(\'' + esc(r.id) + '\')}"><td><div class="acc-break-name">' + esc(r.label) + '</div><div class="acc-pct-track"><div class="acc-pct-fill" style="width:' + r.pct + '%"></div></div></td>' +
-        '<td style="color:var(--red);font-weight:800">৳' + fa(r.exp) + '</td>' +
+      return '<tr class="acc-sum-row">' +
+        '<td onclick="openAccAccountDetails(\'' + esc(r.id) + '\')" style="cursor:pointer"><div class="acc-break-name">' + esc(r.label) + '</div><div class="acc-pct-track"><div class="acc-pct-fill" style="width:' + r.pct + '%"></div></div></td>' +
+        '<td onclick="openAccAccountDetails(\'' + esc(r.id) + '\')" style="cursor:pointer;color:var(--red);font-weight:800">৳' + fa(r.exp) + '</td>' +
         '<td>' + pct(r.pct) + '</td>' +
-        '<td>' + count(r.count, 'টি') + '</td></tr>';
+        (r.due > 0
+          ? '<td onclick="openAccDueDetails(\'' + esc(r.id) + '\')" style="cursor:pointer;color:var(--red);font-weight:700">৳' + fa(r.due) + '</td>'
+          : '<td style="color:var(--green)">—</td>') +
+        '</tr>';
     }).join('');
     var tb = s.ti - s.te;
     var paid = Math.max(0, s.te - Math.max(0, s.td));
@@ -596,14 +602,14 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
       '</div>';
     var tfoot = '<tr><td><strong>সর্বমোট</strong></td>' +
       '<td style="color:var(--red);font-weight:700">৳' + fa(s.te) + '</td>' +
-      '<td>' + pct(100) + '</td><td>' + count(allExp.length, 'টি') + '</td></tr>';
+      '<td>' + pct(100) + '</td><td style="color:var(--red);font-weight:700">৳' + fa(s.td) + '</td></tr>';
     var yearSel = '<select class="acc-sel" style="margin-bottom:8px" onchange="_yearF=this.value;renderAccounts()">' + yearOptions(_yearF) + '</select>';
     return '<div class="acc-dashboard">' +
       yearSel +
       '<div class="acc-money-hero"><div class="acc-money-label">বর্তমান অবস্থা</div><div class="acc-money-main ' + balCls + '">' + (tb < 0 ? '−' : '+') + '৳' + fa(Math.abs(tb)) + '</div></div>' +
       metrics +
       '<div class="acc-ledger-card"><div class="acc-ledger-title"><span>ব্যয়ের বই অনুযায়ী</span>' + (s.td ? '<span style="color:var(--red)">বকেয়া ৳' + fa(s.td) + '</span>' : '<span style="color:var(--green)">বকেয়া নেই</span>') + '</div>' +
-      '<div style="overflow-x:auto"><table class="acc-sum-tbl"><thead><tr><th>খাত / হিসাব বই</th><th>ব্যবহার</th><th>শতকরা</th><th>এন্ট্রি</th></tr></thead>' +
+      '<div style="overflow-x:auto"><table class="acc-sum-tbl"><thead><tr><th>খাত / হিসাব বই</th><th>ব্যবহার</th><th>শতকরা</th><th>বকেয়া</th></tr></thead>' +
       '<tbody>' + (tblRows || '<tr><td colspan="4" style="text-align:center;color:var(--ink3)">তথ্য নেই</td></tr>') + '</tbody>' +
       '<tfoot>' + tfoot + '</tfoot></table></div></div>' +
       '</div>';
@@ -706,6 +712,14 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     _detailSearch = '';
     _detailSort = 'date_asc';
     renderAccAccountDetails(account);
+    openModal('account-details');
+  };
+
+  window.openAccDueDetails = function (account) {
+    _metricModalKind = 'dues';
+    _settingsModalOpen = false;
+    _dueAccF = account;
+    renderAccMetricModal();
     openModal('account-details');
   };
 
