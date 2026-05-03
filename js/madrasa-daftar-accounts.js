@@ -23,6 +23,7 @@ var _settingsModalOpen = false;
 var _yearF        = 'all';
 var _editEntryId  = null;
 var _editEntryType = '';
+var _editNeedsApproval = false;
 
 (function () {
   var A   = MdrAccAPI;
@@ -142,6 +143,14 @@ body.page-daftar #account-details-title{display:flex;align-items:center;gap:6px;
 .acc-detail-clear{border:1px solid rgba(193,68,14,.16);background:rgba(193,68,14,.07);color:var(--red);border-radius:8px;padding:6px 8px;font-size:12px;cursor:pointer;font-family:inherit}
 body.page-daftar #modal-account-details .modal{display:flex;flex-direction:column;height:min(760px,calc(100vh - 32px));padding-bottom:14px}
 body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1;min-height:0}
+#modal-account-entry .modal{width:min(920px,calc(100vw - 24px));max-width:920px;height:min(820px,calc(100vh - 24px));max-height:calc(100vh - 24px);overflow:auto;padding:24px 22px 28px;box-sizing:border-box}
+body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px));height:min(820px,calc(100vh - 24px));max-height:calc(100vh - 24px)}
+#modal-account-entry .modal-title{font-size:18px;margin-bottom:14px}
+#modal-account-entry .form-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#modal-account-entry .form-group{min-width:0}
+#modal-account-entry .form-label{font-size:12px;margin-bottom:6px}
+#modal-account-entry .form-input{min-height:42px;font-size:14px;padding:10px 12px}
+#modal-account-entry .submit-btn{min-height:44px;margin-top:12px}
 .acc-detail-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
 .acc-detail-table th{position:sticky;top:0;background:#faf3e8;color:var(--ink3);font-size:10px;font-weight:900;text-align:left;padding:7px 5px;border-bottom:1px solid rgba(26,18,8,.08);z-index:1;white-space:nowrap}
 .acc-detail-table td{padding:7px 5px;border-bottom:1px solid rgba(26,18,8,.06);white-space:nowrap;text-align:left;background:#fff}
@@ -217,27 +226,38 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
 .acc-empty{text-align:center;padding:30px;color:var(--ink3);font-size:13px}
 .acc-cat-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:6px;background:#fff;margin-bottom:4px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .acc-item-wrap{overflow:auto;border:1px solid rgba(26,18,8,.08);border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(26,18,8,.045)}
-.acc-item-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
-.acc-item-table th{background:#faf3e8;color:var(--ink3);font-size:10px;font-weight:900;text-align:left;padding:7px 5px;border-bottom:1px solid rgba(26,18,8,.08);white-space:nowrap}
-.acc-item-table td{padding:5px;border-bottom:1px solid rgba(26,18,8,.06);background:#fff;vertical-align:middle}
+.acc-item-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+.acc-item-table th{background:#faf3e8;color:var(--ink3);font-size:11px;font-weight:900;text-align:left;padding:8px 7px;border-bottom:1px solid rgba(26,18,8,.08);white-space:nowrap}
+.acc-item-table td{padding:7px;border-bottom:1px solid rgba(26,18,8,.06);background:#fff;vertical-align:middle}
 .acc-item-table tr:last-child td{border-bottom:none}
 .acc-item-table tbody tr:nth-child(even) td{background:#fffaf2}
-.acc-item-table .form-input{font-size:12px;padding:6px 8px;min-height:34px;width:100%;box-sizing:border-box}
-.acc-item-table select.form-input{padding:5px 8px}
+.acc-item-table .form-input{font-size:13px;padding:8px 10px;min-height:40px;width:100%;box-sizing:border-box}
+.acc-item-table select.form-input{padding:7px 10px}
 .acc-item-del{background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:4px 6px;line-height:1}
-.acc-item-table th:nth-child(1),.acc-item-table td:nth-child(1){width:104px}
-.acc-item-table th:nth-child(2),.acc-item-table td:nth-child(2){width:128px}
-.acc-item-table th:nth-child(3),.acc-item-table td:nth-child(3){width:68px}
-.acc-item-table th:nth-child(4),.acc-item-table td:nth-child(4){width:58px}
-.acc-item-table th:nth-child(5),.acc-item-table td:nth-child(5){width:82px}
-.acc-item-table th:nth-child(6),.acc-item-table td:nth-child(6){width:78px}
-.acc-item-table th:nth-child(7),.acc-item-table td:nth-child(7){width:34px;text-align:center}`;
+.acc-item-table th:nth-child(1),.acc-item-table td:nth-child(1){width:150px}
+.acc-item-table th:nth-child(2),.acc-item-table td:nth-child(2){width:250px}
+.acc-item-table th:nth-child(3),.acc-item-table td:nth-child(3){width:96px}
+.acc-item-table th:nth-child(4),.acc-item-table td:nth-child(4){width:112px}
+.acc-item-table th:nth-child(5),.acc-item-table td:nth-child(5){width:116px}
+.acc-item-table th:nth-child(6),.acc-item-table td:nth-child(6){width:118px}
+.acc-item-table th:nth-child(7),.acc-item-table td:nth-child(7){width:42px;text-align:center}
+@media (max-width:640px){#modal-account-entry .modal{width:min(100%,calc(100vw - 16px));height:min(92vh,calc(100vh - 16px));padding:18px 14px 22px}#modal-account-entry .form-row{grid-template-columns:1fr;gap:10px}.acc-item-wrap{max-width:100%;overflow:auto}.acc-item-table th:nth-child(2),.acc-item-table td:nth-child(2){width:210px}}`;
     document.head.appendChild(cs);
   }
 
   /* ══════════════ EXPENSE ITEMS STATE ══════════════ */
   var _items = [];
   function _blank() { return { category: '', description: '', quantity: '', unit: 'কেজি', unitPrice: '', amount: '' }; }
+  var UNIT_OPTIONS = ['', 'কেজি', 'গ্রাম', 'লিটার', 'মিলি', 'পিস', 'টি', 'বস্তা', 'প্যাকেট', 'বোতল', 'সেট', 'জোড়া', 'ফুট', 'গজ', 'হাত', 'দিন', 'জন', 'বার'];
+  function unitOptions(value) {
+    var current = A.clean(value, '');
+    var opts = UNIT_OPTIONS.slice();
+    if (current && opts.indexOf(current) < 0) opts.push(current);
+    return opts.map(function (u) {
+      var label = u || 'মাপ নেই';
+      return '<option value="' + esc(u) + '"' + (current === u ? ' selected' : '') + '>' + esc(label) + '</option>';
+    }).join('');
+  }
 
   function _renderItems() {
     var c = document.getElementById('acc-items-container');
@@ -251,7 +271,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
         '<td><select class="form-input form-select" onchange="updateAccItem(' + i + ',\'category\',this.value)"><option value="">— খাত —</option>' + catOpts + '</select></td>' +
         '<td><input class="form-input" value="' + esc(item.description) + '" placeholder="পণ্য / বিবরণ" oninput="updateAccItem(' + i + ',\'description\',this.value)"></td>' +
         '<td><input class="form-input" value="' + (item.quantity || '') + '" type="number" placeholder="০" min="0" oninput="updateAccItem(' + i + ',\'quantity\',this.value)"></td>' +
-        '<td><input class="form-input" value="' + esc(item.unit) + '" placeholder="মাপ" oninput="updateAccItem(' + i + ',\'unit\',this.value)"></td>' +
+        '<td><select class="form-input form-select" onchange="updateAccItem(' + i + ',\'unit\',this.value)">' + unitOptions(item.unit) + '</select></td>' +
         '<td><input class="form-input" value="' + (item.unitPrice || '') + '" type="number" placeholder="০" min="0" oninput="updateAccItem(' + i + ',\'unitPrice\',this.value)"></td>' +
         '<td><input class="form-input acc-item-amt" value="' + (item.amount || '') + '" type="number" placeholder="০" id="acc-item-amt-' + i + '" oninput="updateAccItem(' + i + ',\'amount\',this.value)"></td>' +
         '<td>' + (_items.length > 1 ? '<button type="button" class="acc-item-del" onclick="removeAccItem(' + i + ')">✕</button>' : '') + '</td>' +
@@ -460,6 +480,49 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     if (_fromKey !== 'all' && _toKey !== 'all') { window.closeAccSheet(); rerenderAccountsView(); }
   };
 
+  function renderEditReasonField() {
+    var modal = document.querySelector('#modal-account-entry .modal');
+    if (!modal) return;
+    var submit = modal.querySelector('.submit-btn');
+    var wrap = document.getElementById('acc-edit-reason-wrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'acc-edit-reason-wrap';
+      wrap.className = 'form-group';
+      wrap.style.marginTop = '8px';
+      wrap.innerHTML =
+        '<label class="form-label">সংশোধনের কারণ</label>' +
+        '<textarea class="form-input form-textarea" id="acc-edit-reason" rows="2" placeholder="জিম্মাদারের অনুমতির জন্য কারণ লিখুন"></textarea>' +
+        '<div style="font-size:10px;color:var(--ink3);margin-top:4px">২৪ ঘণ্টার বেশি পুরনো এন্ট্রি সরাসরি বদলাবে না; বার্তায় অনুমোদন অনুরোধ যাবে।</div>';
+      if (submit && submit.parentNode) submit.parentNode.insertBefore(wrap, submit);
+      else modal.appendChild(wrap);
+    }
+    wrap.style.display = _editNeedsApproval ? '' : 'none';
+    if (!_editNeedsApproval) {
+      var reasonEl = document.getElementById('acc-edit-reason');
+      if (reasonEl) reasonEl.value = '';
+    }
+    if (submit) submit.textContent = _editNeedsApproval ? 'অনুমোদন অনুরোধ পাঠান' : 'সংরক্ষণ করুন';
+  }
+
+  function submitEntryApproval(type, originalEntry, proposed) {
+    var reasonEl = document.getElementById('acc-edit-reason');
+    var reason = reasonEl ? reasonEl.value.trim() : '';
+    if (!reason) { showToast('সংশোধনের কারণ লিখুন'); return; }
+    requestEntryChange('edit', type, originalEntry, reason, proposed).then(function (ok) {
+      if (ok) {
+        showToast('এডিট অনুরোধ বার্তায় পাঠানো হয়েছে');
+        _editEntryId = null;
+        _editEntryType = '';
+        _editNeedsApproval = false;
+        closeModal('account-entry');
+        refreshAccountsViews();
+      } else {
+        showToast('অনুরোধ পাঠানো যায়নি');
+      }
+    });
+  }
+
   /* ══════════════ OPEN MODAL (new + edit) ══════════════ */
   window.openAccModal = function (type, entryId) {
     _editEntryId   = entryId || null;
@@ -467,6 +530,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     var entry = entryId
       ? (type === 'income' ? A.Income.getById(entryId) : A.Expense.getById(entryId))
       : null;
+    _editNeedsApproval = !!(entry && !isAdminSession() && entryAgeHours(entry) > 24);
 
     _items = [_blank()];
     var incF = document.getElementById('acc-income-fields');
@@ -508,6 +572,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
       }
       _renderItems();
     }
+    renderEditReasonField();
     openModal('account-entry');
   };
 
@@ -517,16 +582,22 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     var parsed = A.parseDateInput((document.getElementById('acc-date') || {}).value);
     if (!parsed || !parsed.year || !parsed.month || !parsed.day) { showToast('তারিখ লিখুন: সন-মাস-দিন'); return; }
     var isEdit = !!_editEntryId;
+    var originalEntry = isEdit ? (type === 'income' ? A.Income.getById(_editEntryId) : A.Expense.getById(_editEntryId)) : null;
 
     if (type === 'income') {
       var amt  = parseFloat(document.getElementById('acc-inc-amount').value) || 0;
       var note = (document.getElementById('acc-inc-note').value || '').trim();
       if (!amt) { showToast('পরিমাণ লিখুন'); return; }
+      var incomePatch = { hijriYear: parsed.year, month: parsed.month, day: parsed.day, amount: amt, note };
       if (isEdit) {
-        A.Income.update(_editEntryId, { hijriYear: parsed.year, month: parsed.month, day: parsed.day, amount: amt, note });
+        if (_editNeedsApproval) {
+          submitEntryApproval(type, originalEntry, { ...(originalEntry || {}), ...incomePatch });
+          return;
+        }
+        A.Income.update(_editEntryId, incomePatch);
         showToast('আয় আপডেট হয়েছে ✓');
       } else {
-        A.Income.add({ hijriYear: parsed.year, month: parsed.month, day: parsed.day, amount: amt, note });
+        A.Income.add(incomePatch);
         showToast('আয় সংরক্ষিত ✓');
       }
     } else {
@@ -537,11 +608,15 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
       if (!valid.length) { showToast('কমপক্ষে একটি আইটেমের মোট টাকা দিন'); return; }
       if (isEdit) {
         var x = valid[0];
-        var oldEntry = A.Expense.getById(_editEntryId);
-        A.Expense.update(_editEntryId, { account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: x.category, description: x.description, quantity: x.quantity, unit: x.unit, unitPrice: x.unitPrice, amount: parseFloat(x.amount), supplier, receiptNo });
-        if (oldEntry) {
-          var oldSup = A.clean(oldEntry.supplier, '');
-          if (oldSup) A.Dues.cancelPurchase(oldSup, oldEntry.account, A.num(oldEntry.amount));
+        var expensePatch = { account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: x.category, description: x.description, quantity: x.quantity, unit: x.unit, unitPrice: x.unitPrice, amount: parseFloat(x.amount), supplier, receiptNo };
+        if (_editNeedsApproval) {
+          submitEntryApproval(type, originalEntry, { ...(originalEntry || {}), ...expensePatch });
+          return;
+        }
+        A.Expense.update(_editEntryId, expensePatch);
+        if (originalEntry) {
+          var oldSup = A.clean(originalEntry.supplier, '');
+          if (oldSup) A.Dues.cancelPurchase(oldSup, originalEntry.account, A.num(originalEntry.amount));
         }
         if (supplier) A.Dues.addOrUpdate(supplier, account, parseFloat(x.amount));
         showToast('ব্যয় আপডেট হয়েছে ✓');
@@ -555,6 +630,7 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     }
     _editEntryId  = null;
     _editEntryType = '';
+    _editNeedsApproval = false;
     closeModal('account-entry');
     rerenderAccountsView();
   };
@@ -992,29 +1068,6 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
     return false;
   }
 
-  function collectEntryEdit(type, entry) {
-    if (type === 'income') {
-      var amount = prompt('আয়ের পরিমাণ:', entry.amount || '');
-      if (amount === null) return null;
-      amount = parseFloat(amount);
-      if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return null; }
-      var note = prompt('উৎস / বিবরণ:', A.clean(entry.note, '') || A.clean(entry.source, '') || '');
-      if (note === null) return null;
-      return { ...entry, amount: amount, note: note.trim() };
-    }
-    var category = prompt('খাত:', A.clean(entry.category, '') || 'অন্যান্য');
-    if (category === null) return null;
-    var description = prompt('বিবরণ:', A.clean(entry.description, '') || '');
-    if (description === null) return null;
-    var supplier = prompt('সরবরাহকারী:', A.clean(entry.supplier, '') || '');
-    if (supplier === null) return null;
-    var expAmount = prompt('মোট টাকা:', entry.amount || '');
-    if (expAmount === null) return null;
-    expAmount = parseFloat(expAmount);
-    if (!expAmount || expAmount <= 0) { showToast('সঠিক পরিমাণ দিন'); return null; }
-    return { ...entry, category: category.trim(), description: description.trim(), supplier: supplier.trim(), amount: expAmount };
-  }
-
   function applyEntryEdit(type, id, proposed) {
     if (type === 'income') A.Income.update(id, proposed);
     else A.Expense.update(id, proposed);
@@ -1111,15 +1164,6 @@ body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1
   window.editAccEntry = async function (type, id) {
     var entry = type === 'income' ? A.Income.getById(id) : A.Expense.getById(id);
     if (!entry) { showToast('এন্ট্রি পাওয়া যায়নি'); return; }
-    if (!isAdminSession() && entryAgeHours(entry) > 24) {
-      var proposed = collectEntryEdit(type, entry);
-      if (!proposed) return;
-      var reason = prompt('২৪ ঘণ্টার বেশি পুরনো এন্ট্রি এডিট করতে জিম্মাদারের অনুমতি লাগবে। কারণ লিখুন:');
-      if (!reason || !reason.trim()) return;
-      if (await requestEntryChange('edit', type, entry, reason.trim(), proposed)) showToast('এডিট অনুরোধ বার্তায় পাঠানো হয়েছে');
-      else showToast('অনুরোধ পাঠানো যায়নি');
-      return;
-    }
     closeModal('account-details');
     window.openAccModal(type, id);
   };
