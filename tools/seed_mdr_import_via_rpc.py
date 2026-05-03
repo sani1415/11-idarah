@@ -22,7 +22,6 @@ OLD_MAD_BOOK_CLASS = {
     "7": "kitab_y6",
     "8": "kitab_y7",
     "9": "kitab_iyada",
-    "10": "kitab_hifz",
 }
 
 OLD_MOK_BOOK_CLASS = {
@@ -64,7 +63,7 @@ def build_payload():
             "old_roll": row.get("rollNumber"),
             "old_status": row.get("status"),
             "old_score": as_int(row.get("current_score")),
-            "suggested_is_hifz": class_code == "kitab_hifz",
+            "suggested_is_hifz": str(row.get("rollNumber") or "").strip().startswith("হ"),
         })
 
     for row in mok_students:

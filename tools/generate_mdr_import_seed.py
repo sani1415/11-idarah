@@ -80,7 +80,7 @@ def kitab_class_from_roll(roll):
     if r.startswith("ই"):
         return "kitab_iyada"
     if r.startswith("হ"):
-        return "kitab_hifz"
+        r = r[1:]
     digit = first_digit(r)
     return {
         "1": "kitab_y1",
@@ -133,7 +133,7 @@ def candidate_values(row, source, division_code, class_code):
             sql_str(row.get("rollNumber")),
             sql_str(old_status),
             sql_int(row.get("current_score")),
-            "true" if class_code == "kitab_hifz" else "false",
+            "true" if str(row.get("rollNumber") or "").strip().startswith("হ") else "false",
         ]
     ) + ")"
 
@@ -165,7 +165,6 @@ def main():
         "7": "kitab_y6",
         "8": "kitab_y7",
         "9": "kitab_iyada",
-        "10": "kitab_hifz",
     }
     old_mok_book_class = {
         "1": "maktab_y1",

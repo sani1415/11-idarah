@@ -305,9 +305,27 @@ begin
   return jsonb_build_object(
     'ok', true,
     'divisions', (select coalesce(jsonb_agg(to_jsonb(d) order by d.code), '[]'::jsonb) from public.mdr_divisions d),
-    'classes', (select coalesce(jsonb_agg(to_jsonb(c) order by c.sort_order), '[]'::jsonb) from public.mdr_classes c),
-    'student_count', (select count(*) from public.mdr_students),
-    'book_count', (select count(*) from public.mdr_books),
+    'classes', (
+      select coalesce(jsonb_agg(to_jsonb(c) order by c.sort_order), '[]'::jsonb)
+      from public.mdr_classes c
+      where c.is_active = true
+        and c.code <> 'kitab_hifz'
+    ),
+    'student_count', (
+      select count(*)
+      from public.mdr_students s
+      join public.mdr_classes c on c.id = s.current_class_id
+      where s.status = 'active'
+        and c.is_active = true
+        and c.code <> 'kitab_hifz'
+    ),
+    'book_count', (
+      select count(*)
+      from public.mdr_books b
+      join public.mdr_classes c on c.id = b.class_id
+      where c.is_active = true
+        and c.code <> 'kitab_hifz'
+    ),
     'import_pending_count', (
       select count(*)
       from public.mdr_student_import_candidates
@@ -342,6 +360,7 @@ begin
       from public.mdr_classes c
       join public.mdr_divisions d on d.id = c.division_id
       where c.is_active = true
+        and c.code <> 'kitab_hifz'
     ),
     'students', (
       select coalesce(jsonb_agg(jsonb_build_object(
@@ -363,6 +382,8 @@ begin
       join public.mdr_classes c on c.id = s.current_class_id
       join public.mdr_divisions d on d.id = s.division_id
       where s.status = 'active'
+        and c.is_active = true
+        and c.code <> 'kitab_hifz'
     )
   );
 end;
@@ -595,7 +616,8 @@ begin
   into v_class_id, v_division_id
   from public.mdr_classes c
   where c.code = p_class_code
-    and c.is_active = true;
+    and c.is_active = true
+    and c.code <> 'kitab_hifz';
 
   if v_class_id is null then
     return jsonb_build_object('ok', false, 'error', 'class_not_found');

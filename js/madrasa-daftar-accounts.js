@@ -113,6 +113,7 @@ body.page-daftar #panel-fees{margin-left:-12px;margin-right:-12px}
 .acc-metric.good .acc-metric-val{color:var(--green)}.acc-metric.bad .acc-metric-val{color:var(--red)}.acc-metric.warn .acc-metric-val{color:var(--gold)}
 .acc-ledger-card{background:#fff;border:1px solid rgba(26,18,8,.07);border-radius:16px;overflow:hidden;position:relative;box-shadow:0 5px 13px rgba(26,18,8,.055);margin-top:2px}
 .acc-ledger-title{display:flex;align-items:center;justify-content:space-between;padding:10px 11px;border-bottom:1px solid var(--cream2);font-size:12px;font-weight:800;color:var(--ink2)}
+.acc-ledger-title--center{justify-content:center;text-align:center}
 .acc-ledger-card.acc-ledger-flat{background:transparent;border:0;border-radius:0;overflow:visible}
 .acc-ledger-flat .acc-ledger-title{padding:6px 2px 8px;border-bottom:0}
 .acc-sum-tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
@@ -702,8 +703,8 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     return '<div class="acc-dashboard">' +
       '<div class="acc-money-hero"><div class="acc-money-label">বর্তমান অবস্থা</div><div class="acc-money-main ' + balCls + '">' + (tb < 0 ? '−' : '+') + '৳' + fa(Math.abs(tb)) + '</div></div>' +
       metrics +
-      '<div class="acc-ledger-card"><div class="acc-ledger-title"><span>ব্যয়ের বই অনুযায়ী</span>' + (s.td ? '<span style="color:var(--red)">বর্তমান বকেয়া ৳' + fa(s.td) + '</span>' : '<span style="color:var(--green)">বর্তমান বকেয়া নেই</span>') + '</div>' +
-      '<div style="overflow-x:auto"><table class="acc-sum-tbl"><thead><tr><th>খাত / হিসাব বই</th><th>ব্যয়</th><th>শতকরা</th><th>বর্তমান বকেয়া</th></tr></thead>' +
+      '<div class="acc-ledger-card"><div class="acc-ledger-title acc-ledger-title--center"><span>খাতওয়ারী হিসাব</span></div>' +
+      '<div style="overflow-x:auto"><table class="acc-sum-tbl"><thead><tr><th>খাত</th><th>ব্যয়</th><th>শতকরা</th><th>বর্তমান বকেয়া</th></tr></thead>' +
       '<tbody>' + (tblRows || '<tr><td colspan="4" style="text-align:center;color:var(--ink3)">তথ্য নেই</td></tr>') + '</tbody>' +
       '<tfoot>' + tfoot + '</tfoot></table></div></div>' +
       '</div>';

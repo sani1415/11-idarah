@@ -45,6 +45,9 @@ const API = (() => {
   }
   function save(key, data) {
     localStorage.setItem(key, JSON.stringify(data));
+    if (key === KEYS.settings && typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('mm-settings-updated', { detail: data }));
+    }
   }
 
   function purgeKnownSampleData() {
@@ -185,7 +188,7 @@ const API = (() => {
     },
     /** কিতাব বা মক্তব বিভাগের সক্রিয় ছাত্র সংখ্যা */
     countActiveByDept(dept) {
-      const cids = new Set(load(KEYS.classes).filter((c) => c.dept === dept).map((c) => c.id));
+      const cids = baseClassIdsByDept(dept);
       return load(KEYS.students).filter((s) => s.active && cids.has(s.class_id)).length;
     },
     add(data) {
@@ -320,26 +323,26 @@ const API = (() => {
     },
     /** শিক্ষক কর্তৃক চিহ্নিত বিশেষ পর্যবেক্ষণ */
     countSpecialWatchByDept(dept) {
-      const cids = new Set(load(KEYS.classes).filter((c) => c.dept === dept).map((c) => c.id));
+      const cids = baseClassIdsByDept(dept);
       return load(KEYS.students).filter(
         (s) => s.active && cids.has(s.class_id) && s.special_watch
       ).length;
     },
     getSpecialWatchByDeptSorted(dept) {
-      const cids = new Set(load(KEYS.classes).filter((c) => c.dept === dept).map((c) => c.id));
+      const cids = baseClassIdsByDept(dept);
       return load(KEYS.students)
         .filter((s) => s.active && cids.has(s.class_id) && s.special_watch)
         .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'bn'));
     },
     /** শিক্ষক কর্তৃক চিহ্নিত আলহামদুলিল্লাহ */
     countAlhamdulillahByDept(dept) {
-      const cids = new Set(load(KEYS.classes).filter((c) => c.dept === dept).map((c) => c.id));
+      const cids = baseClassIdsByDept(dept);
       return load(KEYS.students).filter(
         (s) => s.active && cids.has(s.class_id) && s.alhamdulillah
       ).length;
     },
     getAlhamdulillahByDeptSorted(dept) {
-      const cids = new Set(load(KEYS.classes).filter((c) => c.dept === dept).map((c) => c.id));
+      const cids = baseClassIdsByDept(dept);
       return load(KEYS.students)
         .filter((s) => s.active && cids.has(s.class_id) && s.alhamdulillah)
         .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'bn'));
@@ -394,10 +397,13 @@ const API = (() => {
     );
   }
   const Classes = {
-    getAll: (includeInactive = false) => sortClasses(load(KEYS.classes).filter(c => includeInactive || c.active !== false)),
-    getById: id => normalizeClass(load(KEYS.classes).find(c => c.id === id)),
-    getByDept: (dept, includeInactive = false) => sortClasses(load(KEYS.classes).filter(c => c.dept === dept && (includeInactive || c.active !== false))),
-    getName: id => { const c = load(KEYS.classes).find(c => c.id === id); return c ? c.name : '—'; },
+    getAll: (includeInactive = false) => sortClasses(load(KEYS.classes).filter(c => isBaseClass(c, includeInactive))),
+    getById: id => {
+      const c = load(KEYS.classes).find(c => c.id === id);
+      return isHifzClass(c) ? null : normalizeClass(c);
+    },
+    getByDept: (dept, includeInactive = false) => sortClasses(load(KEYS.classes).filter(c => c.dept === dept && isBaseClass(c, includeInactive))),
+    getName: id => { const c = load(KEYS.classes).find(c => c.id === id && !isHifzClass(c)); return c ? c.name : '—'; },
     add(data) {
       const list = load(KEYS.classes);
       const id = data.id || 'cls_' + uid();
@@ -743,6 +749,28 @@ const API = (() => {
     localStorage.setItem(storageKey, JSON.stringify(data));
   }
 
+  function isHifzClass(c) {
+    if (!c) return false;
+    const id = String(c.id || '').trim();
+    const code = String(c.code || '').trim();
+    const year = String(c.year || '').trim();
+    const name = String(c.name || '').trim();
+    return id === 'cls_kh' ||
+      id === 'cls_hifz' ||
+      code === 'kitab_hifz' ||
+      year === 'hifz' ||
+      name === 'হেফয' ||
+      name === 'হিফজ বিভাগ';
+  }
+
+  function isBaseClass(c, includeInactive) {
+    return !!c && !isHifzClass(c) && (includeInactive || c.active !== false);
+  }
+
+  function baseClassIdsByDept(dept) {
+    return new Set(load(KEYS.classes).filter((c) => isBaseClass(c, false) && c.dept === dept).map((c) => c.id));
+  }
+
   function migrateAttendanceStatus() {
     const list = load(KEYS.attendance);
     const needsMigration = list.some(a =>
@@ -876,19 +904,28 @@ const API = (() => {
   const OldMadrasaImport = {
     summarize(pack) {
       const data = pack || {};
+      const hifzClassIds = new Set((Array.isArray(data.classes) ? data.classes : []).filter(isHifzClass).map((c) => c.id));
+      const classes = (Array.isArray(data.classes) ? data.classes : []).filter((c) => !hifzClassIds.has(c.id) && !isHifzClass(c));
+      const students = (Array.isArray(data.students) ? data.students : []).filter((s) => !hifzClassIds.has(s.class_id));
+      const kitabs = (Array.isArray(data.kitabs) ? data.kitabs : []).filter((k) => !hifzClassIds.has(k.class_id));
       return {
-        classes: Array.isArray(data.classes) ? data.classes.length : 0,
-        students: Array.isArray(data.students) ? data.students.length : 0,
-        kitabs: Array.isArray(data.kitabs) ? data.kitabs.length : 0,
+        classes: classes.length,
+        students: students.length,
+        kitabs: kitabs.length,
       };
     },
     replaceCoreData(pack) {
       if (!pack || !Array.isArray(pack.classes) || !Array.isArray(pack.students) || !Array.isArray(pack.kitabs)) {
         throw new Error('invalid import pack');
       }
-      save(KEYS.classes, pack.classes);
-      save(KEYS.students, pack.students);
-      save(KEYS.kitabs, pack.kitabs);
+      const hifzClassIds = new Set(pack.classes.filter(isHifzClass).map((c) => c.id));
+      const baseClassIds = new Set(pack.classes.filter((c) => !hifzClassIds.has(c.id) && !isHifzClass(c)).map((c) => c.id));
+      save(KEYS.classes, pack.classes.filter((c) => baseClassIds.has(c.id)).map(normalizeClass));
+      save(KEYS.students, pack.students.map((s) => {
+        if (!hifzClassIds.has(s.class_id)) return s;
+        return { ...s, class_id: '', hifz: true, active: false, import_needs_review: true };
+      }));
+      save(KEYS.kitabs, pack.kitabs.filter((k) => baseClassIds.has(k.class_id)));
       save(KEYS.kitab_prog, Array.isArray(pack.kitab_progress) ? pack.kitab_progress : []);
       [KEYS.attendance, KEYS.khuluk, KEYS.logs, KEYS.fees, KEYS.exams, KEYS.results].forEach((key) => save(key, []));
       localStorage.removeItem('mm_withdrawals');

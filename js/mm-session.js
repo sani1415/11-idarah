@@ -264,6 +264,8 @@
   global.MMSyncChatBadges = syncChatBadgeRemote;
   global.addEventListener && global.addEventListener('mm-chat-updated', applyChatBadges);
 
+  var settingsSyncInFlight = false;
+
   function readCurrentAcademicYear() {
     var settings = null;
     try {
@@ -279,42 +281,92 @@
       settings = global.MMSampleData.defaultSettings;
     }
     var year = settings && settings.hijri_year != null ? String(settings.hijri_year).trim() : '';
-    if (!year || year === '-') return '';
-    return year.replace(/[0-9]/g, function (d) { return '০১২৩৪৫৬৭৮৯'[d]; });
+    if (!year || year === '-' || year === '\u2014') return '';
+    return year.replace(/[0-9]/g, function (d) { return '\u09e6\u09e7\u09e8\u09e9\u09ea\u09eb\u09ec\u09ed\u09ee\u09ef'[d]; });
   }
 
   function renderCurrentAcademicYear() {
-    if (typeof document === 'undefined' || !global.MMSession || !global.MMSession.isAdmin()) return;
-    var topbar = document.querySelector('.topbar');
-    if (!topbar) return;
+    if (typeof document === 'undefined') return;
+    var topbars = document.querySelectorAll('.topbar, .inbox-topbar, .chat-topbar');
+    if (!topbars || !topbars.length) return;
     var year = readCurrentAcademicYear();
-    var label = topbar.querySelector('.mm-monitor-topbar-label');
-    if (!year) {
-      if (label) label.remove();
-      topbar.classList.remove('mm-monitor-topbar');
-      return;
+    topbars.forEach(function (topbar) {
+      var label = topbar.querySelector('.mm-monitor-topbar-label');
+      if (!year) {
+        if (label) label.remove();
+        topbar.classList.remove('mm-monitor-topbar');
+        return;
+      }
+      topbar.classList.add('mm-monitor-topbar');
+      if (!label) {
+        label = document.createElement('div');
+        label.className = 'mm-monitor-topbar-label';
+        topbar.appendChild(label);
+      }
+      label.textContent = year + ' \u09b9\u09bf\u099c\u09b0\u09c0 \u09b6\u09bf\u0995\u09cd\u09b7\u09be\u09ac\u09b0\u09cd\u09b7';
+    });
+  }
+
+  function mergeAcademicSettings(settings) {
+    if (!settings || (!settings.institution && !settings.hijri_year && !settings.session_start_date && settings.hijri_offset_days == null)) {
+      return false;
     }
-    topbar.classList.add('mm-monitor-topbar');
-    if (!label) {
-      label = document.createElement('div');
-      label.className = 'mm-monitor-topbar-label';
-      topbar.appendChild(label);
+    var local = {};
+    try {
+      var raw = localStorage.getItem('mm_settings');
+      local = raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      local = {};
     }
-    label.textContent = year + ' হিজরী শিক্ষাবর্ষ';
+    var next = {
+      institution: settings.institution || local.institution,
+      hijri_year: settings.hijri_year || local.hijri_year,
+      session_start_date: settings.session_start_date || local.session_start_date,
+      hijri_offset_days: settings.hijri_offset_days != null
+        ? Number(settings.hijri_offset_days) || 0
+        : Number(local.hijri_offset_days) || 0,
+    };
+    try {
+      localStorage.setItem('mm_settings', JSON.stringify(Object.assign({}, local, next)));
+    } catch (e2) {}
+    if (global.MMHijri && next.hijri_offset_days != null) {
+      try { global.MMHijri.setOffsetDays(next.hijri_offset_days); } catch (e3) {}
+    }
+    renderCurrentAcademicYear();
+    return true;
+  }
+
+  async function syncCurrentAcademicYearSettings() {
+    if (settingsSyncInFlight || !global.MMSharedAPI || !global.MMSharedAPI.publicSettings) return false;
+    settingsSyncInFlight = true;
+    try {
+      var res = await global.MMSharedAPI.publicSettings();
+      if (!res || res.ok !== true) return false;
+      return mergeAcademicSettings(res.settings || {});
+    } catch (e) {
+      return false;
+    } finally {
+      settingsSyncInFlight = false;
+    }
   }
 
   global.MMRenderCurrentAcademicYear = renderCurrentAcademicYear;
+  global.MMSyncCurrentAcademicYearSettings = syncCurrentAcademicYearSettings;
   function autoRestrictNav() { if (global.MMSession) global.MMSession.applyAdminNavRestrictions(); }
   if (typeof document !== 'undefined') {
-    var onReady = function () { autoRestrictNav(); renderCurrentAcademicYear(); syncChatBadgeRemote(); };
+    var onReady = function () { autoRestrictNav(); renderCurrentAcademicYear(); syncCurrentAcademicYearSettings(); syncChatBadgeRemote(); };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', onReady);
     else setTimeout(onReady, 0);
     document.addEventListener('visibilitychange', function () {
-      if (!document.hidden) renderCurrentAcademicYear();
+      if (!document.hidden) {
+        renderCurrentAcademicYear();
+        syncCurrentAcademicYearSettings();
+      }
     });
     global.addEventListener && global.addEventListener('storage', function (event) {
       if (!event || event.key === 'mm_settings') renderCurrentAcademicYear();
     });
+    global.addEventListener && global.addEventListener('mm-settings-updated', renderCurrentAcademicYear);
     global.setInterval && global.setInterval(renderCurrentAcademicYear, 3000);
   }
 })(typeof window !== 'undefined' ? window : globalThis);

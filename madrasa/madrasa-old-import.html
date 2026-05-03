@@ -76,6 +76,14 @@
 
   const pack = window.MMOldMadrasaImportData || {};
   const bn = (n) => String(n || 0).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[Number(d)]);
+  const isHifzLegacyClass = (c) => c && (
+    c.id === 'cls_hifz' ||
+    c.id === 'cls_kh' ||
+    c.code === 'kitab_hifz' ||
+    c.year === 'hifz' ||
+    c.name === 'হেফয' ||
+    c.name === 'হিফজ বিভাগ'
+  );
 
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -92,7 +100,7 @@
 
     const counts = {};
     (pack.students || []).forEach((s) => { counts[s.class_id] = (counts[s.class_id] || 0) + 1; });
-    document.getElementById('class-review').innerHTML = (pack.classes || []).map((c) => `
+    document.getElementById('class-review').innerHTML = (pack.classes || []).filter((c) => !isHifzLegacyClass(c)).map((c) => `
       <div class="review-row">
         <span>${API.esc(c.name)}</span>
         <span>${bn(counts[c.id] || 0)} জন</span>

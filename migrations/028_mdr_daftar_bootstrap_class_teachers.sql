@@ -36,6 +36,7 @@ begin
       from public.mdr_classes c
       join public.mdr_divisions d on d.id = c.division_id
       where c.is_active = true
+        and c.code <> 'kitab_hifz'
     ),
     'students', (
       select coalesce(jsonb_agg(jsonb_build_object(
@@ -59,6 +60,8 @@ begin
       join public.mdr_classes c on c.id = s.current_class_id
       join public.mdr_divisions d on d.id = s.division_id
       where s.status = 'active'
+        and c.is_active = true
+        and c.code <> 'kitab_hifz'
     ),
     'attendance', (
       select coalesce(jsonb_agg(jsonb_build_object(
@@ -83,6 +86,7 @@ begin
       where u.role = 'madrasa_teacher'
         and u.is_active = true
         and c.is_active = true
+        and c.code <> 'kitab_hifz'
     )
   );
 end;

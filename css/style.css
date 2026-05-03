@@ -571,7 +571,9 @@ body {
 .empty-text { font-size: 14px; }
 
 /* ── জিম্মাদার পর্যবেক্ষণ মোড — টপবার মাঝখানে ── */
-.topbar.mm-monitor-topbar {
+.topbar.mm-monitor-topbar,
+.inbox-topbar.mm-monitor-topbar,
+.chat-topbar.mm-monitor-topbar {
   position: relative;
 }
 .mm-monitor-topbar-label {

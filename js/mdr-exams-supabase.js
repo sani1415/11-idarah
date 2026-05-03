@@ -6,7 +6,6 @@
     kitab_y1: 'cls_k1', kitab_iyada: 'cls_ky',
     kitab_y2: 'cls_k2', kitab_y3: 'cls_k3', kitab_y4: 'cls_k4',
     kitab_y5: 'cls_k5', kitab_y6: 'cls_k6', kitab_y7: 'cls_k7',
-    kitab_hifz: 'cls_kh',
     maktab_y1: 'cls_m1', maktab_y2: 'cls_m2', maktab_y3: 'cls_m3',
     maktab_y4: 'cls_m4', maktab_y5: 'cls_m5',
   };

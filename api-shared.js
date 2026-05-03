@@ -41,6 +41,9 @@ const MMSharedAPI = (() => {
         p_new_pin: newPin || '',
       });
     },
+    publicSettings() {
+      return rpc('mdr_rel_public_settings', {});
+    },
     loginUser(userId, pin) {
       return rpc('mdr_rel_user_login', { p_user_id: userId, p_pin: pin });
     },

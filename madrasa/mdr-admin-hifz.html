@@ -151,10 +151,10 @@
   const HIFZ_KEY='mm_hifz_groups', HIFZ_PROG_KEY='mm_hifz_progress', HIFZ_MEMBERS_KEY='mm_hifz_members', HIFZ_ACTIVITY_KEY='mm_hifz_activity';
   function toBn(n) { return String(n).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d]); }
   if (!API.persistLoadArr(HIFZ_KEY).length) {
-    API.persistSaveArr(HIFZ_KEY,[{id:'grp_1',name:'ফরিক আলিফ',start:'2025-01-01',note:'',active:true},{id:'grp_2',name:'ফরিক বা',start:'2025-02-01',note:'',active:true}]);
-    API.persistSaveArr(HIFZ_PROG_KEY,[{id:API.uid(),group_id:'grp_1',para_done:15,surah_done:40,revision_para:10,current_para:16,note:'',date:API.today()},{id:API.uid(),group_id:'grp_2',para_done:8,surah_done:22,revision_para:5,current_para:9,note:'',date:API.today()}]);
-    API.persistSaveArr(HIFZ_MEMBERS_KEY,[{id:API.uid(),group_id:'grp_1',student_id:'std_2',joined:'2025-01-01'},{id:API.uid(),group_id:'grp_2',student_id:'std_1',joined:'2025-02-01'}]);
-    API.persistSaveArr(HIFZ_ACTIVITY_KEY,[{id:API.uid(),group_id:'grp_1',type:'পাঠ',text:'আজ ১৬তম পারার ৫ম রুকু পর্যন্ত পড়ানো হয়েছে।',date:API.today(),by:'জিম্মাদার'}]);
+    API.persistSaveArr(HIFZ_KEY,[]);
+    API.persistSaveArr(HIFZ_PROG_KEY,[]);
+    API.persistSaveArr(HIFZ_MEMBERS_KEY,[]);
+    API.persistSaveArr(HIFZ_ACTIVITY_KEY,[]);
   }
   let currentGroupId=null;
   function switchPanel(name) { document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active')); document.getElementById('panel-'+name).classList.add('active'); window.scrollTo(0,0); }

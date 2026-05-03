@@ -149,7 +149,7 @@
       state.pin = pin;
       const boot = await MMMadrasaAPI.adminBootstrap(pin);
       state.bootstrap = boot;
-      state.classes = boot.classes || [];
+      state.classes = (boot.classes || []).filter(c => c && c.is_active !== false && c.code !== 'kitab_hifz');
       document.getElementById('stat-pending').textContent = bn(boot.import_pending_count || 0);
       document.getElementById('stat-students').textContent = bn(boot.student_count || 0);
       document.getElementById('stat-books').textContent = bn(boot.book_count || 0);
@@ -168,7 +168,7 @@
       state.classes.map(c => `<option value="${esc(c.code)}">${esc(c.name)}</option>`)
     );
     document.getElementById('class-filter').innerHTML = opts.join('');
-    document.getElementById('approve-class').innerHTML = state.classes
+    document.getElementById('approve-class').innerHTML = '<option value="">বর্তমান বর্ষ নির্বাচন করুন</option>' + state.classes
       .map(c => `<option value="${esc(c.code)}">${esc(c.name)}</option>`).join('');
   }
 
@@ -238,7 +238,7 @@
     document.getElementById('approve-summary').innerHTML =
       `<b>${esc(c.name)}</b><br>পিতা: ${esc(c.guardian_name || '—')} · পুরনো রোল: ${esc(c.old_roll || '—')}`;
     document.getElementById('student-id').value = '';
-    document.getElementById('approve-class').value = c.class_code;
+    document.getElementById('approve-class').value = c.class_code === 'kitab_hifz' ? '' : c.class_code;
     document.getElementById('approve-roll').value = c.old_roll || '';
     document.getElementById('approve-hijri').value = '';
     document.getElementById('modal-approve').classList.add('open');
@@ -256,6 +256,7 @@
     const roll = document.getElementById('approve-roll').value.trim();
     const hijriYear = document.getElementById('approve-hijri').value.trim();
     if (!studentId) { showToast('স্থায়ী আইডি দিন'); return; }
+    if (!classCode) { showToast('বর্তমান মূল বর্ষ নির্বাচন করুন'); return; }
     if (!roll) { showToast('রোল দিন'); return; }
     if (state.current.source === 'moktob_backup' && !/^0\d+$/.test(studentId)) {
       if (!confirm('মক্তব ছাত্রের স্থায়ী ID সাধারণত 0 দিয়ে শুরু হবে। তারপরও সংরক্ষণ করবেন?')) return;

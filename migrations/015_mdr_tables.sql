@@ -145,7 +145,6 @@ join (
     ('kitab', '৫ম বর্ষ', 'kitab_y5', '500', false, 60),
     ('kitab', '৬ষ্ঠ বর্ষ', 'kitab_y6', '600', false, 70),
     ('kitab', '৭ম বর্ষ', 'kitab_y7', '700', false, 80),
-    ('kitab', 'হিফজ বিভাগ', 'kitab_hifz', 'হি', false, 90),
     ('maktab', 'প্রথম শ্রেণি', 'maktab_y1', 'ম১', false, 10),
     ('maktab', 'দ্বিতীয় শ্রেণি', 'maktab_y2', 'ম২', false, 20),
     ('maktab', 'তৃতীয় শ্রেণি', 'maktab_y3', 'ম৩', false, 30),
