@@ -35,6 +35,18 @@
     return !!(perms && perms.super_admin === true);
   }
 
+  function isUuid(v) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ''));
+  }
+
+  function sessionErrorMessage(error) {
+    if (error === 'invalid_current_pin' || error === 'invalid_pin') return 'বর্তমান PIN ভুল';
+    if (error === 'invalid_new_pin' || error === 'pin_too_short') return 'নতুন PIN ৪ সংখ্যার হতে হবে';
+    if (error === 'same_pin') return 'নতুন PIN আগের PIN থেকে আলাদা দিন';
+    if (error === 'missing_user') return 'ব্যবহারকারী পাওয়া যায়নি';
+    return 'PIN পরিবর্তন হয়নি';
+  }
+
   var MMSession = {
     K: K,
 
@@ -112,6 +124,30 @@
       sessionStorage.removeItem(K.adminPin);
       sessionStorage.removeItem(K.adminPerms);
     },
+    changeStaffPin: async function (currentPin, newPin, localChangeFn) {
+      var uid = this.getStaffUserId();
+      if (!uid) return { ok: false, error: 'missing_user' };
+      var hasRemote = !!(global.MMSharedAPI && global.MMSharedAPI.supabaseClient && global.MMSharedAPI.staffChangeOwnPin && isUuid(uid));
+      if (hasRemote) {
+        try {
+          var res = await global.MMSharedAPI.staffChangeOwnPin(uid, currentPin, newPin);
+          if (!res || res.ok !== true) return { ok: false, error: (res && res.error) || 'pin_change_failed' };
+          if (typeof localChangeFn === 'function') {
+            try { localChangeFn(uid, currentPin, newPin); } catch (e) {}
+          }
+          this.setStaffSession(this.getRole(), this.getName(), uid, newPin);
+          return { ok: true, source: 'database' };
+        } catch (e2) {
+          return { ok: false, error: 'database_failed' };
+        }
+      }
+      if (typeof localChangeFn === 'function' && localChangeFn(uid, currentPin, newPin)) {
+        this.setStaffSession(this.getRole(), this.getName(), uid, newPin);
+        return { ok: true, source: 'local' };
+      }
+      return { ok: false, error: 'invalid_current_pin' };
+    },
+    pinChangeErrorMessage: sessionErrorMessage,
 
     isAdmin: function () { return sessionStorage.getItem(K.role) === 'admin'; },
     isRestrictedAdmin: function () {
@@ -218,6 +254,23 @@
   };
 
   global.MMSession = MMSession;
+  (function clearStaleSessionOnFreshEntry() {
+    if (typeof document === 'undefined' || typeof location === 'undefined') return;
+    var path = String(location.pathname || '').replace(/\\/g, '/');
+    var isIndex = !path || /(^|\/)(index\.html)?$/.test(path);
+    if (isIndex) return;
+    var navType = '';
+    try {
+      var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+      navType = nav && nav.type ? nav.type : '';
+    } catch (e) {}
+    if (navType === 'reload') return;
+    var sameOriginReferrer = false;
+    try {
+      sameOriginReferrer = !!document.referrer && new URL(document.referrer, location.href).origin === location.origin;
+    } catch (e2) {}
+    if (!sameOriginReferrer) MMSession.clearAppSession();
+  })();
   var chatUnreadCount = 0;
   function readChatUnreadCount() { return chatUnreadCount; }
   function bnNum(n) {

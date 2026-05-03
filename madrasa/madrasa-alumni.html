@@ -419,15 +419,14 @@
   }
   function openPinChangeModal(){document.getElementById('pc-cur').value='';document.getElementById('pc-new').value='';document.getElementById('pc-conf').value='';document.getElementById('pc-err').textContent='';document.getElementById('modal-pin-change').classList.add('open');}
   function closePinChangeModal(){document.getElementById('modal-pin-change').classList.remove('open');}
-  function saveOwnPin(){
+  async function saveOwnPin(){
     var c=document.getElementById('pc-cur').value,n=document.getElementById('pc-new').value,f=document.getElementById('pc-conf').value,e=document.getElementById('pc-err');
     if(!c||!n||!f){e.textContent='সব ঘর পূরণ করুন';return;}
     if(n!==f){e.textContent='PIN মিলছে না';return;}
     if(n.length!==4||!/^\d+$/.test(n)){e.textContent='PIN ৪ সংখ্যার হতে হবে';return;}
-    var uid=MMSession.getStaffUserId();
-    if(!uid||!API.Teachers.changeOwnPin(uid,c,n)){e.textContent='বর্তমান PIN ভুল';return;}
-    MMSession.setStaffSession(MMSession.getRole(),MMSession.getName(),uid,n);
-    if(typeof MMSharedAPI!=='undefined'&&MMSharedAPI.staffChangeOwnPin){try{MMSharedAPI.staffChangeOwnPin(uid,c,n);}catch(ex){console.warn('Supabase PIN sync skipped',ex);}}
+    e.textContent='Saving...';
+    var result=await MMSession.changeStaffPin(c,n,function(uid,cur,next){return API.Teachers.changeOwnPin(uid,cur,next);});
+    if(!result.ok){e.textContent=(MMSession.pinChangeErrorMessage&&MMSession.pinChangeErrorMessage(result.error))||'PIN change failed';return;}
     closePinChangeModal();
     if(typeof showToast==='function')showToast('PIN সফলভাবে পরিবর্তন হয়েছে');
   }
