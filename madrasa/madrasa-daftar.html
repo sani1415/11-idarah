@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>দফতর — মাদরাসাতুল মদীনা</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 <style>
 /* ── হিরো কার্ড (সঘন) ── */
@@ -565,6 +568,7 @@ body.page-daftar #modal-account-entry .modal {
   </div>
   <div class="topbar-actions">
     <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../main-admin-madrasa.html'">এডমিন</button>
+    <button type="button" class="topbar-btn topbar-btn--icon" onclick="openAccSettingsPanel()" title="হিসাব সেটিংস" aria-label="হিসাব সেটিংস">⚙</button>
     <button type="button" class="topbar-btn topbar-btn--icon" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')" title="লগআউট" aria-label="লগআউট"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
   </div>
 </div>
@@ -923,9 +927,9 @@ body.page-daftar #modal-account-entry .modal {
 <script src="../js/api.js"></script>
 <script src="../js/mdr-daftar-supabase.js"></script>
 <script src="../js/mm-hijri.js"></script>
-<script src="../js/madrasa-accounts-api.js?v=20260503-accounts-db"></script>
+<script src="../js/madrasa-accounts-api.js?v=20260503-accounts-topbar"></script>
 <script src="../js/chat-api.js"></script>
-<script src="../js/madrasa-daftar-accounts.js?v=20260503-accounts-db"></script>
+<script src="../js/madrasa-daftar-accounts.js?v=20260503-accounts-topbar"></script>
 <script src="../js/madrasa-accounts-reports.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mm-session.js"></script>

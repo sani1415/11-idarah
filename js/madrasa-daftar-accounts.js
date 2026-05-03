@@ -66,19 +66,29 @@ var _editNeedsApproval = false;
     _accDefaulted = true;
   }
 
+  window.setAccSummaryMonth = function (value) {
+    _sumMonth = value === 'all' ? 'all' : A.monthKey(value);
+    _monF = _sumMonth;
+    _dayF = 'all';
+    _fromKey = 'all';
+    _toKey = 'all';
+    renderAccounts();
+  };
+
   if (!document.getElementById('acc-style')) {
     var cs = document.createElement('style');
     cs.id = 'acc-style';
     cs.textContent = `
 body.page-daftar #panel-fees{margin-left:-12px;margin-right:-12px}
 .acc-shell{padding-top:2px}
-.acc-add-btns{display:grid;grid-template-columns:1fr 1fr .85fr;gap:6px;padding:2px 4px 8px}
-.acc-add-btns.has-month{grid-template-columns:1fr 1fr minmax(96px,.85fr) .75fr;gap:6px;padding-bottom:6px}
-.acc-add-btns.acc-readonly{grid-template-columns:minmax(130px,1fr) minmax(110px,.65fr);align-items:stretch}
-.acc-btn{position:relative;overflow:hidden;padding:10px 0;border:none;border-radius:14px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 8px 18px rgba(26,18,8,.08)}
-.acc-add-btns.has-month .acc-btn{padding:8px 0;font-size:12px;border-radius:12px}
-.acc-top-month{font-size:12px;border:1px solid var(--cream2);border-radius:12px;padding:0 7px;background:#fff;color:var(--ink1);min-width:0;font-family:inherit}
-.acc-report-top{border:1px solid var(--cream2);border-radius:12px;background:#fff;color:var(--ink2);font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;padding:0 6px;box-shadow:0 5px 13px rgba(26,18,8,.055)}
+.acc-add-btns{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:2px 4px 8px}
+.acc-add-btns.has-month{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding-bottom:6px}
+.acc-add-btns.acc-readonly{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+.acc-btn{position:relative;overflow:hidden;height:38px;padding:0 4px;border:none;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 8px 18px rgba(26,18,8,.08);white-space:nowrap}
+.acc-add-btns.has-month .acc-btn{height:38px;padding:0 4px;font-size:12px;border-radius:12px}
+.acc-top-month,.acc-top-year{height:38px;font-size:12px;border:1px solid var(--cream2);border-radius:12px;padding:0 6px;background:#fff;color:var(--ink1);min-width:0;width:100%;font-family:inherit}
+.acc-top-year{font-size:11px}
+.acc-report-top{height:38px;border:1px solid var(--cream2);border-radius:12px;background:#fff;color:var(--ink2);font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;padding:0 4px;box-shadow:0 5px 13px rgba(26,18,8,.055);white-space:nowrap}
 .acc-report-top.active{background:var(--ink);color:var(--gold2);border-color:var(--ink)}
 .acc-top-settings{white-space:nowrap}
 .acc-btn:active{transform:scale(.98)}
@@ -658,7 +668,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     var s = {
       ti: allInc.reduce(function (sum, r) { return sum + A.num(r.amount); }, 0),
       te: allExp.reduce(function (sum, r) { return sum + A.num(r.amount); }, 0),
-      td: A.Dues.totalDue(),
+      td: allDues.reduce(function (sum, d) { return sum + Math.max(0, A.num(d.due)); }, 0),
     };
     var rows = accs.map(function (acc) {
       var accRows = allExp.filter(function (r) { return r.account === acc; });
@@ -684,18 +694,16 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       '<button type="button" class="acc-metric acc-metric-click good" onclick="openAccMetricModal(\'income\')"><div class="acc-metric-lbl">আয়</div><div class="acc-metric-val">৳' + fa(s.ti) + '</div></button>' +
       '<button type="button" class="acc-metric acc-metric-click bad" onclick="openAccMetricModal(\'expense\')"><div class="acc-metric-lbl">ব্যয়</div><div class="acc-metric-val">৳' + fa(s.te) + '</div></button>' +
       '<div class="acc-metric good"><div class="acc-metric-lbl">পরিশোধ</div><div class="acc-metric-val">৳' + fa(paid) + '</div></div>' +
-      '<button type="button" class="acc-metric acc-metric-click warn" onclick="openAccMetricModal(\'dues\')"><div class="acc-metric-lbl">বকেয়া</div><div class="acc-metric-val">৳' + fa(s.td) + '</div></button>' +
+      '<button type="button" class="acc-metric acc-metric-click warn" onclick="openAccMetricModal(\'dues\')"><div class="acc-metric-lbl">বর্তমান বকেয়া</div><div class="acc-metric-val">৳' + fa(s.td) + '</div></button>' +
       '</div>';
     var tfoot = '<tr><td><strong>সর্বমোট</strong></td>' +
       '<td style="color:var(--red);font-weight:700">৳' + fa(s.te) + '</td>' +
       '<td>' + pct(100) + '</td><td style="color:var(--red);font-weight:700">৳' + fa(s.td) + '</td></tr>';
-    var yearSel = '<select class="acc-sel" style="margin-bottom:8px" onchange="_yearF=this.value;renderAccounts()">' + yearOptions(_yearF) + '</select>';
     return '<div class="acc-dashboard">' +
-      yearSel +
       '<div class="acc-money-hero"><div class="acc-money-label">বর্তমান অবস্থা</div><div class="acc-money-main ' + balCls + '">' + (tb < 0 ? '−' : '+') + '৳' + fa(Math.abs(tb)) + '</div></div>' +
       metrics +
-      '<div class="acc-ledger-card"><div class="acc-ledger-title"><span>ব্যয়ের বই অনুযায়ী</span>' + (s.td ? '<span style="color:var(--red)">বকেয়া ৳' + fa(s.td) + '</span>' : '<span style="color:var(--green)">বকেয়া নেই</span>') + '</div>' +
-      '<div style="overflow-x:auto"><table class="acc-sum-tbl"><thead><tr><th>খাত / হিসাব বই</th><th>ব্যবহার</th><th>শতকরা</th><th>বকেয়া</th></tr></thead>' +
+      '<div class="acc-ledger-card"><div class="acc-ledger-title"><span>ব্যয়ের বই অনুযায়ী</span>' + (s.td ? '<span style="color:var(--red)">বর্তমান বকেয়া ৳' + fa(s.td) + '</span>' : '<span style="color:var(--green)">বর্তমান বকেয়া নেই</span>') + '</div>' +
+      '<div style="overflow-x:auto"><table class="acc-sum-tbl"><thead><tr><th>খাত / হিসাব বই</th><th>ব্যয়</th><th>শতকরা</th><th>বর্তমান বকেয়া</th></tr></thead>' +
       '<tbody>' + (tblRows || '<tr><td colspan="4" style="text-align:center;color:var(--ink3)">তথ্য নেই</td></tr>') + '</tbody>' +
       '<tfoot>' + tfoot + '</tfoot></table></div></div>' +
       '</div>';
@@ -843,6 +851,13 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   window.openAccMetricModal = function (kind) {
     _metricModalKind = kind;
     _settingsModalOpen = false;
+    if (kind === 'income' || kind === 'expense') {
+      _monF = _sumMonth === 'all' ? 'all' : A.monthKey(_sumMonth);
+      _dayF = 'all';
+      _accF = 'all';
+      _fromKey = 'all';
+      _toKey = 'all';
+    }
     renderAccMetricModal();
     openModal('account-details');
   };
@@ -1161,14 +1176,13 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     normalizeMonthFilters();
     var root = document.getElementById('accounts-root');
     if (!root) return;
-    var monthControl = '<select class="acc-top-month" onchange="_sumMonth=this.value;renderAccounts()">' + monthOptions(_sumMonth) + '</select>';
+    var monthControl = '<select class="acc-top-month" onchange="setAccSummaryMonth(this.value)">' + monthOptions(_sumMonth) + '</select>';
+    var yearControl = '<select class="acc-top-year" onchange="_yearF=this.value;renderAccounts()">' + yearOptions(_yearF) + '</select>';
     var readOnly = isAccountsReadOnly();
-    var actionBtns = readOnly
-      ? '<button type="button" class="acc-report-top" onclick="openAccReportsPanel()">রিপোর্ট</button>'
-      : '<div style="display:flex;gap:4px;align-items:stretch"><button type="button" class="acc-report-top" style="flex:1" onclick="openAccReportsPanel()">রিপোর্ট</button><button type="button" class="acc-report-top" onclick="openAccSettingsPanel()" title="হিসাব সেটিংস" style="padding:0 8px">⚙</button></div>';
+    var actionBtns = '<button type="button" class="acc-report-top" onclick="openAccReportsPanel()">রিপোর্ট</button>';
     var topControls = readOnly
-      ? '<div class="acc-add-btns acc-readonly">' + monthControl + actionBtns + '</div>'
-      : '<div class="acc-add-btns has-month"><button class="acc-btn acc-btn-inc" onclick="openAccModal(\'income\')">＋ আয়</button><button class="acc-btn acc-btn-exp" onclick="openAccModal(\'expense\')">＋ ব্যয়</button>' + monthControl + actionBtns + '</div>';
+      ? '<div class="acc-add-btns acc-readonly">' + monthControl + actionBtns + yearControl + '</div>'
+      : '<div class="acc-add-btns has-month"><button class="acc-btn acc-btn-inc" onclick="openAccModal(\'income\')">＋ আয়</button><button class="acc-btn acc-btn-exp" onclick="openAccModal(\'expense\')">＋ ব্যয়</button>' + monthControl + actionBtns + yearControl + '</div>';
     root.innerHTML =
       '<div class="acc-shell">' +
       topControls +

@@ -56,7 +56,71 @@ const MdrAccAPI = (() => {
   const num   = (v) => Number(v) || 0;
   const load  = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch { return []; } };
   const store = (k,a) => localStorage.setItem(k, JSON.stringify(a));
-  const monthKey = (m) => MONTH_ALIAS[String(m || '').trim()] || String(m || '').trim();
+  const CP1252_BYTES = {
+    0x20AC:0x80, 0x201A:0x82, 0x0192:0x83, 0x201E:0x84, 0x2026:0x85, 0x2020:0x86, 0x2021:0x87,
+    0x02C6:0x88, 0x2030:0x89, 0x0160:0x8A, 0x2039:0x8B, 0x0152:0x8C, 0x017D:0x8E,
+    0x2018:0x91, 0x2019:0x92, 0x201C:0x93, 0x201D:0x94, 0x2022:0x95, 0x2013:0x96, 0x2014:0x97,
+    0x02DC:0x98, 0x2122:0x99, 0x0161:0x9A, 0x203A:0x9B, 0x0153:0x9C, 0x017E:0x9E, 0x0178:0x9F,
+  };
+  /** UTF-8 বাইটকে Latin-1/CP1252 হিসেবে ভুল পড়লে মোজিবাক; একাধিকবার এনকোড হলেও ধরা। */
+  function repairUtf8Mojibake(str) {
+    if (str == null || str === '') return str;
+    let s = String(str);
+    if (!/[ÃÂà]/.test(s)) return s;
+    const bnCount = function (t) { return ((t || '').match(/[\u0980-\u09FF]/g) || []).length; };
+    for (let pass = 0; pass < 8; pass++) {
+      try {
+        const bytes = new Uint8Array(s.length);
+        for (let i = 0; i < s.length; i++) {
+          const code = s.charCodeAt(i);
+          const byte = code <= 255 ? code : CP1252_BYTES[code];
+          if (byte == null) return s;
+          bytes[i] = byte;
+        }
+        const dec = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+        if (dec === s) break;
+        s = dec;
+      } catch {
+        try {
+          const bytes = new Uint8Array(s.length);
+          for (let i = 0; i < s.length; i++) {
+            const code = s.charCodeAt(i);
+            const byte = code <= 255 ? code : CP1252_BYTES[code];
+            if (byte == null) return s;
+            bytes[i] = byte;
+          }
+          const loose = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+          if (bnCount(loose) > bnCount(s) || (bnCount(loose) > 0 && bnCount(s) === 0 && /[àâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ¿]|[\u00c0-\u00ff]{2,}/i.test(s))) {
+            s = loose;
+            continue;
+          }
+        } catch (e2) { /* ignore */ }
+        break;
+      }
+    }
+    return s;
+  }
+  const normText = (v) => {
+    const s = repairUtf8Mojibake(String(v || ''));
+    return (s.normalize ? s.normalize('NFC') : s)
+      .replace(/[\u200c\u200d]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+  let _monthAliasNorm = null;
+  const monthAliasNorm = () => {
+    if (_monthAliasNorm) return _monthAliasNorm;
+    _monthAliasNorm = {};
+    Object.keys(MONTH_ALIAS).forEach(k => { _monthAliasNorm[normText(k)] = MONTH_ALIAS[k]; });
+    return _monthAliasNorm;
+  };
+  const monthKey = (m) => {
+    const raw = normText(m);
+    const aliased = MONTH_ALIAS[String(m || '').trim()] || monthAliasNorm()[raw] || raw;
+    const canonical = normText(aliased);
+    const idx = HIJRI_MONTHS.findIndex(x => normText(x) === canonical);
+    return idx >= 0 ? HIJRI_MONTHS[idx] : aliased;
+  };
   const monthNo = (m) => {
     const idx = HIJRI_MONTHS.indexOf(monthKey(m));
     return idx >= 0 ? idx + 1 : 0;
@@ -72,7 +136,19 @@ const MdrAccAPI = (() => {
   };
   const dateYear = (year, month) => year ? num(en(year)) : (monthNo(month) <= 8 ? systemHijriYear() + 1 : systemHijriYear());
   const dateKey = (year, month, day) => String(dateYear(year, month)).padStart(4,'0') + '-' + String(monthNo(month)).padStart(2,'0') + '-' + String(num(day)).padStart(2,'0');
-  const norm = (r) => ({ ...r, month: monthKey(r.month), hijriYear: String(dateYear(r.hijriYear || r.year, r.month)), dateKey: dateKey(r.hijriYear || r.year, r.month, r.day) });
+  const NORM_STR_KEYS = ['description', 'category', 'supplier', 'note', 'project', 'unit', 'paymentMethod', 'receiptNo', 'rawDate', 'sourceFile', 'sourceSheet'];
+  const norm = (r) => {
+    const x = { ...r };
+    NORM_STR_KEYS.forEach((k) => {
+      if (typeof x[k] === 'string') x[k] = normText(x[k]);
+    });
+    return {
+      ...x,
+      month: monthKey(x.month),
+      hijriYear: String(dateYear(x.hijriYear || x.year, x.month)),
+      dateKey: dateKey(x.hijriYear || x.year, x.month, x.day),
+    };
+  };
   const bn = (s) => String(s || '').replace(/\d/g, (d) => String.fromCharCode(0x09e6 + (+d)));
   const en = (s) => String(s || '').replace(/[০-৯٠-٩۰-۹]/g, d => {
     const b = '০১২৩৪৫৬৭৮৯'.indexOf(d); if (b >= 0) return b;
@@ -113,9 +189,15 @@ const MdrAccAPI = (() => {
   function cacheBootstrap(res) {
     store(INC_KEY, Array.isArray(res.incomes) ? res.incomes : []);
     store(EXP_KEY, Array.isArray(res.expenses) ? res.expenses : []);
-    store(DUE_KEY, Array.isArray(res.dues) ? res.dues : []);
-    store(DUE_PAY_KEY, Array.isArray(res.duePayments) ? res.duePayments : []);
-    store(CAT_KEY, Array.isArray(res.categories) ? res.categories : []);
+    store(DUE_KEY, Array.isArray(res.dues) ? res.dues.map((d) => ({
+      ...d,
+      supplier: typeof d.supplier === 'string' ? normText(d.supplier) : d.supplier,
+    })) : []);
+    store(DUE_PAY_KEY, Array.isArray(res.duePayments) ? res.duePayments.map((p) => ({
+      ...p,
+      supplier: typeof p.supplier === 'string' ? normText(p.supplier) : p.supplier,
+    })) : []);
+    store(CAT_KEY, Array.isArray(res.categories) ? res.categories.map((c) => normText(String(c))) : []);
     localStorage.setItem(SV_KEY, 'accounts-db-' + Date.now());
   }
 
@@ -146,7 +228,7 @@ const MdrAccAPI = (() => {
 
   /* ── Categories ── */
   const Categories = {
-    getAll()        { const c = load(CAT_KEY); return [...DEFAULT_CATS, ...c.filter(x => !DEFAULT_CATS.includes(x))]; },
+    getAll()        { const c = load(CAT_KEY).map((x) => normText(String(x))); return [...DEFAULT_CATS, ...c.filter(x => !DEFAULT_CATS.includes(x))]; },
     async add(name) {
       const a = load(CAT_KEY);
       if (!a.includes(name) && !DEFAULT_CATS.includes(name)) { a.push(name); store(CAT_KEY, a); }
@@ -163,7 +245,7 @@ const MdrAccAPI = (() => {
   const Income = {
     getAll()      { return load(INC_KEY).map(norm); },
     getById(id)   { const r = load(INC_KEY).find(x => x.id === id); return r ? norm(r) : null; },
-    getByMonth(m) { const mm = monthKey(m); return load(INC_KEY).filter(x => monthKey(x.month) === mm); },
+    getByMonth(m) { const mm = monthKey(m); return load(INC_KEY).filter(x => monthKey(x.month) === mm).map(norm); },
     total()           { return Income.getAll().reduce((s,x) => s + num(x.amount), 0); },
     async add(data) {
       const a = load(INC_KEY);
@@ -189,9 +271,9 @@ const MdrAccAPI = (() => {
   const Expense = {
     getAll()            { return load(EXP_KEY).map(norm); },
     getById(id)         { const r = load(EXP_KEY).find(x => x.id === id); return r ? norm(r) : null; },
-    getByAccount(acc)   { return load(EXP_KEY).filter(x => x.account === acc); },
-    getByMonth(m)       { const mm = monthKey(m); return load(EXP_KEY).filter(x => monthKey(x.month) === mm); },
-    getByItem(desc)     { return load(EXP_KEY).filter(x => x.description === desc); },
+    getByAccount(acc)   { return load(EXP_KEY).filter(x => x.account === acc).map(norm); },
+    getByMonth(m)       { const mm = monthKey(m); return load(EXP_KEY).filter(x => monthKey(x.month) === mm).map(norm); },
+    getByItem(desc)     { return load(EXP_KEY).filter(x => x.description === desc).map(norm); },
     total()             { return Expense.getAll().reduce((s,x) => s + num(x.amount), 0); },
     totalByAccount(acc) { return Expense.getByAccount(acc).reduce((s,x) => s + num(x.amount), 0); },
     async add(data) {
@@ -211,15 +293,15 @@ const MdrAccAPI = (() => {
       return e;
     },
     async del(id)       { store(EXP_KEY, load(EXP_KEY).filter(x => x.id !== id)); await remoteCall((ra) => MMSharedAPI.deleteAccountEntry(ra.id, ra.pin, 'expense', id)); },
-    itemNames()         { const nm = new Set(); load(EXP_KEY).forEach(x => { if (x.description && num(x.quantity) > 0) nm.add(x.description); }); return [...nm].sort((a,b) => a.localeCompare(b,'bn')); },
+    itemNames()         { const nm = new Set(); load(EXP_KEY).forEach(x => { if (x.description && num(x.quantity) > 0) nm.add(normText(x.description)); }); return [...nm].sort((a,b) => a.localeCompare(b,'bn')); },
     months()            { return [...new Set(load(EXP_KEY).map(x => monthKey(x.month)).filter(Boolean))]; },
-    categories()        { return [...new Set(load(EXP_KEY).map(x => x.category).filter(Boolean))]; },
-    suppliers()         { return [...new Set(load(EXP_KEY).map(x => x.supplier).filter(Boolean))]; },
+    categories()        { return [...new Set(load(EXP_KEY).map(x => normText(x.category)).filter(Boolean))]; },
+    suppliers()         { return [...new Set(load(EXP_KEY).map(x => normText(x.supplier)).filter(Boolean))]; },
   };
 
   /* ── Supplier Dues ── */
   const Dues = {
-    getAll()   { return load(DUE_KEY); },
+    getAll()   { return load(DUE_KEY).map((d) => (typeof d.supplier === 'string' ? { ...d, supplier: normText(d.supplier) } : { ...d })); },
     withDue()  { return load(DUE_KEY).filter(x => num(x.due) !== 0); },
     totalDue() { return load(DUE_KEY).reduce((s,x) => s + Math.max(0, num(x.due)), 0); },
     async recordPayment(id, amt) {

@@ -2,7 +2,7 @@
    মাদরাসাতুল মদীনা — Shared Stylesheet
    ═══════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap');
+/* Tiro Bangla: প্রতিটি HTML-এ <head>-এ preconnect + fonts.googleapis link দিন (বিলম্ব/ফ্ল্যাশ কমাতে)। */
 
 :root {
   --ink: #1a1208;
