@@ -70,6 +70,13 @@ const MMSharedAPI = (() => {
         p_is_active: user.is_active !== false,
       });
     },
+    staffChangeOwnPin(userId, currentPin, newPin) {
+      return rpc('mdr_rel_staff_change_own_pin', {
+        p_user_id: userId,
+        p_current_pin: currentPin,
+        p_new_pin: newPin,
+      });
+    },
     daftarBootstrap(actorId, pin) {
       return rpc('mdr_rel_daftar_bootstrap', {
         p_actor_id: actorId,

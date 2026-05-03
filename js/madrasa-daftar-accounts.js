@@ -1006,12 +1006,23 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       return '<div class="acc-cat-row"><span>' + esc(c) + (isDef ? ' <span style="font-size:9px;color:var(--ink3)">(ডিফল্ট)</span>' : '') + '</span>' +
         (isDef ? '' : '<button class="acc-del-btn" onclick="delAccCategory(\'' + esc(c) + '\')">✕</button>') + '</div>';
     }).join('');
+    var pinBlock = '';
+    if (!isAccountsReadOnly() && typeof MMSession !== 'undefined' && MMSession.getStaffUserId()) {
+      pinBlock = '<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--cream2)">' +
+        '<div style="font-weight:700;font-size:14px;margin-bottom:10px">PIN পরিবর্তন</div>' +
+        '<div class="form-group"><label class="form-label">বর্তমান PIN</label><input class="form-input" type="password" id="pc-cur" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="বর্তমান PIN"></div>' +
+        '<div class="form-group"><label class="form-label">নতুন PIN</label><input class="form-input" type="password" id="pc-new" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="নতুন ৪-সংখ্যার PIN"></div>' +
+        '<div class="form-group"><label class="form-label">নতুন PIN নিশ্চিত করুন</label><input class="form-input" type="password" id="pc-conf" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="পুনরায় PIN লিখুন"></div>' +
+        '<button class="submit-btn" onclick="saveOwnPin()" style="margin-top:4px">PIN সংরক্ষণ করুন</button>' +
+        '<div style="color:var(--red);font-size:12px;text-align:center;margin-top:8px;min-height:18px" id="pc-err"></div>' +
+        '</div>';
+    }
     return '<div style="font-family:\'Tiro Bangla\',serif;font-weight:700;font-size:14px;margin-bottom:8px">ব্যয়ের খাত ব্যবস্থাপনা</div>' +
       '<div style="margin-bottom:10px">' + catRows + '</div>' +
       '<div class="acc-filter-bar">' +
       '<input class="acc-sel" id="acc-new-cat" placeholder="নতুন খাত লিখুন" style="flex:3;border-radius:8px;padding:6px 10px;border:1px solid var(--cream2)">' +
       '<button class="acc-btn acc-btn-inc" onclick="addAccCategory()" style="flex:1.2;border-radius:8px">যোগ করুন</button>' +
-      '</div>';
+      '</div>' + pinBlock;
   }
 
   window.addAccCategory = async function () {

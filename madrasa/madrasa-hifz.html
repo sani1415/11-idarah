@@ -67,7 +67,7 @@
   </div>
   <div class="topbar-actions">
     <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../main-admin-madrasa.html'">এডমিন</button>
-    <button type="button" class="topbar-btn topbar-btn--icon" onclick="openPinChangeModal()" title="PIN পরিবর্তন" aria-label="PIN পরিবর্তন"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></button>
+    <button type="button" class="topbar-btn topbar-btn--icon" onclick="openPinChangeModal()" title="PIN পরিবর্তন" aria-label="PIN পরিবর্তন"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
     <button type="button" class="topbar-btn topbar-btn--icon" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')" title="লগআউট" aria-label="লগআউট"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
   </div>
 </div>
@@ -515,8 +515,9 @@
     var uid=MMSession.getStaffUserId();
     if(!uid||!API.Teachers.changeOwnPin(uid,c,n)){e.textContent='বর্তমান PIN ভুল';return;}
     MMSession.setStaffSession(MMSession.getRole(),MMSession.getName(),uid,n);
+    if(typeof MMSharedAPI!=='undefined'&&MMSharedAPI.staffChangeOwnPin){try{MMSharedAPI.staffChangeOwnPin(uid,c,n);}catch(ex){console.warn('Supabase PIN sync skipped',ex);}}
     closePinChangeModal();
-    if(typeof showToast==='function')showToast('PIN সফলভাবে পরিবর্তন হয়েছে');else alert('PIN সফলভাবে পরিবর্তন হয়েছে');
+    if(typeof showToast==='function')showToast('PIN সফলভাবে পরিবর্তন হয়েছে');
   }
 
   renderHome();
