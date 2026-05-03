@@ -317,3 +317,7 @@ const MdrAccAPI = (() => {
 
   return { ensureSeed, bootstrapRemote, remoteReady, Income, Expense, Dues, Summary, Categories, Settings, MONTHS, HIJRI_MONTHS, ACCOUNT_LABELS, esc, bn, fa, pct, count, clean, monthKey, monthFromNo, monthNo, dateKey, dateLabel, parseDateInput, toDateKey, inRange, num, todayHijri };
 })();
+
+if (typeof window !== 'undefined') {
+  window.MdrAccAPI = MdrAccAPI;
+}
