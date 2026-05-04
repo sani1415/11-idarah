@@ -26,6 +26,7 @@
   button.stat-tile:active { opacity: 0.92; }
   button.stat-tile:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.35); }
   button.stat-tile.stat-tile--ah:focus-visible { box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.4); }
+  button.stat-tile.stat-tile--kh:focus-visible { box-shadow: 0 0 0 2px rgba(201, 149, 42, 0.45); }
   #modal-watch-list .modal-large > .watch-list-sub,
   #modal-ah-list .modal-large > .watch-list-sub { flex-shrink: 0; font-size: 12px; color: var(--ink3); margin: 0 0 10px; line-height: 1.35; }
   #modal-watch-list .modal-large .watch-list-panel,
@@ -83,6 +84,11 @@
   .kh-hist-line:last-child { border-bottom:none; }
   .kh-hist-date { font-size:9px; color:var(--ink3); }
   .stat-num--leave { color:var(--red) !important; }
+  /* ── ছাত্র সার্চ ── */
+  .std-search-strip { margin-bottom:8px; }
+  .std-search-input { width:100%; padding:9px 12px; border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Tiro Bangla',serif; font-size:12px; color:var(--ink); background:#fff; outline:none; box-sizing:border-box; }
+  .std-search-input:focus { border-color:var(--gold); }
+  .std-search-input::placeholder { color:var(--ink4); }
   .std-row { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:7px; display:flex; align-items:center; gap:12px; }
   .std-roll { font-size:11px; font-weight:700; color:var(--ink3); background:var(--cream2); padding:3px 8px; border-radius:99px; flex-shrink:0; }
   .std-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
@@ -227,6 +233,9 @@
 <div class="content" id="panel-std">
   <div id="home-stats-block" style="padding-bottom:4px;padding-top:4px;">
     <div class="stat-grid" id="stat-grid"></div>
+  </div>
+  <div class="std-search-strip" id="std-search-strip">
+    <input class="std-search-input" id="std-search-q" type="text" inputmode="search" placeholder="নাম বা রোল লিখে খুঁজুন..." oninput="stdSearchQ=this.value;renderStudents()">
   </div>
   <div id="std-list"></div>
 </div>
@@ -375,6 +384,22 @@
   </div>
 </div>
 
+<!-- MODAL: হুসনুল খুলুক ক্যাটাগরি তালিকা -->
+<div class="modal-bg" id="modal-khuluk-cat">
+  <div class="modal modal-large">
+    <div class="modal-title">হুসনুল খুলুক <button type="button" class="modal-close" onclick="closeModal('modal-khuluk-cat')">✕</button></div>
+    <div class="modal-tabs" role="tablist" aria-label="হুসনুল খুলুক ক্যাটাগরি">
+      <button type="button" class="modal-tab active" id="khcat-tab-high" onclick="setKhulukCatTab('high')" aria-selected="true">মুজতাহিদ</button>
+      <button type="button" class="modal-tab" id="khcat-tab-mid" onclick="setKhulukCatTab('mid')" aria-selected="false">মুতাওয়াস্সিত</button>
+      <button type="button" class="modal-tab" id="khcat-tab-low" onclick="setKhulukCatTab('low')" aria-selected="false">মুসতায়িদ</button>
+    </div>
+    <p id="khcat-sub" class="watch-list-sub">—</p>
+    <div class="modal-panel watch-list-panel">
+      <div id="khcat-list-body" class="modal-history-list"></div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -511,10 +536,61 @@
       '<button type="button" class="stat-tile" onclick="openWatchListModal()"><span class="stat-num" style="color:#7c3aed">' + toBn(watchCount) + '</span><span class="stat-label">পর্যবেক্ষণ</span></button>' +
       '<button type="button" class="stat-tile stat-tile--ah" onclick="openAhListModal()"><span class="stat-num" style="color:#b45309">' + toBn(ahCount) + '</span><span class="stat-label">আলহামদুলিল্লাহ</span></button>' +
       '<div class="stat-tile"><span class="stat-num" style="color:var(--gold)">' + (avg !== null ? toBn(avg) : '—') + '</span><span class="stat-label">গড় হুসনুল খুলুক</span></div>' +
-      '<div class="stat-tile stat-tile--kh">' +
+      '<button type="button" class="stat-tile stat-tile--kh" onclick="openKhulukCatModal()">' +
       '<div class="stat-kh-hd">' + '\u09B9\u09C1\u09B8\u09A8\u09C1\u09B2 \u0996\u09C1\u09B2\u09C1\u0995' + '</div>' +
       '<div class="kh-mini">' + threeLines + '</div>' +
-      '</div>';
+      '</button>';
+  }
+
+  /* ── হুসনুল খুলুক ক্যাটাগরি মোডাল ── */
+  var khulukCatTab = 'high';
+  function setKhulukCatTab(cat) {
+    if (cat !== 'high' && cat !== 'mid' && cat !== 'low') return;
+    khulukCatTab = cat;
+    document.getElementById('khcat-tab-high').classList.toggle('active', cat === 'high');
+    document.getElementById('khcat-tab-mid').classList.toggle('active', cat === 'mid');
+    document.getElementById('khcat-tab-low').classList.toggle('active', cat === 'low');
+    document.getElementById('khcat-tab-high').setAttribute('aria-selected', cat === 'high' ? 'true' : 'false');
+    document.getElementById('khcat-tab-mid').setAttribute('aria-selected', cat === 'mid' ? 'true' : 'false');
+    document.getElementById('khcat-tab-low').setAttribute('aria-selected', cat === 'low' ? 'true' : 'false');
+    renderKhulukCatList();
+  }
+  function openKhulukCatModal() {
+    if (!classId) return;
+    khulukCatTab = 'high';
+    setKhulukCatTab('high');
+    openModal('modal-khuluk-cat');
+  }
+  function renderKhulukCatList() {
+    var body = document.getElementById('khcat-list-body');
+    var sub = document.getElementById('khcat-sub');
+    if (!body || !classId) return;
+    var students = API.Students.getByClass(classId);
+    var filtered = students.filter(function(s) {
+      var kh = API.Khuluk.getLatest(s.id);
+      var score = kh != null && kh.score != null ? Number(kh.score) : null;
+      if (score === null || Number.isNaN(score)) return false;
+      if (khulukCatTab === 'high') return score >= 81;
+      if (khulukCatTab === 'mid') return score >= 60 && score <= 80;
+      return score < 60;
+    });
+    filtered.sort(function(a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'bn'); });
+    if (sub) sub.textContent = filtered.length ? 'মোট ' + toBn(filtered.length) + ' জন' : 'কেউ নেই';
+    if (!filtered.length) {
+      body.innerHTML = '<div class="log-panel-empty">এই ক্যাটাগরিতে কোনো ছাত্র নেই।</div>';
+    } else {
+      body.innerHTML = filtered.map(function(s) {
+        var kh = API.Khuluk.getLatest(s.id);
+        var sc = kh != null && kh.score != null ? toBn(kh.score) : '—';
+        var hasR = s.roll != null && String(s.roll).trim() !== '';
+        var rollPill = hasR ? API.escBn(String(s.roll)) : '—';
+        return '<div class="watch-list-item">' +
+          '<span class="std-roll">' + rollPill + '</span>' +
+          '<button type="button" class="watch-open-std" onclick="closeModal(\'modal-khuluk-cat\'); MMStudentModal.open(\'' + _jsQuote(s.id) + '\')">' + API.esc(s.name) + '</button>' +
+          '<span style="font-size:11px;font-weight:700;color:var(--ink3);flex-shrink:0;">' + sc + '</span>' +
+          '</div>';
+      }).join('');
+    }
   }
 
   function openWatchListModal() {
@@ -570,9 +646,20 @@
   };
 
   /* ── STUDENTS ── */
+  var stdSearchQ = '';
+  function _matchStudentSearch(s) {
+    if (!stdSearchQ) return true;
+    var q = stdSearchQ.toLowerCase().replace(/[০-৯]/g, function(d) { return '০১২৩৪৫৬৭৮৯'.indexOf(d).toString(); });
+    return ((s.name || '').toLowerCase().indexOf(q) >= 0) ||
+           ((s.roll || '').toLowerCase().replace(/[০-৯]/g, function(d) { return '০১২৩৪৫৬৭৮৯'.indexOf(d).toString(); }).indexOf(q) >= 0) ||
+           ((s.student_id || '').toLowerCase().replace(/[০-৯]/g, function(d) { return '০১২৩৪৫৬৭৮৯'.indexOf(d).toString(); }).indexOf(q) >= 0) ||
+           ((s.permanent_id || '').toLowerCase().replace(/[০-৯]/g, function(d) { return '০১২৩৪৫৬৭৮৯'.indexOf(d).toString(); }).indexOf(q) >= 0);
+  }
   function renderStudents() {
-    if (!classId) { document.getElementById('std-list').innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3);">বর্ষ নির্ধারিত নেই</div>'; return; }
-    const students = API.Students.getByClass(classId);
+    if (!classId) { document.getElementById('std-list').innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3);">বর্ষ নির্ধারিত নেই</div>'; document.getElementById('std-search-strip').style.display='none'; return; }
+    document.getElementById('std-search-strip').style.display = '';
+    var allStudents = API.Students.getByClass(classId);
+    var students = allStudents.filter(function(s) { return _matchStudentSearch(s); });
     const today = API.today();
     const att = API.Attendance.getByClassDate(classId, today) || {};
     const recs = att.records || [];

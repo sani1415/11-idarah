@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OLD_FILE = ROOT / "alumni.xlsx"
 NEW_FILE = ROOT / "new_alumni.xlsx"
 OUT_DIR = ROOT / "outputs" / "alumni_merged"
-OUT_FILE = OUT_DIR / "alumni_clean_combined_v3.xlsx"
+OUT_FILE = OUT_DIR / "alumni_clean_combined_v5.xlsx"
 
 BN_DIGITS = "০১২৩৪৫৬৭৮৯"
 EN_DIGITS = "0123456789"
@@ -394,81 +394,154 @@ def build_token_matcher(old_records: list[dict], new_records: list[dict]):
         record["_tokens"] = record_tokens(record)
 
 
-def merge_records(old_records: list[dict], new_records: list[dict]) -> list[dict]:
+def add_unique_comment(record: dict, comment: str) -> None:
+    if comment and comment not in record["comments"]:
+        record["comments"].append(comment)
+
+
+def phone_text(record: dict) -> str:
+    return "; ".join(record.get("phones") or [])
+
+
+def assign_review_groups(records: list[dict]) -> int:
+    parent = list(range(len(records)))
+    edge_reasons: dict[tuple[int, int], set[str]] = defaultdict(set)
+    phone_edges: set[tuple[int, int]] = set()
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int, reason: str, is_phone: bool = False) -> None:
+        if a == b:
+            return
+        pair = tuple(sorted((a, b)))
+        edge_reasons[pair].add(reason)
+        if is_phone:
+            phone_edges.add(pair)
+        root_a = find(a)
+        root_b = find(b)
+        if root_a != root_b:
+            parent[root_b] = root_a
+
+    new_indexes = [i for i, record in enumerate(records) if record.get("_source_kind") == "new"]
+    old_indexes = [i for i, record in enumerate(records) if record.get("_source_kind") == "old"]
+
+    old_by_phone: dict[str, list[int]] = defaultdict(list)
+    for idx in old_indexes:
+        for phone in records[idx]["phones"]:
+            old_by_phone[phone].append(idx)
+    for new_idx in new_indexes:
+        for phone in records[new_idx]["phones"]:
+            for old_idx in old_by_phone.get(phone, []):
+                union(new_idx, old_idx, f"ফোন মিলেছে: {phone}", True)
+
+    by_jamat: dict[str, list[int]] = defaultdict(list)
+    for idx, record in enumerate(records):
+        by_jamat[duplicate_jamat_key(record["jamat"])].append(idx)
+    for indexes in by_jamat.values():
+        for pos, left_idx in enumerate(indexes):
+            for right_idx in indexes[pos + 1:]:
+                reason = duplicate_pair_reason(records[left_idx], records[right_idx])
+                if reason:
+                    union(left_idx, right_idx, reason)
+
+    by_permanent_id: dict[str, list[int]] = defaultdict(list)
+    for idx, record in enumerate(records):
+        if record["permanent_id"]:
+            by_permanent_id[record["permanent_id"]].append(idx)
+    for permanent_id, indexes in by_permanent_id.items():
+        if len(indexes) < 2:
+            continue
+        for pos, left_idx in enumerate(indexes):
+            for right_idx in indexes[pos + 1:]:
+                union(left_idx, right_idx, f"পার্মানেন্ট আইডি duplicate: {permanent_id}")
+
+    grouped: dict[int, list[int]] = defaultdict(list)
+    for idx in range(len(records)):
+        grouped[find(idx)].append(idx)
+
+    review_groups = []
+    for indexes in grouped.values():
+        if len(indexes) < 2:
+            continue
+        group_edge_reasons = set()
+        has_phone = False
+        for pos, left_idx in enumerate(indexes):
+            for right_idx in indexes[pos + 1:]:
+                pair = tuple(sorted((left_idx, right_idx)))
+                group_edge_reasons.update(edge_reasons.get(pair, set()))
+                if pair in phone_edges:
+                    has_phone = True
+        if not group_edge_reasons:
+            continue
+        review_groups.append((min(records[i]["_original_sort"] for i in indexes), has_phone, sorted(group_edge_reasons), indexes))
+
+    review_groups.sort(key=lambda item: item[0])
+    for group_no, (_, has_phone, reasons, indexes) in enumerate(review_groups, start=1):
+        color = "red" if has_phone else "yellow"
+        reason_text = " | ".join(reasons)
+        for idx in indexes:
+            records[idx]["_review_group_no"] = group_no
+            records[idx]["_review_color"] = color
+            records[idx]["_review_reason"] = reason_text
+    return len(review_groups)
+
+
+def sort_records_for_review(records: list[dict]) -> list[dict]:
+    def sort_key(record: dict):
+        group_no = record.get("_review_group_no")
+        source_rank = 0 if record.get("_source_kind") == "new" else 1
+        if group_no:
+            return (0, group_no, source_rank, record["_original_sort"])
+        return (1, record["_original_sort"])
+
+    return sorted(records, key=sort_key)
+
+
+def add_review_comments(records: list[dict]) -> None:
+    groups: dict[int, list[dict]] = defaultdict(list)
+    for record in records:
+        if record.get("_review_group_no"):
+            groups[record["_review_group_no"]].append(record)
+
+    for group_no, group_records in groups.items():
+        for record in group_records:
+            others = [other for other in group_records if other is not record]
+            other_text = "; ".join(
+                f"row {other['_clean_row']}: {other['name']}" + (f" ({phone_text(other)})" if phone_text(other) else "")
+                for other in others[:6]
+            )
+            extra = "" if len(others) <= 6 else f"; আরও {len(others) - 6}টি"
+            label = "লাল" if record.get("_review_color") == "red" else "হলুদ"
+            add_unique_comment(
+                record,
+                f"{label}: Review group {group_no}; কারণ: {record.get('_review_reason', '')}; মিলেছে {other_text}{extra}",
+            )
+
+
+def combine_records(old_records: list[dict], new_records: list[dict]) -> list[dict]:
     build_token_matcher(old_records, new_records)
 
-    old_by_phone: dict[str, list[dict]] = defaultdict(list)
-    for old in old_records:
-        for phone in old["phones"]:
-            old_by_phone[phone].append(old)
-
-    used_old: set[int] = set()
     output: list[dict] = []
-    id_rows: dict[str, list[int]] = defaultdict(list)
-    for index, record in enumerate(new_records, start=2):
-        if record["permanent_id"]:
-            id_rows[record["permanent_id"]].append(index)
-
-    for new in new_records:
-        matched_old = None
-        match_type = ""
-        for phone in new["phones"]:
-            candidates = [old for old in old_by_phone.get(phone, []) if old["source_row"] not in used_old]
-            if candidates:
-                matched_old = candidates[0]
-                match_type = "ফোন"
-                break
-        if not matched_old and new["_tokens"]:
-            best = None
-            best_score = 0.0
-            for old in old_records:
-                if old["source_row"] in used_old or not old["_tokens"]:
-                    continue
-                intersection = len(new["_tokens"] & old["_tokens"])
-                if intersection < 2:
-                    continue
-                score = intersection / max(len(new["_tokens"]), len(old["_tokens"]))
-                if score > best_score:
-                    best = old
-                    best_score = score
-            if best and best_score >= 0.9:
-                matched_old = best
-                match_type = "সম্ভাব্য নাম"
-
-        comments = list(new["comments"])
-        source = new["source"]
-        if matched_old:
-            used_old.add(matched_old["source_row"])
-            if match_type == "ফোন":
-                source = "পুরনো+নতুন মিলিত"
-                comments.append(f"পুরনো তালিকার সাথে ফোন দিয়ে মিলেছে; পুরনো row {matched_old['source_row']}")
-            else:
-                source = "সম্ভাব্য মিল, যাচাই দরকার"
-                comments.append(f"পুরনো তালিকার সাথে সম্ভাব্য নাম-মিল; পুরনো row {matched_old['source_row']}")
-            if matched_old["study_detail"]:
-                comments.append("পুরনো মন্তব্য: " + matched_old["study_detail"])
-            if matched_old["halat"] and matched_old["halat"] != new["halat"]:
-                comments.append("পুরনো হালাত আলাদা ছিল")
-
-        if new["permanent_id"] and len(id_rows[new["permanent_id"]]) > 1:
-            comments.append("পার্মানেন্ট আইডি duplicate; যাচাই দরকার")
-
-        row = dict(new)
-        row["comments"] = comments
-        row["source"] = source
-        if matched_old:
-            row["_matched_old_row"] = matched_old["source_row"]
-            row["_matched_old_name"] = matched_old["name"]
-            row["_matched_old_phones"] = matched_old["phones"]
-            row["_matched_old_study_detail"] = matched_old["study_detail"]
-            row["_match_type"] = match_type
+    for idx, record in enumerate(new_records):
+        row = dict(record)
+        row["_source_kind"] = "new"
+        row["_original_sort"] = idx
+        output.append(row)
+    for idx, record in enumerate(old_records):
+        row = dict(record)
+        row["_source_kind"] = "old"
+        row["_original_sort"] = len(new_records) + idx
         output.append(row)
 
-    for old in old_records:
-        if old["source_row"] in used_old:
-            continue
-        output.append(old)
-
+    assign_review_groups(output)
+    output = sort_records_for_review(output)
+    for clean_row, record in enumerate(output, start=2):
+        record["_clean_row"] = clean_row
+    add_review_comments(output)
     return output
 
 
@@ -511,12 +584,43 @@ def style_body(ws, border) -> None:
             cell.font = Font(name="Nirmala UI", size=10)
 
 
+def apply_review_fills(ws, records: list[dict]) -> tuple[int, int]:
+    red_fill = PatternFill("solid", fgColor="F4CCCC")
+    yellow_fill = PatternFill("solid", fgColor="FFF2CC")
+    red_count = 0
+    yellow_count = 0
+    for record in records:
+        color = record.get("_review_color")
+        if color not in ("red", "yellow"):
+            continue
+        fill = red_fill if color == "red" else yellow_fill
+        if color == "red":
+            red_count += 1
+        else:
+            yellow_count += 1
+        row_idx = record.get("_clean_row")
+        if not row_idx:
+            continue
+        for cell in ws[row_idx]:
+            cell.fill = fill
+    return red_count, yellow_count
+
+
 def write_duplicate_sheet(wb: Workbook, records: list[dict], header_fill, header_font, border) -> int:
-    duplicate_groups = find_duplicate_groups(records)
+    duplicate_groups: list[tuple[int, str, list[dict]]] = []
+    by_group: dict[int, list[dict]] = defaultdict(list)
+    for record in records:
+        if record.get("_review_group_no"):
+            by_group[record["_review_group_no"]].append(record)
+    for group_no in sorted(by_group):
+        group_records = by_group[group_no]
+        reason = group_records[0].get("_review_reason", "")
+        duplicate_groups.append((group_no, reason, group_records))
+
     ws = wb.create_sheet("সম্ভাব্য ডুপ্লিকেট")
     ws.append(DUPLICATE_HEADERS)
     for group_no, reason, group_records in duplicate_groups:
-        for record in sorted(group_records, key=lambda r: (duplicate_jamat_key(r["jamat"]), r["name"], r.get("_clean_row", 0))):
+        for record in sorted(group_records, key=lambda r: r.get("_clean_row", 0)):
             phones = record["phones"]
             ws.append([
                 group_no,
@@ -666,20 +770,20 @@ def write_workbook(records: list[dict]) -> None:
     ws.add_table(table)
 
     ws.sheet_view.showGridLines = False
-    merged_match_count = write_merged_match_sheet(wb, records, header_fill, header_font, border)
+    red_count, yellow_count = apply_review_fills(ws, records)
     duplicate_group_count = write_duplicate_sheet(wb, records, header_fill, header_font, border)
-    wb.properties.comments = f"merged_match_rows={merged_match_count}; possible_duplicate_groups={duplicate_group_count}"
+    wb.properties.comments = f"red_review_rows={red_count}; yellow_review_rows={yellow_count}; possible_duplicate_groups={duplicate_group_count}"
     wb.save(OUT_FILE)
 
 
 def main() -> None:
     old_records = parse_old_records()
     new_records = parse_new_records()
-    merged = merge_records(old_records, new_records)
-    write_workbook(merged)
+    combined = combine_records(old_records, new_records)
+    write_workbook(combined)
     print(f"old_records={len(old_records)}")
     print(f"new_records={len(new_records)}")
-    print(f"merged_rows={len(merged)}")
+    print(f"combined_rows={len(combined)}")
     print(f"output={OUT_FILE}")
 
 

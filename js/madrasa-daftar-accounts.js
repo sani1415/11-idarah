@@ -8,7 +8,7 @@ var _accFs    = [];   /* multi-select account books — empty = all */
 var _catFs    = [];   /* multi-select categories — empty = all */
 var _dayF     = 'all';
 var _sortF    = 'date_desc';
-var _dueAccF  = 'all';
+var _dueAccFs  = [];
 var _fromKey  = 'all';
 var _toKey    = 'all';
 var _detailAccount = '';
@@ -1018,7 +1018,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   window.openAccDueDetails = function (account) {
     _metricModalKind = 'dues';
     _settingsModalOpen = false;
-    _dueAccF = account;
+    _dueAccFs = account && account !== 'all' ? [account] : [];
     renderAccMetricModal();
     openModal('account-details');
   };
@@ -1353,14 +1353,100 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   }
 
   /* ══════════════ DUES (compact table) ══════════════ */
+  var _duesDropdownTrigger = null;
+  window.toggleDueAccount = function (id, checked) {
+    if (checked) {
+      if (_dueAccFs.indexOf(id) < 0) _dueAccFs.push(id);
+    } else {
+      var idx = _dueAccFs.indexOf(id);
+      if (idx >= 0) _dueAccFs.splice(idx, 1);
+    }
+  };
+  window.toggleAllDueAccounts = function () {
+    _dueAccFs = _dueAccFs.length ? [] : Object.keys(A.ACCOUNT_LABELS);
+    _rebuildDuesDropdown();
+  };
+  window.openDuesFilterDropdown = function (triggerEl) {
+    var existing = document.getElementById('acc-dues-filter-dropdown');
+    if (existing) { existing.remove(); _duesDropdownTrigger = null; return; }
+    _duesDropdownTrigger = triggerEl;
+    var accounts = Object.entries(A.ACCOUNT_LABELS);
+    var itemsHtml = accounts.map(function (e) {
+      var id = e[0], label = e[1];
+      var on = _dueAccFs.indexOf(id) >= 0;
+      return '<label class="acc-ms-item' + (on ? ' is-on' : '') + '" style="border-radius:10px;display:flex;width:100%;box-sizing:border-box">' +
+        '<input type="checkbox" class="acc-ms-cb" ' + (on ? 'checked' : '') + ' onchange="toggleDueAccount(\'' + esc(id) + '\',this.checked);window._refreshDuesDropdownUI()">' +
+        '<span class="acc-ms-circle">✓</span>' +
+        '<span style="flex:1">' + esc(label) + '</span></label>';
+    }).join('');
+    var allOn = _dueAccFs.length === 0;
+    var totalActive = _dueAccFs.length;
+    var el = document.createElement('div');
+    el.id = 'acc-dues-filter-dropdown';
+    el.className = 'acc-dd-backdrop';
+    el.onclick = window.closeDuesFilterDropdown;
+    el.innerHTML = '<div class="acc-dd-panel" onclick="event.stopPropagation()">' +
+      '<div class="acc-sheet-head" style="padding:10px 12px 6px"><div class="acc-sheet-title">হিসাব বই' + (totalActive && !allOn ? ' (' + bn(totalActive) + ')' : '') + '</div><button type="button" class="acc-sheet-close" onclick="closeDuesFilterDropdown()">✕</button></div>' +
+      '<div class="acc-dd-section"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
+      '<div class="acc-ms-section-head">হিসাব বই <span class="acc-dds-count" style="font-size:9px;font-weight:400;color:var(--ink3)">(' + bn(totalActive || accounts.length) + (totalActive && !allOn ? '/' + bn(accounts.length) : '') + ')</span></div>' +
+      '<button type="button" class="acc-ms-selall" onclick="toggleAllDueAccounts()">' + (allOn ? 'বাতিল সব' : 'সব নির্বাচন') + '</button></div>' +
+      '<div class="acc-dd-section-list">' + itemsHtml + '</div></div>' +
+      '<div class="acc-filter-bar" style="margin:4px 12px 12px"><button type="button" class="acc-btn acc-btn-inc" onclick="closeDuesFilterDropdown();renderAccMetricModal()" style="border-radius:10px;flex:2">প্রয়োগ করুন</button><button type="button" class="acc-date-clear" onclick="_dueAccFs=[];closeDuesFilterDropdown();renderAccMetricModal()" style="flex:1">রিসেট</button></div>' +
+      '</div>';
+    var rect = triggerEl.getBoundingClientRect();
+    var panelEl = el.querySelector('.acc-dd-panel');
+    panelEl.style.position = 'fixed';
+    panelEl.style.top = Math.min(rect.bottom + 4, window.innerHeight - 20) + 'px';
+    panelEl.style.left = Math.max(4, Math.min(rect.left, window.innerWidth - 300)) + 'px';
+    panelEl.style.width = '260px';
+    panelEl.style.maxHeight = Math.min(380, window.innerHeight - rect.bottom - 24) + 'px';
+    panelEl.style.overflowY = 'auto';
+    document.body.appendChild(el);
+  };
+  window.closeDuesFilterDropdown = function () {
+    var el = document.getElementById('acc-dues-filter-dropdown');
+    if (el) el.remove();
+    _duesDropdownTrigger = null;
+  };
+  window._rebuildDuesDropdown = function () {
+    var trigger = _duesDropdownTrigger;
+    var scrollTop = 0;
+    var existing = document.getElementById('acc-dues-filter-dropdown');
+    if (existing) { var panel = existing.querySelector('.acc-dd-panel'); if (panel) scrollTop = panel.scrollTop; }
+    window.closeDuesFilterDropdown();
+    if (trigger) { window.openDuesFilterDropdown(trigger); var p = document.querySelector('.acc-dd-panel'); if (p) p.scrollTop = scrollTop; }
+  };
+  window._refreshDuesDropdownUI = function () {
+    var dd = document.getElementById('acc-dues-filter-dropdown');
+    if (!dd) return;
+    var section = dd.querySelector('.acc-dd-section');
+    if (!section) return;
+    var cbs = section.querySelectorAll('.acc-ms-cb');
+    var activeCount = 0;
+    for (var c = 0; c < cbs.length; c++) if (cbs[c].checked) activeCount++;
+    var countSpan = section.querySelector('.acc-dds-count');
+    if (countSpan) countSpan.textContent = '(' + bn(activeCount || cbs.length) + (activeCount ? '/' + bn(cbs.length) : '') + ')';
+    var selAll = section.querySelector('.acc-ms-selall');
+    if (selAll) selAll.textContent = activeCount === 0 ? 'বাতিল সব' : 'সব নির্বাচন';
+    var title = dd.querySelector('.acc-sheet-title');
+    if (title) title.textContent = 'হিসাব বই' + (activeCount && activeCount < cbs.length ? ' (' + bn(activeCount) + ')' : '');
+    var items = section.querySelectorAll('.acc-ms-item');
+    for (var it = 0; it < items.length; it++) {
+      var cb = items[it].querySelector('.acc-ms-cb');
+      if (cb) items[it].classList.toggle('is-on', cb.checked);
+    }
+  };
+
   function buildDues(rerenderCmd) {
     var readOnly = isAccountsReadOnly();
-    var accOpts = '<option value="all">সব হিসাব</option>' + Object.entries(A.ACCOUNT_LABELS).map(function (e) {
-      return '<option value="' + e[0] + '"' + (_dueAccF === e[0] ? ' selected' : '') + '>' + esc(e[1]) + '</option>';
-    }).join('');
+    var activeCount = _dueAccFs.length;
+    var badge = activeCount ? '<span class="acc-filter-badge">' + bn(activeCount) + '</span>' : '';
+    var filterBar = '<div class="acc-toolbar">' +
+      '<button type="button" class="acc-filter-icon-btn' + (activeCount ? ' is-on' : '') + '" onclick="openDuesFilterDropdown(this)" style="width:auto;min-width:100px">' +
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>' +
+      'হিসাব বই' + badge + '</button></div>';
     var dues = A.Dues.getAll().filter(function (d) { return A.num(d.due) > 0; });
-    if (_dueAccF !== 'all') dues = dues.filter(function (d) { return d.account === _dueAccF; });
-    var filterBar = '<div class="acc-filter-bar"><select class="acc-sel" onchange="_dueAccF=this.value;' + (rerenderCmd || 'renderAccounts()') + '">' + accOpts + '</select></div>';
+    if (_dueAccFs.length) dues = dues.filter(function (d) { return _dueAccFs.indexOf(d.account) >= 0; });
     if (!dues.length) return filterBar + '<div class="acc-empty">এই হিসাব বইতে কোনো বকেয়া নেই</div>';
     var rows = dues.map(function (d) {
       var isDue = A.num(d.due) > 0;
