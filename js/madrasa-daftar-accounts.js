@@ -16,7 +16,7 @@ var _detailMonth = 'all';
 var _detailMonthFs = [];
 var _detailCategory = 'all';
 var _detailCatFs = [];
-var _detailSupplier = 'all';
+var _detailSupFs = [];
 var _detailSearch = '';
 var _detailSort = 'date_desc';
 var _accDefaulted = false;
@@ -38,7 +38,7 @@ var _paymentMethod = 'cash';
 
   function filterIconBtn(active, count) {
     var svg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>';
-    return '<button type="button" class="acc-filter-icon-btn' + (active ? ' is-on' : '') + '" onclick="openAccFilterSheet()">' + svg + 'ফিল্টার' + (active && count ? '<span class="acc-filter-badge">' + bn(count) + '</span>' : '') + '</button>';
+    return '<button type="button" class="acc-filter-icon-btn' + (active ? ' is-on' : '') + '" onclick="openAccFilterSheet(this)">' + svg + 'ফিল্টার' + (active && count ? '<span class="acc-filter-badge">' + bn(count) + '</span>' : '') + '</button>';
   }
 
   function monthOptions(selected) {
@@ -147,8 +147,9 @@ body.page-daftar #account-details-title{display:flex;align-items:center;gap:6px;
 .acc-title-main{font-size:15px;overflow:hidden;text-overflow:ellipsis}
 .acc-title-meta{font-size:10px;color:var(--ink3);font-family:'Tiro Bangla',serif;font-weight:800;flex-shrink:0}
 .acc-title-total{font-family:'Tiro Bangla',serif;font-size:12px;font-weight:900;color:var(--red);background:#fff4d9;border:1px solid rgba(154,106,33,.16);border-radius:999px;padding:4px 7px;white-space:nowrap;flex-shrink:0}
-.acc-detail-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:8px}
-.acc-detail-tools .acc-sel{min-width:0;padding:6px 8px}
+.acc-detail-tools{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:stretch}
+.acc-detail-tools .acc-sel{min-width:0;padding:6px 8px;flex:1}
+.acc-detail-tools .acc-filter-icon-btn{flex:0 0 auto;min-width:90px}
 .acc-detail-clear{border:1px solid rgba(193,68,14,.16);background:rgba(193,68,14,.07);color:var(--red);border-radius:8px;padding:6px 8px;font-size:12px;cursor:pointer;font-family:inherit}
 body.page-daftar #modal-account-details .modal{display:flex;flex-direction:column;height:min(760px,calc(100vh - 32px));padding-bottom:14px}
 body.page-daftar #account-details-root{display:flex;flex-direction:column;flex:1;min-height:0}
@@ -174,7 +175,6 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
 .acc-detail-table th:nth-child(7),.acc-detail-table td:nth-child(7){min-width:58px}
 .acc-detail-table th:nth-child(8),.acc-detail-table td:nth-child(8){min-width:64px}
 .acc-detail-table th:nth-child(9),.acc-detail-table td:nth-child(9){min-width:58px}
-@media (min-width:520px){.acc-detail-tools{grid-template-columns:1fr 1fr 1fr 1.4fr 1fr auto}}
 .acc-expense-wrap{overflow:auto;border:1px solid rgba(26,18,8,.07);border-radius:17px;background:#fff;max-height:60vh;box-shadow:0 10px 24px rgba(26,18,8,.055)}
 .acc-expense-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
 .acc-expense-table th{position:sticky;top:0;background:#faf3e8;color:var(--ink3);font-size:10px;font-weight:900;text-align:left;padding:7px 5px;border-bottom:1px solid rgba(26,18,8,.08);z-index:1;white-space:nowrap}
@@ -260,7 +260,12 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
 .acc-ms-circle{width:16px;height:16px;flex-shrink:0;border:2px solid rgba(26,18,8,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;transition:all .12s;font-weight:900}
 .acc-ms-item.is-on .acc-ms-circle{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.2);color:var(--gold2)}
 .acc-ms-chip{display:inline-flex;align-items:center;gap:4px;background:var(--ink);color:var(--gold2);border-radius:20px;padding:3px 8px 3px 10px;font-size:11px;font-weight:700}
-.acc-ms-chip-x{background:none;border:none;color:var(--gold2);cursor:pointer;font-size:13px;padding:0 0 0 2px;line-height:1}`;
+.acc-ms-chip-x{background:none;border:none;color:var(--gold2);cursor:pointer;font-size:13px;padding:0 0 0 2px;line-height:1}
+.acc-dd-backdrop{position:fixed;inset:0;z-index:9996;background:rgba(26,18,8,.15)}
+.acc-dd-panel{background:#fffaf1;border:1px solid rgba(154,106,33,.22);border-radius:18px;box-shadow:0 20px 52px rgba(26,18,8,.22);overflow-y:auto;animation:accCalIn .12s ease-out}
+.acc-dd-section{padding:8px 12px;border-bottom:1px solid rgba(26,18,8,.05)}
+.acc-dd-section-list{max-height:148px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;padding:2px 0}
+@media (min-width:420px){.acc-dd-section{padding:8px 14px}.acc-dd-section-list{max-height:172px}}`;
     document.head.appendChild(cs);
   }
 
@@ -402,7 +407,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   };
   window.clearAccDateRangeOnly = function () {
     _fromKey = 'all'; _toKey = 'all';
-    openAccFilterSheet();
+    _rebuildMainFilterDropdown();
   };
   function _sheet(title, body) {
     var old = document.getElementById('acc-sheet');
@@ -424,12 +429,13 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     if (field === 'day') _dayF = value;
   };
   window.applyAccFilters = function () {
-    window.closeAccSheet();
+    window.closeMainFilterDropdown();
     rerenderAccountsView();
   };
   window.resetAccFilters = function () {
     _monFs = []; _accFs = []; _catFs = []; _yearFs = []; _dayF = 'all'; _fromKey = 'all'; _toKey = 'all';
-    window.applyAccFilters();
+    window.closeMainFilterDropdown();
+    rerenderAccountsView();
   };
 
   /* ── multi-select toggle helpers ── */
@@ -444,20 +450,20 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   window.toggleAccYear = function (val, checked) { _msToggle(_yearFs, val, checked); };
   window.toggleAllAccMonths = function () {
     _monFs = _monFs.length ? [] : A.MONTHS.slice();
-    openAccFilterSheet();
+    _rebuildMainFilterDropdown();
   };
   window.toggleAllAccAccounts = function () {
     _accFs = _accFs.length ? [] : Object.keys(A.ACCOUNT_LABELS);
-    openAccFilterSheet();
+    _rebuildMainFilterDropdown();
   };
   window.toggleAllAccCats = function () {
     var all = A.Categories ? A.Categories.getAll() : [];
     _catFs = _catFs.length ? [] : all.slice();
-    openAccFilterSheet();
+    _rebuildMainFilterDropdown();
   };
   window.toggleAllAccYears = function () {
     _yearFs = _yearFs.length ? [] : getAllYears().slice();
-    openAccFilterSheet();
+    _rebuildMainFilterDropdown();
   };
 
   function _msList(items, activeArr, toggleFn, toggleAllFn) {
@@ -478,38 +484,106 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       '<div class="acc-ms-list">' + chips + '</div>';
   }
 
-  window.openAccFilterSheet = function () {
+  /* ── Global main filter dropdown ── */
+  var _mainFilterDropdownTrigger = null;
+  function _rebuildMainFilterDropdown() {
+    var trigger = _mainFilterDropdownTrigger || _detailDropdownTrigger;
+    window.closeMainFilterDropdown();
+    window.closeAccFilterDropdown();
+    if (trigger) openAccFilterSheet(trigger);
+  }
+  window._rebuildMainFilterDropdown = _rebuildMainFilterDropdown;
+  window.closeMainFilterDropdown = function () {
+    var el = document.getElementById('acc-main-filter-dropdown');
+    if (el) el.remove();
+    _mainFilterDropdownTrigger = null;
+  };
+  window.openAccFilterSheet = function (triggerEl) {
+    var existing = document.getElementById('acc-main-filter-dropdown');
+    if (existing) { existing.remove(); _mainFilterDropdownTrigger = null; return; }
+    window.closeAccFilterDropdown();
+    if (!triggerEl) { normalizeMonthFilters(); _sheetBuildMainFilter(); return; }
+    _mainFilterDropdownTrigger = triggerEl;
     normalizeMonthFilters();
+    _sheetBuildMainFilter();
+  };
+  function _sheetBuildMainFilter() {
+    var existing = document.getElementById('acc-main-filter-dropdown');
+    if (existing) existing.remove();
     var years = getAllYears();
+    function _ddGroup(title, items, activeArr, toggleFn, toggleAllFn) {
+      var activeCount = activeArr.length;
+      var itemsHtml = items.map(function (item) {
+        var val = typeof item === 'object' ? item[0] : item;
+        var label = typeof item === 'object' ? item[1] : item;
+        var on = activeArr.indexOf(val) >= 0;
+        return '<label class="acc-ms-item' + (on ? ' is-on' : '') + '" style="border-radius:10px;display:flex;width:100%;box-sizing:border-box">' +
+          '<input type="checkbox" class="acc-ms-cb" ' + (on ? 'checked' : '') + ' onchange="' + toggleFn + '(\'' + esc(val) + '\',this.checked);_rebuildMainFilterDropdown()">' +
+          '<span class="acc-ms-circle">✓</span>' +
+          '<span style="flex:1">' + esc(label) + '</span></label>';
+      }).join('');
+      var allOn = activeCount === 0;
+      return '<div class="acc-dd-section">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
+        '<div class="acc-ms-section-head">' + title + ' <span style="font-size:9px;font-weight:400;color:var(--ink3)">(' + bn(activeCount || items.length) + (activeCount ? '/' + bn(items.length) : '') + ')</span></div>' +
+        '<button type="button" class="acc-ms-selall" onclick="' + toggleAllFn + '();_rebuildMainFilterDropdown()">' + (allOn ? 'বাতিল সব' : 'সব নির্বাচন') + '</button></div>' +
+        '<div class="acc-dd-section-list">' + itemsHtml + '</div>' +
+        (activeCount === 0 ? '' : '<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px"><span class="acc-chip">' + bn(activeCount) + ' টি</span></div>') +
+        '</div>';
+    }
     var dayOpts = '<option value="all">সব দিন</option>' + Array.from({ length: 30 }, function (_, i) { var d = String(i + 1); return '<option value="' + d + '"' + (String(_dayF) === d ? ' selected' : '') + '>' + bn(d) + ' তারিখ</option>'; }).join('') +
       '<option value="__none"' + (_dayF === '__none' ? ' selected' : '') + '>দিন নেই</option>';
-    var yearSection = years.length ? _msList(years.map(function (y) { return [y, A.bn ? A.bn(y) : y]; }), _yearFs, 'toggleAccYear', 'toggleAllAccYears', 'বছর (হিজরী)') : '';
-    var monthSection = _msList(A.MONTHS, _monFs, 'toggleAccMonth', 'toggleAllAccMonths', 'মাস');
-    var accSection = _msList(Object.entries(A.ACCOUNT_LABELS), _accFs, 'toggleAccAccount', 'toggleAllAccAccounts', 'হিসাব বই');
+    var yrs = years.map(function (y) { return [y, A.bn ? A.bn(y) : y]; });
+    var yearSection = years.length ? _ddGroup('বছর (হিজরী)', yrs, _yearFs, 'toggleAccYear', 'toggleAllAccYears') : '';
+    var monthSection = _ddGroup('মাস', A.MONTHS, _monFs, 'toggleAccMonth', 'toggleAllAccMonths');
+    var accSection = _ddGroup('হিসাব বই', Object.entries(A.ACCOUNT_LABELS), _accFs, 'toggleAccAccount', 'toggleAllAccAccounts');
     var cats = A.Categories ? A.Categories.getAll() : [];
-    var catSection = _msList(cats, _catFs, 'toggleAccCat', 'toggleAllAccCats', 'খাত / ক্যাটাগরি');
+    var catSection = _ddGroup('খাত / ক্যাটাগরি', cats, _catFs, 'toggleAccCat', 'toggleAllAccCats');
     var rangeFromOn = _fromKey !== 'all', rangeToOn = _toKey !== 'all';
-    var rangeSection = '<div style="margin-bottom:12px">' +
+    var rangeSection = '<div class="acc-dd-section">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
       '<div class="acc-ms-section-head">তারিখ সীমা</div>' +
       ((rangeFromOn || rangeToOn) ? '<button type="button" class="acc-ms-selall" onclick="clearAccDateRangeOnly()">সাফ</button>' : '') +
       '</div>' +
       '<div class="acc-range-picks">' +
-      '<button type="button" class="acc-range-pick' + (rangeFromOn ? ' is-on' : '') + '" onclick="closeAccSheet();openAccRangeSheet()"><small>শুরু</small><span>' + esc(rangeFromOn ? A.dateLabel({ dateKey: _fromKey, day: 1 }) : 'নির্বাচন করুন') + '</span></button>' +
-      '<button type="button" class="acc-range-pick' + (rangeToOn ? ' is-on' : '') + '" onclick="closeAccSheet();openAccRangeSheet()"><small>শেষ</small><span>' + esc(rangeToOn ? A.dateLabel({ dateKey: _toKey, day: 1 }) : 'নির্বাচন করুন') + '</span></button>' +
+      '<button type="button" class="acc-range-pick' + (rangeFromOn ? ' is-on' : '') + '" onclick="_rebuildMainFilterDropdown();openAccRangeSheet()"><small>শুরু</small><span>' + esc(rangeFromOn ? A.dateLabel({ dateKey: _fromKey, day: 1 }) : 'নির্বাচন করুন') + '</span></button>' +
+      '<button type="button" class="acc-range-pick' + (rangeToOn ? ' is-on' : '') + '" onclick="_rebuildMainFilterDropdown();openAccRangeSheet()"><small>শেষ</small><span>' + esc(rangeToOn ? A.dateLabel({ dateKey: _toKey, day: 1 }) : 'নির্বাচন করুন') + '</span></button>' +
       '</div></div>';
-    _sheet('ফিল্টার',
-      (yearSection ? '<div style="margin-bottom:12px">' + yearSection + '</div>' : '') +
-      '<div style="margin-bottom:12px">' + monthSection + '</div>' +
-      '<div style="margin-bottom:12px">' + accSection + '</div>' +
-      '<div style="margin-bottom:12px">' + catSection + '</div>' +
+    var daySection = '<div class="acc-dd-section">' +
+      '<div class="acc-ms-section-head" style="margin-bottom:6px">দিন</div>' +
+      '<select class="acc-sel" onchange="setAccFilter(\'day\',this.value);_rebuildMainFilterDropdown()" style="width:100%">' + dayOpts + '</select></div>';
+    var totalActive = _yearFs.length + _monFs.length + _accFs.length + _catFs.length + (_fromKey !== 'all' ? 1 : 0) + (_toKey !== 'all' ? 1 : 0) + (_dayF !== 'all' ? 1 : 0);
+    var el = document.createElement('div');
+    el.id = 'acc-main-filter-dropdown';
+    el.className = 'acc-dd-backdrop';
+    el.onclick = closeMainFilterDropdown;
+    el.innerHTML = '<div class="acc-dd-panel" onclick="event.stopPropagation()">' +
+      '<div class="acc-sheet-head" style="padding:10px 12px 6px"><div class="acc-sheet-title">ফিল্টার' + (totalActive ? ' (' + bn(totalActive) + ')' : '') + '</div><button type="button" class="acc-sheet-close" onclick="closeMainFilterDropdown()">✕</button></div>' +
+      (yearSection || '') +
+      monthSection +
+      accSection +
+      catSection +
       rangeSection +
-      '<div style="margin-bottom:12px"><div class="acc-ms-section-head">দিন</div><select class="acc-sel" onchange="setAccFilter(\'day\',this.value)" style="width:100%">' + dayOpts + '</select></div>' +
-      '<div class="acc-filter-bar" style="margin:4px 0 0"><button type="button" class="acc-btn acc-btn-inc" onclick="applyAccFilters()" style="border-radius:10px;flex:2">প্রয়োগ করুন</button><button type="button" class="acc-date-clear" onclick="resetAccFilters()" style="flex:1">সব সাফ</button></div>');
+      daySection +
+      '<div class="acc-filter-bar" style="margin:4px 12px 12px"><button type="button" class="acc-btn acc-btn-inc" onclick="applyAccFilters()" style="border-radius:10px;flex:2">প্রয়োগ করুন</button><button type="button" class="acc-date-clear" onclick="resetAccFilters()" style="flex:1">সব সাফ</button></div>' +
+      '</div>';
+    var trigger = _mainFilterDropdownTrigger;
+    if (trigger) {
+      var rect = trigger.getBoundingClientRect();
+      var panelEl = el.querySelector('.acc-dd-panel');
+      panelEl.style.position = 'fixed';
+      panelEl.style.top = Math.min(rect.bottom + 4, window.innerHeight - 20) + 'px';
+      panelEl.style.left = Math.max(4, Math.min(rect.left, window.innerWidth - 304)) + 'px';
+      panelEl.style.width = '296px';
+      panelEl.style.maxHeight = Math.min(520, window.innerHeight - rect.bottom - 24) + 'px';
+      panelEl.style.overflowY = 'auto';
+    }
+    document.body.appendChild(el);
   };
   window.setAccSort = function (value) {
     _sortF = value;
     window.closeAccSheet();
+    window.closeMainFilterDropdown();
     rerenderAccountsView();
   };
   window.openAccSortSheet = function () {
@@ -803,12 +877,6 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       '</div>';
   }
 
-  function detailOptionHtml(options, selected, allLabel) {
-    return '<option value="all">' + esc(allLabel) + '</option>' + options.map(function (v) {
-      return '<option value="' + esc(v) + '"' + (selected === v ? ' selected' : '') + '>' + esc(v) + '</option>';
-    }).join('');
-  }
-
   function renderAccAccountDetails(account) {
     var label = A.ACCOUNT_LABELS[account] || account || 'হিসাব';
     var baseRows = A.Expense.getAll().filter(function (r) {
@@ -832,7 +900,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       var haystack = [A.dateLabel(r), month, category, desc, supplier, String(r.amount || '')].join(' ').toLowerCase();
       return (!_detailMonthFs.length || _detailMonthFs.indexOf(month) >= 0) &&
         (!_detailCatFs.length || _detailCatFs.indexOf(category) >= 0) &&
-        (_detailSupplier === 'all' || supplier === _detailSupplier) &&
+        (!_detailSupFs.length || _detailSupFs.indexOf(supplier) >= 0) &&
         (!_detailSearch || haystack.indexOf(String(_detailSearch).toLowerCase()) >= 0);
     }).sort(function (a, b) {
       if (_detailSort === 'amount_desc') return A.num(b.amount) - A.num(a.amount);
@@ -870,21 +938,23 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
           (readOnly ? '' : '<td><div class="acc-row-actions"><button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'expense\',\'' + esc(r.id) + '\')">✎</button><button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button></div></td>') +
           '</tr>';
       }).join('');
-      var detailFilterOn = _detailMonthFs.length > 0 || _detailCatFs.length > 0 || _detailSupplier !== 'all' || !!_detailSearch;
-      var monBtnLabel = _detailMonthFs.length ? (bn(_detailMonthFs.length) + ' মাস') : 'সব মাস';
-      var catBtnLabel = _detailCatFs.length ? (bn(_detailCatFs.length) + ' খাত') : 'সব খাত';
+      var detailFilterOn = _detailMonthFs.length > 0 || _detailCatFs.length > 0 || _detailSupFs.length > 0 || !!_detailSearch;
       var _storeDetailLists = function () {
         window._detailMonthsList = A.MONTHS.filter(function (m) { return baseRows.some(function (r) { return A.monthKey(r.month) === m; }); });
         window._detailCatsList = categories;
+        window._detailSuppsList = suppliers;
       };
       _storeDetailLists();
+      var activeFilterCount = _detailMonthFs.length + _detailCatFs.length + _detailSupFs.length;
+      var filterBadge = activeFilterCount ? '<span class="acc-filter-badge">' + bn(activeFilterCount) + '</span>' : '';
       var filters =
         '<div class="acc-detail-tools">' +
-        '<button type="button" class="acc-sel' + (_detailMonthFs.length ? ' is-on' : '') + '" style="cursor:pointer;text-align:center;font-weight:' + (_detailMonthFs.length ? '800' : '400') + '" onclick="openAccDetailFilterSheet(\'month\')">' + esc(monBtnLabel) + '</button>' +
-        '<button type="button" class="acc-sel' + (_detailCatFs.length ? ' is-on' : '') + '" style="cursor:pointer;text-align:center;font-weight:' + (_detailCatFs.length ? '800' : '400') + '" onclick="openAccDetailFilterSheet(\'cat\')">' + esc(catBtnLabel) + '</button>' +
-        '<select class="acc-sel" onchange="setAccDetailFilter(\'supplier\',this.value)">' + detailOptionHtml(suppliers, _detailSupplier, 'সব সরবরাহকারী') + '</select>' +
-        '<input class="acc-sel" id="acc-detail-search" value="' + esc(_detailSearch) + '" placeholder="বিবরণ খুঁজুন" oninput="setAccDetailFilter(\'search\',this.value)">' +
-        '<select class="acc-sel" onchange="setAccDetailFilter(\'sort\',this.value)">' +
+        '<div style="position:relative">' +
+        '<button type="button" class="acc-filter-icon-btn' + (activeFilterCount ? ' is-on' : '') + '" onclick="openAccDetailFilterDropdown(this)" style="width:100%">' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>' +
+        'ফিল্টার' + filterBadge + '</button></div>' +
+        '<input class="acc-sel" id="acc-detail-search" value="' + esc(_detailSearch) + '" placeholder="খুঁজুন" oninput="setAccDetailFilter(\'search\',this.value)" style="min-width:0">' +
+        '<select class="acc-sel" onchange="setAccDetailFilter(\'sort\',this.value)" style="min-width:0">' +
           '<option value="date_asc"' + (_detailSort === 'date_asc' ? ' selected' : '') + '>পুরাতন আগে</option>' +
           '<option value="date_desc"' + (_detailSort === 'date_desc' ? ' selected' : '') + '>নতুন আগে</option>' +
           '<option value="amount_desc"' + (_detailSort === 'amount_desc' ? ' selected' : '') + '>টাকা বেশি</option>' +
@@ -907,7 +977,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     _detailMonthFs = _monFs.length ? _monFs.slice() : [];
     _detailCatFs = [];
     _detailCategory = 'all';
-    _detailSupplier = 'all';
+    _detailSupFs = [];
     _detailSearch = '';
     _detailSort = 'date_desc';
     renderAccAccountDetails(account);
@@ -967,8 +1037,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   };
 
   window.setAccDetailFilter = function (field, value) {
-    if (field === 'supplier') _detailSupplier = value || 'all';
-    else if (field === 'search') _detailSearch = value || '';
+    if (field === 'search') _detailSearch = value || '';
     else if (field === 'sort') _detailSort = value || 'date_desc';
     renderAccAccountDetails(_detailAccount);
     if (field === 'search') {
@@ -984,7 +1053,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   window.clearAccDetailFilters = function () {
     _detailMonthFs = [];
     _detailCatFs = [];
-    _detailSupplier = 'all';
+    _detailSupFs = [];
     _detailSearch = '';
     _detailSort = 'date_desc';
     renderAccAccountDetails(_detailAccount);
@@ -994,13 +1063,13 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   window.toggleAllDetailMonths = function () {
     var avail = window._detailMonthsList || A.MONTHS;
     _detailMonthFs = _detailMonthFs.length ? [] : avail.slice();
-    openAccDetailFilterSheet('month');
+    _rebuildFilterDropdown();
   };
   window.toggleDetailCat = function (val, checked) { _msToggle(_detailCatFs, val, checked); };
   window.toggleAllDetailCats = function () {
     var avail = window._detailCatsList || [];
     _detailCatFs = _detailCatFs.length ? [] : avail.slice();
-    openAccDetailFilterSheet('cat');
+    _rebuildFilterDropdown();
   };
   window.openAccDetailFilterSheet = function (focus) {
     var avMons = window._detailMonthsList || A.MONTHS;
@@ -1014,6 +1083,79 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       '<div class="acc-filter-bar" style="margin:4px 0 0"><button type="button" class="acc-btn acc-btn-inc" onclick="closeAccSheet();renderAccAccountDetails(_detailAccount)" style="border-radius:10px;flex:2">প্রয়োগ করুন</button><button type="button" class="acc-date-clear" onclick="clearAccDetailFilters()" style="flex:1">রিসেট</button></div>';
     _sheet('হিসাব বই ফিল্টার', body);
   };
+
+  /* ── Grouped filter dropdown (নতুন ড্রপডাউন ফিল্টার) ── */
+  var _detailDropdownTrigger = null;
+  window.toggleDetailSupplier = function (val, checked) {
+    _msToggle(_detailSupFs, val, checked);
+    _rebuildFilterDropdown();
+  };
+  window.toggleAllDetailSuppliers = function () {
+    var avail = window._detailSuppsList || [];
+    _detailSupFs = _detailSupFs.length ? [] : avail.slice();
+    _rebuildFilterDropdown();
+  };
+  function _rebuildFilterDropdown() {
+    var trigger = _detailDropdownTrigger;
+    window.closeAccFilterDropdown();
+    if (trigger) window.openAccDetailFilterDropdown(trigger);
+  }
+  window.openAccDetailFilterDropdown = function (triggerEl) {
+    var existing = document.getElementById('acc-filter-dropdown');
+    if (existing) { existing.remove(); _detailDropdownTrigger = null; return; }
+    _detailDropdownTrigger = triggerEl;
+    var avMons = window._detailMonthsList || A.MONTHS;
+    var avCats = window._detailCatsList || [];
+    var avSups = window._detailSuppsList || [];
+    function _ddGroup(title, items, activeArr, toggleFn, toggleAllFn) {
+      var activeCount = activeArr.length;
+      var itemsHtml = items.map(function (item) {
+        var on = activeArr.indexOf(item) >= 0;
+        return '<label class="acc-ms-item' + (on ? ' is-on' : '') + '" style="border-radius:10px;display:flex;width:100%;box-sizing:border-box">' +
+          '<input type="checkbox" class="acc-ms-cb" ' + (on ? 'checked' : '') + ' onchange="' + toggleFn + '(\'' + esc(item) + '\',this.checked);_rebuildFilterDropdown()">' +
+          '<span class="acc-ms-circle">✓</span>' +
+          '<span style="flex:1">' + esc(item) + '</span></label>';
+      }).join('');
+      var allOn = activeCount === 0;
+      return '<div class="acc-dd-section">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
+        '<div class="acc-ms-section-head">' + title + ' <span style="font-size:9px;font-weight:400;color:var(--ink3)">(' + bn(activeCount || items.length) + (activeCount ? '/' + bn(items.length) : '') + ')</span></div>' +
+        '<button type="button" class="acc-ms-selall" onclick="' + toggleAllFn + '();_rebuildFilterDropdown()">' + (allOn ? 'বাতিল সব' : 'সব নির্বাচন') + '</button></div>' +
+        '<div class="acc-dd-section-list">' + itemsHtml + '</div>' +
+        '<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;min-height:4px">' +
+        (activeCount === 0 ? '' : '<span class="acc-chip">' + bn(activeCount) + ' টি</span>') +
+        '</div>' +
+        '</div>';
+    }
+    var sectionsHtml = _ddGroup('মাস', avMons, _detailMonthFs, 'toggleDetailMonth', 'toggleAllDetailMonths') +
+      _ddGroup('খাত', avCats, _detailCatFs, 'toggleDetailCat', 'toggleAllDetailCats') +
+      _ddGroup('সরবরাহকারী', avSups, _detailSupFs, 'toggleDetailSupplier', 'toggleAllDetailSuppliers');
+    var totalActive = _detailMonthFs.length + _detailCatFs.length + _detailSupFs.length;
+    var el = document.createElement('div');
+    el.id = 'acc-filter-dropdown';
+    el.className = 'acc-dd-backdrop';
+    el.onclick = closeAccFilterDropdown;
+    el.innerHTML = '<div class="acc-dd-panel" onclick="event.stopPropagation()">' +
+      '<div class="acc-sheet-head" style="padding:10px 12px 6px"><div class="acc-sheet-title">ফিল্টার' + (totalActive ? ' (' + bn(totalActive) + ')' : '') + '</div><button type="button" class="acc-sheet-close" onclick="closeAccFilterDropdown()">✕</button></div>' +
+      sectionsHtml +
+      '<div class="acc-filter-bar" style="margin:4px 12px 12px"><button type="button" class="acc-btn acc-btn-inc" onclick="closeAccFilterDropdown();renderAccAccountDetails(_detailAccount)" style="border-radius:10px;flex:2">প্রয়োগ করুন</button><button type="button" class="acc-date-clear" onclick="clearAccDetailFilters();closeAccFilterDropdown()" style="flex:1">রিসেট</button></div>' +
+      '</div>';
+    var rect = triggerEl.getBoundingClientRect();
+    var panelEl = el.querySelector('.acc-dd-panel');
+    panelEl.style.position = 'fixed';
+    panelEl.style.top = Math.min(rect.bottom + 4, window.innerHeight - 20) + 'px';
+    panelEl.style.left = Math.max(4, Math.min(rect.left, window.innerWidth - 304)) + 'px';
+    panelEl.style.width = '296px';
+    panelEl.style.maxHeight = Math.min(480, window.innerHeight - rect.bottom - 24) + 'px';
+    panelEl.style.overflowY = 'auto';
+    document.body.appendChild(el);
+  };
+  window.closeAccFilterDropdown = function () {
+    var el = document.getElementById('acc-filter-dropdown');
+    if (el) el.remove();
+    _detailDropdownTrigger = null;
+  };
+  window._rebuildFilterDropdown = _rebuildFilterDropdown;
 
   /* ══════════════ INCOME LIST ══════════════ */
   function buildIncomeList() {
