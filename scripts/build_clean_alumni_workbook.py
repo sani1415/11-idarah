@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OLD_FILE = ROOT / "alumni.xlsx"
 NEW_FILE = ROOT / "new_alumni.xlsx"
 OUT_DIR = ROOT / "outputs" / "alumni_merged"
-OUT_FILE = OUT_DIR / "alumni_clean_combined_v2.xlsx"
+OUT_FILE = OUT_DIR / "alumni_clean_combined_v3.xlsx"
 
 BN_DIGITS = "০১২৩৪৫৬৭৮৯"
 EN_DIGITS = "0123456789"
@@ -57,6 +57,25 @@ DUPLICATE_HEADERS = [
     "মোবাইল ১",
     "মোবাইল ২",
     "অধ্যয়ন বিবরণ",
+    "মন্তব্য",
+    "ডেটা উৎস",
+]
+
+MERGED_MATCH_HEADERS = [
+    "ম্যাচ নং",
+    "মিলের ধরন",
+    "মূল শীট Row",
+    "নতুন তালিকা Row",
+    "পুরনো তালিকা Row",
+    "জামাত নং",
+    "পার্মানেন্ট আইডি",
+    "নতুন নাম",
+    "পুরনো নাম",
+    "বাবার নাম",
+    "নতুন মোবাইল",
+    "পুরনো মোবাইল",
+    "অধ্যয়ন বিবরণ",
+    "পুরনো মন্তব্য",
     "মন্তব্য",
     "ডেটা উৎস",
 ]
@@ -437,6 +456,12 @@ def merge_records(old_records: list[dict], new_records: list[dict]) -> list[dict
         row = dict(new)
         row["comments"] = comments
         row["source"] = source
+        if matched_old:
+            row["_matched_old_row"] = matched_old["source_row"]
+            row["_matched_old_name"] = matched_old["name"]
+            row["_matched_old_phones"] = matched_old["phones"]
+            row["_matched_old_study_detail"] = matched_old["study_detail"]
+            row["_match_type"] = match_type
         output.append(row)
 
     for old in old_records:
@@ -534,6 +559,63 @@ def write_duplicate_sheet(wb: Workbook, records: list[dict], header_fill, header
     return len(duplicate_groups)
 
 
+def write_merged_match_sheet(wb: Workbook, records: list[dict], header_fill, header_font, border) -> int:
+    matched_records = [
+        record for record in records
+        if record.get("_matched_old_row")
+        or record["source"] in ("পুরনো+নতুন মিলিত", "সম্ভাব্য মিল, যাচাই দরকার")
+    ]
+    ws = wb.create_sheet("পুরনো+নতুন মিলেছে")
+    ws.append(MERGED_MATCH_HEADERS)
+    for match_no, record in enumerate(matched_records, start=1):
+        phones = record["phones"]
+        old_phones = record.get("_matched_old_phones") or []
+        ws.append([
+            match_no,
+            record.get("_match_type", ""),
+            record.get("_clean_row", ""),
+            record.get("source_row", ""),
+            record.get("_matched_old_row", ""),
+            record["jamat"],
+            record["permanent_id"],
+            record["name"],
+            record.get("_matched_old_name", ""),
+            record["father_name"],
+            "; ".join(phones),
+            "; ".join(old_phones),
+            record["study_detail"],
+            record.get("_matched_old_study_detail", ""),
+            " | ".join(dict.fromkeys([c for c in record["comments"] if c])),
+            record["source"],
+        ])
+
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = f"A1:P{max(ws.max_row, 1)}"
+    style_header(ws[1], header_fill, header_font, border)
+    style_body(ws, border)
+    widths = {
+        "A": 12, "B": 18, "C": 12, "D": 14, "E": 14, "F": 14, "G": 16,
+        "H": 28, "I": 28, "J": 30, "K": 24, "L": 24, "M": 26, "N": 32,
+        "O": 54, "P": 22,
+    }
+    for col, width in widths.items():
+        ws.column_dimensions[col].width = width
+    for row_idx in range(2, ws.max_row + 1):
+        ws.row_dimensions[row_idx].height = 42
+    if ws.max_row >= 2:
+        table = Table(displayName="MergedMatchTable", ref=f"A1:P{ws.max_row}")
+        table.tableStyleInfo = TableStyleInfo(
+            name="TableStyleMedium6",
+            showFirstColumn=False,
+            showLastColumn=False,
+            showRowStripes=True,
+            showColumnStripes=False,
+        )
+        ws.add_table(table)
+    ws.sheet_view.showGridLines = False
+    return len(matched_records)
+
+
 def write_workbook(records: list[dict]) -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     wb = Workbook()
@@ -584,8 +666,9 @@ def write_workbook(records: list[dict]) -> None:
     ws.add_table(table)
 
     ws.sheet_view.showGridLines = False
+    merged_match_count = write_merged_match_sheet(wb, records, header_fill, header_font, border)
     duplicate_group_count = write_duplicate_sheet(wb, records, header_fill, header_font, border)
-    wb.properties.comments = f"possible_duplicate_groups={duplicate_group_count}"
+    wb.properties.comments = f"merged_match_rows={merged_match_count}; possible_duplicate_groups={duplicate_group_count}"
     wb.save(OUT_FILE)
 
 

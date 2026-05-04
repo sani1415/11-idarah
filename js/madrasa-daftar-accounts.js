@@ -249,6 +249,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
 .acc-item-table th:nth-child(4),.acc-item-table td:nth-child(4){width:112px}
 .acc-item-table th:nth-child(5),.acc-item-table td:nth-child(5){width:116px}
 .acc-item-table th:nth-child(6),.acc-item-table td:nth-child(6){width:118px}
+.acc-item-amt-val{font-weight:900;color:var(--red);font-size:14px}
 .acc-item-table th:nth-child(7),.acc-item-table td:nth-child(7){width:42px;text-align:center}
 @media (max-width:640px){#modal-account-entry .modal{width:min(100%,calc(100vw - 16px));height:min(92vh,calc(100vh - 16px));padding:18px 14px 22px}#modal-account-entry .form-row{grid-template-columns:1fr;gap:10px}.acc-item-wrap{max-width:100%;overflow:auto}.acc-item-table th:nth-child(2),.acc-item-table td:nth-child(2){width:210px}}
 .acc-ms-section-head{font-size:11px;font-weight:800;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
@@ -298,10 +299,10 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       return '<tr>' +
         '<td><select class="form-input form-select" onchange="updateAccItem(' + i + ',\'category\',this.value)"><option value="">— খাত —</option>' + catOpts + '</select></td>' +
         '<td><input class="form-input" value="' + esc(item.description) + '" placeholder="পণ্য / বিবরণ" oninput="updateAccItem(' + i + ',\'description\',this.value)"></td>' +
-        '<td><input class="form-input" value="' + (item.quantity || '') + '" type="number" placeholder="০" min="0" oninput="updateAccItem(' + i + ',\'quantity\',this.value)"></td>' +
+        '<td><input class="form-input" value="' + (item.quantity || '') + '" type="text" inputmode="decimal" placeholder="০" oninput="updateAccItem(' + i + ',\'quantity\',this.value)"></td>' +
         '<td><select class="form-input form-select" onchange="updateAccItem(' + i + ',\'unit\',this.value)">' + unitOptions(item.unit) + '</select></td>' +
-        '<td><input class="form-input" value="' + (item.unitPrice || '') + '" type="number" placeholder="০" min="0" oninput="updateAccItem(' + i + ',\'unitPrice\',this.value)"></td>' +
-        '<td><input class="form-input acc-item-amt" value="' + (item.amount || '') + '" type="number" placeholder="০" id="acc-item-amt-' + i + '" oninput="updateAccItem(' + i + ',\'amount\',this.value)"></td>' +
+        '<td><input class="form-input" value="' + (item.unitPrice || '') + '" type="text" inputmode="decimal" placeholder="০" oninput="updateAccItem(' + i + ',\'unitPrice\',this.value)"></td>' +
+        '<td><span class="acc-item-amt-val" id="acc-item-amt-' + i + '">' + fa(item.amount || '') + '</span></td>' +
         '<td>' + (_items.length > 1 ? '<button type="button" class="acc-item-del" onclick="removeAccItem(' + i + ')">✕</button>' : '') + '</td>' +
       '</tr>';
     }).join('');
@@ -323,7 +324,9 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     if (field === 'quantity' || field === 'unitPrice') {
       var q = parseFloat(_items[i].quantity) || 0;
       var p = parseFloat(_items[i].unitPrice) || 0;
-      if (q && p) { _items[i].amount = q * p; var el = document.getElementById('acc-item-amt-' + i); if (el) el.value = _items[i].amount; }
+      _items[i].amount = q * p;
+      var el = document.getElementById('acc-item-amt-' + i);
+      if (el) el.textContent = fa(_items[i].amount);
     }
     _updateGrandTotal();
   };
