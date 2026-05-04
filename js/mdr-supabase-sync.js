@@ -59,9 +59,16 @@
   function syncAlumniRows(rows) {
     var withdrawals = [];
     var alumni = [];
+    var existingAlumni = API.persistLoadArr ? API.persistLoadArr('mm_alumni') : [];
+    var existingById = {};
+    existingAlumni.forEach(function (row) {
+      existingById[String(row.id || row.student_id || '')] = row;
+    });
     (rows || []).forEach(function (r) {
+      var id = String(r.id || r.student_id || '');
+      var prev = existingById[id] || {};
       withdrawals.push({
-        id: String(r.id || r.student_id || ''),
+        id: id,
         student_id: String(r.student_id || ''),
         student_name: r.name || '',
         permanent_id: r.permanent_id || '',
@@ -70,21 +77,33 @@
         note: r.left_reason || '',
         date: String(r.left_date || ''),
       });
-      alumni.push({
-        id: String(r.id || r.student_id || ''),
+      alumni.push(Object.assign({}, prev, {
+        id: id,
         student_id: String(r.student_id || ''),
         name: r.name || '',
         permanent_id: r.permanent_id || '',
-        phone: r.phone || '',
-        year: String(r.left_date || '').slice(0, 4),
-        reason: r.left_reason || '',
-        location: '',
+        phone: r.phone || prev.phone || '',
+        year: String(r.left_date || '').slice(0, 4) || prev.year || '',
+        reason: r.left_reason || prev.reason || '',
+        location: prev.location || '',
+        latest_verified_status: prev.latest_verified_status || '',
         status: r.status || (r.left_type === 'completed' ? 'সম্পন্ন' : 'মাঝপথে'),
-      });
+        source_type: 'current_student',
+        left_date: r.left_date || '',
+        left_type: r.left_type || '',
+        class_code: r.class_code || '',
+        class_name: r.class_name || '',
+      }));
     });
     if (API.persistSaveArr) {
       API.persistSaveArr('mm_withdrawals', withdrawals);
-      API.persistSaveArr('mm_alumni', alumni);
+      var incomingIds = {};
+      alumni.forEach(function (row) { incomingIds[String(row.id || '')] = true; });
+      var keep = existingAlumni.filter(function (row) {
+        var id = String(row.id || row.student_id || '');
+        return !incomingIds[id] && row.source_type !== 'current_student';
+      });
+      API.persistSaveArr('mm_alumni', keep.concat(alumni));
     }
   }
 

@@ -56,6 +56,17 @@
     background: linear-gradient(135deg, var(--ink2), var(--ink));
     border-radius: var(--radius); padding: 18px; color: #fff; margin-bottom: 12px;
   }
+  .source-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-top: 5px; padding: 2px 7px; border-radius: 999px;
+    background: var(--cream2); color: var(--ink3); font-size: 10px;
+  }
+  .legacy-info-card {
+    background: #fff; border: 1px solid var(--cream3); border-radius: var(--radius-sm);
+    box-shadow: var(--shadow); padding: 14px; margin-bottom: 14px;
+  }
+  .legacy-info-title { font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 7px; }
+  .legacy-info-grid { display: grid; gap: 6px; font-size: 12px; color: var(--ink2); line-height: 1.55; }
 </style>
 </head>
 <body>
@@ -92,6 +103,7 @@
       <div class="filter-btn" onclick="filterAlumni('সম্পন্ন', this)">সম্পন্ন</div>
       <div class="filter-btn" onclick="filterAlumni('মাঝপথে', this)">মাঝপথে</div>
       <div class="filter-btn" onclick="filterAlumni('যোগাযোগ নেই', this)">যোগাযোগ নেই</div>
+      <div class="filter-btn" onclick="filterAlumni('পুরনো Excel', this)">পুরনো Excel</div>
     </div>
 
     <div id="alumni-list"></div>
@@ -106,6 +118,7 @@
     </div>
 
     <div class="alumni-detail-header" id="detail-header"></div>
+    <div id="legacy-info"></div>
 
     <div style="display:flex;gap:8px;margin-bottom:14px;">
       <button class="add-btn" style="margin-bottom:0;flex:1;background:var(--gold);" onclick="openContactModal()">📞 যোগাযোগ লগ করুন</button>
@@ -223,6 +236,7 @@
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mdr-supabase-sync.js"></script>
+<script src="../js/alumni-integration.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script>
@@ -252,6 +266,18 @@
   let currentAlumniId = null;
   let currentFilter = 'সব';
 
+  function alumniTools() {
+    return window.MDRAlumniIntegration || {
+      sourceLabel: () => 'লোকাল রেকর্ড',
+      allPhones: a => (a && a.phone) || '',
+      displayLocation: a => (a && a.location) || 'অজানা',
+      displayYear: a => (a && a.year) || '—',
+      isLegacy: () => false,
+      needsContact: (a, lastContact, daysSince) => daysSince === null || daysSince > 30,
+      oldInfoHtml: () => ''
+    };
+  }
+
   function switchPanel(name) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + name).classList.add('active');
@@ -269,36 +295,38 @@
 
   /* ── HOME ── */
   function renderHome() {
+    if (window.MDRAlumniIntegration) MDRAlumniIntegration.ensureSampleData();
+    const tools = alumniTools();
     const alumni = API.persistLoadArr(AL_KEY);
     const contacts = API.persistLoadArr(AL_CONTACT_KEY);
     const thisMonth = new Date().toISOString().slice(0,7);
 
     document.getElementById('total-alumni').textContent = toBn(alumni.length);
-    document.getElementById('completed').textContent = toBn(alumni.filter(a => a.status === 'সম্পন্ন').length);
+    document.getElementById('completed').textContent = toBn(alumni.filter(a => a.status === 'সম্পন্ন' || a.old_status_category === 'completed').length);
     document.getElementById('this-month').textContent = toBn(contacts.filter(c => c.date.startsWith(thisMonth)).length);
 
     let filtered = alumni;
-    if (currentFilter !== 'সব') filtered = alumni.filter(a => a.status === currentFilter || a.reason === currentFilter);
+    if (currentFilter === 'পুরনো Excel') filtered = alumni.filter(a => tools.isLegacy(a));
+    else if (currentFilter !== 'সব') filtered = alumni.filter(a => a.status === currentFilter || a.reason === currentFilter);
 
     const el = document.getElementById('alumni-list');
     el.innerHTML = filtered.map(a => {
       const lastContact = contacts.filter(c => c.alumni_id === a.id).sort((x,y) => y.date.localeCompare(x.date))[0];
       const daysSince = lastContact ? Math.floor((new Date() - new Date(lastContact.date)) / 86400000) : null;
-      const needsContact = daysSince === null || daysSince > 30;
+      const needsContact = tools.needsContact(a, lastContact, daysSince);
+      const sourceLabel = tools.sourceLabel(a);
       return `<div class="alumni-card" onclick="openAlumni('${a.id}')">
         <div class="alumni-top">
           <div class="alumni-avatar">${a.status === 'সম্পন্ন' ? '🎓' : '👤'}</div>
           <div class="alumni-info">
             <div class="alumni-name">${API.esc(a.name)}</div>
-            <div class="alumni-id">${API.esc(a.permanent_id)} · বিদায়: ${API.esc(a.year||'—')}</div>
-            <div style="font-size:12px;color:var(--ink3);margin-top:3px;">📍 ${API.esc(a.location||'অজানা')}</div>
+            <div class="alumni-id">${API.esc(a.permanent_id || a.proposed_legacy_id || 'আইডি নেই')}</div>
           </div>
           <div class="alumni-status">
-            <span class="list-badge ${a.status==='সম্পন্ন'?'badge-green':'badge-gold'}">${API.esc(a.status||'—')}</span>
-            ${needsContact ? '<div style="font-size:10px;color:var(--red);margin-top:4px;">যোগাযোগ দরকার</div>' : `<div style="font-size:10px;color:var(--ink3);margin-top:4px;">${toBn(daysSince)} দিন আগে</div>`}
+            <span class="source-chip" style="margin-top:0;">${API.esc(sourceLabel)}</span>
+            ${needsContact ? '<div style="font-size:10px;color:var(--red);margin-top:4px;">যোগাযোগ দরকার</div>' : ''}
           </div>
         </div>
-        ${lastContact ? `<div style="font-size:12px;color:var(--ink3);padding-top:8px;border-top:1px solid var(--cream2);">সর্বশেষ: ${API.esc(lastContact.type)} · ${API.esc(lastContact.date)}</div>` : '<div style="font-size:12px;color:var(--red);padding-top:8px;border-top:1px solid var(--cream2);">এখনো কোনো যোগাযোগ নেই</div>'}
       </div>`;
     }).join('') || '<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো রেকর্ড নেই</div></div>';
   }
@@ -308,18 +336,21 @@
     currentAlumniId = aid;
     const a = API.persistLoadArr(AL_KEY).find(a => a.id === aid);
     if (!a) return;
+    const tools = alumniTools();
     document.getElementById('detail-name').textContent = a.name;
     document.getElementById('detail-header').innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">
-        <div><div style="font-size:10px;opacity:.5;">আইডি</div><div style="font-weight:700;">${API.esc(a.permanent_id||'—')}</div></div>
-        <div><div style="font-size:10px;opacity:.5;">বিদায়ের বছর</div><div style="font-weight:700;">${API.esc(a.year||'—')}</div></div>
+        <div><div style="font-size:10px;opacity:.5;">আইডি</div><div style="font-weight:700;">${API.esc(a.permanent_id || a.proposed_legacy_id || '—')}</div></div>
+        <div><div style="font-size:10px;opacity:.5;">বিদায়/শেষ</div><div style="font-weight:700;">${API.esc(tools.displayYear(a))}</div></div>
         <div><div style="font-size:10px;opacity:.5;">কারণ</div><div style="font-weight:600;">${API.esc(a.reason||'—')}</div></div>
-        <div><div style="font-size:10px;opacity:.5;">ফোন</div><div style="font-weight:600;">${API.esc(a.phone||'—')}</div></div>
-        <div style="grid-column:1/-1;"><div style="font-size:10px;opacity:.5;">বর্তমান অবস্থান</div><div style="font-weight:600;">${API.esc(a.location||'অজানা')}</div></div>
+        <div><div style="font-size:10px;opacity:.5;">ফোন</div><div style="font-weight:600;">${API.esc(tools.allPhones(a)||'—')}</div></div>
+        <div style="grid-column:1/-1;"><div style="font-size:10px;opacity:.5;">সর্বশেষ যাচাইকৃত অবস্থা</div><div style="font-weight:600;">${API.esc(a.location || a.latest_verified_status || 'এখনো নেই')}</div></div>
+        <div style="grid-column:1/-1;"><div style="font-size:10px;opacity:.5;">উৎস</div><div style="font-weight:600;">${API.esc(tools.sourceLabel(a))}</div></div>
       </div>`;
+    document.getElementById('legacy-info').innerHTML = tools.oldInfoHtml(a);
 
     /* pre-fill status modal */
-    document.getElementById('st-location').value = a.location || '';
+    document.getElementById('st-location').value = a.location || a.latest_verified_status || '';
     document.getElementById('st-phone').value = a.phone || '';
     document.getElementById('contact-alumni-name').textContent = a.name;
 
@@ -356,7 +387,13 @@
     API.persistSaveArr(AL_CONTACT_KEY, list);
     /* update location if status given */
     if (status) {
-      const alumni = API.persistLoadArr(AL_KEY).map(a => a.id === currentAlumniId ? { ...a, location: status } : a);
+      const alumni = API.persistLoadArr(AL_KEY).map(a => a.id === currentAlumniId ? {
+        ...a,
+        location: status,
+        latest_verified_status: status,
+        last_contact_date: API.today(),
+        followup_status: 'contacted'
+      } : a);
       API.persistSaveArr(AL_KEY, alumni);
     }
     closeModal('contact');
@@ -369,8 +406,31 @@
     if (mmMutationBlocked(showToast)) return;
     const location = document.getElementById('st-location').value.trim();
     const phone = document.getElementById('st-phone').value.trim();
-    const alumni = API.persistLoadArr(AL_KEY).map(a => a.id === currentAlumniId ? { ...a, location, phone } : a);
+    const current = API.persistLoadArr(AL_KEY).find(a => a.id === currentAlumniId) || {};
+    const alumni = API.persistLoadArr(AL_KEY).map(a => a.id === currentAlumniId ? {
+      ...a,
+      location,
+      latest_verified_status: location,
+      phone,
+      last_contact_date: API.today(),
+      followup_status: location || phone ? 'verified' : a.followup_status
+    } : a);
     API.persistSaveArr(AL_KEY, alumni);
+    const changes = [];
+    if (location && location !== (current.location || current.latest_verified_status || '')) changes.push('অবস্থা: ' + location);
+    if (phone && phone !== (current.phone || '')) changes.push('ফোন: ' + phone);
+    const contacts = API.persistLoadArr(AL_CONTACT_KEY);
+    contacts.push({
+      id: API.uid(),
+      alumni_id: currentAlumniId,
+      type: 'স্ট্যাটাস আপডেট',
+      status: location,
+      text: changes.length ? changes.join(' | ') : 'যাচাইকৃত অবস্থা পুনরায় সংরক্ষণ করা হয়েছে।',
+      date: API.today(),
+      by: MMSession.getName() || 'দায়িত্বশীল',
+      source_type: 'status_update'
+    });
+    API.persistSaveArr(AL_CONTACT_KEY, contacts);
     closeModal('status');
     showToast('স্ট্যাটাস আপডেট হয়েছে ✓');
     openAlumni(currentAlumniId);
@@ -386,7 +446,19 @@
     const location = document.getElementById('al-location').value.trim();
     if (!name) { showToast('নাম দিন'); return; }
     const list = API.persistLoadArr(AL_KEY);
-    list.push({ id: 'al_' + API.uid(), name, permanent_id, phone, year, reason, location, status: reason === 'সম্পন্ন করে' ? 'সম্পন্ন' : 'মাঝপথে' });
+    list.push({
+      id: 'al_' + API.uid(),
+      name,
+      permanent_id,
+      phone,
+      year,
+      reason,
+      location,
+      latest_verified_status: location,
+      source_type: 'manual_local',
+      followup_status: 'needs_review',
+      status: reason === 'সম্পন্ন করে' ? 'সম্পন্ন' : 'মাঝপথে'
+    });
     API.persistSaveArr(AL_KEY, list);
     closeModal('add-alumni');
     showToast('পুরনো ছাত্র যোগ করা হয়েছে ✓');
