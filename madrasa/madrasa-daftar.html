@@ -900,6 +900,13 @@ body.page-daftar #modal-account-entry .modal {
       <div class="form-row">
         <div class="form-group"><label class="form-label">রশিদ নং <span style="font-size:10px;color:var(--ink3);font-weight:400">(ঐচ্ছিক)</span></label><input class="form-input" id="acc-exp-receipt" placeholder="যেমন: ১২৩"></div>
       </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">পরিশোধ পদ্ধতি</label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button type="button" id="acc-pay-cash" onclick="setAccPayment('cash')" style="flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--green2);background:var(--green-light);color:var(--green);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">নগদ পরিশোধ</button>
+          <button type="button" id="acc-pay-due" onclick="setAccPayment('due')" style="flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--cream3);background:#fff;color:var(--ink3);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">বাকি / বকেয়া</button>
+        </div>
+      </div>
       <div style="font-size:11px;color:var(--ink3);margin:6px 0 4px;font-weight:600">আইটেম সমূহ</div><div id="acc-items-container"></div>
       <button type="button" onclick="addAccItem()" style="width:100%;margin-top:6px;padding:8px;border:1px dashed var(--ink3);border-radius:8px;background:none;cursor:pointer;font-size:12px;color:var(--ink2);font-family:inherit">＋ আরেকটি আইটেম</button>
       <div style="text-align:right;font-weight:700;padding:8px 0 2px;font-size:14px;border-top:1px solid var(--cream2);margin-top:8px">মোট: ৳<span id="acc-grand-total">০</span></div>

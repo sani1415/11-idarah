@@ -88,6 +88,23 @@
   .std-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
   .std-meta { font-size:11px; color:var(--ink3); }
   .book-row { background:#fff; border-radius:var(--radius-sm); padding:13px 14px; box-shadow:var(--shadow); margin-bottom:7px; }
+  button.book-row.book-row--clickable {
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    margin: 0;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    display: block;
+    box-sizing: border-box;
+    transition: transform 0.1s, box-shadow 0.12s;
+  }
+  button.book-row.book-row--clickable:active { opacity: 0.96; }
+  button.book-row.book-row--clickable:focus { outline: none; }
+  button.book-row.book-row--clickable:focus-visible { box-shadow: var(--shadow), 0 0 0 2px rgba(201, 149, 42, 0.45); }
   .book-name { font-size:13px; font-weight:600; color:var(--ink); margin-bottom:6px; }
   .prog-wrap { display:flex; align-items:center; gap:10px; }
   .prog-track { flex:1; height:7px; background:var(--cream2); border-radius:99px; overflow:hidden; }
@@ -216,7 +233,7 @@
 
 <!-- PANEL: কিতাব -->
 <div class="content" id="panel-kitab" style="display:none;">
-  <button class="add-btn" onclick="openModal('modal-book-prog')">＋ কিতাবের অগ্রগতি আপডেট করুন</button>
+  <p id="kitab-list-hint" class="kitab-list-hint" style="font-size:12px;color:var(--ink3);margin:0 0 12px;line-height:1.45;">কিতাবের নামে ট্যাপ করলে অগ্রগতি দেখতে ও আপডেট করতে পারবেন।</p>
   <div id="kitab-list"></div>
 </div>
 
@@ -283,21 +300,29 @@
 
 <!-- MODAL: কিতাব অগ্রগতি -->
 <div class="modal-bg" id="modal-book-prog">
-  <div class="modal">
-    <div class="modal-title">কিতাব অগ্রগতি <button class="modal-close" onclick="closeModal('modal-book-prog')">✕</button></div>
-    <div class="form-group">
-      <label class="form-label">কিতাব</label>
-      <select class="form-input" id="bp-book"></select>
+  <div class="modal modal-large">
+    <div class="modal-title">কিতাব অগ্রগতি <button type="button" class="modal-close" onclick="closeModal('modal-book-prog')">✕</button></div>
+    <div style="font-size:13px;color:var(--ink2);font-weight:600;margin-bottom:6px;margin-top:-8px;" id="bp-book-label">—</div>
+    <p id="bp-latest-summary" class="kh-latest-summary" style="display:none;margin-top:0;"></p>
+    <div class="modal-tabs" role="tablist" aria-label="কিতাব অগ্রগতি">
+      <button type="button" class="modal-tab active" id="bp-tab-form" onclick="setBookProgModalTab('form')" aria-selected="true">আপডেট</button>
+      <button type="button" class="modal-tab" id="bp-tab-history" onclick="setBookProgModalTab('history')" aria-selected="false">ইতিহাস</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">পঠিত পৃষ্ঠা</label>
-      <input class="form-input" id="bp-pages" type="number" min="0" placeholder="যেমন: 45">
+    <div class="modal-panel" id="bp-panel-form">
+      <input type="hidden" id="bp-book-id" value="">
+      <div class="form-group">
+        <label class="form-label">পঠিত পৃষ্ঠা</label>
+        <input class="form-input" id="bp-pages" type="number" min="0" placeholder="যেমন: 45">
+      </div>
+      <div class="form-group">
+        <label class="form-label">নোট (ঐচ্ছিক)</label>
+        <input class="form-input" id="bp-note" placeholder="সংক্ষিপ্ত মন্তব্য">
+      </div>
+      <button type="button" class="submit-btn" onclick="saveBookProg()">সংরক্ষণ করুন</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">নোট (ঐচ্ছিক)</label>
-      <input class="form-input" id="bp-note" placeholder="সংক্ষিপ্ত মন্তব্য">
+    <div class="modal-panel" id="bp-panel-history" hidden>
+      <div id="bp-history-wrap" class="modal-history-list"></div>
     </div>
-    <button class="submit-btn" onclick="saveBookProg()">সংরক্ষণ করুন</button>
   </div>
 </div>
 
@@ -734,31 +759,83 @@
   }
 
   /* ── KITAB ── */
+  function setBookProgModalTab(which) {
+    const form = which !== 'history';
+    document.getElementById('bp-panel-form').hidden = !form;
+    document.getElementById('bp-panel-history').hidden = form;
+    document.getElementById('bp-tab-form').classList.toggle('active', form);
+    document.getElementById('bp-tab-history').classList.toggle('active', !form);
+    document.getElementById('bp-tab-form').setAttribute('aria-selected', form ? 'true' : 'false');
+    document.getElementById('bp-tab-history').setAttribute('aria-selected', form ? 'false' : 'true');
+  }
+  function fillBookProgHistory(book) {
+    const wrap = document.getElementById('bp-history-wrap');
+    if (!wrap || !book) return;
+    const hist = (book.history || []).slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+    const total = hist.length;
+    if (total > 0) {
+      var sub = total > 80 ? ' (মোট ' + toBn(total) + ' · সর্বোচ্চ ৮০টা দেখা)' : ' (মোট ' + toBn(total) + ')';
+      wrap.innerHTML = '<div style="font-size:10px;font-weight:600;color:var(--ink3);margin-bottom:6px;">অগ্রগতির ইতিহাস' + sub + '</div>' +
+        hist.slice(0, 80).map(function (h, i) {
+          var note = h.note ? ' — ' + API.esc(h.note) : '';
+          var by = h.by ? ' · ' + API.esc(h.by) : '';
+          return '<div class="bp-hist-line" style="padding:8px 0;' + (i ? 'border-top:1px solid var(--cream3);' : '') + 'font-size:12px;line-height:1.4;">' +
+            '<span style="font-size:10px;color:var(--ink3);">' + API.esc(h.date || '') + by + '</span><br>' +
+            '<strong>' + toBn(h.pages_done) + '</strong> পৃষ্ঠা' + note +
+            '</div>';
+        }).join('');
+    } else {
+      wrap.innerHTML = '<div class="log-panel-empty">এখনো কোনো অগ্রগতির ইতিহাস নেই।</div>';
+    }
+  }
+  function fillBookProgSummary(book) {
+    var sumEl = document.getElementById('bp-latest-summary');
+    if (!sumEl || !book) return;
+    sumEl.style.display = 'block';
+    if (book.last_updated != null && String(book.last_updated) !== '' && book.pages_done != null && !Number.isNaN(Number(book.pages_done))) {
+      sumEl.textContent = 'সর্বশেষ: ' + toBn(book.pages_done) + ' পৃষ্ঠা পঠিত · ' + book.last_updated;
+    } else {
+      sumEl.textContent = 'এখনো কোনো অগ্রগতি রেকর্ড নেই — আপডেট ট্যাবে পঠিত পৃষ্ঠা লিখে সংরক্ষণ করুন';
+    }
+  }
+  function openBookProgModal(bookId) {
+    if (!classId || !bookId) { showToast('কিতাব পাওয়া যায়নি'); return; }
+    var books = API.KitabProgress.getByClass(classId);
+    var book = books.find(function (b) { return String(b.id) === String(bookId); });
+    if (!book) { showToast('কিতাব পাওয়া যায়নি'); return; }
+    document.getElementById('bp-book-label').textContent = book.name || '—';
+    document.getElementById('bp-book-id').value = book.id;
+    document.getElementById('bp-pages').value = book.pages_done != null ? book.pages_done : '';
+    document.getElementById('bp-note').value = '';
+    fillBookProgSummary(book);
+    fillBookProgHistory(book);
+    setBookProgModalTab('form');
+    openModal('modal-book-prog');
+  }
   function renderKitab() {
     if (!classId) return;
+    const hintEl = document.getElementById('kitab-list-hint');
     const books = API.KitabProgress.getByClass(classId);
+    if (hintEl) hintEl.style.display = books.length ? '' : 'none';
     document.getElementById('kitab-list').innerHTML = books.length
       ? books.map(b => {
           const pct = b.total_pages ? Math.min(100, Math.round((b.pages_done / b.total_pages) * 100)) : 0;
-          return `<div class="book-row">
+          return `<button type="button" class="book-row book-row--clickable" data-book-id="${_attrId(b.id)}" onclick="openBookProgModal('${_jsQuote(b.id)}')" aria-label="কিতাব অগ্রগতি: ${API.esc(b.name)}">
             <div class="book-name">${API.esc(b.name)}</div>
             <div class="prog-wrap">
               <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
               <span class="prog-pct">${toBn(pct)}%</span>
             </div>
             <div class="prog-pages">${toBn(b.pages_done)} / ${b.total_pages ? toBn(b.total_pages) : '?'} পৃষ্ঠা${b.last_updated ? ' · ' + b.last_updated : ''}</div>
-          </div>`;
+          </button>`;
         }).join('')
       : '<div style="text-align:center;padding:36px;color:var(--ink3);font-size:13px;">কোনো কিতাব নেই<br>সেটিংস থেকে কিতাব যোগ করুন</div>';
-    /* populate book select */
-    const sel = document.getElementById('bp-book');
-    sel.innerHTML = books.map(b => `<option value="${b.id}">${API.esc(b.name)}</option>`).join('');
   }
   async function saveBookProg() {
-    const book_id = document.getElementById('bp-book').value;
-    const pages = parseInt(document.getElementById('bp-pages').value);
+    const book_id = document.getElementById('bp-book-id').value;
+    const pages = parseInt(document.getElementById('bp-pages').value, 10);
     const note = document.getElementById('bp-note').value.trim();
-    if (!book_id) { showToast('কিতাব নির্বাচন করুন'); return; }
+    if (!book_id) { showToast('কিতাব নির্বাচিত নেই'); return; }
     if (isNaN(pages) || pages < 0) { showToast('সঠিক পৃষ্ঠা সংখ্যা দিন'); return; }
     API.KitabProgress.update(book_id, classId, pages, note);
     if (window.MMSharedAPI && UUID_RE.test(book_id)) {
@@ -1006,11 +1083,13 @@
 <div class="modal-bg" id="modal-pin-change" onclick="if(event.target===this)closePinChangeModal()">
   <div class="modal" style="max-width:380px">
     <div class="modal-title"><span>PIN পরিবর্তন</span><button type="button" class="modal-close" onclick="closePinChangeModal()">✕</button></div>
-    <div class="form-group"><label class="form-label">বর্তমান PIN</label><input class="form-input" type="password" id="pc-cur" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="বর্তমান PIN"></div>
-    <div class="form-group"><label class="form-label">নতুন PIN</label><input class="form-input" type="password" id="pc-new" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="নতুন ৪-সংখ্যার PIN"></div>
-    <div class="form-group"><label class="form-label">নতুন PIN নিশ্চিত করুন</label><input class="form-input" type="password" id="pc-conf" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="পুনরায় PIN লিখুন"></div>
-    <button class="submit-btn" onclick="saveOwnPin()">PIN সংরক্ষণ করুন</button>
-    <div style="color:var(--red);font-size:12px;text-align:center;margin-top:8px;min-height:18px" id="pc-err"></div>
+    <form onsubmit="event.preventDefault();saveOwnPin()">
+      <div class="form-group"><label class="form-label">বর্তমান PIN</label><input class="form-input" type="password" id="pc-cur" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" placeholder="বর্তমান PIN"></div>
+      <div class="form-group"><label class="form-label">নতুন PIN</label><input class="form-input" type="password" id="pc-new" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" placeholder="নতুন ৪-সংখ্যার PIN"></div>
+      <div class="form-group"><label class="form-label">নতুন PIN নিশ্চিত করুন</label><input class="form-input" type="password" id="pc-conf" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" placeholder="পুনরায় PIN লিখুন"></div>
+      <button type="submit" class="submit-btn">PIN সংরক্ষণ করুন</button>
+      <div style="color:var(--red);font-size:12px;text-align:center;margin-top:8px;min-height:18px" id="pc-err"></div>
+    </form>
   </div>
 </div>
 </body>

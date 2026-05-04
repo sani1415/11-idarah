@@ -437,11 +437,13 @@
 <div class="modal-bg" id="modal-pin-change" onclick="if(event.target===this)closePinChangeModal()">
   <div class="modal" style="max-width:380px">
     <div class="modal-title"><span>PIN পরিবর্তন</span><button type="button" class="modal-close" onclick="closePinChangeModal()">✕</button></div>
-    <div class="form-group"><label class="form-label">বর্তমান PIN</label><input class="form-input" type="password" id="pc-cur" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="বর্তমান PIN"></div>
-    <div class="form-group"><label class="form-label">নতুন PIN</label><input class="form-input" type="password" id="pc-new" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="নতুন ৪-সংখ্যার PIN"></div>
-    <div class="form-group"><label class="form-label">নতুন PIN নিশ্চিত করুন</label><input class="form-input" type="password" id="pc-conf" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="পুনরায় PIN লিখুন"></div>
-    <button class="submit-btn" onclick="saveOwnPin()">PIN সংরক্ষণ করুন</button>
-    <div style="color:var(--red);font-size:12px;text-align:center;margin-top:8px;min-height:18px" id="pc-err"></div>
+    <form onsubmit="event.preventDefault();saveOwnPin()">
+      <div class="form-group"><label class="form-label">বর্তমান PIN</label><input class="form-input" type="password" id="pc-cur" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" placeholder="বর্তমান PIN"></div>
+    <div class="form-group"><label class="form-label">নতুন PIN</label><input class="form-input" type="password" id="pc-new" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" placeholder="নতুন ৪-সংখ্যার PIN"></div>
+    <div class="form-group"><label class="form-label">নতুন PIN নিশ্চিত করুন</label><input class="form-input" type="password" id="pc-conf" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" placeholder="পুনরায় PIN লিখুন"></div>
+      <button type="submit" class="submit-btn">PIN সংরক্ষণ করুন</button>
+      <div style="color:var(--red);font-size:12px;text-align:center;margin-top:8px;min-height:18px" id="pc-err"></div>
+    </form>
   </div>
 </div>
 </body>

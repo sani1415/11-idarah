@@ -87,6 +87,42 @@
     return map;
   }
 
+  /** দফতর পেজের হাজিরা অডিট «শিক্ষাবর্ষ শুরু→আজ» গণনা করে API.Settings.session_start_date দিয়ে; সেটা শুধু localStorage। একই ইউজারের দুই ডিভাইসে DB-তে সেশন শুরু থাকলেও লোকাল ভিন্ন হলে বাকি দিনের সংখ্যা ভিন্ন হয়। */
+  function mergePublicMadrasaSettingsFromServer() {
+    if (!global.MMSharedAPI || !global.API || !API.Settings || !MMSharedAPI.publicSettings) return;
+    return MMSharedAPI.publicSettings().then(function (pub) {
+      var remote = pub && pub.settings;
+      if (!remote || typeof remote !== 'object') return;
+      var cur = API.Settings.get() || {};
+      var next = Object.assign({}, cur);
+      var sd = remote.session_start_date != null && String(remote.session_start_date).trim() !== ''
+        ? String(remote.session_start_date).trim().slice(0, 10)
+        : '';
+      if (sd) next.session_start_date = sd;
+      var hy = remote.hijri_year != null && String(remote.hijri_year).trim() !== ''
+        ? String(remote.hijri_year).trim()
+        : '';
+      if (hy) next.hijri_year = hy;
+      var inst = remote.institution != null && String(remote.institution).trim() !== ''
+        ? String(remote.institution).trim()
+        : '';
+      if (inst) next.institution = inst;
+      if (remote.hijri_offset_days != null && remote.hijri_offset_days !== '') {
+        next.hijri_offset_days = remote.hijri_offset_days;
+      }
+      API.Settings.save(next);
+      if (sd && API.Sessions && API.Sessions.getCurrent && API.Sessions.setCurrentStartDate && API.Sessions.getCurrent()) {
+        try {
+          API.Sessions.setCurrentStartDate(sd);
+        } catch (e) {
+          console.warn('MDRDaftarSupabase: setCurrentStartDate failed', e);
+        }
+      }
+    }).catch(function (e) {
+      console.warn('MDRDaftarSupabase: publicSettings failed', e);
+    });
+  }
+
   async function sync() {
     if (!global.MMSharedAPI || !global.API) return false;
     var a = actor();
@@ -98,6 +134,11 @@
       API.Attendance.replaceAll((res.attendance || []).map(toLocalAttendance));
     }
     if (Array.isArray(res.class_teachers)) applyClassTeachers(res.class_teachers);
+    try {
+      await mergePublicMadrasaSettingsFromServer();
+    } catch (e) {
+      console.warn('MDRDaftarSupabase: merge settings failed', e);
+    }
     return true;
   }
 
