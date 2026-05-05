@@ -20,6 +20,8 @@
       subjects: (ex.subjects || []).map(function (s) {
         return { id: String(s.id), name: s.name || '', max: Number(s.max_marks) || 100, sort_order: Number(s.sort_order) || 0 };
       }),
+      paper_name: ex.paper_name || '',
+      paper_data: ex.paper_data || '',
     };
   }
 
@@ -80,25 +82,25 @@
     return true;
   }
 
-  async function saveExam(name, type, subjects) {
+  async function saveExam(name, type, subjects, paperName, paperData) {
     if (!global.MMSharedAPI) return null;
     var ap = getActorPin();
     if (!ap) return null;
     var dbSubjects = subjects.map(function (s) { return { name: s.name, max_marks: s.max }; });
-    var res = await MMSharedAPI.saveExam(ap.actorId, ap.pin, name, type, dbSubjects);
+    var res = await MMSharedAPI.saveExam(ap.actorId, ap.pin, name, type, dbSubjects, paperName || null, paperData || null);
     if (!res || !res.ok) throw new Error(res && res.error || 'save_failed');
     await bootstrap();
     return String(res.id);
   }
 
-  async function updateExam(examId, name, type, subjects) {
+  async function updateExam(examId, name, type, subjects, paperName, paperData) {
     if (!global.MMSharedAPI) return;
     var ap = getActorPin();
     if (!ap) return;
     var dbSubjects = subjects
       ? subjects.map(function (s) { return { name: s.name, max_marks: s.max }; })
       : null;
-    var res = await MMSharedAPI.updateExam(ap.actorId, ap.pin, examId, name, type, dbSubjects);
+    var res = await MMSharedAPI.updateExam(ap.actorId, ap.pin, examId, name, type, dbSubjects, paperName || null, paperData || null);
     if (!res || !res.ok) throw new Error(res && res.error || 'update_failed');
     await bootstrap();
   }

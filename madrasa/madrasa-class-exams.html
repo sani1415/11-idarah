@@ -59,6 +59,19 @@
   .ov-empty { text-align:center; color:var(--ink3); padding:40px 0; font-size:13px; }
   a.nav-item { -webkit-tap-highlight-color:transparent; }
 
+  /* প্রশ্নপত্র আপলোড */
+  .paper-upload { margin-top:10px; }
+  .paper-upload-label { display:block; font-size:11px; font-weight:600; color:var(--ink2); margin-bottom:5px; }
+  .paper-upload-row { display:flex; gap:8px; align-items:center; }
+  .paper-file-input { flex:1; min-width:0; font-family:'Tiro Bangla',serif; font-size:11px; padding:8px 10px; border:1.5px dashed var(--cream3); border-radius:var(--radius-sm); background:var(--cream2); color:var(--ink3); cursor:pointer; outline:none; }
+  .paper-file-input:focus { border-color:var(--gold); }
+  .paper-name { font-size:11px; color:var(--green); margin-top:5px; display:none; word-break:break-all; }
+  .paper-name.show { display:block; }
+  .paper-clear { background:none; border:none; color:var(--red); cursor:pointer; font-size:13px; padding:4px 8px; flex-shrink:0; }
+  .paper-preview-link { display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--blue); cursor:pointer; text-decoration:none; margin-left:6px; }
+  .paper-preview-link:hover { text-decoration:underline; }
+  .paper-card-link { font-size:11px; color:var(--blue); cursor:pointer; margin-top:4px; display:inline-block; }
+
   /* ══ Desktop (≥ 960px) ══ */
   @media (min-width: 960px) {
     html body .content { max-width: 1000px !important; }
@@ -151,6 +164,14 @@
     <p style="font-size:12px;color:var(--ink3);line-height:1.45;margin:0 0 8px;">নিচে <strong>এই বর্ষের পাঠ্য বই</strong> থেকে নির্বাচন করুন; প্রতিটি বইয়ের <strong>পূর্ণমান</strong> আলাদা দিন।</p>
     <div id="subject-rows"></div>
     <button type="button" onclick="addSubjectRow()" style="background:var(--cream2);border:none;border-radius:8px;padding:9px;font-family:'Tiro Bangla',serif;font-size:12px;cursor:pointer;width:100%;margin-bottom:14px;">＋ আরেকটি বই/বিষয়</button>
+    <div class="paper-upload">
+      <label class="paper-upload-label">প্রশ্নপত্র (ইমেজ/PDF — ঐচ্ছিক)</label>
+      <div class="paper-upload-row">
+        <input type="file" class="paper-file-input" id="paper-file" accept="image/*,.pdf" onchange="handlePaperFile(this)" title="প্রশ্নপত্রের স্ক্যান/ছবি/পিডিএফ আপলোড করুন">
+        <button type="button" class="paper-clear" id="paper-clear" style="display:none" onclick="clearPaperFile()" title="মুছুন">✕</button>
+      </div>
+      <div class="paper-name" id="paper-name"></div>
+    </div>
     <button class="submit-btn" type="button" onclick="saveExam()">পরীক্ষা তৈরি করুন</button>
   </div>
 </div>
@@ -210,6 +231,34 @@
   let subjectIdx = 0;
   let editExamId = null;
   let editSubjectIdx = 0;
+  let paperFileData = null;
+  let paperFileName = '';
+
+  function handlePaperFile(input) {
+    var file = input.files && input.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { showToast('ফাইল ১০ MB-র বেশি হতে পারবে না'); input.value = ''; return; }
+    var ext = (file.name || '').split('.').pop().toLowerCase();
+    var allowed = ['jpg','jpeg','png','gif','webp','bmp','pdf'];
+    if (allowed.indexOf(ext) === -1) { showToast('শুধু ইমেজ বা PDF ফাইল দিন'); input.value = ''; return; }
+    var reader = new FileReader();
+    reader.onload = function() {
+      paperFileData = reader.result;
+      paperFileName = file.name;
+      document.getElementById('paper-name').textContent = '📎 ' + file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+      document.getElementById('paper-name').classList.add('show');
+      document.getElementById('paper-clear').style.display = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPaperFile() {
+    paperFileData = null;
+    paperFileName = '';
+    document.getElementById('paper-file').value = '';
+    document.getElementById('paper-name').classList.remove('show');
+    document.getElementById('paper-clear').style.display = 'none';
+  }
 
   function goHome() { switchPanel('home'); renderHome(); }
   function switchPanel(name) {
@@ -247,6 +296,7 @@
     document.getElementById('ex-name').value = '';
     document.getElementById('subject-rows').innerHTML = '';
     subjectIdx = 0;
+    clearPaperFile();
     addSubjectRow();
     addSubjectRow();
   }
@@ -292,8 +342,18 @@
     }
     setBusy(true);
     try {
-      await MDRExamsSync.saveExam(name, type, subjects);
+      var newId = await MDRExamsSync.saveExam(name, type, subjects, paperFileName, paperFileData);
+      if (paperFileData && paperFileName) {
+        var savedExams = API.Exams.getAll();
+        var saved = null;
+        if (newId) saved = savedExams.find(function(e) { return String(e.supabase_id || e.id) === String(newId); });
+        if (!saved) saved = savedExams[savedExams.length - 1];
+        if (saved) {
+          API.Exams.update(saved.id, { paper_name: paperFileName, paper_data: paperFileData });
+        }
+      }
       document.getElementById('ex-name').value = '';
+      clearPaperFile();
       closeModal('add-exam');
       showToast('পরীক্ষা তৈরি হয়েছে ✓');
       renderHome();
@@ -399,6 +459,12 @@
     } finally { setBusy(false); }
   }
 
+  function openPaperPreview(eid) {
+    var ex = API.Exams.getAll().find(function(e) { return e.id === eid; });
+    if (!ex || !ex.paper_data) { showToast('প্রশ্নপত্র নেই'); return; }
+    window.open(ex.paper_data, '_blank');
+  }
+
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg; t.classList.add('show');
@@ -418,7 +484,9 @@
         '<button class="exam-act-btn" onclick="openEditExamModal(event,\''+ex.id+'\')" title="সম্পাদনা">✏</button>'+
         '<button class="exam-act-btn" style="color:var(--red);border-color:var(--red-light)" onclick="deleteExam(event,\''+ex.id+'\')" title="মুছুন">🗑</button></div></div>'+
         '<div style="display:flex;gap:12px;font-size:12px;color:var(--ink3);"><span>📚 '+toBn((ex.subjects||[]).length)+' বিষয়</span>'+
-        '<span>✍️ '+toBn(results.length)+'/'+toBn(students.length)+' জমা</span></div></div>';
+        '<span>✍️ '+toBn(results.length)+'/'+toBn(students.length)+' জমা</span>'+
+        (ex.paper_data ? '<span class="paper-card-link" onclick="event.stopPropagation();openPaperPreview(\''+String(ex.id).replace(/'/g,"\\'")+'\')">📄 প্রশ্নপত্র</span>' : '') +
+        '</div></div>';
     }).join('') : '<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-text">কোনো পরীক্ষা তৈরি করুন</div></div>';
   }
   function openExam(eid) {

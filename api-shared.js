@@ -332,16 +332,18 @@ const MMSharedAPI = (() => {
         p_name: name,
       });
     },
-    saveExam(actorId, pin, name, type, subjects) {
+    saveExam(actorId, pin, name, type, subjects, paperName, paperData) {
       return rpc('mdr_rel_save_exam', {
         p_actor_id: actorId,
         p_pin: pin,
         p_name: name,
         p_type: type,
         p_subjects: subjects,
+        p_paper_name: paperName || null,
+        p_paper_data: paperData || null,
       });
     },
-    updateExam(actorId, pin, examId, name, type, subjects) {
+    updateExam(actorId, pin, examId, name, type, subjects, paperName, paperData) {
       return rpc('mdr_rel_update_exam', {
         p_actor_id: actorId,
         p_pin: pin,
@@ -349,6 +351,8 @@ const MMSharedAPI = (() => {
         p_name: name,
         p_type: type,
         p_subjects: subjects || null,
+        p_paper_name: paperName || null,
+        p_paper_data: paperData || null,
       });
     },
     deleteExam(actorId, pin, examId) {

@@ -74,10 +74,20 @@ const KhAPI = (() => {
     },
     add(data) {
       const list = load(KEYS.activities);
-      const a = { id:'act_'+uid(), date:today(), ...data };
+      const a = { id:'act_'+uid(), date:today(), images:[], ...data };
       list.push(a);
       save(KEYS.activities, list);
       return a;
+    },
+    addImages(activityId, imageBase64Arr) {
+      const list = load(KEYS.activities);
+      const act = list.find(a => a.id === activityId);
+      if (act) {
+        if (!act.images) act.images = [];
+        act.images.push(...imageBase64Arr);
+        save(KEYS.activities, list);
+      }
+      return act;
     },
     getSummaryByType() {
       const acts  = load(KEYS.activities);
@@ -120,6 +130,62 @@ const KhAPI = (() => {
       const income  = txns.filter(f=>f.type==='income') .reduce((s,f)=>s+f.amount,0);
       const expense = txns.filter(f=>f.type==='expense').reduce((s,f)=>s+f.amount,0);
       return { income, expense, balance: income-expense };
+    },
+
+    /* ── একাউন্টিং ফাংশন ── */
+    getBalanceBefore(dateStr) {
+      const all = load(KEYS.finance);
+      const income  = all.filter(f=>f.type==='income'  && f.date < dateStr).reduce((s,f)=>s+f.amount,0);
+      const expense = all.filter(f=>f.type==='expense' && f.date < dateStr).reduce((s,f)=>s+f.amount,0);
+      return income - expense;
+    },
+    getForDay(dateStr) {
+      return load(KEYS.finance).filter(f=>f.date===dateStr).sort((a,b)=>a.date.localeCompare(b.date));
+    },
+    getForMonth(yearMonth) {
+      return load(KEYS.finance).filter(f=>f.date.startsWith(yearMonth)).sort((a,b)=>a.date.localeCompare(b.date));
+    },
+    getForYear(year) {
+      return load(KEYS.finance).filter(f=>f.date.startsWith(year)).sort((a,b)=>a.date.localeCompare(b.date));
+    },
+    getDailySummary(yearMonth) {
+      const all = load(KEYS.finance).filter(f=>f.date.startsWith(yearMonth));
+      const days = {};
+      all.forEach(f => {
+        const d = f.date;
+        if (!days[d]) days[d] = { date:d, income:0, expense:0 };
+        if (f.type==='income') days[d].income += f.amount;
+        else days[d].expense += f.amount;
+      });
+      return Object.values(days)
+        .map(d => ({ ...d, net: d.income - d.expense }))
+        .sort((a,b) => a.date.localeCompare(b.date));
+    },
+    getMonthlySummary(year) {
+      const all = load(KEYS.finance).filter(f=>f.date.startsWith(year));
+      const months = {};
+      all.forEach(f => {
+        const m = f.date.substring(0,7);
+        if (!months[m]) months[m] = { month:m, income:0, expense:0 };
+        if (f.type==='income') months[m].income += f.amount;
+        else months[m].expense += f.amount;
+      });
+      return Object.values(months)
+        .map(m => ({ ...m, net: m.income - m.expense }))
+        .sort((a,b) => a.month.localeCompare(b.month));
+    },
+    getYearlySummary() {
+      const all = load(KEYS.finance);
+      const years = {};
+      all.forEach(f => {
+        const y = f.date.substring(0,4);
+        if (!years[y]) years[y] = { year:y, income:0, expense:0 };
+        if (f.type==='income') years[y].income += f.amount;
+        else years[y].expense += f.amount;
+      });
+      return Object.values(years)
+        .map(y => ({ ...y, net: y.income - y.expense }))
+        .sort((a,b) => a.year.localeCompare(b.year));
     },
   };
 

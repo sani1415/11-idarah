@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OLD_FILE = ROOT / "alumni.xlsx"
 NEW_FILE = ROOT / "new_alumni.xlsx"
 OUT_DIR = ROOT / "outputs" / "alumni_merged"
-OUT_FILE = OUT_DIR / "alumni_clean_combined_v5.xlsx"
+OUT_FILE = OUT_DIR / "alumni_clean_combined_v8.xlsx"
 
 BN_DIGITS = "০১২৩৪৫৬৭৮৯"
 EN_DIGITS = "0123456789"
@@ -50,15 +50,7 @@ DUPLICATE_HEADERS = [
     "ডুপ্লিকেট গ্রুপ",
     "মিলের কারণ",
     "মূল শীট Row",
-    "জামাত নং",
-    "পার্মানেন্ট আইডি",
-    "নাম",
-    "বাবার নাম",
-    "মোবাইল ১",
-    "মোবাইল ২",
-    "অধ্যয়ন বিবরণ",
-    "মন্তব্য",
-    "ডেটা উৎস",
+    *HEADERS,
 ]
 
 MERGED_MATCH_HEADERS = [
@@ -130,6 +122,10 @@ def to_text_number(value) -> str:
     return text
 
 
+def to_bn_number(value) -> str:
+    return str(value).translate(str.maketrans(EN_DIGITS, BN_DIGITS))
+
+
 def normalize_phone(value) -> list[str]:
     text = normalize_text(value)
     phones: list[str] = []
@@ -191,15 +187,15 @@ def duplicate_pair_reason(a: dict, b: dict) -> str:
     if not name_a or not name_b:
         return ""
     if name_a == name_b:
-        return "একই জামাত + একই নাম"
+        return "নাম+জামাত"
     shorter, longer = sorted([name_a, name_b], key=len)
     if len(shorter) >= 5 and shorter in longer:
-        return "একই জামাত + নামের অংশ মিলে"
+        return "নাম+জামাত"
     shared = tokens_a & tokens_b
     if len(shared) >= 2:
         score = len(shared) / max(len(tokens_a), len(tokens_b))
         if score >= 0.67:
-            return "একই জামাত + নামের শব্দ মিলে"
+            return "নাম+জামাত"
     return ""
 
 
@@ -267,9 +263,9 @@ def detect_location(address: str) -> tuple[str, str, str, list[str]]:
             thana = t
             break
     if text and not district:
-        comments.append("জেলা যাচাই দরকার")
+        comments.append("জেলা")
     if text and not thana:
-        comments.append("উপজেলা/থানা যাচাই দরকার")
+        comments.append("উপজেলা")
     return district, thana, text, comments
 
 
@@ -326,7 +322,7 @@ def parse_old_records() -> list[dict]:
                 "source": "পুরনো তালিকা",
                 "raw_name": clean_value(name),
             }
-            current["comments"].append("পার্মানেন্ট আইডি খুঁজে বসাতে হবে")
+            current["comments"].append("আইডি")
             records.append(current)
         elif current:
             continuation = [clean_value(v) for v in values[1:9] if v not in (None, "")]
@@ -353,11 +349,11 @@ def parse_new_records() -> list[dict]:
         start_year, end_year = parse_study_detail(clean_value(study))
         comments = loc_comments[:]
         if not study:
-            comments.append("অধ্যয়ন বিবরণ খালি")
+            comments.append("অধ্যয়ন খালি")
         if not halat:
-            comments.append("বর্তমান অবস্থা/হালাত খালি")
+            comments.append("হালাত খালি")
         if not phones:
-            comments.append("যোগাযোগ নম্বর খালি")
+            comments.append("মোবাইল খালি")
         records.append({
             "source_row": excel_row,
             "jamat": clean_value(jamat),
@@ -436,7 +432,8 @@ def assign_review_groups(records: list[dict]) -> int:
     for new_idx in new_indexes:
         for phone in records[new_idx]["phones"]:
             for old_idx in old_by_phone.get(phone, []):
-                union(new_idx, old_idx, f"ফোন মিলেছে: {phone}", True)
+                reason = "জামাত+ফোন মিল" if duplicate_jamat_key(records[new_idx]["jamat"]) == duplicate_jamat_key(records[old_idx]["jamat"]) else "ফোন মিল"
+                union(new_idx, old_idx, reason, True)
 
     by_jamat: dict[str, list[int]] = defaultdict(list)
     for idx, record in enumerate(records):
@@ -457,7 +454,7 @@ def assign_review_groups(records: list[dict]) -> int:
             continue
         for pos, left_idx in enumerate(indexes):
             for right_idx in indexes[pos + 1:]:
-                union(left_idx, right_idx, f"পার্মানেন্ট আইডি duplicate: {permanent_id}")
+                union(left_idx, right_idx, "আইডি ডুপ্লিকেট")
 
     grouped: dict[int, list[int]] = defaultdict(list)
     for idx in range(len(records)):
@@ -501,6 +498,46 @@ def sort_records_for_review(records: list[dict]) -> list[dict]:
     return sorted(records, key=sort_key)
 
 
+def compact_reason(reasons: str) -> str:
+    parts = {part.strip() for part in str(reasons or "").split("|") if part.strip()}
+    has_phone = "ফোন মিল" in parts or "জামাত+ফোন মিল" in parts
+    has_name_jamat = "নাম+জামাত" in parts
+    has_id = "আইডি ডুপ্লিকেট" in parts
+    if has_phone and has_name_jamat:
+        return "নাম+জামাত+ফোন মিল"
+    if "জামাত+ফোন মিল" in parts:
+        return "জামাত+ফোন মিল"
+    if has_phone:
+        return "ফোন মিল"
+    if has_id and has_name_jamat:
+        return "আইডি+নাম+জামাত"
+    if has_id:
+        return "আইডি ডুপ্লিকেট"
+    if has_name_jamat:
+        return "নাম+জামাত"
+    return "মিল"
+
+
+def compact_row_refs(rows: list[int]) -> str:
+    sorted_rows = sorted(set(rows))
+    if not sorted_rows:
+        return ""
+    ranges = []
+    start = prev = sorted_rows[0]
+    for row in sorted_rows[1:]:
+        if row == prev + 1:
+            prev = row
+            continue
+        ranges.append((start, prev))
+        start = prev = row
+    ranges.append((start, prev))
+    parts = [
+        to_bn_number(start) if start == end else f"{to_bn_number(start)}-{to_bn_number(end)}"
+        for start, end in ranges
+    ]
+    return ",".join(parts)
+
+
 def add_review_comments(records: list[dict]) -> None:
     groups: dict[int, list[dict]] = defaultdict(list)
     for record in records:
@@ -508,17 +545,12 @@ def add_review_comments(records: list[dict]) -> None:
             groups[record["_review_group_no"]].append(record)
 
     for group_no, group_records in groups.items():
+        row_refs = compact_row_refs([record["_clean_row"] for record in group_records])
+        reason = compact_reason(group_records[0].get("_review_reason", ""))
         for record in group_records:
-            others = [other for other in group_records if other is not record]
-            other_text = "; ".join(
-                f"row {other['_clean_row']}: {other['name']}" + (f" ({phone_text(other)})" if phone_text(other) else "")
-                for other in others[:6]
-            )
-            extra = "" if len(others) <= 6 else f"; আরও {len(others) - 6}টি"
-            label = "লাল" if record.get("_review_color") == "red" else "হলুদ"
             add_unique_comment(
                 record,
-                f"{label}: Review group {group_no}; কারণ: {record.get('_review_reason', '')}; মিলেছে {other_text}{extra}",
+                f"গ্রুপ {to_bn_number(group_no)}: {reason} রো {row_refs}",
             )
 
 
@@ -621,36 +653,29 @@ def write_duplicate_sheet(wb: Workbook, records: list[dict], header_fill, header
     ws.append(DUPLICATE_HEADERS)
     for group_no, reason, group_records in duplicate_groups:
         for record in sorted(group_records, key=lambda r: r.get("_clean_row", 0)):
-            phones = record["phones"]
             ws.append([
                 group_no,
-                reason,
+                compact_reason(reason),
                 record.get("_clean_row", ""),
-                record["jamat"],
-                record["permanent_id"],
-                record["name"],
-                record["father_name"],
-                phones[0] if len(phones) > 0 else "",
-                phones[1] if len(phones) > 1 else "",
-                record["study_detail"],
-                " | ".join(dict.fromkeys([c for c in record["comments"] if c])),
-                record["source"],
+                *flatten_row(record),
             ])
 
     ws.freeze_panes = "A2"
-    ws.auto_filter.ref = f"A1:L{max(ws.max_row, 1)}"
+    ws.auto_filter.ref = f"A1:T{max(ws.max_row, 1)}"
     style_header(ws[1], header_fill, header_font, border)
     style_body(ws, border)
     widths = {
-        "A": 16, "B": 28, "C": 12, "D": 14, "E": 16, "F": 28,
-        "G": 30, "H": 15, "I": 15, "J": 26, "K": 50, "L": 22,
+        "A": 16, "B": 24, "C": 12, "D": 14, "E": 16, "F": 28,
+        "G": 30, "H": 14, "I": 18, "J": 38, "K": 44, "L": 15,
+        "M": 15, "N": 22, "O": 16, "P": 16, "Q": 26, "R": 14,
+        "S": 50, "T": 22,
     }
     for col, width in widths.items():
         ws.column_dimensions[col].width = width
     for row_idx in range(2, ws.max_row + 1):
         ws.row_dimensions[row_idx].height = 42
     if ws.max_row >= 2:
-        table = Table(displayName="PossibleDuplicateTable", ref=f"A1:L{ws.max_row}")
+        table = Table(displayName="PossibleDuplicateTable", ref=f"A1:T{ws.max_row}")
         table.tableStyleInfo = TableStyleInfo(
             name="TableStyleMedium7",
             showFirstColumn=False,

@@ -18,13 +18,19 @@
   .ben-addr { font-size:11px; color:var(--ink3); margin-top:2px; }
   .ben-count { font-size:11px; color:var(--ink3); padding:4px 8px; background:var(--cream2); border-radius:10px; }
 
-  .act-item { background:#fff; border-radius:var(--radius-sm); padding:13px; box-shadow:var(--shadow); margin-bottom:8px; }
+  .act-item { background:#fff; border-radius:var(--radius-sm); padding:13px; box-shadow:var(--shadow); margin-bottom:8px; position:relative; }
   .act-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
   .act-emoji { font-size:18px; }
   .act-title { font-size:13px; font-weight:600; color:var(--ink); flex:1; }
   .act-amt { font-family:'Tiro Bangla',serif; font-size:13px; font-weight:700; color:var(--red); }
   .act-desc { font-size:12px; color:var(--ink3); line-height:1.5; }
   .act-date { font-size:10px; color:var(--ink3); margin-top:4px; }
+
+  .act-images { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .act-img-thumb { width:60px; height:60px; border-radius:6px; object-fit:cover; border:1px solid var(--cream3); cursor:pointer; transition:transform .12s; background:var(--cream2); }
+  .act-img-thumb:active { transform:scale(.95); }
+  .act-img-add { width:60px; height:60px; border-radius:6px; border:2px dashed var(--cream3); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink3); font-size:20px; background:var(--cream); transition:border-color .15s; }
+  .act-img-add:hover { border-color:var(--gold); color:var(--gold); }
 
   .fin-item { background:#fff; border-radius:var(--radius-sm); padding:13px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:10px; }
   .fin-type { font-size:18px; }
@@ -35,7 +41,38 @@
   .fin-amt.income { color:var(--green); }
   .fin-amt.expense { color:var(--red); }
 
-  /* ══ Desktop (≥ 960px) ══ */
+  .bal-card { background:linear-gradient(135deg, var(--green) 0%, var(--teal) 100%); border-radius:var(--radius); padding:20px 18px; color:#fff; margin-bottom:14px; }
+  .bal-label { font-size:12px; opacity:.8; margin-bottom:4px; }
+  .bal-num { font-family:'Tiro Bangla',serif; font-size:28px; font-weight:700; }
+  .acct-tabs { display:flex; gap:4px; margin-bottom:12px; }
+  .acct-tab { flex:1; padding:10px 8px; font-family:'Tiro Bangla',serif; font-size:12px; font-weight:600; text-align:center; border-radius:10px; cursor:pointer; background:var(--cream2); color:var(--ink3); border:none; transition:all .15s; }
+  .acct-tab.active { background:var(--ink); color:var(--gold2); }
+  .acct-row { display:flex; align-items:center; padding:10px 0; border-bottom:1px solid var(--cream2); gap:8px; }
+  .acct-row:last-child { border-bottom:none; }
+  .acct-date { font-size:11px; color:var(--ink3); width:64px; flex-shrink:0; }
+  .acct-desc { flex:1; font-size:13px; color:var(--ink); min-width:0; }
+  .acct-amt-col { text-align:right; flex-shrink:0; min-width:70px; }
+  .acct-in { font-family:'Tiro Bangla',serif; font-size:13px; color:var(--green); font-weight:600; }
+  .acct-out { font-family:'Tiro Bangla',serif; font-size:13px; color:var(--red); font-weight:600; }
+  .acct-net { font-family:'Tiro Bangla',serif; font-size:11px; }
+  .acct-net.pos { color:var(--green); } .acct-net.neg { color:var(--red); }
+  .acct-summary { margin-top:10px; padding-top:10px; border-top:2px solid var(--cream3); }
+  .acct-sum-row { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; }
+  .acct-sum-label { color:var(--ink3); }
+  .acct-sum-val { font-family:'Tiro Bangla',serif; font-weight:700; color:var(--ink2); }
+  .acct-sum-val.green { color:var(--green); } .acct-sum-val.red { color:var(--red); }
+  .month-sel { display:flex; gap:8px; margin-bottom:12px; align-items:center; }
+  .month-sel .form-input { width:auto; flex:1; }
+  .lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:300; align-items:center; justify-content:center; }
+  .lightbox.open { display:flex; }
+  .lb-close { position:absolute; top:16px; right:16px; color:#fff; font-size:28px; cursor:pointer; z-index:1; background:none; border:none; }
+  .lb-counter { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); color:#fff; font-size:12px; opacity:.7; }
+  .lb-nav { position:absolute; top:50%; transform:translateY(-50%); color:#fff; font-size:36px; cursor:pointer; background:rgba(255,255,255,.15); border:none; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .lb-prev { left:12px; } .lb-next { right:12px; }
+  .lb-img { max-width:92vw; max-height:82vh; object-fit:contain; border-radius:8px; }
+  .d-section { margin-top:16px; }
+  .d-section-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .d-section-title { font-family:'Tiro Bangla',serif; font-size:15px; font-weight:700; color:var(--ink2); }
   @media (min-width: 960px) {
     .content { max-width: 900px; }
     .ben-card { padding: 18px; }
@@ -44,6 +81,8 @@
     .act-title { font-size: 14px; }
     .fin-item { padding: 15px 16px; }
     .fin-title { font-size: 14px; }
+    .bal-num { font-size: 32px; }
+    .act-img-thumb, .act-img-add { width: 74px; height: 74px; }
   }
 </style>
 </head>
@@ -68,12 +107,27 @@
   <div id="ben-list"></div>
 </div>
 
+<!-- PANEL: FINANCE (ACCOUNTING) -->
+<div class="content" id="panel-fin" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
+  <div id="bal-card"></div>
+  <div class="acct-tabs" id="acct-tabs">
+    <button class="acct-tab active" data-tab="daily" onclick="switchAcctTab('daily')">দৈনিক</button>
+    <button class="acct-tab" data-tab="monthly" onclick="switchAcctTab('monthly')">মাসিক</button>
+    <button class="acct-tab" data-tab="yearly" onclick="switchAcctTab('yearly')">বার্ষিক</button>
+  </div>
+  <div class="month-sel" id="acct-selector"></div>
+  <div class="card-static" style="margin-bottom:6px;" id="acct-opening"></div>
+  <div id="acct-rows"></div>
+  <div class="card-static" id="acct-closing" style="margin-top:8px;"></div>
+  <button class="add-btn" style="margin-top:12px;" onclick="openAddFin()">+ আয় / ব্যয় যোগ করুন</button>
+</div>
+
 <!-- PANEL: DAILY LOG -->
 <div class="content" id="panel-log" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div class="sec-header" style="margin-top:6px;"><div class="sec-title">দৈনিক লগ</div></div>
   <div class="card-static" style="margin-bottom:12px;">
     <div class="form-group" style="margin:0;">
-      <label class="form-label">আজকের লগ লিখুন</label>
+      <label class="form-label" id="log-date-label">আজকের লগ লিখুন</label>
       <textarea class="form-input form-textarea" id="log-input" placeholder="আজ কী কী করলেন, কার সাথে কথা হলো..."></textarea>
     </div>
     <button class="submit-btn" style="margin-top:10px;" onclick="saveLog()">লগ সংরক্ষণ করুন</button>
@@ -82,26 +136,19 @@
   <div id="log-list"></div>
 </div>
 
-<!-- PANEL: FINANCE -->
-<div class="content" id="panel-fin" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
-  <div class="stat-row-2" style="margin-top:10px;" id="fin-summary"></div>
-  <button class="add-btn" onclick="openAddFin()">+ আয় / ব্যয় যোগ করুন</button>
-  <div id="fin-list"></div>
-</div>
-
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav" aria-label="নিচের নেভিগেশন">
   <div class="nav-item active" id="nav-ben" onclick="switchPanel('ben')">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="nav-label">মাখদুম</span>
   </div>
-  <div class="nav-item" id="nav-log" onclick="switchPanel('log')">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V12.75a9 9 0 00-9-9z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="nav-label">দৈনিক লগ</span>
-  </div>
   <div class="nav-item" id="nav-fin" onclick="switchPanel('fin')">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="nav-label">তহবিল</span>
+  </div>
+  <div class="nav-item" id="nav-log" onclick="switchPanel('log')">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V12.75a9 9 0 00-9-9z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="nav-label">দৈনিক লগ</span>
   </div>
   <div class="nav-item" onclick="location.href='../chat.html'" title="শুধু বার্তা">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -109,8 +156,8 @@
   </div>
 </nav>
 
-<!-- ADD BENEFICIARY MODAL -->
-<div class="modal-bg" id="modal-ben">
+<!-- MODAL: Add Beneficiary -->
+<div class="modal-bg modal-float" id="modal-ben">
   <div class="modal">
     <div class="modal-title">নতুন মাখদুম <button class="modal-close" onclick="closeModal('modal-ben')">✕</button></div>
     <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="b-name" placeholder="পুরো নাম"></div>
@@ -122,17 +169,11 @@
   </div>
 </div>
 
-<!-- ADD FINANCE MODAL -->
-<div class="modal-bg" id="modal-fin">
+<!-- MODAL: Add Finance -->
+<div class="modal-bg modal-float" id="modal-fin">
   <div class="modal">
     <div class="modal-title">লেনদেন যোগ করুন <button class="modal-close" onclick="closeModal('modal-fin')">✕</button></div>
-    <div class="form-group">
-      <label class="form-label">ধরন</label>
-      <select class="form-input form-select" id="fn-type">
-        <option value="income">আয়</option>
-        <option value="expense">ব্যয়</option>
-      </select>
-    </div>
+    <div class="form-group"><label class="form-label">ধরন</label><select class="form-input form-select" id="fn-type"><option value="income">আয়</option><option value="expense">ব্যয়</option></select></div>
     <div class="form-group"><label class="form-label">পরিমাণ</label><input class="form-input" type="number" id="fn-amount" placeholder="০"></div>
     <div class="form-group"><label class="form-label">বিবরণ</label><input class="form-input" id="fn-desc" placeholder="লেনদেনের বিবরণ"></div>
     <div class="form-group"><label class="form-label">উৎস / খাত (ঐচ্ছিক)</label><input class="form-input" id="fn-source" placeholder="মাদ্রাসা তহবিল / দান"></div>
@@ -140,29 +181,51 @@
   </div>
 </div>
 
-<!-- BENEFICIARY DETAIL VIEW -->
+<!-- DETAIL VIEW: Beneficiary -->
 <div class="detail-view" id="ben-detail">
   <div class="detail-topbar">
     <span class="detail-back" onclick="closeBenDetail()">←</span>
     <span class="detail-title" id="bd-title">—</span>
+    <button class="topbar-btn" style="color:var(--gold2);border-color:var(--gold);margin-left:auto;font-size:11px;" onclick="openEditBen()">তথ্য সম্পাদনা</button>
   </div>
   <div class="detail-content" id="bd-content"></div>
 </div>
 
-<!-- ADD ACTIVITY MODAL -->
-<div class="modal-bg" id="modal-act">
+<!-- MODAL: Add Activity -->
+<div class="modal-bg modal-float" id="modal-act">
   <div class="modal">
     <div class="modal-title">কার্যক্রম যোগ করুন <button class="modal-close" onclick="closeModal('modal-act')">✕</button></div>
-    <div class="form-group">
-      <label class="form-label">কার্যক্রমের ধরন</label>
-      <select class="form-input form-select" id="act-type"></select>
-    </div>
+    <div class="form-group"><label class="form-label">কার্যক্রমের ধরন</label><select class="form-input form-select" id="act-type"></select></div>
     <div class="form-group"><label class="form-label">শিরোনাম</label><input class="form-input" id="act-title-inp" placeholder="সংক্ষিপ্ত শিরোনাম"></div>
     <div class="form-group"><label class="form-label">বিবরণ</label><textarea class="form-input form-textarea" id="act-desc-inp" placeholder="কী প্রদান করা হলো..." style="min-height:70px;"></textarea></div>
     <div class="form-group"><label class="form-label">ব্যয়িত অর্থ (টাকা)</label><input class="form-input" type="number" id="act-amount" placeholder="০"></div>
+    <div class="form-group"><label class="form-label">ছবি (ঐচ্ছিক)</label><input type="file" id="act-images-inp" accept="image/*" multiple style="display:block;font-size:12px;"></div>
     <button class="submit-btn" onclick="saveAct()">সংরক্ষণ করুন</button>
   </div>
 </div>
+
+<!-- MODAL: Edit Beneficiary -->
+<div class="modal-bg modal-float" id="modal-edit-ben">
+  <div class="modal">
+    <div class="modal-title">মাখদুম তথ্য সম্পাদনা <button class="modal-close" onclick="closeModal('modal-edit-ben')">✕</button></div>
+    <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="eb-name" placeholder="পুরো নাম"></div>
+    <div class="form-group"><label class="form-label">ঠিকানা</label><input class="form-input" id="eb-addr" placeholder="গ্রাম / পাড়া"></div>
+    <div class="form-group"><label class="form-label">ফোন (ঐচ্ছিক)</label><input class="form-input" id="eb-phone" placeholder="০১..."></div>
+    <div class="form-group"><label class="form-label">পরিবারের তথ্য</label><input class="form-input" id="eb-family" placeholder="স্ত্রী ও ৩ সন্তান"></div>
+    <div class="form-group"><label class="form-label">নোট</label><textarea class="form-input form-textarea" id="eb-notes" placeholder="প্রয়োজনীয় তথ্য" style="min-height:70px;"></textarea></div>
+    <button class="submit-btn" onclick="saveEditBen()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <button class="lb-nav lb-prev" id="lb-prev" onclick="lbPrev()">‹</button>
+  <img class="lb-img" id="lb-img" src="" alt="">
+  <button class="lb-nav lb-next" id="lb-next" onclick="lbNext()">›</button>
+  <div class="lb-counter" id="lb-counter"></div>
+</div>
+<input type="file" id="act-img-adder" accept="image/*" multiple style="display:none" onchange="onExtraImagesSelected(event)">
 
 <div class="toast" id="toast"></div>
 
@@ -180,30 +243,32 @@
   mmInsertMonitorBanner();
   MMSession.configureTopbarHubAndLockout();
 
+  const BN_MONTHS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = n => '৳' + toBn(Number(n).toLocaleString('en'));
   const fmtDate = d => { if (!d) return ''; const p = d.split('-'); return toBn(p[2]+'/'+p[1]+'/'+p[0]); };
+  const fmtMonth = m => { const p = m.split('-'); return BN_MONTHS[parseInt(p[1])-1]+' '+toBn(p[0]); };
+  const fmtYear = y => toBn(y);
 
   let activeBenId = null;
+  let activeAcctTab = 'daily';
+  let activeAcctPeriod = KhAPI.today();
+  let lightboxImages = [];
+  let lightboxIndex = 0;
+  let pendingImgActId = null;
 
-  function showToast(msg) {
-    const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2200);
-  }
-  function openModal(id) {
-    if (mmMutationBlocked(showToast)) return;
-    document.getElementById(id).classList.add('open');
-  }
+  function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+  function openModal(id) { if (mmMutationBlocked(showToast)) return; document.getElementById(id).classList.add('open'); }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
   function switchPanel(name) {
-    ['ben','log','fin'].forEach(p => {
+    ['ben','fin','log'].forEach(p => {
       document.getElementById('panel-'+p).style.display = p===name ? '' : 'none';
       document.getElementById('nav-'+p).classList.toggle('active', p===name);
     });
     if (name==='ben') renderBen();
+    if (name==='fin') { activeAcctPeriod = KhAPI.today(); activeAcctTab = 'daily'; updateAcctTabUI(); renderFin(); }
     if (name==='log') renderLog();
-    if (name==='fin') renderFin();
   }
 
   function renderBen() {
@@ -212,110 +277,22 @@
       ? bens.map(b => {
           const acts = KhAPI.Activities.getByBeneficiary(b.id);
           return `<div class="ben-card" onclick="openBenDetail('${b.id}')">
-            <div class="ben-top">
-              <div class="ben-avatar">🤝</div>
-              <div class="ben-info">
-                <div class="ben-name">${KhAPI.esc(b.name)}</div>
-                <div class="ben-addr">${KhAPI.esc(b.address||'—')}</div>
-              </div>
-              <div class="ben-count">${toBn(acts.length)} বার</div>
-            </div>
-          </div>`;
+            <div class="ben-top"><div class="ben-avatar">🤝</div>
+            <div class="ben-info"><div class="ben-name">${KhAPI.esc(b.name)}</div><div class="ben-addr">${KhAPI.esc(b.address||'—')}</div></div>
+            <div class="ben-count">${toBn(acts.length)} বার</div></div></div>`;
         }).join('')
       : '<div style="text-align:center;color:var(--ink3);padding:40px 0;font-size:13px;">কোনো মাখদুম নেই</div>';
   }
 
-  function renderLog() {
-    const logs = KhAPI.DailyLogs.getAll();
-    document.getElementById('log-list').innerHTML = logs.length
-      ? logs.map(l => `
-        <div class="log-item">
-          <div class="log-meta"><span>${KhAPI.esc(l.by||'—')}</span><span>${fmtDate(l.date)}</span></div>
-          <div class="log-text">${KhAPI.esc(l.content)}</div>
-        </div>`).join('')
-      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো লগ নেই</div>';
-  }
-
-  function renderFin() {
-    const sum = KhAPI.Finance.getSummary(null);
-    document.getElementById('fin-summary').innerHTML =
-      `<div class="stat-card"><span class="stat-num" style="color:var(--green)">${fmtAmt(sum.income)}</span><span class="stat-label">মোট আয়</span></div>
-       <div class="stat-card"><span class="stat-num" style="color:${sum.balance<0?'var(--red)':'var(--ink2)'}">${fmtAmt(sum.balance)}</span><span class="stat-label">ব্যালেন্স</span></div>`;
-    const fins = KhAPI.Finance.getAll();
-    document.getElementById('fin-list').innerHTML = fins.length
-      ? fins.map(f => `
-        <div class="fin-item">
-          <div class="fin-type">${f.type==='income'?'↑':'↓'}</div>
-          <div class="fin-desc">
-            <div class="fin-title">${KhAPI.esc(f.description)}</div>
-            <div class="fin-source">${KhAPI.esc(f.source||'—')} · ${fmtDate(f.date)}</div>
-          </div>
-          <div class="fin-amt ${f.type}">${fmtAmt(f.amount)}</div>
-        </div>`).join('')
-      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো লেনদেন নেই</div>';
-  }
-
-  function openAddBen() {
-    ['b-name','b-addr','b-phone','b-family','b-notes'].forEach(id => document.getElementById(id).value='');
-    openModal('modal-ben');
-  }
+  function openAddBen() { ['b-name','b-addr','b-phone','b-family','b-notes'].forEach(id => document.getElementById(id).value=''); openModal('modal-ben'); }
 
   function saveBen() {
     if (mmMutationBlocked(showToast)) return;
-    const name   = document.getElementById('b-name').value.trim();
-    const addr   = document.getElementById('b-addr').value.trim();
-    const phone  = document.getElementById('b-phone').value.trim();
-    const family = document.getElementById('b-family').value.trim();
-    const notes  = document.getElementById('b-notes').value.trim();
+    const name = document.getElementById('b-name').value.trim();
+    const addr = document.getElementById('b-addr').value.trim();
     if (!name) { showToast('নাম দিন'); return; }
-    KhAPI.Beneficiaries.add({ name, address:addr, phone, family_info:family, notes });
-    closeModal('modal-ben');
-  function openPinChangeModal(){document.getElementById('pc-cur').value='';document.getElementById('pc-new').value='';document.getElementById('pc-conf').value='';document.getElementById('pc-err').textContent='';document.getElementById('modal-pin-change').classList.add('open');}
-  function closePinChangeModal(){document.getElementById('modal-pin-change').classList.remove('open');}
-  function saveOwnPin(){
-    var c=document.getElementById('pc-cur').value,n=document.getElementById('pc-new').value,f=document.getElementById('pc-conf').value,e=document.getElementById('pc-err');
-    if(!c||!n||!f){e.textContent='সব ঘর পূরণ করুন';return;}
-    if(n!==f){e.textContent='PIN মিলছে না';return;}
-    if(n.length!==4||!/^\d+$/.test(n)){e.textContent='PIN ৪ সংখ্যার হতে হবে';return;}
-    var uid=MMSession.getStaffUserId();
-    if(!uid||!API.Teachers.changeOwnPin(uid,c,n)){e.textContent='বর্তমান PIN ভুল';return;}
-    MMSession.setStaffSession(MMSession.getRole(),MMSession.getName(),uid,n);
-    if(typeof MMSharedAPI!=='undefined'&&MMSharedAPI.staffChangeOwnPin){try{MMSharedAPI.staffChangeOwnPin(uid,c,n);}catch(ex){console.warn('Supabase PIN sync skipped',ex);}}
-    closePinChangeModal();
-    if(typeof showToast==='function')showToast('PIN সফলভাবে পরিবর্তন হয়েছে');
-  }
-
-  renderBen();
-    showToast('মাখদুম যোগ হয়েছে');
-  }
-
-  function saveLog() {
-    if (mmMutationBlocked(showToast)) return;
-    const txt = document.getElementById('log-input').value.trim();
-    if (!txt) { showToast('লগ লিখুন'); return; }
-    KhAPI.DailyLogs.add(txt, myName);
-    document.getElementById('log-input').value = '';
-    renderLog();
-    showToast('লগ সংরক্ষিত হয়েছে');
-  }
-
-  function openAddFin() {
-    ['fn-amount','fn-desc','fn-source'].forEach(id => document.getElementById(id).value='');
-    openModal('modal-fin');
-  }
-
-  function saveFin() {
-    if (mmMutationBlocked(showToast)) return;
-    const type   = document.getElementById('fn-type').value;
-    const amount = parseFloat(document.getElementById('fn-amount').value);
-    const desc   = document.getElementById('fn-desc').value.trim();
-    const source = document.getElementById('fn-source').value.trim();
-    if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
-    if (!desc) { showToast('বিবরণ দিন'); return; }
-    KhAPI.Finance.add({ type, amount, description:desc, source:source||null });
-    closeModal('modal-fin');
-    renderFin();
-    showToast('লেনদেন সংরক্ষিত হয়েছে');
+    KhAPI.Beneficiaries.add({ name, address:addr, phone:document.getElementById('b-phone').value.trim(), family_info:document.getElementById('b-family').value.trim(), notes:document.getElementById('b-notes').value.trim() });
+    closeModal('modal-ben'); renderBen(); showToast('মাখদুম যোগ হয়েছে');
   }
 
   function openBenDetail(id) {
@@ -330,8 +307,7 @@
   function renderBenDetail(ben) {
     const acts = KhAPI.Activities.getByBeneficiary(ben.id);
     const types = KhAPI.ActivityTypes.getAll();
-    const typeMap = {};
-    types.forEach(t => typeMap[t.id] = t);
+    const typeMap = {}; types.forEach(t => typeMap[t.id] = t);
     document.getElementById('bd-content').innerHTML = `
       <div class="card-static" style="margin-bottom:12px;">
         <div style="display:flex;flex-direction:column;gap:6px;">
@@ -339,63 +315,282 @@
           ${ben.phone?`<div style="font-size:13px;"><span style="color:var(--ink3);">ফোন: </span>${KhAPI.esc(ben.phone)}</div>`:''}
           ${ben.family_info?`<div style="font-size:13px;"><span style="color:var(--ink3);">পরিবার: </span>${KhAPI.esc(ben.family_info)}</div>`:''}
           ${ben.notes?`<div style="font-size:13px;"><span style="color:var(--ink3);">নোট: </span>${KhAPI.esc(ben.notes)}</div>`:''}
+          <div style="font-size:11px;color:var(--ink3);margin-top:2px;">প্রথম যোগাযোগ: ${fmtDate(ben.first_contact)}</div>
         </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div style="font-family:'Tiro Bangla',serif;font-size:15px;font-weight:700;color:var(--ink2);">কার্যক্রম সমূহ</div>
-        <button class="topbar-btn" style="color:var(--gold2);border-color:var(--gold);" onclick="openAddAct()">+ যোগ করুন</button>
-      </div>
-      ${acts.length
-        ? acts.map(a => {
-            const tp = typeMap[a.type_id];
-            return `<div class="act-item">
-              <div class="act-head">
-                <span class="act-emoji">${tp?.emoji||'🤝'}</span>
-                <span class="act-title">${KhAPI.esc(a.title)}</span>
-                ${a.amount?`<span class="act-amt">${fmtAmt(a.amount)}</span>`:''}
-              </div>
-              <div class="act-desc">${KhAPI.esc(a.description)}</div>
-              <div class="act-date">${fmtDate(a.date)}</div>
-            </div>`;
-          }).join('')
-        : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো কার্যক্রম নেই</div>'
-      }`;
+      <div class="d-section"><div class="d-section-hd"><div class="d-section-title">কার্যক্রমের হিস্টরি</div><button class="topbar-btn" style="color:var(--gold2);border-color:var(--gold);" onclick="openAddAct()">+ যোগ করুন</button></div>
+      ${acts.length ? acts.map(a => {
+        const tp = typeMap[a.type_id];
+        const imgs = a.images || [];
+        return `<div class="act-item">
+          <div class="act-head"><span class="act-emoji">${tp?.emoji||'🤝'}</span><span class="act-title">${KhAPI.esc(a.title)}</span>${a.amount?`<span class="act-amt">${fmtAmt(a.amount)}</span>`:''}</div>
+          <div class="act-desc">${KhAPI.esc(a.description)}</div><div class="act-date">${fmtDate(a.date)}</div>
+          <div class="act-images">
+            ${imgs.map((img,i) => `<img class="act-img-thumb" src="${img}" alt="" onclick="event.stopPropagation();openLightbox('${a.id}',${i})" loading="lazy">`).join('')}
+            <div class="act-img-add" onclick="event.stopPropagation();triggerImgUpload('${a.id}')" title="ছবি যোগ করুন">+</div>
+          </div>
+        </div>`;
+      }).join('') : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো কার্যক্রম নেই</div>'}
+      </div>`;
   }
 
   function closeBenDetail() { document.getElementById('ben-detail').classList.remove('open'); }
+  function openEditBen() {
+    const ben = KhAPI.Beneficiaries.getById(activeBenId);
+    if (!ben) return;
+    document.getElementById('eb-name').value = ben.name || '';
+    document.getElementById('eb-addr').value = ben.address || '';
+    document.getElementById('eb-phone').value = ben.phone || '';
+    document.getElementById('eb-family').value = ben.family_info || '';
+    document.getElementById('eb-notes').value = ben.notes || '';
+    openModal('modal-edit-ben');
+  }
+
+  function saveEditBen() {
+    if (mmMutationBlocked(showToast)) return;
+    const name = document.getElementById('eb-name').value.trim();
+    if (!name) { showToast('নাম দিন'); return; }
+    KhAPI.Beneficiaries.update(activeBenId, { name, address:document.getElementById('eb-addr').value.trim(), phone:document.getElementById('eb-phone').value.trim(), family_info:document.getElementById('eb-family').value.trim(), notes:document.getElementById('eb-notes').value.trim() });
+    closeModal('modal-edit-ben');
+    const ben = KhAPI.Beneficiaries.getById(activeBenId);
+    document.getElementById('bd-title').textContent = ben.name;
+    renderBenDetail(ben);
+    showToast('তথ্য আপডেট হয়েছে');
+  }
 
   function openAddAct() {
     const types = KhAPI.ActivityTypes.getAll();
     document.getElementById('act-type').innerHTML = types.map(t => `<option value="${t.id}">${t.emoji} ${KhAPI.esc(t.name)}</option>`).join('');
     ['act-title-inp','act-desc-inp','act-amount'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('act-images-inp').value = '';
     openModal('modal-act');
   }
 
   function saveAct() {
     if (mmMutationBlocked(showToast)) return;
     const type_id = document.getElementById('act-type').value;
-    const title   = document.getElementById('act-title-inp').value.trim();
-    const desc    = document.getElementById('act-desc-inp').value.trim();
-    const amount  = parseFloat(document.getElementById('act-amount').value)||0;
+    const title = document.getElementById('act-title-inp').value.trim();
+    const desc = document.getElementById('act-desc-inp').value.trim();
+    const amount = parseFloat(document.getElementById('act-amount').value)||0;
     if (!title) { showToast('শিরোনাম দিন'); return; }
-    if (!desc)  { showToast('বিবরণ দিন'); return; }
-    KhAPI.Activities.add({ beneficiary_id:activeBenId, type_id, title, description:desc, amount });
-    closeModal('modal-act');
+    if (!desc) { showToast('বিবরণ দিন'); return; }
+    const act = KhAPI.Activities.add({ beneficiary_id:activeBenId, type_id, title, description:desc, amount });
+    const files = document.getElementById('act-images-inp').files;
+    if (files && files.length) {
+      readFilesAsBase64(files, function(images) {
+        if (images.length) KhAPI.Activities.addImages(act.id, images);
+        refreshDetail();
+      });
+    } else { refreshDetail(); }
+    closeModal('modal-act'); showToast('কার্যক্রম যোগ হয়েছে');
+  }
+
+  function triggerImgUpload(actId) {
+    pendingImgActId = actId;
+    document.getElementById('act-img-adder').click();
+  }
+
+  function onExtraImagesSelected(e) {
+    const files = e.target.files;
+    if (!files || !files.length || !pendingImgActId) return;
+    readFilesAsBase64(files, function(images) {
+      if (images.length) KhAPI.Activities.addImages(pendingImgActId, images);
+      refreshDetail();
+      showToast(toBn(images.length)+' টি ছবি যোগ হয়েছে');
+    });
+    e.target.value = '';
+    pendingImgActId = null;
+  }
+
+  function refreshDetail() {
     const ben = KhAPI.Beneficiaries.getById(activeBenId);
-    renderBenDetail(ben);
-    showToast('কার্যক্রম যোগ হয়েছে');
+    if (ben) renderBenDetail(ben);
+  }
+
+  function readFilesAsBase64(files, cb) { const results=[]; let done=0; Array.from(files).forEach(file=>{ const r=new FileReader(); r.onload=function(){results.push(r.result);done++;if(done===files.length)cb(results);}; r.readAsDataURL(file); }); }
+  function openLightbox(actId, index) {
+    const acts = KhAPI.Activities.getByBeneficiary(activeBenId);
+    const act = acts.find(a => a.id === actId);
+    if (!act || !act.images || !act.images.length) return;
+    lightboxImages = act.images;
+    lightboxIndex = index;
+    showLightboxImage();
+    document.getElementById('lightbox').classList.add('open');
+  }
+
+  function showLightboxImage() {
+    document.getElementById('lb-img').src = lightboxImages[lightboxIndex];
+    document.getElementById('lb-counter').textContent = toBn(lightboxIndex+1)+'/'+toBn(lightboxImages.length);
+    document.getElementById('lb-prev').style.display = lightboxIndex>0 ? '' : 'none';
+    document.getElementById('lb-next').style.display = lightboxIndex<lightboxImages.length-1 ? '' : 'none';
+  }
+
+  function lbPrev() { if (lightboxIndex>0) { lightboxIndex--; showLightboxImage(); } }
+  function lbNext() { if (lightboxIndex<lightboxImages.length-1) { lightboxIndex++; showLightboxImage(); } }
+  function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+  function renderFin() {
+    const sum = KhAPI.Finance.getSummary(null);
+    document.getElementById('bal-card').innerHTML = `<div class="bal-card"><div class="bal-label">বর্তমান জমা</div><div class="bal-num">${fmtAmt(sum.balance)}</div></div>`;
+    updateAcctSelector();
+    renderAcct();
+  }
+
+  function switchAcctTab(tab) {
+    activeAcctTab = tab;
+    if (tab==='daily') activeAcctPeriod = KhAPI.today();
+    else if (tab==='monthly') activeAcctPeriod = new Date().toISOString().slice(0,7);
+    else activeAcctPeriod = new Date().toISOString().slice(0,4);
+    updateAcctTabUI();
+    updateAcctSelector();
+    renderAcct();
+  }
+
+  function updateAcctTabUI() {
+    document.querySelectorAll('.acct-tab').forEach(b => b.classList.toggle('active', b.dataset.tab===activeAcctTab));
+  }
+
+  function updateAcctSelector() {
+    const sel = document.getElementById('acct-selector');
+    if (activeAcctTab==='daily') sel.innerHTML = `<input type="date" class="form-input" id="acct-date" value="${activeAcctPeriod}" onchange="onAcctPeriodChange()" style="flex:1;max-width:200px;">`;
+    else if (activeAcctTab==='monthly') sel.innerHTML = `<input type="month" class="form-input" id="acct-month" value="${activeAcctPeriod}" onchange="onAcctPeriodChange()" style="flex:1;max-width:220px;">`;
+    else {
+      const years = KhAPI.Finance.getYearlySummary();
+      const opts = years.length ? years.map(y => `<option value="${y.year}">${fmtYear(y.year)}</option>`).join('') : `<option value="${new Date().getFullYear()}">${fmtYear(String(new Date().getFullYear()))}</option>`;
+      sel.innerHTML = `<select class="form-input form-select" id="acct-year" onchange="onAcctPeriodChange()" style="flex:1;max-width:200px;">${opts}</select>`;
+    }
+  }
+
+  function onAcctPeriodChange() {
+    if (activeAcctTab==='daily') activeAcctPeriod = document.getElementById('acct-date').value;
+    else if (activeAcctTab==='monthly') activeAcctPeriod = document.getElementById('acct-month').value;
+    else activeAcctPeriod = document.getElementById('acct-year').value;
+    renderAcct();
+  }
+
+  function renderAcct() {
+    let openingBalance, rowsHtml, periodIncome, periodExpense, closingBalance;
+
+    if (activeAcctTab === 'daily') {
+      openingBalance = KhAPI.Finance.getBalanceBefore(activeAcctPeriod);
+      const txns = KhAPI.Finance.getForDay(activeAcctPeriod);
+      periodIncome = txns.filter(f=>f.type==='income').reduce((s,f)=>s+f.amount,0);
+      periodExpense = txns.filter(f=>f.type==='expense').reduce((s,f)=>s+f.amount,0);
+      closingBalance = openingBalance + periodIncome - periodExpense;
+
+      rowsHtml = txns.length ? txns.map(f => {
+        const dir = f.type==='income' ? '↑' : '↓';
+        const cls = f.type==='income' ? 'income' : 'expense';
+        const sign = f.type==='income' ? '+' : '−';
+        return `<div class="acct-row">
+          <div class="acct-date">${fmtDate(f.date)}</div>
+          <div class="acct-desc"><span style="font-size:11px;color:var(--ink3);">${dir}</span> ${KhAPI.esc(f.description)}${f.source?`<br><small style="color:var(--ink3);">${KhAPI.esc(f.source)}</small>`:''}</div>
+          <div class="fin-amt ${cls}">${sign}${fmtAmt(f.amount)}</div>
+        </div>`;
+      }).join('') : '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:12px;">এই দিনে কোনো লেনদেন নেই</div>';
+
+    } else if (activeAcctTab === 'monthly') {
+      openingBalance = KhAPI.Finance.getBalanceBefore(activeAcctPeriod+'-01');
+      const daily = KhAPI.Finance.getDailySummary(activeAcctPeriod);
+      periodIncome = daily.reduce((s,d)=>s+d.income,0);
+      periodExpense = daily.reduce((s,d)=>s+d.expense,0);
+      closingBalance = openingBalance + periodIncome - periodExpense;
+
+      rowsHtml = daily.length ? daily.map(d => {
+        const netCls = d.net >= 0 ? 'pos' : 'neg';
+        const netSign = d.net >= 0 ? '+' : '';
+        return `<div class="acct-row">
+          <div class="acct-date">${fmtDate(d.date)}</div>
+          <div class="acct-desc"></div>
+          <div class="acct-amt-col"><div class="acct-in">${d.income?fmtAmt(d.income):''}</div><div class="acct-out">${d.expense?fmtAmt(d.expense):''}</div><div class="acct-net ${netCls}">${netSign}${fmtAmt(d.net)}</div></div>
+        </div>`;
+      }).join('') : '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:12px;">এই মাসে কোনো লেনদেন নেই</div>';
+
+    } else {
+      openingBalance = KhAPI.Finance.getBalanceBefore(activeAcctPeriod+'-01-01');
+      const monthly = KhAPI.Finance.getMonthlySummary(activeAcctPeriod);
+      periodIncome = monthly.reduce((s,m)=>s+m.income,0);
+      periodExpense = monthly.reduce((s,m)=>s+m.expense,0);
+      closingBalance = openingBalance + periodIncome - periodExpense;
+
+      rowsHtml = monthly.length ? monthly.map(m => {
+        const netCls = m.net >= 0 ? 'pos' : 'neg';
+        const netSign = m.net >= 0 ? '+' : '';
+        return `<div class="acct-row">
+          <div class="acct-date">${fmtMonth(m.month)}</div>
+          <div class="acct-desc"></div>
+          <div class="acct-amt-col"><div class="acct-in">${m.income?fmtAmt(m.income):''}</div><div class="acct-out">${m.expense?fmtAmt(m.expense):''}</div><div class="acct-net ${netCls}">${netSign}${fmtAmt(m.net)}</div></div>
+        </div>`;
+      }).join('') : '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:12px;">এই বছরে কোনো লেনদেন নেই</div>';
+    }
+
+    document.getElementById('acct-opening').innerHTML = openingBalance !== 0
+      ? `<div style="font-size:12px;color:var(--ink3);">উদ্বৃত্ত (পূর্ববর্তী)</div><div style="font-family:'Tiro Bangla',serif;font-size:16px;font-weight:600;color:${openingBalance>=0?'var(--green)':'var(--red)'};">${fmtAmt(openingBalance)}</div>`
+      : '<div style="font-size:12px;color:var(--ink3);text-align:center;">উদ্বৃত্ত (পূর্ববর্তী): ৳০</div>';
+
+    document.getElementById('acct-rows').innerHTML = `<div class="card-static" style="margin-top:4px;">${rowsHtml}</div>`;
+
+    const netSign = (periodIncome-periodExpense) >= 0 ? '+' : '';
+    document.getElementById('acct-closing').innerHTML = `
+      <div class="acct-summary">
+        <div class="acct-sum-row"><span class="acct-sum-label">মোট আয়</span><span class="acct-sum-val green">+${fmtAmt(periodIncome)}</span></div>
+        <div class="acct-sum-row"><span class="acct-sum-label">মোট ব্যয়</span><span class="acct-sum-val red">−${fmtAmt(periodExpense)}</span></div>
+        <div class="acct-sum-row"><span class="acct-sum-label">নীট পরিবর্তন</span><span class="acct-sum-val ${(periodIncome-periodExpense)>=0?'green':'red'}">${netSign}${fmtAmt(periodIncome-periodExpense)}</span></div>
+        <div class="acct-sum-row" style="border-top:1px solid var(--cream3);padding-top:8px;margin-top:4px;"><span class="acct-sum-label">অবশিষ্ট জমা</span><span style="font-family:'Tiro Bangla',serif;font-weight:700;font-size:16px;color:${closingBalance>=0?'var(--green)':'var(--red)'};">${fmtAmt(closingBalance)}</span></div>
+      </div>`;
+  }
+
+  function openAddFin() { ['fn-amount','fn-desc','fn-source'].forEach(id => document.getElementById(id).value=''); openModal('modal-fin'); }
+
+  function saveFin() {
+    if (mmMutationBlocked(showToast)) return;
+    const type = document.getElementById('fn-type').value;
+    const amount = parseFloat(document.getElementById('fn-amount').value);
+    const desc = document.getElementById('fn-desc').value.trim();
+    const source = document.getElementById('fn-source').value.trim();
+    if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
+    if (!desc) { showToast('বিবরণ দিন'); return; }
+    KhAPI.Finance.add({ type, amount, description:desc, source:source||null });
+    closeModal('modal-fin'); renderFin(); showToast('লেনদেন সংরক্ষিত হয়েছে');
+  }  function renderLog() {
+    document.getElementById('log-date-label').textContent = 'আজকের লগ ('+fmtDate(KhAPI.today())+')';
+    const logs = KhAPI.DailyLogs.getAll();
+    document.getElementById('log-list').innerHTML = logs.length
+      ? logs.map(l => `<div class="log-item"><div class="log-meta"><span>${KhAPI.esc(l.by||'—')}</span><span>${fmtDate(l.date)}</span></div><div class="log-text">${KhAPI.esc(l.content)}</div></div>`).join('')
+      : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো লগ নেই</div>';
+  }
+
+  function saveLog() {
+    if (mmMutationBlocked(showToast)) return;
+    const txt = document.getElementById('log-input').value.trim();
+    if (!txt) { showToast('লগ লিখুন'); return; }
+    KhAPI.DailyLogs.add(txt, myName);
+    document.getElementById('log-input').value = '';
+    renderLog(); showToast('লগ সংরক্ষিত হয়েছে');
+  }
+
+  /* ═══ PIN ─── */
+  function openPinChangeModal(){document.getElementById('pc-cur').value='';document.getElementById('pc-new').value='';document.getElementById('pc-conf').value='';document.getElementById('pc-err').textContent='';document.getElementById('modal-pin-change').classList.add('open');}
+  function closePinChangeModal(){document.getElementById('modal-pin-change').classList.remove('open');}
+  function saveOwnPin(){
+    var c=document.getElementById('pc-cur').value,n=document.getElementById('pc-new').value,f=document.getElementById('pc-conf').value,e=document.getElementById('pc-err');
+    if(!c||!n||!f){e.textContent='সব ঘর পূরণ করুন';return;} if(n!==f){e.textContent='PIN মিলছে না';return;}
+    if(n.length!==4||!/^\d+$/.test(n)){e.textContent='PIN ৪ সংখ্যার হতে হবে';return;}
+    var uid=MMSession.getStaffUserId(); if(!uid||!API.Teachers.changeOwnPin(uid,c,n)){e.textContent='বর্তমান PIN ভুল';return;}
+    MMSession.setStaffSession(MMSession.getRole(),MMSession.getName(),uid,n);
+    if(typeof MMSharedAPI!=='undefined'&&MMSharedAPI.staffChangeOwnPin){try{MMSharedAPI.staffChangeOwnPin(uid,c,n);}catch(ex){console.warn('Supabase PIN sync skipped',ex);}}
+    closePinChangeModal(); if(typeof showToast==='function')showToast('PIN সফলভাবে পরিবর্তন হয়েছে');
   }
 
   renderBen();
 </script>
 
-<div class="modal-bg" id="modal-pin-change" onclick="if(event.target===this)closePinChangeModal()">
+<div class="modal-bg modal-float" id="modal-pin-change" onclick="if(event.target===this)closePinChangeModal()">
   <div class="modal" style="max-width:380px">
     <div class="modal-title"><span>PIN পরিবর্তন</span><button type="button" class="modal-close" onclick="closePinChangeModal()">✕</button></div>
     <form onsubmit="event.preventDefault();saveOwnPin()">
       <div class="form-group"><label class="form-label">বর্তমান PIN</label><input class="form-input" type="password" id="pc-cur" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" placeholder="বর্তমান PIN"></div>
-    <div class="form-group"><label class="form-label">নতুন PIN</label><input class="form-input" type="password" id="pc-new" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" placeholder="নতুন ৪-সংখ্যার PIN"></div>
-    <div class="form-group"><label class="form-label">নতুন PIN নিশ্চিত করুন</label><input class="form-input" type="password" id="pc-conf" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" placeholder="পুনরায় PIN লিখুন"></div>
+      <div class="form-group"><label class="form-label">নতুন PIN</label><input class="form-input" type="password" id="pc-new" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" placeholder="নতুন ৪-সংখ্যার PIN"></div>
+      <div class="form-group"><label class="form-label">নতুন PIN নিশ্চিত করুন</label><input class="form-input" type="password" id="pc-conf" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" placeholder="পুনরায় PIN লিখুন"></div>
       <button type="submit" class="submit-btn">PIN সংরক্ষণ করুন</button>
       <div style="color:var(--red);font-size:12px;text-align:center;margin-top:8px;min-height:18px" id="pc-err"></div>
     </form>

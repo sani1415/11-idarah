@@ -84,6 +84,23 @@
   .kh-hist-line:last-child { border-bottom:none; }
   .kh-hist-date { font-size:9px; color:var(--ink3); }
   .stat-num--leave { color:var(--red) !important; }
+  /* ── স্টিকি হেড: স্ট্যাট কার্ড + সার্চ বার স্ক্রলে স্থির ── */
+  #panel-std {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 56px);
+    box-sizing: border-box;
+  }
+  .std-sticky-head {
+    flex-shrink: 0;
+  }
+  #std-list {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   /* ── ছাত্র সার্চ ── */
   .std-search-strip { margin-bottom:8px; }
   .std-search-input { width:100%; padding:9px 12px; border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Tiro Bangla',serif; font-size:12px; color:var(--ink); background:#fff; outline:none; box-sizing:border-box; }
@@ -231,11 +248,13 @@
 
 <!-- PANEL: হোম (স্ট্যাট + ছাত্র তালিকা) -->
 <div class="content" id="panel-std">
+  <div class="std-sticky-head">
   <div id="home-stats-block" style="padding-bottom:4px;padding-top:4px;">
     <div class="stat-grid" id="stat-grid"></div>
   </div>
   <div class="std-search-strip" id="std-search-strip">
     <input class="std-search-input" id="std-search-q" type="text" inputmode="search" placeholder="নাম বা রোল লিখে খুঁজুন..." oninput="stdSearchQ=this.value;renderStudents()">
+  </div>
   </div>
   <div id="std-list"></div>
 </div>
