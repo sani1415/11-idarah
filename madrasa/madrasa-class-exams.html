@@ -78,6 +78,8 @@
     .exam-card { padding: 16px; }
     .mark-cell { font-size: 14px; }
     .mark-sheet-scroll { height: calc(100vh - 220px); }
+    .modal-bg { align-items: center; justify-content: center; padding: 18px; }
+    .modal { border-radius: 20px; width: min(520px, calc(100vw - 36px)); max-height: min(760px, calc(100vh - 36px)); overflow-y: auto; }
   }
 </style>
 </head>
@@ -191,6 +193,14 @@
       </select>
     </div>
     <div id="edit-subject-area"></div>
+    <div class="paper-upload" id="edit-paper-upload">
+      <label class="paper-upload-label">প্রশ্নপত্র (ইমেজ/PDF — ঐচ্ছিক)</label>
+      <div class="paper-upload-row">
+        <input type="file" class="paper-file-input" id="epaper-file" accept="image/*,.pdf" onchange="handleEditPaperFile(this)" title="প্রশ্নপত্রের স্ক্যান/ছবি/পিডিএফ আপলোড করুন">
+        <button type="button" class="paper-clear" id="epaper-clear" style="display:none" onclick="clearEditPaperFile()" title="মুছুন">✕</button>
+      </div>
+      <div class="paper-name" id="epaper-name"></div>
+    </div>
     <button class="submit-btn" type="button" onclick="updateExam()">সংরক্ষণ করুন</button>
   </div>
 </div>
@@ -258,6 +268,33 @@
     document.getElementById('paper-file').value = '';
     document.getElementById('paper-name').classList.remove('show');
     document.getElementById('paper-clear').style.display = 'none';
+  }
+
+  var editPaperData = null;
+  var editPaperName = '';
+  function handleEditPaperFile(input) {
+    var file = input.files && input.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { showToast('ফাইল ১০ MB-র বেশি হতে পারবে না'); input.value = ''; return; }
+    var ext = (file.name || '').split('.').pop().toLowerCase();
+    var allowed = ['jpg','jpeg','png','gif','webp','bmp','pdf'];
+    if (allowed.indexOf(ext) === -1) { showToast('শুধু ইমেজ বা PDF ফাইল দিন'); input.value = ''; return; }
+    var reader = new FileReader();
+    reader.onload = function() {
+      editPaperData = reader.result;
+      editPaperName = file.name;
+      document.getElementById('epaper-name').textContent = '📎 ' + file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+      document.getElementById('epaper-name').classList.add('show');
+      document.getElementById('epaper-clear').style.display = '';
+    };
+    reader.readAsDataURL(file);
+  }
+  function clearEditPaperFile() {
+    editPaperData = null;
+    editPaperName = '';
+    document.getElementById('epaper-file').value = '';
+    document.getElementById('epaper-name').classList.remove('show');
+    document.getElementById('epaper-clear').style.display = 'none';
   }
 
   function goHome() { switchPanel('home'); renderHome(); }
@@ -369,6 +406,14 @@
     const ex = API.Exams.getAll().find(x => x.id === eid);
     if (!ex) return;
     editExamId = eid;
+    clearEditPaperFile();
+    if (ex.paper_name) {
+      editPaperName = ex.paper_name;
+      editPaperData = ex.paper_data || null;
+      document.getElementById('epaper-name').textContent = '📎 ' + ex.paper_name;
+      document.getElementById('epaper-name').classList.add('show');
+      document.getElementById('epaper-clear').style.display = '';
+    }
     document.getElementById('edit-ex-name').value = ex.name || '';
     document.getElementById('edit-ex-type').value = ex.type || 'monthly';
     const hasResults = API.Exams.getResults(eid).length > 0;
@@ -432,7 +477,10 @@
     }
     setBusy(true);
     try {
-      await MDRExamsSync.updateExam(editExamId, name, type, subjects);
+      await MDRExamsSync.updateExam(editExamId, name, type, subjects, editPaperName, editPaperData);
+      if (editPaperName && editPaperData) {
+        API.Exams.update(editExamId, { paper_name: editPaperName, paper_data: editPaperData });
+      }
       closeModal('edit-exam');
       showToast('পরীক্ষা আপডেট হয়েছে ✓');
       renderHome();
