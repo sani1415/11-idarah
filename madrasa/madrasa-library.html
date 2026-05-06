@@ -412,6 +412,10 @@
   }
 
   renderBooks();
+  if (location.hash === '#issued') {
+    switchPanel('issued');
+    renderIssues('all');
+  }
 </script>
 
 <div class="modal-bg" id="modal-pin-change" onclick="if(event.target===this)closePinChangeModal()">

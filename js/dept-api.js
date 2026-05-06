@@ -139,6 +139,7 @@ const DeptAPI = (() => {
       const meta = (metaIn && typeof metaIn === 'object') ? { ...metaIn } : {};
       const t = {
         id:'txn_'+uid(),
+        created_at: new Date().toISOString(),
         locked:false,
         proof_note: data.proof_note ?? '',
         ...rest,

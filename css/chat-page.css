@@ -1,0 +1,133 @@
+/* chat.html — বার্তা পেজ (style.css / main-admin-nav.css-এর পরে লোড করুন) */
+:root { --keyboard-cover: 0px; }
+
+/* ── INBOX (soft light header) ── */
+.inbox-topbar {
+  background:linear-gradient(180deg,#fffefb 0%,#f3ecdf 100%);
+  padding:16px 18px; display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid rgba(26,18,8,.06);
+  box-shadow:0 4px 18px rgba(26,18,8,.04);
+}
+.inbox-title { font-family:'Tiro Bangla',serif; font-size:18px; font-weight:700; color:var(--ink2); }
+.inbox-sub { font-size:11px; color:var(--ink3); margin-top:2px; }
+
+.thread-item { background:#fff; border-radius:var(--radius-sm); padding:14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:transform .12s; }
+.thread-item:active { transform:scale(.98); }
+.thread-avatar { width:46px; height:46px; border-radius:50%; background:var(--cream3); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; position:relative; }
+.unread-dot { position:absolute; top:0; right:0; width:14px; height:14px; background:var(--red); border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:#fff; }
+.thread-info { flex:1; min-width:0; }
+.thread-name { font-size:14px; font-weight:600; color:var(--ink); }
+.thread-role { font-size:10px; color:var(--ink3); margin-top:1px; }
+.thread-preview { font-size:12px; color:var(--ink3); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.thread-preview.unread { color:var(--ink); font-weight:600; }
+.thread-right { text-align:right; flex-shrink:0; }
+.thread-time { font-size:10px; color:var(--ink3); }
+.thread-badge { margin-top:4px; background:var(--red); color:#fff; border-radius:10px; font-size:10px; font-weight:700; padding:1px 6px; display:inline-block; }
+
+/* ── COMPOSE (admin → staff picker) ── */
+.staff-pick-item { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:transform .12s; }
+.staff-pick-item:active { transform:scale(.97); }
+
+/* ── CHAT VIEW ── */
+.chat-wrap { display:flex; flex-direction:column; min-height:0; flex:1; }
+.chat-topbar {
+  background:linear-gradient(180deg,#fffefb 0%,#f3ecdf 100%);
+  color:var(--ink);
+  padding:12px 16px; display:flex; align-items:center; gap:12px; flex-shrink:0;
+  border-bottom:1px solid rgba(26,18,8,.06);
+  box-shadow:0 2px 12px rgba(26,18,8,.04);
+}
+.chat-back { font-size:24px; cursor:pointer; line-height:1; padding:4px; color:var(--ink3); background:none; border:none; font-family:inherit; -webkit-tap-highlight-color:transparent; }
+.chat-peer-avatar { width:36px; height:36px; border-radius:50%; background:var(--cream2); border:1px solid rgba(26,18,8,.08); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.chat-peer-info { flex:1; }
+.chat-peer-name { font-family:'Tiro Bangla',serif; font-size:16px; font-weight:600; color:var(--ink2); }
+.chat-peer-role { font-size:11px; color:var(--ink3); }
+
+.chat-msgs { flex:1; overflow-y:auto; padding:14px 16px; padding-bottom:calc(150px + env(safe-area-inset-bottom, 0px)); display:flex; flex-direction:column; gap:8px; }
+
+.msg-row { display:flex; flex-direction:column; }
+.msg-row.me { align-items:flex-end; }
+.msg-row.other { align-items:flex-start; }
+.msg-sender { font-size:10px; font-weight:600; color:var(--ink3); margin-bottom:3px; }
+.msg-bubble { max-width:80%; padding:10px 14px; border-radius:18px; font-size:13px; line-height:1.6; word-break:break-word; }
+.msg-row.me   .msg-bubble { background:linear-gradient(145deg,#4a3d2a,#3d3220); color:#fff; border-bottom-right-radius:4px; }
+.msg-row.other .msg-bubble { background:#fff; color:var(--ink); border-bottom-left-radius:4px; box-shadow:var(--shadow); }
+.msg-time { font-size:10px; margin-top:3px; }
+.msg-row.me   .msg-time { color:var(--ink3); text-align:right; }
+.msg-row.other .msg-time { color:var(--ink3); }
+.msg-read { font-size:10px; color:rgba(255,255,255,0.4); }
+.msg-request-card { margin-top:8px; background:rgba(255,248,232,.78); border:1px solid rgba(154,106,33,.18); border-radius:12px; padding:8px; color:var(--ink2); }
+.msg-request-status { display:inline-block; font-size:10px; font-weight:800; border-radius:999px; padding:2px 7px; margin-bottom:6px; background:#fff4d9; color:#9a6a21; }
+.msg-request-status.approved { background:#dcfce7; color:#065f46; }
+.msg-request-status.rejected { background:#fee2e2; color:#991b1b; }
+.msg-request-actions { display:flex; gap:6px; margin-top:8px; }
+.msg-request-btn { flex:1; border:none; border-radius:9px; padding:7px 8px; font-family:inherit; font-size:11px; font-weight:800; cursor:pointer; }
+.msg-request-btn.approve { background:#dcfce7; color:#065f46; }
+.msg-request-btn.reject { background:#fee2e2; color:#991b1b; }
+
+.day-sep { text-align:center; font-size:10px; color:var(--ink3); padding:8px 0; letter-spacing:.5px; }
+
+/* ইনপুট + নেভ: মোবাইল কিবোর্ডের উপরে স্টিক; নেভের উপরে */
+.chat-input-bar {
+  position:fixed; left:0; right:0; z-index:101;
+  bottom:calc(var(--app-nav-layout-offset, 72px) + var(--keyboard-cover, 0px));
+  background:#fff; border-top:1px solid var(--cream2);
+  padding:10px 14px max(10px, env(safe-area-inset-bottom, 0px)); display:flex; gap:8px; align-items:flex-end;
+  box-sizing:border-box;
+  max-width:var(--app-nav-pill-max, 520px); margin:0 auto;
+  width:100%;
+}
+body:not(.chat-has-bottom-nav) .chat-input-bar {
+  bottom:var(--keyboard-cover, 0px);
+  max-width:none;
+}
+.chat-inp { flex:1; background:var(--cream2); border:none; border-radius:22px; padding:10px 16px; font-family:'Tiro Bangla',serif; font-size:13px; color:var(--ink); outline:none; resize:none; min-height:42px; max-height:120px; line-height:1.5; }
+.send-btn { width:44px; height:44px; border-radius:50%; background:linear-gradient(145deg,var(--gold),#c9952a); color:var(--ink); border:none; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:transform .1s; box-shadow:0 2px 10px rgba(201,149,42,.35); }
+.send-btn:active { transform:scale(.9); }
+
+/* new msg FAB */
+.fab { position:fixed; bottom:24px; right:calc(50% - 220px); width:52px; height:52px; border-radius:50%; background:var(--gold); color:var(--ink); border:none; font-size:24px; cursor:pointer; box-shadow:var(--shadow-md,0 4px 20px rgba(0,0,0,.2)); display:flex; align-items:center; justify-content:center; z-index:50; transition:transform .12s; }
+.fab:active { transform:scale(.92); }
+@media (max-width:480px) { .fab { right:20px; } }
+
+#chat-page-staff-nav a.nav-item {
+  text-decoration: none;
+  color: inherit;
+}
+.empty-chat { text-align:center; color:var(--ink3); padding:50px 20px; }
+.empty-chat-icon { font-size:44px; margin-bottom:12px; }
+.empty-chat-text { font-size:13px; line-height:1.6; }
+
+.chat-staff-notice {
+  background: var(--cream2); color: var(--ink2); font-size: 11px; text-align: center;
+  padding: 8px 14px; line-height: 1.45; border-bottom: 1px solid var(--cream3);
+}
+
+/* জিম্মাদার + স্টাফ: পুরো পেজ ফ্লেক্স; নেভ ফিক্সড; কিবোর্ড ইনসেট */
+body.chat-page {
+  min-height:100dvh; display:flex; flex-direction:column;
+  padding-bottom:0;
+}
+body.chat-page > #view-inbox,
+body.chat-page > #view-chat {
+  flex:1; min-height:0; display:flex; flex-direction:column;
+}
+body.chat-page .main-nav#chat-page-hub-nav,
+body.chat-page #chat-page-staff-nav.bottom-nav {
+  bottom:var(--keyboard-cover, 0px);
+}
+
+body.chat-admin .fab { display: none !important; }
+body.chat-admin #view-inbox { padding-bottom: var(--app-content-pad-bottom); }
+
+/* ══ Desktop (≥ 960px) ══ */
+@media (min-width: 960px) {
+  .thread-item { padding: 16px; }
+  .thread-name { font-size: 15px; }
+  .chat-msgs { padding: 18px 24px; padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
+  .msg-bubble { max-width: 65%; font-size: 14px; }
+  .msg-row.me .msg-bubble { max-width: 55%; }
+  .chat-input-bar { padding: 12px 20px; }
+  .chat-inp { font-size: 14px; }
+  .fab { right: calc(50% - 340px); }
+}

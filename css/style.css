@@ -46,6 +46,10 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
+@supports (scrollbar-gutter: stable) {
+  html { scrollbar-gutter: stable; }
+}
+
 body {
   font-family: var(--font-bn);
   background: var(--cream);
@@ -141,7 +145,7 @@ body {
   z-index: 100;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: flex-start;
   gap: 4px;
   box-sizing: border-box;
   padding: 6px 8px max(10px, env(safe-area-inset-bottom, 0px));
@@ -156,7 +160,7 @@ body {
 }
 .nav-item {
   position: relative;
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -172,9 +176,9 @@ body {
   color: var(--ink3);
   font-family: 'Tiro Bangla', serif;
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.2s ease, color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 .nav-item:hover {
@@ -184,7 +188,6 @@ body {
 .nav-item.active {
   color: var(--ink2);
   background: rgba(232, 184, 75, 0.22);
-  font-weight: 600;
   box-shadow: none;
   border: none;
   transform: none;
@@ -243,11 +246,6 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.nav-item.active .nav-label,
-.nav-item.active > span:not(.nav-icon) {
-  font-weight: 600;
-}
-
 /* ── PANELS ── */
 .panel { display: none; }
 .panel.active { display: block; }

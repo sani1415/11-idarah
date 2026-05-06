@@ -582,6 +582,10 @@
   }
 
   renderBen();
+  (function () {
+    var h = (location.hash || '').replace(/^#/, '');
+    if (['ben', 'fin', 'log'].indexOf(h) >= 0) switchPanel(h);
+  })();
 </script>
 
 <div class="modal-bg modal-float" id="modal-pin-change" onclick="if(event.target===this)closePinChangeModal()">

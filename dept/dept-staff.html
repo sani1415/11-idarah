@@ -87,6 +87,8 @@
   .txn-action-row button { border:0; border-radius:var(--radius-sm); padding:10px; font-family:'Tiro Bangla',serif; font-weight:800; cursor:pointer; }
   .txn-action-row .edit { background:var(--cream2); color:var(--ink2); }
   .txn-action-row .delete { background:var(--red-light); color:var(--red); }
+  .txn-item--pending { background:#fffbf0; border-right:3px solid #f59e0b; cursor:default; opacity:.92; }
+  .pending-tag { display:inline-flex; align-items:center; gap:3px; background:#fef3c7; color:#92400e; border-radius:999px; padding:2px 8px; font-size:10px; font-weight:800; margin-top:3px; }
   @media (max-width:640px) {
     .sale-row { grid-template-columns:190px 82px 104px 96px 92px 42px; min-width:630px; }
   }
@@ -379,11 +381,14 @@
   }
 
   function pendingTxnRequest(txnId) {
+    const localReqs = DeptAPI.EditRequests.getByDept(deptId);
+    const localPending = localReqs.find(r => String(r.transaction_id) === String(txnId) && (r.status || 'pending') === 'pending');
+    if (localPending) return localPending;
     if (!window.ChatAPI) return null;
     return ChatAPI.getThread('dept-' + deptId).find(m => {
       const r = m.request || {};
-      return r.entryId === txnId && (r.kind === 'dept_transaction_edit' || r.kind === 'dept_transaction_delete') && (r.status || 'pending') === 'pending';
-    });
+      return r.entryId === String(txnId) && (r.kind === 'dept_transaction_edit' || r.kind === 'dept_transaction_delete') && (r.status || 'pending') === 'pending';
+    }) || null;
   }
 
   function canDirectModify(txn) {
@@ -450,15 +455,18 @@
             ? `<div style="font-size:11px;color:var(--ink3);margin-top:2px;">${t.metadata.line_items.map(i=>DeptAPI.esc(i.name||i.product_name)+' '+fmtAmt(i.amount)).join(' · ')}</div>` : '';
           const honor = Number(t.honor_amount || (t.metadata && t.metadata.honor_amount) || 0);
           const honorHtml = honor > 0 ? `<div style="font-size:11px;color:var(--green);margin-top:2px;">মর্যাদা মূল্য: ${fmtAmt(honor)}</div>` : '';
-          const pending = pendingTxnRequest(String(t.id)) ? '<span class="pending-pill">অনুমতির অপেক্ষায়</span>' : '';
-          return `<div class="txn-item" onclick="openEditTxn('${DeptAPI.esc(t.id)}')">
+          const isPending = !!pendingTxnRequest(String(t.id));
+          const pendingTag = isPending ? '<div class="pending-tag">⏳ অনুমতির অপেক্ষায়</div>' : '';
+          const clickAttr = isPending ? '' : `onclick="openEditTxn('${DeptAPI.esc(t.id)}')"`;
+          const pendingClass = isPending ? ' txn-item--pending' : '';
+          return `<div class="txn-item${pendingClass}" ${clickAttr}>
             <div class="txn-icon ${t.type}">${t.type==='income'?'↑':'↓'}</div>
             <div class="txn-info">
               <div class="txn-line-main"><div class="txn-desc">${mainTitle}</div></div>
               ${subHtml}
               ${items}
               ${honorHtml}
-              ${pending}
+              ${pendingTag}
             </div>
             <div class="txn-amt ${t.type}">${fmtAmt(t.amount)}</div>
           </div>`;
@@ -733,6 +741,12 @@
       proposed:proposed || null,
       requestedAt:new Date().toISOString()
     };
+    DeptAPI.EditRequests.add({
+      transaction_id: String(txn.id),
+      dept_id: deptId,
+      kind,
+      reason: kind === 'dept_transaction_edit' ? 'এডিট অনুরোধ' : 'ডিলিট অনুরোধ',
+    });
     const res = await ChatAPI.sendRemote(staffUserId, staffPin, 'dept-' + deptId, text, false, { request:req });
     if (!res || !res.ok) throw new Error((res && res.error) || 'request_failed');
     await syncChatForPending();
@@ -1233,6 +1247,8 @@
     }
     await syncChatForPending();
     renderTxn();
+    var dp = (location.hash || '').replace(/^#/, '');
+    if (['txn', 'products', 'inv', 'report'].indexOf(dp) >= 0) switchPanel(dp);
   }
 
   initDeptPage();

@@ -298,6 +298,21 @@
     <span>বার্তা</span>
   </button>
 </nav>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('tab');
+    var tab = q === 'kitab' ? 'kitab' : q === 'log' ? 'log' : null;
+    if (!tab) return;
+    ['std', 'kitab', 'log'].forEach(function (p) {
+      var panel = document.getElementById('panel-' + p);
+      var nav = document.getElementById('nav-' + p);
+      if (panel) panel.style.display = p === tab ? '' : 'none';
+      if (nav) nav.classList.toggle('active', p === tab);
+    });
+  } catch (e) {}
+})();
+</script>
 
 <!-- MODAL: হুসনুল খুলুক -->
 <div class="modal-bg" id="modal-khuluk">
@@ -1159,7 +1174,6 @@
   async function initClassPage() {
     await refreshTeacherData();
     renderStats();
-    renderStudents();
     initTabFromUrl();
   }
 
@@ -1167,6 +1181,7 @@
     const q = new URLSearchParams(window.location.search).get('tab');
     if (q === 'kitab') switchTab('kitab');
     else if (q === 'log') switchTab('log');
+    else switchTab('std');
   }
 
   function openPinChangeModal(){document.getElementById('pc-cur').value='';document.getElementById('pc-new').value='';document.getElementById('pc-conf').value='';document.getElementById('pc-err').textContent='';document.getElementById('modal-pin-change').classList.add('open');}
