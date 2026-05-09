@@ -178,8 +178,14 @@
 
   <!-- TEACHERS -->
   <div id="tab-teachers" style="display:none;">
+    <div class="tab-pills" id="teacher-filter-pills">
+      <button class="pill active" onclick="setTeacherFilter('all')">সব</button>
+      <button class="pill" onclick="setTeacherFilter('kitab')">📖 কিতাব বিভাগ</button>
+      <button class="pill" onclick="setTeacherFilter('maktab')">🕌 মক্তব বিভাগ</button>
+      <button class="pill" onclick="setTeacherFilter('other')">⭐ অন্যান্য ভূমিকা</button>
+    </div>
     <div class="settings-section">
-      <div class="settings-title">👨‍🏫 শিক্ষক তালিকা</div>
+      <div class="settings-title" id="teacher-list-title">👨‍🏫 শিক্ষক তালিকা</div>
       <div id="teacher-list"></div>
     </div>
     <div class="teacher-actionbar">
@@ -787,6 +793,18 @@
   }
 
   /* TEACHERS */
+  let currentTeacherFilter = 'all';
+
+  function setTeacherFilter(filter) {
+    currentTeacherFilter = filter;
+    document.querySelectorAll('#teacher-filter-pills .pill').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('onclick') === `setTeacherFilter('${filter}')`);
+    });
+    const titles = { all:'👨‍🏫 শিক্ষক তালিকা', kitab:'📖 কিতাব বিভাগ — শ্রেণি শিক্ষক', maktab:'🕌 মক্তব বিভাগ — শ্রেণি শিক্ষক', other:'⭐ অন্যান্য ভূমিকা' };
+    document.getElementById('teacher-list-title').textContent = titles[filter] || titles.all;
+    renderTeachers();
+  }
+
   async function renderTeachers() {
     if (hasSupabaseAdminSession() && supabaseUsers === null) {
       document.getElementById('teacher-list').innerHTML = '<div style="font-size:13px;color:var(--ink3);">তালিকা লোড হচ্ছে...</div>';
@@ -796,8 +814,19 @@
         showToast('Supabase user তালিকা লোড হয়নি');
       }
     }
-    const teachers = currentUserList().filter(t => t.role !== 'restricted_admin' && t.role !== 'admin');
-    const classes  = API.Classes.getAll();
+    const allTeachers = currentUserList().filter(t => t.role !== 'restricted_admin' && t.role !== 'admin');
+    const classes = API.Classes.getAll();
+
+    const kitabIds  = new Set(API.Classes.getByDept('kitab').map(c => c.id));
+    const maktabIds = new Set(API.Classes.getByDept('maktab').map(c => c.id));
+
+    const teachers = allTeachers.filter(t => {
+      if (currentTeacherFilter === 'kitab')  return t.class_id && kitabIds.has(t.class_id);
+      if (currentTeacherFilter === 'maktab') return t.class_id && maktabIds.has(t.class_id);
+      if (currentTeacherFilter === 'other')  return !t.class_id;
+      return true;
+    });
+
     const roleLabel = { daftar:'দফতর', hifz:'হিফজ', library:'মাকতাবা', alumni:'পুরনো ছাত্র', khedmat:'খেদমত', restricted_admin:'সহকারী জিম্মাদার' };
     document.getElementById('teacher-list').innerHTML = teachers.map(t=>{
       const cls = t.class_id ? classes.find(c=>c.id===t.class_id) : null;
@@ -810,7 +839,7 @@
         <span class="pin-display">পিন: ${API.esc(t.pin||'—')}</span>
         ${t.class_id ? `<button class="small-btn" onclick="openTeacherModal('${t.id}')">সম্পাদনা</button>` : `<button class="small-btn" onclick="openStaffModal('${t.id}')">সম্পাদনা</button>`}
       </div>`;
-    }).join('')||'<div style="font-size:13px;color:var(--ink3);">কোনো শিক্ষক নেই</div>';
+    }).join('')||`<div style="font-size:13px;color:var(--ink3);padding:12px 0;">এই বিভাগে কেউ নেই</div>`;
 
     document.getElementById('t-class').innerHTML = classes.map(c=>`<option value="${c.id}">${API.esc(c.name)}</option>`).join('');
   }

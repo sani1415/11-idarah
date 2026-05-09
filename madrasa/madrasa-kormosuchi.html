@@ -12,6 +12,7 @@
 .prog-select-wrap { display:flex; gap:8px; align-items:center; }
 .prog-select { flex:1; padding:10px 12px; border:1px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Tiro Bangla',serif; font-size:14px; color:var(--ink); }
 .prog-new-btn { flex:0 0 auto; border:1px solid var(--ink); border-radius:var(--radius-sm); background:var(--ink); color:var(--gold2); padding:8px 10px; font-family:'Tiro Bangla',serif; font-size:12px; font-weight:800; line-height:1; white-space:nowrap; cursor:pointer; }
+.prog-new-btn:disabled,.t4-btn:disabled,.submit-btn:disabled,.settings-danger-btn:disabled { opacity:.45; cursor:not-allowed; }
 .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px; }
 .kpi-card { background:var(--cream); border:1px solid var(--cream2); border-radius:var(--radius-sm); padding:10px 6px; text-align:center; }
 .kpi-card span { display:block; font-size:10px; color:var(--ink3); margin-bottom:3px; font-weight:700; }
@@ -20,16 +21,23 @@
 .kpi-card b.r { color:var(--red); }
 .kpi-card b.o { color:var(--gold); }
 .prog-tag { display:inline-block; background:var(--gold-light); color:var(--gold); border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; margin-top:6px; }
-.toolbar-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px; }
+.toolbar-4 { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:10px; }
 .t4-btn { border:1px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; padding:10px 6px; font-family:'Tiro Bangla',serif; font-size:12px; font-weight:700; cursor:pointer; text-align:center; transition:.12s; }
 .t4-btn.green { background:var(--green-light); color:var(--green); border-color:var(--green2); }
 .t4-btn.red   { background:var(--red-light);   color:var(--red);   border-color:var(--red); }
 .t4-btn.gray  { background:var(--cream2); color:var(--ink2); }
+#modal-settings .modal { height:min(760px, calc(100vh - 32px)); display:flex; flex-direction:column; }
+.settings-panel-wrap { flex:1 1 auto; min-height:0; overflow-y:auto; padding-right:2px; }
+.settings-panel { display:block; }
+.settings-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+.settings-danger-btn { width:100%; padding:10px; border:1px solid var(--red); border-radius:var(--radius-sm); background:var(--red-light); color:var(--red); font-family:'Tiro Bangla',serif; font-weight:800; cursor:pointer; }
+.type-config-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.type-hint { font-size:11px; color:var(--ink3); line-height:1.5; margin-top:-6px; margin-bottom:10px; }
 .k-tabs { display:flex; gap:5px; background:var(--gold-light); border-radius:var(--radius-sm); padding:4px; margin-bottom:10px; overflow-x:auto; }
 .k-tab { border:none; background:transparent; border-radius:var(--radius-sm); padding:8px 11px; font-family:'Tiro Bangla',serif; font-weight:700; font-size:12px; color:var(--ink3); white-space:nowrap; cursor:pointer; transition:.12s; }
 .k-tab.active { background:var(--ink); color:var(--gold2); }
 .tbl-wrap { overflow:auto; border:1px solid var(--cream2); border-radius:var(--radius-sm); }
-.tbl { border-collapse:collapse; width:100%; min-width:560px; font-size:13px; }
+.tbl { border-collapse:collapse; width:100%; min-width:650px; font-size:13px; }
 .tbl th { background:var(--cream); color:var(--ink3); text-align:right; padding:8px; font-size:11px; font-weight:700; }
 .tbl td { padding:8px; border-bottom:1px solid var(--cream2); white-space:nowrap; }
 .tbl tr:nth-child(even) td { background:#fffaf2; }
@@ -45,12 +53,22 @@
 .act-btns { display:flex; gap:5px; }
 .tbl-act { border:1px solid var(--cream3); border-radius:6px; background:#fff; padding:4px 8px; cursor:pointer; font-family:'Tiro Bangla',serif; font-size:11px; color:var(--ink2); }
 .tbl-del { border:1px solid var(--red); border-radius:6px; background:var(--red-light); color:var(--red); padding:4px 8px; cursor:pointer; font-family:'Tiro Bangla',serif; font-size:11px; }
+.receipt-pill { border:1px solid var(--gold); border-radius:999px; background:var(--gold-light); color:var(--gold); padding:4px 9px; cursor:pointer; font-family:'Tiro Bangla',serif; font-size:11px; font-weight:800; }
+.receipt-list { display:flex; flex-direction:column; gap:6px; margin-top:7px; }
+.receipt-row { display:flex; justify-content:space-between; align-items:center; gap:8px; border:1px solid var(--cream2); border-radius:var(--radius-sm); background:#fff; padding:7px 8px; font-size:12px; color:var(--ink2); }
+.receipt-row span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.receipt-row.pending { background:var(--cream); color:var(--ink3); }
+.receipt-row small { color:var(--ink3); white-space:nowrap; }
+.receipt-actions { display:flex; gap:5px; flex:0 0 auto; }
+.receipt-actions button { border:1px solid var(--cream3); border-radius:6px; background:#fff; color:var(--ink2); padding:4px 7px; font-family:'Tiro Bangla',serif; font-size:11px; cursor:pointer; }
+.receipt-actions button.danger { border-color:var(--red); background:var(--red-light); color:var(--red); }
+.receipt-empty { font-size:11px; color:var(--ink3); background:var(--cream); border:1px dashed var(--cream3); border-radius:var(--radius-sm); padding:8px; text-align:center; }
+.check-line { display:flex; align-items:center; gap:8px; border:1px solid var(--cream2); border-radius:var(--radius-sm); background:var(--cream); padding:9px 10px; font-size:12px; font-weight:800; color:var(--ink2); cursor:pointer; }
+.check-line input { width:16px; height:16px; accent-color:var(--gold); }
 .stt-card { background:#fff; border:1px solid var(--cream2); border-radius:var(--radius-sm); padding:10px; margin-bottom:8px; }
-.tmpl-card { background:var(--cream); border:1px solid var(--cream2); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px; }
-.tmpl-card-title { font-size:12px; font-weight:700; color:var(--ink2); margin-bottom:8px; }
 .add-row { display:flex; gap:8px; margin-top:6px; }
 .add-row .form-input { flex:1; }
-@media(max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.toolbar-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.type-config-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -61,8 +79,11 @@
     <div class="topbar-name">কর্মসূচি হিসাব</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn topbar-btn--icon" onclick="location.href='madrasa-daftar.html'" title="পেছনে" aria-label="পেছনে">
+    <button type="button" class="topbar-btn topbar-btn--icon" onclick="location.href='madrasa-daftar.html#accounts'" title="পেছনে" aria-label="পেছনে">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </button>
+    <button type="button" class="topbar-btn topbar-btn--icon" onclick="openSettings()" title="সেটিং" aria-label="সেটিং">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8.9 4.6 1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.38.3.88.48 1.51.48H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15Z"/></svg>
     </button>
     <button type="button" class="topbar-btn topbar-btn--icon" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')" title="লগআউট" aria-label="লগআউট">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -89,13 +110,10 @@
   <div class="toolbar-4">
     <button class="t4-btn green" onclick="openIncome()">↑ আয়</button>
     <button class="t4-btn red"   onclick="openExpense()">↓ ব্যয়</button>
-    <button class="t4-btn gray"  onclick="editProgram()">✏ এডিট</button>
-    <button class="t4-btn gray"  onclick="openSettings()">⚙ সেটিং</button>
   </div>
 
   <div class="k-tabs">
-    <button class="k-tab active" data-tab="summary" onclick="setTab('summary')">সারাংশ</button>
-    <button class="k-tab" data-tab="income"  onclick="setTab('income')">আয়</button>
+    <button class="k-tab active" data-tab="income"  onclick="setTab('income')">আয়</button>
     <button class="k-tab" data-tab="expense" onclick="setTab('expense')">ব্যয়</button>
     <button class="k-tab" data-tab="report"  onclick="setTab('report')">রিপোর্ট</button>
   </div>
@@ -103,33 +121,8 @@
   <div id="root"></div>
 </div>
 
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav" aria-label="নিচের নেভিগেশন">
-  <div class="nav-item" onclick="location.href='madrasa-home.html'">
-    <span class="nav-icon"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="nav-label">মাদ্রাসা</span>
-  </div>
-  <div class="nav-item" onclick="location.href='madrasa-daftar.html'">
-    <span class="nav-icon"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-    <span class="nav-label">হাজিরা</span>
-  </div>
-  <div class="nav-item" onclick="location.href='madrasa-daftar.html#accounts'">
-    <span class="nav-icon"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-    <span class="nav-label">হিসাব</span>
-  </div>
-  <div class="nav-item active">
-    <span class="nav-icon"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-    <span class="nav-label">কর্মসূচি</span>
-  </div>
-  <div class="nav-item" onclick="location.href='madrasa-yearend.html'">
-    <span class="nav-icon"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-    <span class="nav-label">বর্ষ</span>
-  </div>
-  <div class="nav-item" onclick="location.href='../chat.html'">
-    <span class="nav-icon"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-    <span class="nav-label">বার্তা</span>
-  </div>
-</nav>
+<!-- BOTTOM NAV (শেয়ার্ড: js/daftar-bottom-nav.js) -->
+<nav class="bottom-nav" id="daftar-nav-root" aria-label="নিচের নেভিগেশন"></nav>
 
 <!-- MODAL: কর্মসূচি যোগ/এডিট -->
 <div class="modal-bg" id="modal-program">
@@ -140,10 +133,6 @@
       <div class="form-group" style="flex:1">
         <label class="form-label">কর্মসূচির নাম <span style="color:var(--red)">*</span></label>
         <input class="form-input" id="prog-name" placeholder="যেমন: কোরবানি ১৪৪৭">
-      </div>
-      <div class="form-group" style="flex:1">
-        <label class="form-label">Template</label>
-        <select class="form-input form-select" id="prog-tmpl" onchange="onProgTmplChange()"></select>
       </div>
     </div>
     <div class="form-row">
@@ -162,6 +151,21 @@
       <label class="form-label">বিবরণ</label>
       <textarea class="form-input form-textarea" id="prog-note-inp" placeholder="কর্মসূচির বিস্তারিত" rows="3"></textarea>
     </div>
+    <label class="check-line" style="margin-bottom:10px">
+      <input type="checkbox" id="prog-share-enabled">
+      <span>হিস্যা হিসাব চালু</span>
+    </label>
+    <div class="type-config-grid">
+      <div class="form-group">
+        <label class="form-label">আয়ের ধরন</label>
+        <textarea class="form-input form-textarea" id="prog-income-types" rows="5" placeholder="প্রতি লাইনে একটি ধরন"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ব্যয়ের খাত</label>
+        <textarea class="form-input form-textarea" id="prog-expense-types" rows="5" placeholder="প্রতি লাইনে একটি খাত"></textarea>
+      </div>
+    </div>
+    <div class="type-hint">প্রতি লাইনে একটি করে ধরন/খাত লিখুন। হিস্যা হিসাব চালু থাকলে আয় যোগ করার সময় আলাদাভাবে হিস্যা সংখ্যা লেখা যাবে।</div>
     <button class="submit-btn gold" onclick="saveProgram()">সংরক্ষণ করুন</button>
     <button id="prog-del-btn" onclick="deleteProgram()" style="display:none;width:100%;margin-top:6px;padding:10px;border:none;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);font-family:'Tiro Bangla',serif;font-weight:700;cursor:pointer">এই কর্মসূচি মুছুন</button>
   </div>
@@ -189,10 +193,14 @@
           <option>ছাত্র</option><option>সাধারণ মানুষ</option><option>প্রতিষ্ঠান</option>
         </select>
       </div>
-      <div class="form-group" style="flex:1" id="inc-share-wrap">
-        <label class="form-label">ভাগ সংখ্যা</label>
-        <input class="form-input" type="number" id="inc-share" min="1" value="1">
-      </div>
+      <label class="check-line" style="flex:1" id="inc-share-option">
+        <input type="checkbox" id="inc-is-share" onchange="syncIncShareField()">
+        <span>হিস্যা হিসেবে</span>
+      </label>
+    </div>
+    <div class="form-group" id="inc-share-wrap">
+      <label class="form-label">হিস্যা সংখ্যা</label>
+      <input class="form-input" type="number" id="inc-share" min="0.01" step="0.01" value="1">
     </div>
     <div class="form-group">
       <label class="form-label">নাম <span style="color:var(--red)">*</span></label>
@@ -237,25 +245,68 @@
         <input class="form-input" id="exp-note" placeholder="সংক্ষিপ্ত বিবরণ">
       </div>
     </div>
+    <div class="form-group">
+      <label class="form-label">রশিদ / মেমো <span style="font-size:10px;color:var(--ink3);font-weight:400">(ঐচ্ছিক)</span></label>
+      <input class="form-input" type="file" id="exp-files" multiple accept="image/jpeg,image/png,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="onExpenseFilesChange()">
+      <div class="receipt-list" id="exp-file-list"></div>
+    </div>
     <button class="submit-btn" style="background:var(--red);color:#fff" onclick="saveExpense()">সংরক্ষণ করুন</button>
   </div>
 </div>
 
 <!-- MODAL: সেটিং -->
-<div class="modal-bg" id="modal-settings">
+<div class="modal-bg modal-float" id="modal-settings">
   <div class="modal">
-    <div class="modal-title">Template সেটিং<button class="modal-close" onclick="closeModal('settings')">✕</button></div>
-    <div class="form-group">
-      <label class="form-label">Template নির্বাচন</label>
-      <select class="form-input form-select" id="set-tmpl" onchange="renderSettingsBody()"></select>
+    <div class="modal-title">সেটিং<button class="modal-close" onclick="closeModal('settings')">✕</button></div>
+    <div class="settings-panel-wrap">
+      <div class="settings-panel active" id="settings-panel-program">
+        <div class="form-group">
+          <label class="form-label">কোন কর্মসূচি এডিট করবেন</label>
+          <select class="form-input form-select" id="set-prog-select" onchange="loadSettingsProgram(this.value)"></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="flex:1">
+            <label class="form-label">কর্মসূচির নাম <span style="color:var(--red)">*</span></label>
+            <input class="form-input" id="set-prog-name" placeholder="যেমন: কোরবানি ১৪৪৭">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="flex:1">
+            <label class="form-label">অবস্থা</label>
+            <select class="form-input form-select" id="set-prog-status">
+              <option>চলমান</option><option>পরিকল্পনা</option><option>শেষ</option><option>স্থগিত</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">তারিখ</label>
+            <input class="form-input" type="date" id="set-prog-date">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">বিবরণ</label>
+          <textarea class="form-input form-textarea" id="set-prog-note" rows="3" placeholder="কর্মসূচির বিস্তারিত"></textarea>
+        </div>
+        <label class="check-line" style="margin-bottom:10px">
+          <input type="checkbox" id="set-prog-share-enabled">
+          <span>হিস্যা হিসাব চালু</span>
+        </label>
+        <div class="type-config-grid">
+          <div class="form-group">
+            <label class="form-label">আয়ের ধরন</label>
+            <textarea class="form-input form-textarea" id="set-prog-income-types" rows="5" placeholder="প্রতি লাইনে একটি ধরন"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ব্যয়ের খাত</label>
+            <textarea class="form-input form-textarea" id="set-prog-expense-types" rows="5" placeholder="প্রতি লাইনে একটি খাত"></textarea>
+          </div>
+        </div>
+        <div class="type-hint">প্রতি লাইনে একটি করে ধরন/খাত লিখুন। যেমন: অনুদান, খাবার, পরিবহন।</div>
+        <div class="settings-actions">
+          <button class="submit-btn gold" onclick="saveSettingsProgram()">সংরক্ষণ করুন</button>
+          <button class="settings-danger-btn" onclick="deleteSettingsProgram()">মুছুন</button>
+        </div>
+      </div>
     </div>
-    <div id="settings-body"></div>
-    <div class="tmpl-card" style="margin-top:10px">
-      <div class="tmpl-card-title">নতুন Template তৈরি করুন</div>
-      <input class="form-input" id="new-tmpl-name" placeholder="Template-এর নাম (যেমন: বৃক্ষরোপণ, ইফতার মাহফিল)">
-      <div style="margin-top:6px"><button class="submit-btn gold" onclick="addTemplate()">Template তৈরি করুন</button></div>
-    </div>
-    <button onclick="resetDemo()" style="width:100%;margin-top:8px;padding:10px;border:1px solid var(--cream3);border-radius:var(--radius-sm);background:#fff;font-family:'Tiro Bangla',serif;font-size:13px;color:var(--ink3);cursor:pointer">ডেমো ডেটা রিসেট</button>
   </div>
 </div>
 
@@ -277,6 +328,13 @@
 <script src="../api-shared.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/daftar-bottom-nav.js"></script>
 <script src="../js/madrasa-kormosuchi.js"></script>
+<script>
+  (function () {
+    var dn = document.getElementById('daftar-nav-root');
+    if (window.MMDaftarBottomNav && dn) MMDaftarBottomNav.mount(dn, { active: 'accounts', pathPrefix: '' });
+  })();
+</script>
 </body>
 </html>

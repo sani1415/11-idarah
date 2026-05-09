@@ -3,11 +3,19 @@
    দফতর দায়িত্বশীলের বিশেষ কর্মসূচি আয়-ব্যয় ব্যবস্থাপনা
    ════════════════════════════════════════════ */
 
-const PKEY = 'mm_programs_v1';
-
 /* ── HELPERS ── */
 const todayISO = () => new Date().toISOString().split('T')[0];
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const RECEIPT_BUCKET = 'mdr-program-receipts';
+const MAX_RECEIPT_SIZE = 10 * 1024 * 1024;
+const RECEIPT_MIMES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
 const bn = x => String(x ?? 0).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 const money = x => '৳' + bn(Number(x || 0).toLocaleString('en-US'));
 const fmtDate = d => {
@@ -18,11 +26,11 @@ const fmtDate = d => {
 
 /* ── DEFAULT DATA ── */
 const DEFAULTS = () => ({
-  templates: {
+  presets: {
     qurbani: {
       label: 'কোরবানি',
-      note: 'পূর্ণ ভাগ ও আংশিক টাকার হিসাব।',
-      incomeTypes: ['পূর্ণ ভাগ', 'আংশিক টাকা'],
+      note: 'হিস্যা ও আংশিক টাকার হিসাব।',
+      incomeTypes: ['হিস্যা', 'আংশিক টাকা'],
       expenseTypes: ['গরু ক্রয়', 'পরিবহন', 'খাদ্য', 'কসাই / জবাই', 'অন্যান্য'],
     },
     mahfil: {
@@ -51,12 +59,12 @@ const DEFAULTS = () => ({
     },
   },
   programs: [
-    { id: 'q1', name: 'কোরবানি আয়োজন ১৪৪৭', template: 'qurbani', status: 'চলমান', date: '', note: 'প্রতি পূর্ণ ভাগ ১৭,০০০ টাকা।' },
-    { id: 'm1', name: 'বার্ষিক মাহফিল ১৪৪৭', template: 'mahfil', status: 'পরিকল্পনা', date: '', note: '' },
+    { id: 'q1', name: 'কোরবানি আয়োজন ১৪৪৭', status: 'চলমান', date: '', note: 'হিস্যা ভিত্তিক হিসাব।', shareEnabled: true, incomeTypes: ['হিস্যা', 'আংশিক টাকা'], expenseTypes: ['গরু ক্রয়', 'পরিবহন', 'খাদ্য', 'কসাই / জবাই', 'অন্যান্য'] },
+    { id: 'm1', name: 'বার্ষিক মাহফিল ১৪৪৭', status: 'পরিকল্পনা', date: '', note: '', shareEnabled: false, incomeTypes: ['অনুদান', 'কালেকশন', 'স্পন্সর'], expenseTypes: ['মাইক / সাউন্ড', 'খাবার', 'মেহমানদারি', 'স্টেজ', 'অন্যান্য'] },
   ],
   income: {
     q1: [
-      { id: uid(), date: todayISO(), type: 'পূর্ণ ভাগ', personType: 'সাধারণ মানুষ', name: 'হাজী আবু বকর', share: 2, amount: 34000, ref: '017xx' },
+      { id: uid(), date: todayISO(), type: 'হিস্যা', personType: 'সাধারণ মানুষ', name: 'হাজী আবু বকর', share: 2, amount: 34000, ref: '017xx' },
       { id: uid(), date: todayISO(), type: 'আংশিক টাকা', personType: 'সাধারণ মানুষ', name: 'সাধারণ অনুদান', share: 0, amount: 3000, ref: 'নগদ' },
     ],
     m1: [],
@@ -71,28 +79,153 @@ const DEFAULTS = () => ({
 });
 
 /* ── STATE ── */
-let db;
+let db = { programs: [], income: {}, expense: {}, attachments: {} };
 let active;
-let activeTab = 'summary';
+let activeTab = 'income';
 let rptRange  = 'all';
 let _confirmCb = null;
+let dbReady = false;
+let readOnly = false;
+let loadError = '';
 
 /* ── DB ── */
-function dbLoad() {
-  try { db = JSON.parse(localStorage.getItem(PKEY)) || null; } catch { db = null; }
-  if (!db || !Array.isArray(db.programs) || !db.programs.length) db = DEFAULTS();
-  if (!db.income)    db.income = {};
-  if (!db.expense)   db.expense = {};
-  if (!db.templates) db.templates = DEFAULTS().templates;
-  if (!active || !db.programs.find(p => p.id === active)) active = db.programs[0].id;
+function uniqList(list, fallback) {
+  const seen = new Set();
+  const out = (Array.isArray(list) ? list : []).map(x => String(x || '').trim()).filter(Boolean).filter(x => {
+    if (seen.has(x)) return false;
+    seen.add(x); return true;
+  });
+  return out.length ? out : fallback.slice();
 }
-function dbSave() { localStorage.setItem(PKEY, JSON.stringify(db)); }
+
+function linesToTypes(value, fallback) {
+  return uniqList(String(value || '').split(/\r?\n|,/), fallback);
+}
+
+function typesToLines(list) {
+  return (Array.isArray(list) ? list : []).join('\n');
+}
+
+function defaultTypesForProgram(p) {
+  const d = DEFAULTS();
+  const key = p && p.template;
+  return (key && d.presets[key]) || d.presets.custom;
+}
+
+function programHasShares(p) {
+  return p && (p.shareEnabled === true || p.shareEnabled === 'true');
+}
+
+function ensureProgramShape(p) {
+  const src = defaultTypesForProgram(p);
+  p.incomeTypes = uniqList(p.incomeTypes || src.incomeTypes, src.incomeTypes);
+  p.expenseTypes = uniqList(p.expenseTypes || src.expenseTypes, src.expenseTypes);
+  p.shareEnabled = programHasShares(p);
+  delete p.template;
+  return p;
+}
+
+function emptyDb() { return { programs: [], income: {}, expense: {}, attachments: {} }; }
+
+function currentActor() {
+  if (!window.MMSession) return null;
+  if (MMSession.isAdmin && MMSession.isAdmin()) {
+    return {
+      id: MMSession.getAdminUserId && MMSession.getAdminUserId(),
+      pin: MMSession.getAdminPin && MMSession.getAdminPin(),
+    };
+  }
+  return {
+    id: MMSession.getStaffUserId && MMSession.getStaffUserId(),
+    pin: MMSession.getStaffPin && MMSession.getStaffPin(),
+  };
+}
+
+function remoteReady() {
+  const a = currentActor();
+  return !!(window.MMSharedAPI && MMSharedAPI.supabaseClient && a && a.pin);
+}
+
+function remoteActor() {
+  const a = currentActor() || {};
+  return { id: a.id || null, pin: a.pin || '' };
+}
+
+function normalizeBucket(bucket) {
+  const out = {};
+  if (!bucket || typeof bucket !== 'object') return out;
+  Object.keys(bucket).forEach(k => {
+    out[k] = Array.isArray(bucket[k]) ? bucket[k] : [];
+  });
+  return out;
+}
+
+async function dbLoad() {
+  if (!remoteReady()) throw new Error('database_not_configured');
+  const a = remoteActor();
+  const res = await MMSharedAPI.programsBootstrap(a.id, a.pin);
+  if (!res || res.ok !== true) throw new Error((res && res.error) || 'programs_bootstrap_failed');
+
+  db = {
+    programs: Array.isArray(res.programs) ? res.programs.map(p => ensureProgramShape({ ...p })) : [],
+    income: normalizeBucket(res.income),
+    expense: normalizeBucket(res.expense),
+    attachments: normalizeBucket(res.attachments),
+  };
+  db.programs.forEach(p => {
+    if (!db.income[p.id]) db.income[p.id] = [];
+    if (!db.expense[p.id]) db.expense[p.id] = [];
+  });
+  readOnly = !!res.read_only;
+  active = db.programs.find(p => p.id === active) ? active : (db.programs[0] && db.programs[0].id);
+  dbReady = true;
+  loadError = '';
+}
+
+async function refreshPage() {
+  await dbLoad();
+  renderPage();
+}
+
+function writeBlocked() {
+  if (!dbReady) { showToast('ডাটাবেজ সংযোগ নেই'); return true; }
+  if (readOnly) { showToast('এডমিন শুধু দেখতে পারবেন, পরিবর্তন করতে পারবেন না'); return true; }
+  return false;
+}
+
+async function saveRemote(work, successMsg, opts = {}) {
+  if (writeBlocked()) return null;
+  try {
+    const a = remoteActor();
+    const res = await work(a);
+    if (!res || res.ok !== true) throw new Error((res && res.error) || 'save_failed');
+    if (opts.activeFromResult && res.id) active = res.id;
+    await refreshPage();
+    if (successMsg) showToast(successMsg);
+    return res;
+  } catch (err) {
+    console.error('[kormosuchi] database save failed', err);
+    showToast('ডাটাবেজে সংরক্ষণ হয়নি');
+    return null;
+  }
+}
 
 /* ── ACCESSORS ── */
-function program()  { return db.programs.find(p => p.id === active) || db.programs[0]; }
-function tmpl()     { return db.templates[program().template] || db.templates.custom; }
-function incomes()  { return db.income[active]  || (db.income[active]  = []); }
-function expenses() { return db.expense[active] || (db.expense[active] = []); }
+function program()  { return (db.programs || []).find(p => p.id === active) || (db.programs || [])[0] || null; }
+function incomes()  { return active && db.income && Array.isArray(db.income[active]) ? db.income[active] : []; }
+function expenses() { return active && db.expense && Array.isArray(db.expense[active]) ? db.expense[active] : []; }
+function expenseAttachments(expenseId) {
+  return expenseId && db.attachments && Array.isArray(db.attachments[expenseId]) ? db.attachments[expenseId] : [];
+}
+
+function findAttachment(id) {
+  const buckets = db.attachments || {};
+  for (const expenseId of Object.keys(buckets)) {
+    const row = (buckets[expenseId] || []).find(x => x.id === id);
+    if (row) return row;
+  }
+  return null;
+}
 
 function stats() {
   const inc = incomes(), exp = expenses();
@@ -106,22 +239,43 @@ function stats() {
    RENDER
 ══════════════════════════════════════════ */
 function renderPage() {
-  const p = program(), t = tmpl(), s = stats();
+  const p = program(), s = stats();
   const sel = document.getElementById('prog-select');
   sel.innerHTML = db.programs.map(x =>
     `<option value="${x.id}"${x.id === active ? ' selected' : ''}>${API.esc(x.name)}</option>`
   ).join('');
+  sel.disabled = !dbReady || !db.programs.length;
+
+  document.querySelectorAll('.prog-new-btn,.t4-btn').forEach(btn => {
+    btn.disabled = !dbReady || readOnly || (!db.programs.length && !btn.classList.contains('prog-new-btn'));
+  });
+
+  if (!p) {
+    document.getElementById('prog-title').textContent = dbReady ? 'কোনো কর্মসূচি নেই' : 'ডাটাবেজ সংযোগ নেই';
+    document.getElementById('prog-note').textContent  = dbReady ? 'নতুন কর্মসূচি তৈরি করলে এখানে হিসাব দেখা যাবে।' : (loadError || 'Supabase সংযোগ বা সেশন পাওয়া যায়নি।');
+    document.getElementById('prog-tag').textContent   = dbReady ? (readOnly ? 'শুধু দেখা যাবে' : 'প্রস্তুত') : 'অফলাইন নয়';
+    document.getElementById('kpi-grid').innerHTML = [
+      ['মোট আয়', money(0), 'g'],
+      ['মোট ব্যয়', money(0), 'r'],
+      ['অবশিষ্ট', money(0), 'g'],
+      ['আয় এন্ট্রি', bn(0) + 'টি', 'o'],
+    ].map(([lbl, val, cls]) =>
+      `<div class="kpi-card"><span>${lbl}</span><b class="${cls}">${API.esc(val)}</b></div>`
+    ).join('');
+    renderRoot();
+    return;
+  }
 
   document.getElementById('prog-title').textContent = p.name;
-  document.getElementById('prog-note').textContent  = p.note || t.note;
-  document.getElementById('prog-tag').textContent   = t.label + ' · ' + p.status + (p.date ? ' · ' + p.date : '');
+  document.getElementById('prog-note').textContent  = p.note || '';
+  document.getElementById('prog-tag').textContent   = p.status + (p.date ? ' · ' + p.date : '');
 
-  const isQ = p.template === 'qurbani';
+  const hasShares = programHasShares(p);
   document.getElementById('kpi-grid').innerHTML = [
     ['মোট আয়',   money(s.income),  'g'],
     ['মোট ব্যয়', money(s.cost),    'r'],
     ['অবশিষ্ট',  money(s.balance), s.balance >= 0 ? 'g' : 'r'],
-    [isQ ? 'পূর্ণ ভাগ' : 'আয় এন্ট্রি', isQ ? bn(s.shares) + ' ভাগ' : bn(s.incCount) + 'টি', 'o'],
+    [hasShares ? 'হিস্যা' : 'আয় এন্ট্রি', hasShares ? bn(s.shares) + ' হিস্যা' : bn(s.incCount) + 'টি', 'o'],
   ].map(([lbl, val, cls]) =>
     `<div class="kpi-card"><span>${lbl}</span><b class="${cls}">${API.esc(val)}</b></div>`
   ).join('');
@@ -131,27 +285,19 @@ function renderPage() {
 
 function renderRoot() {
   const el = document.getElementById('root');
-  if      (activeTab === 'summary') el.innerHTML = renderSummary();
-  else if (activeTab === 'income')  el.innerHTML = renderIncomeTab();
+  if (!dbReady) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-text">ডাটাবেজ সংযোগ হলে কর্মসূচির হিসাব দেখা যাবে</div></div>';
+    return;
+  }
+  if (!program()) {
+    el.innerHTML = readOnly
+      ? '<div class="empty-state"><div class="empty-text">এখনো কোনো কর্মসূচি নেই</div></div>'
+      : '<div class="empty-state"><div class="empty-text">নতুন কর্মসূচি তৈরি করুন</div></div>';
+    return;
+  }
+  if      (activeTab === 'income')  el.innerHTML = renderIncomeTab();
   else if (activeTab === 'expense') el.innerHTML = renderExpenseTab();
   else                               el.innerHTML = renderReport();
-}
-
-/* ── SUMMARY TAB ── */
-function renderSummary() {
-  const s = stats(), p = program();
-  const rows = [
-    ['মোট আয়',   'সব ধরনের আয় মিলিয়ে',  money(s.income),  ''],
-    ['মোট ব্যয়', 'সব খরচ মিলিয়ে',        money(s.cost),    ''],
-    ['অবশিষ্ট',  'আয় − ব্যয়',            money(s.balance), ''],
-  ];
-  if (p.template === 'qurbani') rows.push(['পূর্ণ ভাগ', 'শুধু পূর্ণ ভাগের হিসাব', bn(s.shares) + ' ভাগ', '']);
-  return `<div class="stt-card">${rows.map(([ttl, sub, val]) =>
-    `<div class="mini-row">
-       <div><div class="mini-label">${ttl}</div><div class="mini-sub">${sub}</div></div>
-       <b style="font-family:'Tiro Bangla',serif;font-size:15px;font-weight:800">${API.esc(val)}</b>
-     </div>`
-  ).join('')}</div>`;
 }
 
 /* ── INCOME TAB ── */
@@ -160,7 +306,7 @@ function renderIncomeTab() {
   if (!rows.length) return '<div class="empty-state"><span class="empty-icon">💰</span><div class="empty-text">এখনো কোনো আয় নেই</div></div>';
   return `<div class="tbl-wrap"><table class="tbl">
     <thead><tr>
-      <th>তারিখ</th><th>ধরন</th><th>ব্যক্তি</th><th>নাম</th><th>ভাগ</th><th>টাকা</th><th>পরিচিতি</th><th></th>
+      <th>তারিখ</th><th>ধরন</th><th>ব্যক্তি</th><th>নাম</th><th>হিস্যা</th><th>টাকা</th><th>পরিচিতি</th><th></th>
     </tr></thead>
     <tbody>${rows.map(x => `<tr>
       <td style="color:var(--ink3)">${fmtDate(x.date)}</td>
@@ -170,10 +316,10 @@ function renderIncomeTab() {
       <td style="text-align:center">${x.share ? bn(x.share) : '—'}</td>
       <td style="color:var(--green);font-weight:700">${money(x.amount)}</td>
       <td style="color:var(--ink3)">${API.esc(x.ref || '')}</td>
-      <td><div class="act-btns">
+      <td>${readOnly ? '' : `<div class="act-btns">
         <button class="tbl-act" onclick="openIncome('${x.id}')">এডিট</button>
         <button class="tbl-del" onclick="askDel('income','${x.id}')">✕</button>
-      </div></td>
+      </div>`}</td>
     </tr>`).join('')}</tbody>
   </table></div>`;
 }
@@ -184,19 +330,27 @@ function renderExpenseTab() {
   if (!rows.length) return '<div class="empty-state"><span class="empty-icon">💸</span><div class="empty-text">এখনো কোনো ব্যয় নেই</div></div>';
   return `<div class="tbl-wrap"><table class="tbl">
     <thead><tr>
-      <th>তারিখ</th><th>খাত</th><th>বিবরণ</th><th>টাকা</th><th></th>
+      <th>তারিখ</th><th>খাত</th><th>বিবরণ</th><th>রশিদ</th><th>টাকা</th><th></th>
     </tr></thead>
     <tbody>${rows.map(x => `<tr>
       <td style="color:var(--ink3)">${fmtDate(x.date)}</td>
       <td>${API.esc(x.type)}</td>
       <td style="color:var(--ink3)">${API.esc(x.note || '')}</td>
+      <td>${renderReceiptCell(x.id)}</td>
       <td style="color:var(--red);font-weight:700">${money(x.amount)}</td>
-      <td><div class="act-btns">
+      <td>${readOnly ? '' : `<div class="act-btns">
         <button class="tbl-act" onclick="openExpense('${x.id}')">এডিট</button>
         <button class="tbl-del" onclick="askDel('expense','${x.id}')">✕</button>
-      </div></td>
+      </div>`}</td>
     </tr>`).join('')}</tbody>
   </table></div>`;
+}
+
+function renderReceiptCell(expenseId) {
+  const list = expenseAttachments(expenseId);
+  if (!list.length) return '<span style="color:var(--ink3)">—</span>';
+  const first = list[0];
+  return `<button class="receipt-pill" onclick="openReceipt('${first.id}')">রশিদ ${bn(list.length)}</button>`;
 }
 
 /* ── REPORT TAB ── */
@@ -267,77 +421,65 @@ function renderReport() {
 /* ══════════════════════════════════════════
    PROGRAM MODAL
 ══════════════════════════════════════════ */
-function populateTmplSelect(selId, selected) {
-  document.getElementById(selId).innerHTML = Object.keys(db.templates).map(k =>
-    `<option value="${k}"${k === selected ? ' selected' : ''}>${API.esc(db.templates[k].label)}</option>`
-  ).join('');
-}
-
 function newProgram() {
+  if (writeBlocked()) return;
   document.getElementById('prog-modal-title').textContent = 'নতুন কর্মসূচি';
   document.getElementById('prog-edit-id').value   = '';
   document.getElementById('prog-name').value      = '';
   document.getElementById('prog-status').value    = 'চলমান';
   document.getElementById('prog-date').value      = '';
   document.getElementById('prog-note-inp').value  = '';
+  document.getElementById('prog-share-enabled').checked = false;
+  document.getElementById('prog-income-types').value = typesToLines(DEFAULTS().presets.custom.incomeTypes);
+  document.getElementById('prog-expense-types').value = typesToLines(DEFAULTS().presets.custom.expenseTypes);
   document.getElementById('prog-del-btn').style.display = 'none';
-  populateTmplSelect('prog-tmpl', 'qurbani');
   openModal('program');
 }
 
 function editProgram() {
+  if (writeBlocked()) return;
   const p = program();
+  if (!p) return;
   document.getElementById('prog-modal-title').textContent = 'কর্মসূচি এডিট';
   document.getElementById('prog-edit-id').value   = p.id;
   document.getElementById('prog-name').value      = p.name;
   document.getElementById('prog-status').value    = p.status;
   document.getElementById('prog-date').value      = p.date || '';
   document.getElementById('prog-note-inp').value  = p.note || '';
+  document.getElementById('prog-share-enabled').checked = programHasShares(p);
+  document.getElementById('prog-income-types').value = typesToLines(p.incomeTypes);
+  document.getElementById('prog-expense-types').value = typesToLines(p.expenseTypes);
   document.getElementById('prog-del-btn').style.display = '';
-  populateTmplSelect('prog-tmpl', p.template);
   openModal('program');
 }
 
-function onProgTmplChange() {
-  if (!document.getElementById('prog-edit-id').value) {
-    const key = document.getElementById('prog-tmpl').value;
-    document.getElementById('prog-note-inp').value = (db.templates[key] || {}).note || '';
-  }
-}
-
-function saveProgram() {
+async function saveProgram() {
+  if (writeBlocked()) return;
   const name = document.getElementById('prog-name').value.trim();
   if (!name) { showToast('কর্মসূচির নাম দিন'); return; }
+  const incomeTypes = linesToTypes(document.getElementById('prog-income-types').value, DEFAULTS().presets.custom.incomeTypes);
+  const expenseTypes = linesToTypes(document.getElementById('prog-expense-types').value, DEFAULTS().presets.custom.expenseTypes);
   const id   = document.getElementById('prog-edit-id').value;
   const data = {
     name,
-    template: document.getElementById('prog-tmpl').value,
     status:   document.getElementById('prog-status').value,
     date:     document.getElementById('prog-date').value,
     note:     document.getElementById('prog-note-inp').value,
+    shareEnabled: document.getElementById('prog-share-enabled').checked,
+    incomeTypes,
+    expenseTypes,
   };
-  if (id) {
-    Object.assign(db.programs.find(p => p.id === id), data);
-  } else {
-    const nid = uid();
-    db.programs.push({ id: nid, ...data });
-    db.income[nid]  = [];
-    db.expense[nid] = [];
-    active = nid;
-  }
-  dbSave(); closeModal('program'); renderPage();
-  showToast('কর্মসূচি সংরক্ষিত হয়েছে ✓');
+  ensureProgramShape(data);
+  const res = await saveRemote(a => MMSharedAPI.upsertProgram(a.id, a.pin, { id: id || '', ...data }), 'কর্মসূচি সংরক্ষিত হয়েছে ✓', { activeFromResult: true });
+  if (res) closeModal('program');
 }
 
 function deleteProgram() {
+  if (writeBlocked()) return;
   const id = document.getElementById('prog-edit-id').value;
-  if (db.programs.length <= 1) { showToast('কমপক্ষে একটি কর্মসূচি থাকতে হবে'); return; }
   showConfirm('এই কর্মসূচি ও এর সব আয়-ব্যয় মুছে যাবে।', () => {
-    db.programs = db.programs.filter(p => p.id !== id);
-    delete db.income[id]; delete db.expense[id];
-    active = db.programs[0].id;
-    dbSave(); closeModal('program'); renderPage();
-    showToast('কর্মসূচি মুছে গেছে');
+    return saveRemote(a => MMSharedAPI.deleteProgram(a.id, a.pin, id), 'কর্মসূচি মুছে গেছে')
+      .then(res => { if (res) closeModal('program'); });
   });
 }
 
@@ -345,17 +487,21 @@ function deleteProgram() {
    INCOME MODAL
 ══════════════════════════════════════════ */
 function openIncome(editId = '') {
-  const t = tmpl();
-  document.getElementById('inc-type').innerHTML = t.incomeTypes.map(x =>
+  if (writeBlocked()) return;
+  const p = program();
+  if (!p) return;
+  const types = uniqList(p.incomeTypes, DEFAULTS().presets.custom.incomeTypes);
+  document.getElementById('inc-type').innerHTML = types.map(x =>
     `<option>${API.esc(x)}</option>`).join('');
   document.getElementById('inc-modal-title').textContent = editId ? 'আয় এডিট' : 'আয় যোগ';
   document.getElementById('inc-edit-id').value = editId;
   const r = editId ? incomes().find(x => x.id === editId) : null;
   document.getElementById('inc-date').value         = r ? (r.date || todayISO()) : todayISO();
-  document.getElementById('inc-type').value         = r ? (r.type || t.incomeTypes[0]) : t.incomeTypes[0];
+  document.getElementById('inc-type').value         = r ? (r.type || types[0]) : types[0];
   document.getElementById('inc-person-type').value  = r ? (r.personType || 'সাধারণ মানুষ') : 'সাধারণ মানুষ';
   document.getElementById('inc-name').value         = r ? (r.name || '') : '';
   document.getElementById('inc-share').value        = r ? (r.share || 1) : 1;
+  document.getElementById('inc-is-share').checked   = !!(r && Number(r.share || 0) > 0);
   document.getElementById('inc-amount').value       = r ? (r.amount || '') : '';
   document.getElementById('inc-ref').value          = r ? (r.ref || '') : '';
   syncIncShareField();
@@ -365,54 +511,61 @@ function openIncome(editId = '') {
 function onIncTypeChange() { syncIncShareField(); }
 
 function syncIncShareField() {
-  const isQ = program().template === 'qurbani' &&
-              document.getElementById('inc-type').value === 'পূর্ণ ভাগ';
-  document.getElementById('inc-share-wrap').style.display = isQ ? '' : 'none';
+  const enabled = programHasShares(program());
+  const opt = document.getElementById('inc-share-option');
+  const chk = document.getElementById('inc-is-share');
+  const wrap = document.getElementById('inc-share-wrap');
+  if (opt) opt.style.display = enabled ? '' : 'none';
+  if (!enabled && chk) chk.checked = false;
+  if (wrap) wrap.style.display = enabled && chk && chk.checked ? '' : 'none';
 }
 
-function saveIncome() {
+async function saveIncome() {
+  if (writeBlocked()) return;
   const name   = document.getElementById('inc-name').value.trim();
   const amount = parseFloat(document.getElementById('inc-amount').value);
   if (!name)         { showToast('নাম দিন'); return; }
   if (!(amount > 0)) { showToast('সঠিক টাকার পরিমাণ দিন'); return; }
-  const isQ = program().template === 'qurbani' &&
-              document.getElementById('inc-type').value === 'পূর্ণ ভাগ';
+  const isShare = programHasShares(program()) && document.getElementById('inc-is-share').checked;
   const row = {
     id:         document.getElementById('inc-edit-id').value || uid(),
     date:       document.getElementById('inc-date').value || todayISO(),
     type:       document.getElementById('inc-type').value,
     personType: document.getElementById('inc-person-type').value,
     name,
-    share:  isQ ? (parseInt(document.getElementById('inc-share').value) || 1) : 0,
+    share:  isShare ? (parseFloat(document.getElementById('inc-share').value) || 1) : 0,
     amount,
     ref:    document.getElementById('inc-ref').value.trim(),
   };
-  const list = incomes();
-  const idx  = list.findIndex(x => x.id === row.id);
-  if (idx >= 0) list[idx] = row; else list.push(row);
-  dbSave(); closeModal('income');
-  setTab('income'); renderPage();
-  showToast('আয় সংরক্ষিত হয়েছে ✓');
+  const res = await saveRemote(a => MMSharedAPI.upsertProgramIncome(a.id, a.pin, { ...row, programId: active }), 'আয় সংরক্ষিত হয়েছে ✓');
+  if (res) { closeModal('income'); setTab('income'); }
 }
 
 /* ══════════════════════════════════════════
    EXPENSE MODAL
 ══════════════════════════════════════════ */
 function openExpense(editId = '') {
-  const t = tmpl();
-  document.getElementById('exp-type').innerHTML = t.expenseTypes.map(x =>
+  if (writeBlocked()) return;
+  const p = program();
+  if (!p) return;
+  const types = uniqList(p.expenseTypes, DEFAULTS().presets.custom.expenseTypes);
+  document.getElementById('exp-type').innerHTML = types.map(x =>
     `<option>${API.esc(x)}</option>`).join('');
   document.getElementById('exp-modal-title').textContent = editId ? 'ব্যয় এডিট' : 'ব্যয় যোগ';
   document.getElementById('exp-edit-id').value = editId;
   const r = editId ? expenses().find(x => x.id === editId) : null;
   document.getElementById('exp-date').value   = r ? (r.date || todayISO()) : todayISO();
-  document.getElementById('exp-type').value   = r ? (r.type || t.expenseTypes[0]) : t.expenseTypes[0];
+  document.getElementById('exp-type').value   = r ? (r.type || types[0]) : types[0];
   document.getElementById('exp-amount').value = r ? (r.amount || '') : '';
   document.getElementById('exp-note').value   = r ? (r.note || '') : '';
+  const fileInput = document.getElementById('exp-files');
+  if (fileInput) fileInput.value = '';
+  renderExpenseFiles(editId);
   openModal('expense');
 }
 
-function saveExpense() {
+async function saveExpense() {
+  if (writeBlocked()) return;
   const amount = parseFloat(document.getElementById('exp-amount').value);
   if (!(amount > 0)) { showToast('সঠিক টাকার পরিমাণ দিন'); return; }
   const row = {
@@ -422,111 +575,239 @@ function saveExpense() {
     amount,
     note:   document.getElementById('exp-note').value.trim(),
   };
-  const list = expenses();
-  const idx  = list.findIndex(x => x.id === row.id);
-  if (idx >= 0) list[idx] = row; else list.push(row);
-  dbSave(); closeModal('expense');
-  setTab('expense'); renderPage();
-  showToast('ব্যয় সংরক্ষিত হয়েছে ✓');
+  const files = getExpenseFiles();
+  if (!validateReceiptFiles(files)) return;
+  const res = await saveRemote(a => MMSharedAPI.upsertProgramExpense(a.id, a.pin, { ...row, programId: active }), '');
+  if (!res) return;
+  if (files.length) {
+    const ok = await uploadExpenseFiles(row.id, files);
+    if (!ok) return;
+    await refreshPage();
+  }
+  closeModal('expense');
+  setTab('expense');
+  showToast(files.length ? 'ব্যয় ও রশিদ সংরক্ষিত হয়েছে ✓' : 'ব্যয় সংরক্ষিত হয়েছে ✓');
 }
 
 /* ── DELETE (confirm modal) ── */
 function askDel(kind, id) {
+  if (writeBlocked()) return;
   showConfirm('এই এন্ট্রি মুছে ফেলবেন?', () => {
-    if (kind === 'income')  db.income[active]  = incomes().filter(x => x.id !== id);
-    else                    db.expense[active] = expenses().filter(x => x.id !== id);
-    dbSave(); renderPage();
-    showToast('মুছে গেছে');
+    return saveRemote(a => MMSharedAPI.deleteProgramEntry(a.id, a.pin, kind, id), 'মুছে গেছে');
   });
+}
+
+function getExpenseFiles() {
+  const input = document.getElementById('exp-files');
+  return input && input.files ? Array.from(input.files) : [];
+}
+
+function validateReceiptFiles(files) {
+  for (const file of files) {
+    if (file.size > MAX_RECEIPT_SIZE) {
+      showToast('প্রতি ফাইল সর্বোচ্চ ১০MB হতে পারবে');
+      return false;
+    }
+    if (file.type && !RECEIPT_MIMES.includes(file.type)) {
+      showToast('শুধু ছবি, PDF বা Word ডকুমেন্ট দিন');
+      return false;
+    }
+  }
+  return true;
+}
+
+function safeFileName(name) {
+  const clean = String(name || 'receipt')
+    .replace(/[\\/:*?"<>|#%{}^~[\]`]/g, '-')
+    .replace(/\s+/g, '-')
+    .slice(-90);
+  return clean || 'receipt';
+}
+
+function receiptPath(programId, expenseId, file) {
+  return `${programId}/${expenseId}/${Date.now()}-${uid()}-${safeFileName(file.name)}`;
+}
+
+async function uploadExpenseFiles(expenseId, files) {
+  const client = window.MMSharedAPI && MMSharedAPI.supabaseClient;
+  if (!client || !files.length) return true;
+  const a = remoteActor();
+  for (const file of files) {
+    const path = receiptPath(active, expenseId, file);
+    const { error } = await client.storage.from(RECEIPT_BUCKET).upload(path, file, {
+      cacheControl: '3600',
+      contentType: file.type || 'application/octet-stream',
+      upsert: false,
+    });
+    if (error) {
+      console.error('[kormosuchi] receipt upload failed', error);
+      showToast('রশিদ আপলোড হয়নি');
+      return false;
+    }
+    const res = await MMSharedAPI.addProgramExpenseAttachment(a.id, a.pin, {
+      expenseId,
+      bucketId: RECEIPT_BUCKET,
+      storagePath: path,
+      fileName: file.name || 'receipt',
+      mimeType: file.type || '',
+      fileSize: file.size || 0,
+    });
+    if (!res || res.ok !== true) {
+      console.error('[kormosuchi] receipt metadata failed', res);
+      showToast('রশিদের তথ্য সংরক্ষণ হয়নি');
+      return false;
+    }
+  }
+  return true;
+}
+
+function renderExpenseFiles(expenseId) {
+  const el = document.getElementById('exp-file-list');
+  if (!el) return;
+  const existing = expenseAttachments(expenseId).map(att => `
+    <div class="receipt-row">
+      <span>${API.esc(att.fileName || 'রশিদ')}</span>
+      <div class="receipt-actions">
+        <button type="button" onclick="openReceipt('${att.id}')">দেখুন</button>
+        ${readOnly ? '' : `<button type="button" class="danger" onclick="deleteReceipt('${att.id}')">মুছুন</button>`}
+      </div>
+    </div>`).join('');
+  const pending = getExpenseFiles().map(file => `
+    <div class="receipt-row pending"><span>${API.esc(file.name)}</span><small>${bn(Math.ceil(file.size / 1024))} KB</small></div>
+  `).join('');
+  el.innerHTML = existing + pending || '<div class="receipt-empty">রশিদ/মেমো থাকলে এখানে যুক্ত করুন</div>';
+}
+
+function onExpenseFilesChange() {
+  const expenseId = document.getElementById('exp-edit-id').value;
+  renderExpenseFiles(expenseId);
+}
+
+async function openReceipt(id) {
+  const att = findAttachment(id);
+  if (!att || !att.storagePath) { showToast('রশিদ পাওয়া যায়নি'); return; }
+  try {
+    const { data, error } = await MMSharedAPI.supabaseClient.storage
+      .from(att.bucketId || RECEIPT_BUCKET)
+      .createSignedUrl(att.storagePath, 300);
+    if (error) throw error;
+    const url = data && (data.signedUrl || data.signedURL);
+    if (!url) throw new Error('signed_url_missing');
+    window.open(url, '_blank', 'noopener');
+  } catch (err) {
+    console.error('[kormosuchi] receipt open failed', err);
+    showToast('রশিদ খোলা যায়নি');
+  }
+}
+
+async function deleteReceipt(id) {
+  if (writeBlocked()) return;
+  const att = findAttachment(id);
+  if (!att) return;
+  const a = remoteActor();
+  try {
+    const res = await MMSharedAPI.deleteProgramExpenseAttachment(a.id, a.pin, id);
+    if (!res || res.ok !== true) throw new Error((res && res.error) || 'delete_failed');
+    const path = res.storagePath || att.storagePath;
+    if (path && MMSharedAPI.supabaseClient) {
+      await MMSharedAPI.supabaseClient.storage.from(att.bucketId || RECEIPT_BUCKET).remove([path]);
+    }
+    await refreshPage();
+    renderExpenseFiles(att.expenseId);
+    showToast('রশিদ মুছে গেছে');
+  } catch (err) {
+    console.error('[kormosuchi] receipt delete failed', err);
+    showToast('রশিদ মুছা যায়নি');
+  }
 }
 
 /* ══════════════════════════════════════════
    SETTINGS MODAL
 ══════════════════════════════════════════ */
 function openSettings() {
-  populateTmplSelect('set-tmpl', program().template);
-  document.getElementById('new-tmpl-name').value = '';
-  renderSettingsBody();
+  if (!dbReady) { showToast('ডাটাবেজ সংযোগ নেই'); return; }
+  populateSettingsProgramSelect(active);
+  loadSettingsProgram(active);
   openModal('settings');
 }
 
-function renderSettingsBody() {
-  const key = document.getElementById('set-tmpl').value;
-  const t   = db.templates[key];
-  if (!t) return;
-  document.getElementById('settings-body').innerHTML = `
-    <div class="tmpl-card">
-      <div class="tmpl-card-title">আয়ের ধরন</div>
-      <div class="chip-list">${t.incomeTypes.map((x, i) =>
-        `<div class="chip">${API.esc(x)}<button onclick="removeType('${key}','income',${i})" title="বাদ দিন">×</button></div>`
-      ).join('')}</div>
-      <div class="add-row">
-        <input class="form-input" id="new-inc-type" placeholder="নতুন আয়ের ধরন">
-        <button class="submit-btn" style="padding:10px 12px;background:var(--green-light);color:var(--green);border:1px solid var(--green2)" onclick="addType('${key}','income')">যোগ</button>
-      </div>
-    </div>
-    <div class="tmpl-card">
-      <div class="tmpl-card-title">ব্যয়ের খাত</div>
-      <div class="chip-list">${t.expenseTypes.map((x, i) =>
-        `<div class="chip">${API.esc(x)}<button onclick="removeType('${key}','expense',${i})" title="বাদ দিন">×</button></div>`
-      ).join('')}</div>
-      <div class="add-row">
-        <input class="form-input" id="new-exp-type" placeholder="নতুন ব্যয়ের খাত">
-        <button class="submit-btn" style="padding:10px 12px;background:var(--red-light);color:var(--red);border:1px solid var(--red)" onclick="addType('${key}','expense')">যোগ</button>
-      </div>
-    </div>`;
+function populateSettingsProgramSelect(selected) {
+  const sel = document.getElementById('set-prog-select');
+  if (!sel) return;
+  const current = selected || sel.value || active;
+  sel.innerHTML = db.programs.map(p =>
+    `<option value="${p.id}"${p.id === current ? ' selected' : ''}>${API.esc(p.name)}</option>`
+  ).join('');
 }
 
-function addType(tKey, kind) {
-  const inp = document.getElementById(kind === 'income' ? 'new-inc-type' : 'new-exp-type');
-  const val = inp.value.trim();
-  if (!val) { showToast('নাম দিন'); return; }
-  const arr = kind === 'income' ? db.templates[tKey].incomeTypes : db.templates[tKey].expenseTypes;
-  if (arr.includes(val)) { showToast('এই ধরনটি আগেই আছে'); return; }
-  arr.push(val);
-  inp.value = '';
-  dbSave(); renderSettingsBody();
-  showToast('যোগ হয়েছে ✓');
+function loadSettingsProgram(id) {
+  const p = db.programs.find(x => x.id === id) || program();
+  const disabled = readOnly || !p;
+  document.querySelectorAll('#modal-settings input,#modal-settings textarea,#modal-settings select').forEach(el => {
+    if (el.id !== 'set-prog-select') el.disabled = disabled;
+  });
+  document.querySelectorAll('#modal-settings .submit-btn,#modal-settings .settings-danger-btn').forEach(el => {
+    el.disabled = disabled;
+  });
+  if (!p) return;
+  document.getElementById('set-prog-select').value = p.id;
+  document.getElementById('set-prog-name').value = p.name || '';
+  document.getElementById('set-prog-status').value = p.status || 'চলমান';
+  document.getElementById('set-prog-date').value = p.date || '';
+  document.getElementById('set-prog-note').value = p.note || '';
+  document.getElementById('set-prog-share-enabled').checked = programHasShares(p);
+  document.getElementById('set-prog-income-types').value = typesToLines(p.incomeTypes);
+  document.getElementById('set-prog-expense-types').value = typesToLines(p.expenseTypes);
 }
 
-function removeType(tKey, kind, idx) {
-  const arr = kind === 'income' ? db.templates[tKey].incomeTypes : db.templates[tKey].expenseTypes;
-  if (arr.length <= 1) { showToast('কমপক্ষে একটি রাখতে হবে'); return; }
-  arr.splice(idx, 1);
-  dbSave(); renderSettingsBody();
-}
-
-function addTemplate() {
-  const name = document.getElementById('new-tmpl-name').value.trim();
-  if (!name) { showToast('Template-এর নাম দিন'); return; }
-  const key = 'tmpl_' + Date.now();
-  db.templates[key] = {
-    label:        name,
-    note:         '',
-    incomeTypes:  ['আয়', 'অনুদান', 'অন্যান্য'],
-    expenseTypes: ['ব্যয়', 'অন্যান্য'],
+async function saveSettingsProgram() {
+  if (writeBlocked()) return;
+  const id = document.getElementById('set-prog-select').value;
+  const p = db.programs.find(x => x.id === id);
+  if (!p) return;
+  const name = document.getElementById('set-prog-name').value.trim();
+  if (!name) { showToast('কর্মসূচির নাম দিন'); return; }
+  const data = {
+    name,
+    status: document.getElementById('set-prog-status').value,
+    date: document.getElementById('set-prog-date').value,
+    note: document.getElementById('set-prog-note').value,
+    shareEnabled: document.getElementById('set-prog-share-enabled').checked,
+    incomeTypes: linesToTypes(document.getElementById('set-prog-income-types').value, DEFAULTS().presets.custom.incomeTypes),
+    expenseTypes: linesToTypes(document.getElementById('set-prog-expense-types').value, DEFAULTS().presets.custom.expenseTypes),
   };
-  document.getElementById('new-tmpl-name').value = '';
-  dbSave();
-  populateTmplSelect('set-tmpl', key);
-  renderSettingsBody();
-  showToast('নতুন Template "' + API.esc(name) + '" তৈরি হয়েছে ✓');
+  ensureProgramShape(data);
+  active = id;
+  const res = await saveRemote(a => MMSharedAPI.upsertProgram(a.id, a.pin, { id, ...data }), 'কর্মসূচি সংরক্ষিত হয়েছে ✓', { activeFromResult: true });
+  if (res) {
+    populateSettingsProgramSelect(id);
+    loadSettingsProgram(id);
+  }
+}
+
+function deleteSettingsProgram() {
+  if (writeBlocked()) return;
+  const id = document.getElementById('set-prog-select').value;
+  showConfirm('এই কর্মসূচি ও এর সব আয়-ব্যয় মুছে যাবে।', () => {
+    return saveRemote(a => MMSharedAPI.deleteProgram(a.id, a.pin, id), 'কর্মসূচি মুছে গেছে')
+      .then(res => {
+        if (!res) return;
+        populateSettingsProgramSelect(active);
+        loadSettingsProgram(active);
+      });
+  });
 }
 
 function resetDemo() {
-  showConfirm('সব ডেমো ডেটা রিসেট হবে। এগিয়ে যাব?', () => {
-    localStorage.removeItem(PKEY);
-    dbLoad(); closeModal('settings'); renderPage();
-    showToast('ডেমো ডেটা রিসেট হয়েছে');
-  });
+  showToast('এখন ডাটাবেজই মূল উৎস, লোকাল ডেমো রিসেট নেই');
 }
 
 /* ══════════════════════════════════════════
    UTILS
 ══════════════════════════════════════════ */
 function changeProgram(id) {
-  active = id; activeTab = 'summary';
-  setTab('summary'); renderPage();
+  active = id; activeTab = 'income';
+  setTab('income'); renderPage();
 }
 
 function setTab(x) {
@@ -555,9 +836,35 @@ function showConfirm(msg, cb) {
 
 function confirmYes() {
   closeModal('confirm');
-  if (_confirmCb) { _confirmCb(); _confirmCb = null; }
+  if (!_confirmCb) return;
+  const cb = _confirmCb;
+  _confirmCb = null;
+  try {
+    const ret = cb();
+    if (ret && typeof ret.catch === 'function') {
+      ret.catch(err => {
+        console.error('[kormosuchi] confirm action failed', err);
+        showToast('কাজটি সম্পন্ন হয়নি');
+      });
+    }
+  } catch (err) {
+    console.error('[kormosuchi] confirm action failed', err);
+    showToast('কাজটি সম্পন্ন হয়নি');
+  }
 }
 
 /* ── INIT ── */
-dbLoad();
-renderPage();
+async function initKormosuchiPage() {
+  try {
+    await dbLoad();
+  } catch (err) {
+    console.error('[kormosuchi] database load failed', err);
+    db = emptyDb();
+    dbReady = false;
+    readOnly = true;
+    loadError = err && err.message ? err.message : 'database_failed';
+  }
+  renderPage();
+}
+
+initKormosuchiPage();

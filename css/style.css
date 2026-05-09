@@ -144,7 +144,8 @@ body {
   margin: 0 auto;
   z-index: 100;
   display: flex;
-  align-items: center;
+  /* stretch: সব কলাম এক উচ্চতায় → আইকন এক সোজা সারিতে (কেন্দ্রীয় align জিগজ্যাগ করে) */
+  align-items: stretch;
   justify-content: flex-start;
   gap: 4px;
   box-sizing: border-box;
@@ -174,6 +175,7 @@ body {
   background: transparent;
   border-radius: 14px;
   color: var(--ink3);
+  text-decoration: none;
   font-family: 'Tiro Bangla', serif;
   font-size: 10px;
   font-weight: 600;
@@ -245,6 +247,11 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-top: auto;
+}
+.bottom-nav a.nav-item {
+  text-decoration: none;
+  color: inherit;
 }
 /* ── PANELS ── */
 .panel { display: none; }

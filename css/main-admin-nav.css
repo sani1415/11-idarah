@@ -100,6 +100,26 @@
   display: none;
 }
 
+/* ── স্লাইডিং পিল ইন্ডিকেটর ── */
+.main-nav-pill {
+  position: absolute;
+  border-radius: 14px;
+  background: rgba(232, 184, 75, 0.22);
+  pointer-events: none;
+  z-index: 0;
+}
+.main-nav.pill-active .main-nav-pill {
+  transition:
+    left   0.22s cubic-bezier(.4, 0, .2, 1),
+    width  0.22s cubic-bezier(.4, 0, .2, 1),
+    top    0.22s cubic-bezier(.4, 0, .2, 1),
+    height 0.22s cubic-bezier(.4, 0, .2, 1);
+}
+/* pill চালু হলে is-active-এর static background সরাও */
+.main-nav.pill-active .main-nav-btn.is-active {
+  background: transparent;
+}
+
 /* ══ Desktop (≥ 960px) — wider admin nav pill ══ */
 @media (min-width: 960px) {
   .main-nav,

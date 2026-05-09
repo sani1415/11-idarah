@@ -332,6 +332,62 @@ const MMSharedAPI = (() => {
         p_name: name,
       });
     },
+    programsBootstrap(actorId, pin) {
+      return rpc('mdr_rel_programs_bootstrap', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+      });
+    },
+    upsertProgram(actorId, pin, program) {
+      return rpc('mdr_rel_program_upsert', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_program: program || {},
+      });
+    },
+    deleteProgram(actorId, pin, programId) {
+      return rpc('mdr_rel_program_delete', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_program_id: programId,
+      });
+    },
+    upsertProgramIncome(actorId, pin, entry) {
+      return rpc('mdr_rel_program_upsert_income', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_entry: entry || {},
+      });
+    },
+    upsertProgramExpense(actorId, pin, entry) {
+      return rpc('mdr_rel_program_upsert_expense', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_entry: entry || {},
+      });
+    },
+    deleteProgramEntry(actorId, pin, type, id) {
+      return rpc('mdr_rel_program_delete_entry', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_type: type,
+        p_id: id,
+      });
+    },
+    addProgramExpenseAttachment(actorId, pin, attachment) {
+      return rpc('mdr_rel_program_add_expense_attachment', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_attachment: attachment || {},
+      });
+    },
+    deleteProgramExpenseAttachment(actorId, pin, attachmentId) {
+      return rpc('mdr_rel_program_delete_expense_attachment', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_attachment_id: attachmentId,
+      });
+    },
     saveExam(actorId, pin, name, type, subjects, paperName, paperData) {
       return rpc('mdr_rel_save_exam', {
         p_actor_id: actorId,

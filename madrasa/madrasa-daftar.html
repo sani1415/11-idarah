@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>দফতর — মাদরাসাতুল মদীনা</title>
+<script>
+  if (location.hash === '#fees' || location.hash === '#accounts') {
+    document.documentElement.classList.add('route-accounts');
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
@@ -353,6 +358,33 @@ body.page-daftar .form-label { font-size: 12px; margin-bottom: 3px; }
 body.page-daftar .form-input { padding: 9px 11px; font-size: 14px; }
 body.page-daftar .form-select { padding: 9px 28px 9px 10px; }
 body.page-daftar .add-btn { padding: 11px 14px; font-size: 14px; margin-bottom: 8px; }
+html.route-accounts body.page-daftar #panel-home { display: none; }
+html.route-accounts body.page-daftar #panel-fees { display: block; }
+/* হিসাব প্যানেলের ভেতরে নিয়মিত হিসাব ↔ কর্মসূচি সুইচ */
+.acc-subtab-bar {
+  display: flex; gap: 6px;
+  padding: 10px 12px 6px;
+  position: sticky; top: 0; z-index: 10;
+  background: var(--cream);
+  border-bottom: 1px solid var(--cream2);
+}
+.acc-subtab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 8px 6px;
+  border: 1px solid var(--cream3);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  font-family: 'Tiro Bangla', serif;
+  font-size: 12px; font-weight: 700;
+  color: var(--ink3); cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.acc-subtab.active {
+  background: var(--gold-light);
+  color: var(--ink2);
+  border-color: rgba(201,149,42,.3);
+}
+.acc-subtab:active { opacity: .8; }
 /* .bottom-nav — ../css/style.css (পেজ ওভাররাইড নেই; নিচে সটিক + একই উচ্চতা) */
 body.page-daftar .card-static { padding: 10px 12px; }
 body.page-daftar .att-card .empty-state { padding: 18px 8px; }
@@ -800,39 +832,26 @@ body.page-daftar #modal-account-entry .modal {
 
   <!-- ACCOUNTS PANEL -->
   <div class="panel" id="panel-fees">
+    <!-- হিসাব ↔ কর্মসূচি সুইচ -->
+    <div class="acc-subtab-bar">
+      <button class="acc-subtab active" id="subtab-regular" onclick="showAccRegular()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9.5c0-1.38 1.12-2.5 3-2.5s3 .9 3 2c0 1.4-1.5 2-3 2.5v.5"/><circle cx="12" cy="16" r=".5" fill="currentColor"/></svg>
+        নিয়মিত হিসাব
+      </button>
+      <button class="acc-subtab" id="subtab-program" onclick="goAccProgram()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        কর্মসূচি
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity:.6"><path d="M7 17L17 7M17 7H9M17 7v8"/></svg>
+      </button>
+    </div>
     <div id="accounts-root"></div>
     <div class="pb-safe"></div>
   </div>
 
 </div>
 
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav" aria-label="নিচের নেভিগেশন">
-  <div class="nav-item" onclick="location.href='madrasa-home.html'">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="nav-label">মাদ্রাসা</span>
-  </div>
-  <div class="nav-item active" id="nav-madrasa" onclick="switchMadrasaTab('home')">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="nav-label">হাজিরা</span>
-  </div>
-  <div class="nav-item" id="nav-fees" onclick="switchPanel('fees');renderAccounts()">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="nav-label">হিসাব</span>
-  </div>
-  <div class="nav-item" onclick="location.href='madrasa-kormosuchi.html'">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-    <span class="nav-label">কর্মসূচি</span>
-  </div>
-  <div class="nav-item" onclick="location.href='madrasa-yearend.html'">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="nav-label">বর্ষ</span>
-  </div>
-  <div class="nav-item" onclick="location.href='../chat.html'">
-    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="nav-label">বার্তা</span>
-  </div>
-</nav>
+<!-- BOTTOM NAV (শেয়ার্ড: js/daftar-bottom-nav.js) -->
+<nav class="bottom-nav" id="daftar-nav-root" aria-label="নিচের নেভিগেশন"></nav>
 
 <!-- FEES MODAL -->
 <div class="modal-bg" id="modal-add-fees">
@@ -944,6 +963,7 @@ body.page-daftar #modal-account-entry .modal {
 <script src="../js/madrasa-accounts-reports.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/daftar-bottom-nav.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script>
   if (!MMSession.requireStaffRoleOrAdminPerm('daftar', 'daftar', '../main-admin-madrasa.html')) { throw new Error('daftar permission denied'); }
@@ -1593,6 +1613,7 @@ body.page-daftar #modal-account-entry .modal {
 
   /* ── PANEL ── */
   function switchPanel(name) {
+    document.documentElement.classList.remove('route-accounts');
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + name).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -1605,7 +1626,36 @@ body.page-daftar #modal-account-entry .modal {
     if (name === 'students') renderStudentList();
     window.scrollTo(0, 0);
   }
-  function switchMadrasaTab(name) { switchPanel(name || 'home'); }
+  function switchMadrasaTab(name) {
+    switchPanel(name || 'home');
+    if (!name || name === 'home') {
+      updateHero();
+      renderAttendance();
+    }
+  }
+
+  function setDaftarHash(hash) {
+    if (!window.history || !history.replaceState) return;
+    history.replaceState(null, '', location.pathname + location.search + (hash || ''));
+  }
+
+  function goDaftarAccounts() {
+    setDaftarHash('#accounts');
+    switchPanel('fees');
+    renderAccounts();
+  }
+
+  function goAccProgram() {
+    setDaftarHash('#accounts');
+    location.href = 'madrasa-kormosuchi.html';
+  }
+
+  /* হিসাব সাব-ট্যাব: নিয়মিত হিসাব বাটন */
+  function showAccRegular() {
+    document.getElementById('subtab-regular').classList.add('active');
+    document.getElementById('subtab-program').classList.remove('active');
+    /* ইতিমধ্যে এখানে আছি, কিছু করতে হবে না */
+  }
 
   /* ── UTILS ── */
   function openModal(id)  { if (mmMutationBlocked(showToast)) return; document.getElementById('modal-' + id).classList.add('open'); }
@@ -1872,6 +1922,14 @@ body.page-daftar #modal-account-entry .modal {
 
   /* ── INIT ── */
   async function initDaftarPage() {
+    var initialHash = location.hash || '';
+    var wantsAccounts = initialHash === '#fees' || initialHash === '#accounts';
+    var navRoot = document.getElementById('daftar-nav-root');
+    if (window.MMDaftarBottomNav && navRoot) {
+      var acc0 = wantsAccounts ? 'accounts' : 'daftar';
+      MMDaftarBottomNav.mount(navRoot, { active: acc0, spaDaftar: true, pathPrefix: '' });
+    }
+    if (wantsAccounts) switchPanel('fees');
     if (window.MDRDaftarSupabase && window.MMSharedAPI) {
       try {
         await MDRDaftarSupabase.sync();
@@ -1890,18 +1948,17 @@ body.page-daftar #modal-account-entry .modal {
     populateClassFilter();
     populateStudentListFilter();
     populateAddForm();
-    updateHero();
-    renderAttendance();
     const navType = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0] && performance.getEntriesByType('navigation')[0].type) || '';
-    if (navType === 'reload') {
+    if (wantsAccounts) {
+      renderAccounts();
+    } else if (navType === 'reload') {
       if (location.hash) history.replaceState(null, '', location.pathname + location.search);
       switchPanel('home');
-    } else if (location.hash === '#fees' || location.hash === '#accounts') {
-      switchPanel('fees');
-      renderAccounts();
     } else if (location.hash === '#students') {
       location.replace('madrasa-home.html#students');
     }
+    updateHero();
+    renderAttendance();
   }
   async function saveOwnPin(){
     var c=document.getElementById('pc-cur').value,n=document.getElementById('pc-new').value,f=document.getElementById('pc-conf').value,e=document.getElementById('pc-err');
