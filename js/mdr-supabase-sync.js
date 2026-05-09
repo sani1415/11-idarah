@@ -189,6 +189,77 @@
     }, logs);
   }
 
+  function toLocalClass(row) {
+    var localId = CLASS_CODE_TO_LOCAL_ID[row.code] || row.code || row.id || '';
+    return {
+      id: String(localId),
+      name: row.name || '',
+      dept: row.division_code === 'maktab' ? 'maktab' : 'kitab',
+      roll_prefix: row.roll_prefix || '',
+      sort_order: row.sort_order || 999,
+      active: true,
+    };
+  }
+
+  function upsertLocalClasses(rows) {
+    if (!global.API || !API.Classes) return;
+    (rows || []).map(toLocalClass).filter(function (c) { return c.id; }).forEach(function (c) {
+      if (API.Classes.getById && API.Classes.getById(c.id)) API.Classes.update(c.id, c);
+      else if (API.Classes.add) API.Classes.add(c);
+    });
+  }
+
+  function syncBookRows(res) {
+    var classIds = {};
+    (res.classes || []).forEach(function (c) {
+      var localId = CLASS_CODE_TO_LOCAL_ID[c.code] || c.code || c.id || '';
+      if (localId) classIds[String(localId)] = true;
+    });
+    (res.books || []).forEach(function (b) {
+      var localId = CLASS_CODE_TO_LOCAL_ID[b.class_code] || b.class_code || '';
+      if (localId) classIds[String(localId)] = true;
+    });
+
+    var books = (res.books || []).map(function (b) {
+      return {
+        id: String(b.id || ''),
+        name: b.name || '',
+        class_id: CLASS_CODE_TO_LOCAL_ID[b.class_code] || b.class_code || '',
+        total_pages: b.total_pages,
+        sort_order: b.sort_order || 0,
+      };
+    }).filter(function (b) { return b.id && b.class_id; });
+    mergeScopedArray('mm_kitabs', function (b) { return !!classIds[String(b.class_id || '')]; }, books);
+
+    var progress = [];
+    (res.books || []).forEach(function (b) {
+      var classId = CLASS_CODE_TO_LOCAL_ID[b.class_code] || b.class_code || '';
+      if (!b.id || !classId || b.pages_done == null) return;
+      progress.push({
+        id: String(b.id) + '_current',
+        kitab_id: String(b.id),
+        class_id: classId,
+        date: String(b.updated_at || '').slice(0, 10) || API.today(),
+        pages_done: Number(b.pages_done) || 0,
+        note: b.notes || '',
+      });
+    });
+    (res.book_progress_history || []).forEach(function (h) {
+      var classId = CLASS_CODE_TO_LOCAL_ID[h.class_code] || h.class_code || '';
+      if (!h.id || !h.book_id || !classId) return;
+      progress.push({
+        id: String(h.id || ''),
+        kitab_id: String(h.book_id || ''),
+        class_id: classId,
+        date: String(h.date || '').slice(0, 10) || API.today(),
+        pages_done: Number(h.pages_done) || 0,
+        note: h.note || '',
+        by: h.by || '',
+      });
+    });
+    mergeScopedArray('mm_kitab_progress', function (p) { return !!classIds[String(p.class_id || '')]; }, progress);
+  }
+
   async function syncAdminStudents() {
     if (!global.MMSession || !global.MMMadrasaAPI || !global.API) return false;
     var pin = MMSession.getAdminPin && MMSession.getAdminPin();
@@ -224,6 +295,18 @@
     return true;
   }
 
+  async function syncAdminDars() {
+    if (!global.MMSession || !global.MMSharedAPI || !global.API) return false;
+    var pin = MMSession.getAdminPin && MMSession.getAdminPin();
+    if (!pin || !MMSharedAPI.adminDarsBootstrap) return false;
+    var actorId = MMSession.getAdminUserId && MMSession.getAdminUserId();
+    var res = await MMSharedAPI.adminDarsBootstrap(actorId || null, pin);
+    if (!res || !res.ok) return false;
+    upsertLocalClasses(res.classes || []);
+    syncBookRows(res);
+    return true;
+  }
+
   async function syncTeacherClass() {
     if (!global.MMSession || !global.MMSharedAPI || !global.API) return false;
     var actorId = MMSession.getStaffUserId && MMSession.getStaffUserId();
@@ -252,6 +335,7 @@
   global.MDRSupabaseSync = {
     syncAdminStudents: syncAdminStudents,
     syncAdminUsers: syncAdminUsers,
+    syncAdminDars: syncAdminDars,
     syncTeacherClass: syncTeacherClass,
     syncAlumni: syncAlumni,
     syncTeacherExtras: syncTeacherExtras,

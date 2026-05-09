@@ -362,12 +362,16 @@ body {
 /* ── MODAL ── */
 .modal-bg {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-  z-index: 200; display: none; align-items: flex-end;
+  z-index: 200; display: none; align-items: center; justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
 }
 .modal-bg.open { display: flex; }
 .modal {
-  background: var(--cream); border-radius: 20px 20px 0 0;
-  padding: 24px 18px 36px; width: 100%; max-height: 88vh; overflow-y: auto;
+  background: var(--cream); border-radius: var(--radius);
+  padding: 22px 18px 24px; width: min(100%, 520px); max-height: calc(100vh - 32px); overflow-y: auto;
+  box-sizing: border-box;
+  box-shadow: 0 18px 48px rgba(26, 18, 8, .22);
 }
 .modal-title {
   font-family: 'Tiro Bangla', serif; font-size: 17px; font-weight: 700;

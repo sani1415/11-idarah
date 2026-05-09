@@ -102,9 +102,14 @@
   </a>
 </nav>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
+<script src="../api-mdr.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mdr-supabase-sync.js"></script>
 <script>
   if (!MMSession.requireAdminPerm('dars', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
@@ -266,7 +271,20 @@
   function closeHistoryModal() {
     document.getElementById('modal-dars-history').classList.remove('open');
   }
-  setDept(dept);
+  async function initDarsPage() {
+    const el = document.getElementById('dars-detail');
+    if (el) el.innerHTML = '<div class="dars-empty">দরস তালিকা লোড হচ্ছে...</div>';
+    if (window.MDRSupabaseSync && MMSession.getAdminPin && MMSession.getAdminPin()) {
+      try {
+        await MDRSupabaseSync.syncAdminDars();
+      } catch (e) {
+        console.warn('admin dars sync failed', e);
+      }
+    }
+    setDept(dept);
+  }
+
+  initDarsPage();
 </script>
 </body>
 </html>

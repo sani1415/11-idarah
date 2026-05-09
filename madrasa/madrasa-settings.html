@@ -317,6 +317,10 @@
       <input class="form-input" id="adm-name" placeholder="সহকারী জিম্মাদারের নাম">
     </div>
     <div class="form-group">
+      <label class="form-label">লগইন আইডি</label>
+      <input class="form-input" id="adm-login-id" placeholder="যেমন: asst1" autocomplete="off">
+    </div>
+    <div class="form-group">
       <label class="form-label">পিন (৪ সংখ্যা)</label>
       <input class="form-input" id="adm-pin" type="password" maxlength="4" placeholder="যেমন: 1234" inputmode="numeric">
     </div>
@@ -406,6 +410,7 @@
   }, {});
   const LOCAL_ROLE_TO_SUPA = {
     teacher: 'madrasa_teacher',
+    restricted_admin: 'restricted_admin',
     daftar: 'daftar',
     hifz: 'hifz',
     library: 'library',
@@ -414,6 +419,7 @@
   };
   const SUPA_ROLE_TO_LOCAL = {
     madrasa_teacher: 'teacher',
+    restricted_admin: 'restricted_admin',
     daftar: 'daftar',
     hifz: 'hifz',
     library: 'library',
@@ -434,6 +440,7 @@
       class_code: u.class_code || '',
       pin: u.pin || '',
       role: SUPA_ROLE_TO_LOCAL[u.role] || u.role,
+      admin_perms: u.admin_perms || {},
       is_active: u.is_active !== false,
     };
   }
@@ -675,14 +682,22 @@
     const menuNames = Object.keys(p.permissions).filter(k => p.permissions[k]).map(k => menuLabels[k] || k).join(', ') || 'কোনো মেনু নয়';
     return `${deptNames} · ${menuNames}`;
   }
-  function renderAdmins() {
-    const admins = API.Teachers.getAll().filter(t => t.role === 'restricted_admin');
+  async function renderAdmins() {
+    if (hasSupabaseAdminSession() && supabaseUsers === null) {
+      document.getElementById('admin-list').innerHTML = '<div style="font-size:13px;color:var(--ink3);">তালিকা লোড হচ্ছে...</div>';
+      try {
+        await loadSupabaseUsers(true);
+      } catch (e) {
+        showToast('Supabase user তালিকা লোড হয়নি');
+      }
+    }
+    const admins = currentUserList().filter(t => t.role === 'restricted_admin');
     document.getElementById('admin-list').innerHTML = admins.map(a => `
       <div class="perm-card">
         <div class="perm-ico">🛡️</div>
         <div class="perm-meta">
           <div class="perm-name">${API.esc(a.name)}</div>
-          <div class="perm-sub">${API.esc(adminPermSummary(a.admin_perms))}</div>
+          <div class="perm-sub">আইডি: ${API.esc(a.login_id || '—')} · ${API.esc(adminPermSummary(a.admin_perms))}</div>
         </div>
         <span class="pin-display">পিন: ${API.esc(a.pin || '—')}</span>
         <div class="perm-actions">
@@ -707,25 +722,55 @@
   }
   function openAdminModal(id) {
     editingAdminId = id;
-    const user = id ? API.Teachers.getById(id) : null;
+    const user = id ? getManagedUser(id) : null;
     document.getElementById('adm-name').value = user ? (user.name || '') : '';
+    document.getElementById('adm-login-id').value = user ? (user.login_id || '') : '';
     document.getElementById('adm-pin').value = user ? (user.pin || '') : '';
     setAdminPermFields(user ? user.admin_perms : defaultAdminPerms());
     openModal('admin-user');
   }
-  function saveAdminUser() {
+  async function saveAdminUser() {
     const name = document.getElementById('adm-name').value.trim();
+    const login_id = document.getElementById('adm-login-id').value.trim();
     const pin = document.getElementById('adm-pin').value.trim();
     const perms = readAdminPermFields();
     if (!name) { showToast('নাম দিন'); return; }
+    if (!login_id) { showToast('লগইন আইডি দিন'); return; }
     if (pin.length !== 4) { showToast('৪ সংখ্যার পিন দিন'); return; }
     if (!perms.scope.madrasa_depts.length) { showToast('কমপক্ষে একটি বিভাগ দিন'); return; }
     if (!Object.keys(perms.permissions).some(k => perms.permissions[k])) { showToast('কমপক্ষে একটি মেনু দিন'); return; }
-    const data = { name, pin, role:'restricted_admin', class_id:null, admin_perms:perms, is_active:true };
-    if (editingAdminId) API.Teachers.update(editingAdminId, data);
-    else API.Teachers.add(data);
+    if (hasSupabaseAdminSession() && supabaseUsers === null) {
+      try {
+        await loadSupabaseUsers(true);
+      } catch (e) {
+        showToast('Supabase user তালিকা লোড হয়নি');
+        return;
+      }
+    }
+    const duplicateLogin = currentUserList().some(t =>
+      t.id !== editingAdminId &&
+      String(t.login_id || '').trim().toLowerCase() === login_id.toLowerCase()
+    );
+    if (duplicateLogin) { showToast('এই লগইন আইডি আগে থেকেই আছে'); return; }
+    if (!hasSupabaseAdminSession()) {
+      showToast('সহকারী জিম্মাদার সংরক্ষণে Supabase সংযোগ লাগবে');
+      return;
+    }
+    const res = await MMSharedAPI.saveMadrasaUser(MMSession.getAdminPin(), {
+      id: editingAdminId || null,
+      name,
+      role: 'restricted_admin',
+      login_id,
+      pin,
+      class_code: null,
+      admin_perms: perms,
+      is_active: true,
+    });
+    if (!res || !res.ok) { showToast(userSaveErrorMessage(res && res.error)); return; }
+    await loadSupabaseUsers(true);
+    editingAdminId = null;
     closeModal('admin-user');
-    showToast('সহকারী জিম্মাদার সংরক্ষণ হয়েছে ✓');
+    showToast('সহকারী জিম্মাদার ডাটাবেজে সংরক্ষণ হয়েছে ✓');
     renderAdmins();
   }
 

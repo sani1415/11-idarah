@@ -6,7 +6,13 @@
       "mcp__claude_ai_Supabase__apply_migration",
       "mcp__claude_ai_Supabase__execute_sql",
       "Bash(python3 -c ' *)",
-      "Bash(node build.js)"
+      "Bash(node build.js)",
+      "Bash(xargs grep -l \"edit.*student\\\\|edit.*hifz\\\\|update.*student\")",
+      "Bash(xargs grep -l \"hifz.*edit\\\\|hifz.*toggle\\\\|hifz.*update\")",
+      "Bash(grep -E \"\\\\.html$\")",
+      "Bash(Get-Content \"d:\\\\programming\\\\11-idarah\\\\madrasa\\\\madrasa-hifz.html\")",
+      "Bash(Measure-Object -Line)",
+      "PowerShell(\\(Get-Content \"d:\\\\programming\\\\11-idarah\\\\madrasa\\\\madrasa-hifz.html\"\\).Count)"
     ]
   }
 }
