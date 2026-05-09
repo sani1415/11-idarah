@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>কর্মসূচি হিসাব — প্রোটোটাইপ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  :root{--prog-gap:10px}
+  body{background:var(--cream,#faf6ef);font-family:'Tiro Bangla',serif;color:var(--ink,#1a1208)}
+  .topbar{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#fffaf0,#f3eadc);border-bottom:1px solid rgba(26,18,8,.07);display:flex;align-items:center;justify-content:space-between;padding:12px 14px;box-shadow:0 3px 16px rgba(26,18,8,.05)}
+  .topbar-role{font-size:11px;color:var(--ink3,#7b6b52);font-weight:700}.topbar-name{font-size:18px;font-weight:800;color:var(--ink2,#2d2415)}
+  .topbar-btn{border:1px solid rgba(26,18,8,.1);background:#fff;border-radius:12px;padding:8px 12px;font-family:inherit;color:var(--ink2);cursor:pointer}
+  .content{max-width:980px;margin:0 auto;padding:12px 12px 90px}.lead{font-size:12px;color:var(--ink3,#7b6b52);line-height:1.65;margin:0 0 12px}
+  .hero{background:#fff;border-radius:22px;padding:14px;box-shadow:0 10px 28px rgba(26,18,8,.07);border:1px solid rgba(26,18,8,.06);margin-bottom:12px}
+  .hero-top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}.hero-title{font-size:19px;font-weight:900;color:var(--ink2)}.hero-sub{font-size:11px;color:var(--ink3);line-height:1.5;margin-top:3px}
+  .pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 9px;background:#fff4d9;color:#8a5a12;font-size:11px;font-weight:800;white-space:nowrap}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.kpi{background:linear-gradient(180deg,#fff,#fffaf2);border:1px solid rgba(26,18,8,.06);border-radius:16px;padding:10px 7px;text-align:center;min-width:0}.kpi span{display:block;color:var(--ink3);font-size:9px;font-weight:800;margin-bottom:4px}.kpi strong{display:block;font-size:16px;line-height:1.2;color:var(--ink2);overflow-wrap:anywhere}.kpi.good strong{color:var(--green,#2d6a4f)}.kpi.bad strong{color:var(--red,#c1440e)}.kpi.warn strong{color:var(--gold,#c9952a)}
+  .layout{display:grid;grid-template-columns:290px 1fr;gap:12px}.side,.main{min-width:0}.card{background:#fff;border-radius:20px;box-shadow:0 8px 22px rgba(26,18,8,.06);border:1px solid rgba(26,18,8,.06);overflow:hidden;margin-bottom:10px}.card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 13px;border-bottom:1px solid rgba(26,18,8,.07);font-weight:900;color:var(--ink2)}.card-body{padding:12px}
+  .program-item{width:100%;border:1px solid rgba(26,18,8,.07);background:#fff;border-radius:16px;padding:10px;text-align:right;font-family:inherit;cursor:pointer;margin-bottom:8px}.program-item.active{background:var(--ink,#1a1208);color:var(--gold2,#f2c86b);border-color:var(--ink)}.program-item .name{font-size:13px;font-weight:900}.program-item .meta{font-size:10px;color:var(--ink3);margin-top:3px}.program-item.active .meta{color:rgba(255,255,255,.66)}
+  .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn{border:0;border-radius:14px;padding:10px 9px;font-family:inherit;font-weight:900;cursor:pointer}.btn.primary{background:var(--ink,#1a1208);color:var(--gold2,#f2c86b)}.btn.good{background:#dcfce7;color:#065f46}.btn.bad{background:#fee2e2;color:#991b1b}.btn.light{background:#fff8e8;color:#7a5118;border:1px solid rgba(154,106,33,.16)}
+  .tabs{display:flex;gap:5px;padding:4px;background:#fff8e8;border-radius:15px;margin-bottom:10px;overflow-x:auto}.tab{border:0;background:transparent;border-radius:12px;padding:8px 10px;font-family:inherit;font-size:12px;font-weight:800;color:var(--ink3);white-space:nowrap;cursor:pointer}.tab.active{background:var(--ink,#1a1208);color:var(--gold2,#f2c86b)}
+  .share-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:10px}.share-box{background:#fff;border:1px solid rgba(26,18,8,.08);border-radius:14px;padding:8px 4px;text-align:center}.share-box.full{background:#dcfce7;border-color:rgba(45,106,79,.25)}.share-box.partial{background:#fff4d9;border-color:rgba(201,149,42,.35)}.share-no{font-size:11px;color:var(--ink3)}.share-val{font-size:13px;font-weight:900;color:var(--ink2);margin-top:2px}
+  .table-wrap{overflow:auto;border-radius:16px;border:1px solid rgba(26,18,8,.07);background:#fff}.tbl{width:100%;min-width:680px;border-collapse:collapse;font-size:12px}.tbl th{background:#faf3e8;color:var(--ink3);font-size:10px;text-align:right;padding:8px;font-weight:900;white-space:nowrap}.tbl td{padding:8px;border-bottom:1px solid rgba(26,18,8,.06);white-space:nowrap}.tbl tr:nth-child(even) td{background:#fffaf2}.tbl tr:last-child td{border-bottom:0}.amt{font-weight:900}.good-t{color:var(--green,#2d6a4f)}.bad-t{color:var(--red,#c1440e)}.warn-t{color:var(--gold,#c9952a)}.small{font-size:10px;color:var(--ink3)}
+  .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.form-group{margin-bottom:8px}.form-label{display:block;font-size:11px;color:var(--ink3);font-weight:900;margin-bottom:4px}.form-input{width:100%;border:1px solid rgba(26,18,8,.14);border-radius:12px;background:#fff;padding:10px 11px;font-family:inherit;font-size:13px;box-sizing:border-box}.form-wide{grid-column:1/-1}
+  .mini-list{display:grid;gap:8px}.mini{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fffaf2;border:1px solid rgba(26,18,8,.06);border-radius:14px;padding:9px 10px}.mini strong{font-size:13px}.mini span{font-size:11px;color:var(--ink3)}
+  .modal-bg{position:fixed;inset:0;background:rgba(26,18,8,.32);z-index:100;display:none;align-items:center;justify-content:center;padding:14px}.modal-bg.open{display:flex}.modal{width:min(560px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:24px;padding:18px;box-shadow:0 24px 70px rgba(26,18,8,.28)}.modal-title{display:flex;align-items:center;justify-content:space-between;font-size:17px;font-weight:900;margin-bottom:12px}.modal-close{border:0;background:rgba(26,18,8,.06);border-radius:50%;width:32px;height:32px;cursor:pointer}
+  .bottom-demo-note{position:fixed;left:12px;right:12px;bottom:10px;max-width:980px;margin:0 auto;background:var(--ink,#1a1208);color:#fff;border-radius:16px;padding:10px 12px;font-size:11px;line-height:1.5;box-shadow:0 10px 32px rgba(26,18,8,.25);z-index:30}.bottom-demo-note b{color:var(--gold2,#f2c86b)}
+  @media(max-width:760px){.layout{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.share-grid{grid-template-columns:repeat(4,1fr)}.form-grid{grid-template-columns:1fr}.content{padding-bottom:120px}.bottom-demo-note{font-size:10px}.side{order:2}.main{order:1}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div><div class="topbar-role">দফতর দায়িত্বশীল</div><div class="topbar-name">কর্মসূচি হিসাব</div></div>
+  <button class="topbar-btn" onclick="history.back()">← ফিরে যান</button>
+</div>
+<div class="content">
+  <p class="lead">এটি একটি প্রোটোটাইপ। এখানে নিয়মিত মাদ্রাসা হিসাবের বাইরে কোরবানি, নির্মাণ, মাহফিল, সফর বা বিশেষ সংগ্রহের আলাদা আয়-ব্যয় রাখা যাবে।</p>
+  <section class="hero">
+    <div class="hero-top">
+      <div><div class="hero-title" id="hero-title">—</div><div class="hero-sub" id="hero-sub">—</div></div>
+      <span class="pill" id="hero-status">চলমান</span>
+    </div>
+    <div class="kpi-grid" id="kpi-grid"></div>
+  </section>
+  <div class="layout">
+    <aside class="side">
+      <div class="card"><div class="card-head">কর্মসূচির তালিকা <button class="btn light" style="padding:7px 9px" onclick="openProgramModal()">+ নতুন</button></div><div class="card-body" id="program-list"></div></div>
+      <div class="card"><div class="card-head">দ্রুত পর্যবেক্ষণ</div><div class="card-body"><div class="mini-list" id="quick-notes"></div></div></div>
+    </aside>
+    <main class="main">
+      <div class="tabs">
+        <button class="tab active" data-tab="overview" onclick="switchTab('overview')">সারাংশ</button>
+        <button class="tab" data-tab="participants" onclick="switchTab('participants')">শরিক/দাতা</button>
+        <button class="tab" data-tab="income" onclick="switchTab('income')">আদায়</button>
+        <button class="tab" data-tab="expense" onclick="switchTab('expense')">ব্যয়</button>
+        <button class="tab" data-tab="report" onclick="switchTab('report')">রিপোর্ট</button>
+      </div>
+      <div id="tab-root"></div>
+    </main>
+  </div>
+</div>
+<div class="bottom-demo-note"><b>ডেমো:</b> এই prototype sample data দিয়ে চলছে। পরে চাইলে এটাকে Supabase/localStorage ডেটার সাথে যুক্ত করে দফতর পেইজের আসল “কর্মসূচি” মেনু বানানো যাবে।</div>
+
+<div class="modal-bg" id="modal-program"><div class="modal"><div class="modal-title">নতুন কর্মসূচি <button class="modal-close" onclick="closeModal('program')">✕</button></div><div class="form-grid"><div class="form-group"><label class="form-label">নাম</label><input id="p-name" class="form-input" value="ছাত্র সফর ১৪৪৭"></div><div class="form-group"><label class="form-label">ধরন</label><select id="p-type" class="form-input"><option>কোরবানি</option><option selected>সফর</option><option>নির্মাণ</option><option>মাহফিল</option><option>বিশেষ সংগ্রহ</option></select></div><div class="form-group"><label class="form-label">লক্ষ্য টাকা</label><input id="p-target" class="form-input" type="number" value="80000"></div><div class="form-group"><label class="form-label">অবস্থা</label><select id="p-status" class="form-input"><option selected>চলমান</option><option>শেষ</option><option>স্থগিত</option></select></div><div class="form-group form-wide"><label class="form-label">বিবরণ</label><input id="p-note" class="form-input" value="বিশেষ কর্মসূচির আয়-ব্যয় আলাদা রাখার নমুনা"></div></div><button class="btn primary" style="width:100%;margin-top:8px" onclick="saveProgram()">প্রোটোটাইপে যোগ করুন</button></div></div>
+<div class="modal-bg" id="modal-participant"><div class="modal"><div class="modal-title">শরিক / দাতা যোগ <button class="modal-close" onclick="closeModal('participant')">✕</button></div><div class="form-grid"><div class="form-group"><label class="form-label">ধরন</label><select id="part-kind" class="form-input"><option>ছাত্র</option><option>সাধারণ মানুষ</option><option>অল্প অংশগ্রহণ</option></select></div><div class="form-group"><label class="form-label">নাম</label><input id="part-name" class="form-input" placeholder="নাম লিখুন"></div><div class="form-group"><label class="form-label">ভাগ</label><input id="part-share" class="form-input" type="number" step="0.25" value="1"></div><div class="form-group"><label class="form-label">ধার্য টাকা</label><input id="part-pledged" class="form-input" type="number" value="17000"></div><div class="form-group"><label class="form-label">জমা</label><input id="part-paid" class="form-input" type="number" value="5000"></div><div class="form-group"><label class="form-label">মোবাইল/রেফারেন্স</label><input id="part-ref" class="form-input" placeholder="ঐচ্ছিক"></div></div><button class="btn good" style="width:100%;margin-top:8px" onclick="saveParticipant()">তালিকায় যোগ করুন</button></div></div>
+<div class="modal-bg" id="modal-expense"><div class="modal"><div class="modal-title">ব্যয় যোগ <button class="modal-close" onclick="closeModal('expense')">✕</button></div><div class="form-grid"><div class="form-group"><label class="form-label">খাত</label><select id="exp-cat" class="form-input"><option>গরু ক্রয়</option><option>পরিবহন</option><option>কসাই / জবাই</option><option>খাদ্য / রক্ষণাবেক্ষণ</option><option>প্যাকেট / বণ্টন</option><option>অন্যান্য</option></select></div><div class="form-group"><label class="form-label">টাকা</label><input id="exp-amount" class="form-input" type="number" value="12000"></div><div class="form-group form-wide"><label class="form-label">বিবরণ</label><input id="exp-note" class="form-input" value="নতুন ব্যয়ের নমুনা"></div></div><button class="btn bad" style="width:100%;margin-top:8px" onclick="saveExpense()">ব্যয় তালিকায় যোগ করুন</button></div></div>
+
+<script>
+const BN='০১২৩৪৫৬৭৮৯';
+function bn(n){return String(n??0).replace(/[0-9]/g,d=>BN[d])}
+function money(n){return '৳'+bn(Number(n||0).toLocaleString('en-US'))}
+let activeId='qurbani';let tab='overview';
+const db={
+  programs:[
+    {id:'qurbani',name:'কোরবানি আয়োজন ১৪৪৭',type:'কোরবানি',status:'চলমান',target:119000,note:'প্রতি ভাগ ১৭,০০০ টাকা। ১টি গরু = ৭ ভাগ। ছাত্র ও সাধারণ মানুষের অংশগ্রহণ একসাথে রাখা হবে।',sharePrice:17000,cowCount:1},
+    {id:'building',name:'ছাদ মেরামত ফান্ড',type:'নির্মাণ',status:'চলমান',target:200000,note:'নির্মাণ/মেরামতের জন্য বিশেষ সংগ্রহ।',sharePrice:0,cowCount:0},
+    {id:'mahfil',name:'বার্ষিক মাহফিল ১৪৪৭',type:'মাহফিল',status:'পরিকল্পনা',target:150000,note:'মাহফিলের অনুদান ও ব্যয় আলাদা রাখার নমুনা।',sharePrice:0,cowCount:0}
+  ],
+  participants:{
+    qurbani:[
+      {kind:'ছাত্র',name:'মুহাম্মদ আবদুল্লাহ',className:'মক্তব ৩য় বর্ষ',share:1,pledged:17000,paid:17000,ref:'ID 47021'},
+      {kind:'ছাত্র',name:'আহমাদ হাসান',className:'কিতাব ১ম বর্ষ',share:1,pledged:17000,paid:10000,ref:'ID 47045'},
+      {kind:'সাধারণ মানুষ',name:'হাজী আবু বকর',className:'বাইরের শরিক',share:2,pledged:34000,paid:34000,ref:'মোবাইল 017xx'},
+      {kind:'সাধারণ মানুষ',name:'মাও. সালমান',className:'বাইরের শরিক',share:1,pledged:17000,paid:5000,ref:'বাকি আছে'},
+      {kind:'অল্প অংশগ্রহণ',name:'সাধারণ অনুদান — ১',className:'নির্দিষ্ট ভাগ নয়',share:0,pledged:3000,paid:3000,ref:'নগদ'},
+      {kind:'অল্প অংশগ্রহণ',name:'ছাত্রদের ছোট অংশ',className:'নির্দিষ্ট ভাগ নয়',share:0,pledged:2500,paid:1500,ref:'বিভিন্ন ছাত্র'}
+    ],
+    building:[{kind:'সাধারণ মানুষ',name:'একজন দাতা',className:'অনুদান',share:0,pledged:25000,paid:15000,ref:'প্রথম কিস্তি'}],
+    mahfil:[{kind:'সাধারণ মানুষ',name:'মাহফিল দাতা',className:'অনুদান',share:0,pledged:10000,paid:10000,ref:'নগদ'}]
+  },
+  expenses:{
+    qurbani:[
+      {cat:'গরু ক্রয়',note:'১টি গরু বুকিং',amount:92000},
+      {cat:'পরিবহন',note:'হাট থেকে আনা',amount:3500},
+      {cat:'খাদ্য / রক্ষণাবেক্ষণ',note:'খড় ও খাবার',amount:2800},
+      {cat:'কসাই / জবাই',note:'জবাই ও কাটাকাটি',amount:7000}
+    ],
+    building:[{cat:'সিমেন্ট',note:'প্রথম চালান',amount:18000},{cat:'মিস্ত্রি',note:'মজুরি অগ্রিম',amount:12000}],
+    mahfil:[{cat:'মাইক',note:'সাউন্ড সিস্টেম অগ্রিম',amount:6000}]
+  }
+};
+function p(){return db.programs.find(x=>x.id===activeId)}
+function parts(){return db.participants[activeId]||(db.participants[activeId]=[])}
+function exps(){return db.expenses[activeId]||(db.expenses[activeId]=[])}
+function totals(){const ps=parts(),es=exps();const pledged=ps.reduce((s,x)=>s+Number(x.pledged||0),0);const paid=ps.reduce((s,x)=>s+Number(x.paid||0),0);const due=pledged-paid;const expense=es.reduce((s,x)=>s+Number(x.amount||0),0);const balance=paid-expense;const shares=ps.reduce((s,x)=>s+Number(x.share||0),0);return{pledged,paid,due,expense,balance,shares}}
+function render(){const pr=p(),t=totals();document.getElementById('hero-title').textContent=pr.name;document.getElementById('hero-sub').textContent=pr.note;document.getElementById('hero-status').textContent=pr.status+' · '+pr.type;document.getElementById('kpi-grid').innerHTML=`<div class="kpi warn"><span>লক্ষ্য</span><strong>${money(pr.target)}</strong></div><div class="kpi good"><span>আদায়</span><strong>${money(t.paid)}</strong></div><div class="kpi bad"><span>ব্যয়</span><strong>${money(t.expense)}</strong></div><div class="kpi ${t.balance>=0?'good':'bad'}"><span>অবশিষ্ট</span><strong>${money(t.balance)}</strong></div>`;renderProgramList();renderQuickNotes();renderTab()}
+function renderProgramList(){document.getElementById('program-list').innerHTML=db.programs.map(x=>{const old=activeId;activeId=x.id;const t=totals();activeId=old;return `<button class="program-item ${x.id===activeId?'active':''}" onclick="activeId='${x.id}';render()"><div class="name">${x.name}</div><div class="meta">${x.type} · আদায় ${money(t.paid)} · ব্যয় ${money(t.expense)}</div></button>`}).join('')}
+function renderQuickNotes(){const pr=p(),t=totals();let notes=[];notes.push(`<div class="mini"><div><strong>আদায়ের হার</strong><br><span>লক্ষ্য অনুযায়ী</span></div><b>${bn(Math.round((t.paid/(pr.target||1))*100))}%</b></div>`);notes.push(`<div class="mini"><div><strong>বাকি</strong><br><span>প্রতিশ্রুতির বিপরীতে</span></div><b class="bad-t">${money(t.due)}</b></div>`);if(pr.type==='কোরবানি')notes.push(`<div class="mini"><div><strong>ভাগ পূরণ</strong><br><span>${bn(pr.cowCount||1)} গরু × ৭ ভাগ</span></div><b>${bn(t.shares)}/${bn((pr.cowCount||1)*7)}</b></div>`);document.getElementById('quick-notes').innerHTML=notes.join('')}
+function switchTab(x){tab=x;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===x));renderTab()}
+function renderTab(){const root=document.getElementById('tab-root');const pr=p(),t=totals();if(tab==='overview'){root.innerHTML=`<div class="card"><div class="card-head">${pr.type==='কোরবানি'?'কোরবানির ভাগ':'কর্মসূচির সারাংশ'} <div class="btn-row" style="width:220px"><button class="btn good" onclick="openParticipantModal()">+ শরিক</button><button class="btn bad" onclick="openExpenseModal()">+ ব্যয়</button></div></div><div class="card-body">${pr.type==='কোরবানি'?shareHtml():''}<div class="kpi-grid"><div class="kpi warn"><span>প্রতিশ্রুতি</span><strong>${money(t.pledged)}</strong></div><div class="kpi good"><span>জমা</span><strong>${money(t.paid)}</strong></div><div class="kpi bad"><span>বাকি</span><strong>${money(t.due)}</strong></div><div class="kpi ${t.balance>=0?'good':'bad'}"><span>নিট অবস্থা</span><strong>${money(t.balance)}</strong></div></div></div></div><div class="card"><div class="card-head">শেষ কয়েকটি এন্ট্রি</div><div class="card-body"><div class="mini-list">${parts().slice(-3).map(x=>`<div class="mini"><div><strong>${x.name}</strong><br><span>${x.kind} · জমা ${money(x.paid)}</span></div><b>${money(x.pledged-x.paid)}</b></div>`).join('')||'<div class="small">এখনো এন্ট্রি নেই</div>'}</div></div></div>`}
+else if(tab==='participants'){root.innerHTML=`<div class="card"><div class="card-head">শরিক / দাতার তালিকা <button class="btn good" onclick="openParticipantModal()">+ যোগ</button></div><div class="card-body"><div class="table-wrap"><table class="tbl"><thead><tr><th>ধরন</th><th>নাম</th><th>বিবরণ</th><th>ভাগ</th><th>ধার্য</th><th>জমা</th><th>বাকি</th></tr></thead><tbody>${parts().map(x=>`<tr><td>${x.kind}</td><td><b>${x.name}</b><div class="small">${x.ref||''}</div></td><td>${x.className}</td><td>${bn(x.share)}</td><td>${money(x.pledged)}</td><td class="good-t amt">${money(x.paid)}</td><td class="bad-t amt">${money(x.pledged-x.paid)}</td></tr>`).join('')}</tbody></table></div></div></div>`}
+else if(tab==='income'){root.innerHTML=`<div class="card"><div class="card-head">আদায় অবস্থা <button class="btn good" onclick="openParticipantModal()">+ নতুন আদায়/শরিক</button></div><div class="card-body"><div class="kpi-grid"><div class="kpi warn"><span>ধার্য</span><strong>${money(t.pledged)}</strong></div><div class="kpi good"><span>জমা</span><strong>${money(t.paid)}</strong></div><div class="kpi bad"><span>বাকি</span><strong>${money(t.due)}</strong></div><div class="kpi"><span>লোক সংখ্যা</span><strong>${bn(parts().length)} জন</strong></div></div>${incomeBreakdown()}</div></div>`}
+else if(tab==='expense'){root.innerHTML=`<div class="card"><div class="card-head">ব্যয় তালিকা <button class="btn bad" onclick="openExpenseModal()">+ ব্যয় যোগ</button></div><div class="card-body"><div class="table-wrap"><table class="tbl"><thead><tr><th>খাত</th><th>বিবরণ</th><th>টাকা</th></tr></thead><tbody>${exps().map(x=>`<tr><td>${x.cat}</td><td>${x.note}</td><td class="bad-t amt">${money(x.amount)}</td></tr>`).join('')}</tbody></table></div></div></div>`}
+else{root.innerHTML=`<div class="card"><div class="card-head">চূড়ান্ত রিপোর্ট</div><div class="card-body"><div class="mini-list"><div class="mini"><div><strong>মোট প্রতিশ্রুতি</strong><br><span>শরিক ও দাতা মিলিয়ে</span></div><b>${money(t.pledged)}</b></div><div class="mini"><div><strong>মোট জমা</strong><br><span>হাতে পাওয়া টাকা</span></div><b class="good-t">${money(t.paid)}</b></div><div class="mini"><div><strong>মোট ব্যয়</strong><br><span>কর্মসূচির খরচ</span></div><b class="bad-t">${money(t.expense)}</b></div><div class="mini"><div><strong>চূড়ান্ত অবশিষ্ট / ঘাটতি</strong><br><span>জমা − ব্যয়</span></div><b class="${t.balance>=0?'good-t':'bad-t'}">${money(t.balance)}</b></div></div></div></div>`}}
+function shareHtml(){const pr=p(),t=totals();let total=(pr.cowCount||1)*7;let boxes='';for(let i=1;i<=total;i++){let cls=i<=Math.floor(t.shares)?'full':(i<=Math.ceil(t.shares)?'partial':'');boxes+=`<div class="share-box ${cls}"><div class="share-no">ভাগ ${bn(i)}</div><div class="share-val">${cls==='full'?'পূর্ণ':cls==='partial'?'আংশিক':'খালি'}</div></div>`}return `<div class="share-grid">${boxes}</div>`}
+function incomeBreakdown(){const groups={};parts().forEach(x=>{groups[x.kind]=(groups[x.kind]||0)+Number(x.paid||0)});return `<div class="mini-list">${Object.keys(groups).map(k=>`<div class="mini"><div><strong>${k}</strong><br><span>আদায়</span></div><b class="good-t">${money(groups[k])}</b></div>`).join('')}</div>`}
+function openModal(n){document.getElementById('modal-'+n).classList.add('open')}function closeModal(n){document.getElementById('modal-'+n).classList.remove('open')}function openProgramModal(){openModal('program')}function openParticipantModal(){openModal('participant')}function openExpenseModal(){openModal('expense')}
+function saveProgram(){const id='p'+Date.now();db.programs.push({id,name:document.getElementById('p-name').value,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,target:Number(document.getElementById('p-target').value||0),note:document.getElementById('p-note').value,sharePrice:0,cowCount:0});db.participants[id]=[];db.expenses[id]=[];activeId=id;closeModal('program');render()}
+function saveParticipant(){parts().push({kind:document.getElementById('part-kind').value,name:document.getElementById('part-name').value||'নতুন শরিক',className:document.getElementById('part-kind').value==='ছাত্র'?'ডেটাবেজ থেকে ছাত্র':'হাতে যোগ করা',share:Number(document.getElementById('part-share').value||0),pledged:Number(document.getElementById('part-pledged').value||0),paid:Number(document.getElementById('part-paid').value||0),ref:document.getElementById('part-ref').value});closeModal('participant');render()}
+function saveExpense(){exps().push({cat:document.getElementById('exp-cat').value,amount:Number(document.getElementById('exp-amount').value||0),note:document.getElementById('exp-note').value});closeModal('expense');render()}
+render();
+</script>
+</body>
+</html>
