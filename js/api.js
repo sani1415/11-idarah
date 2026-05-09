@@ -182,6 +182,7 @@ const API = (() => {
         let out = { ...s };
         if (prev && prev.special_watch && s.special_watch == null) out = { ...out, special_watch: true };
         if (prev && prev.alhamdulillah && s.alhamdulillah == null) out = { ...out, alhamdulillah: true };
+        if (prev && Array.isArray(prev.program_history) && !Array.isArray(s.program_history)) out = { ...out, program_history: prev.program_history };
         return out;
       });
       save(KEYS.students, next);
@@ -682,6 +683,10 @@ const API = (() => {
     },
     update(id, data) {
       const list = load(KEYS.logs).map(l => l.id === id ? { ...l, ...data } : l);
+      save(KEYS.logs, list);
+    },
+    remove(id) {
+      const list = load(KEYS.logs).filter(l => l.id !== id);
       save(KEYS.logs, list);
     },
     getAll: () => load(KEYS.logs).sort((a,b) => b.date.localeCompare(a.date))

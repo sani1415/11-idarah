@@ -68,6 +68,7 @@
 .stt-card { background:#fff; border:1px solid var(--cream2); border-radius:var(--radius-sm); padding:10px; margin-bottom:8px; }
 .add-row { display:flex; gap:8px; margin-top:6px; }
 .add-row .form-input { flex:1; }
+.student-income-picker { display:none; }
 @media(max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.type-config-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -189,7 +190,7 @@
     <div class="form-row">
       <div class="form-group" style="flex:1">
         <label class="form-label">ব্যক্তির ধরন</label>
-        <select class="form-input form-select" id="inc-person-type">
+        <select class="form-input form-select" id="inc-person-type" onchange="syncIncomeStudentField()">
           <option>ছাত্র</option><option>সাধারণ মানুষ</option><option>প্রতিষ্ঠান</option>
         </select>
       </div>
@@ -197,6 +198,10 @@
         <input type="checkbox" id="inc-is-share" onchange="syncIncShareField()">
         <span>হিস্যা হিসেবে</span>
       </label>
+    </div>
+    <div class="form-group student-income-picker" id="inc-student-wrap">
+      <label class="form-label">ছাত্র নির্বাচন করুন <span style="color:var(--red)">*</span></label>
+      <select class="form-input form-select" id="inc-student" onchange="onIncomeStudentChange()"></select>
     </div>
     <div class="form-group" id="inc-share-wrap">
       <label class="form-label">হিস্যা সংখ্যা</label>
@@ -328,6 +333,8 @@
 <script src="../api-shared.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mm-student-modal.js"></script>
+<script src="../js/mdr-daftar-supabase.js"></script>
 <script src="../js/daftar-bottom-nav.js"></script>
 <script src="../js/madrasa-kormosuchi.js"></script>
 <script>

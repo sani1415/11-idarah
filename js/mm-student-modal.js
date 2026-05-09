@@ -320,6 +320,32 @@
         '</div>';
     }
 
+    if (Array.isArray(s.program_history) && s.program_history.length) {
+      var progHist = s.program_history.slice().sort(function (a, b) {
+        return String(b.date || '').localeCompare(String(a.date || ''));
+      });
+      infoBlock +=
+        '<div class="st-block"><h4>কর্মসূচিতে অংশগ্রহণ / অবদান</h4>' +
+        progHist
+          .map(function (h) {
+            return (
+              '<div class="st-logline"><strong>' +
+              API.esc(h.program_name || 'কর্মসূচি') +
+              '</strong> · ' +
+              API.esc(h.type || 'আয়') +
+              ' · ৳' +
+              toBn(Number(h.amount || 0).toLocaleString('en-US')) +
+              (Number(h.share || 0) > 0 ? ' · হিস্যা ' + toBn(h.share) : '') +
+              '<small>' +
+              API.esc(h.date || '') +
+              (h.ref ? ' · ' + API.esc(h.ref) : '') +
+              '</small></div>'
+            );
+          })
+          .join('') +
+        '</div>';
+    }
+
     if (typeof global.mmStudentModalExtraInfo === 'function') {
       try {
         var extra = global.mmStudentModalExtraInfo(sid, s);

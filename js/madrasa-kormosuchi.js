@@ -18,6 +18,7 @@ const RECEIPT_MIMES = [
 ];
 const bn = x => String(x ?? 0).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 const money = x => '৳' + bn(Number(x || 0).toLocaleString('en-US'));
+const jsq = x => String(x ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 const fmtDate = d => {
   if (!d) return '';
   const [y, m, dd] = d.split('-');
@@ -218,6 +219,113 @@ function expenseAttachments(expenseId) {
   return expenseId && db.attachments && Array.isArray(db.attachments[expenseId]) ? db.attachments[expenseId] : [];
 }
 
+function activeStudents() {
+  if (!window.API || !API.Students) return [];
+  return API.Students.getAll().filter(s => s && s.active !== false).sort((a, b) => {
+    const ac = API.Classes.getName(a.class_id) || '';
+    const bc = API.Classes.getName(b.class_id) || '';
+    return ac.localeCompare(bc, 'bn') || String(a.roll || '').localeCompare(String(b.roll || ''), 'bn', { numeric: true }) || String(a.name || '').localeCompare(String(b.name || ''), 'bn');
+  });
+}
+
+function studentByIncome(row) {
+  if (!row || !row.studentId || !window.API || !API.Students) return null;
+  return API.Students.getById(row.studentId) || API.Students.getAll().find(s => s.supabase_id === row.studentId || s.permanent_id === row.studentId) || null;
+}
+
+function studentLabel(s) {
+  if (!s) return '';
+  const cls = API.Classes.getName(s.class_id);
+  return [s.name, s.permanent_id ? 'আইডি ' + s.permanent_id : '', cls || '', s.roll ? 'রোল ' + s.roll : ''].filter(Boolean).join(' · ');
+}
+
+function renderIncomeName(row) {
+  const s = studentByIncome(row);
+  if (!s) return `<b>${API.esc(row.name)}</b>`;
+  return `<button type="button" class="s-name-btn" style="font-size:13px;font-weight:800" onclick="MMStudentModal.open('${jsq(s.id)}')">${API.esc(s.name)}</button>`;
+}
+
+function programNameById(id) {
+  const p = (db.programs || []).find(x => x.id === id);
+  return p ? p.name : '';
+}
+
+function incomeHistoryEntry(row) {
+  const p = program();
+  return {
+    id: row.id,
+    program_id: active,
+    program_name: p ? p.name : '',
+    date: row.date || todayISO(),
+    type: row.type || '',
+    amount: Number(row.amount || 0),
+    share: Number(row.share || 0),
+    ref: row.ref || '',
+  };
+}
+
+function syncStudentProgramHistory(row, prevRow) {
+  if (!window.API || !API.Students || !row) return;
+  const prevSid = prevRow && prevRow.studentId;
+  const nextSid = row.studentId;
+  if (prevSid && prevSid !== nextSid) removeStudentProgramHistory(prevSid, row.id);
+  if (!nextSid) return;
+  const s = API.Students.getById(nextSid);
+  if (!s) return;
+  const history = Array.isArray(s.program_history) ? s.program_history.slice() : [];
+  const entry = incomeHistoryEntry(row);
+  const idx = history.findIndex(x => x && x.id === row.id);
+  if (idx >= 0) history[idx] = entry;
+  else history.push(entry);
+  API.Students.update(nextSid, { program_history: history });
+  addStudentProgramLog(nextSid, entry);
+}
+
+function removeStudentProgramHistory(studentId, incomeId) {
+  const s = window.API && API.Students ? API.Students.getById(studentId) : null;
+  if (s && Array.isArray(s.program_history)) {
+    API.Students.update(studentId, { program_history: s.program_history.filter(x => x && x.id !== incomeId) });
+  }
+  removeStudentProgramLog(studentId, incomeId);
+}
+
+function addStudentProgramLog(studentId, entry) {
+  if (!window.API || !API.Logs || !studentId || !entry) return;
+  const marker = 'কর্মসূচি: ' + (entry.program_name || '—') + ' — ' + money(entry.amount) + ' (' + (entry.type || 'আয়') + ')';
+  const existing = API.Logs.getByStudent(studentId).find(l => l.tag === 'program_income' && l.source_id === entry.id);
+  if (existing) API.Logs.update(existing.id, { text: marker, date: entry.date || todayISO(), by: 'কর্মসূচি হিসাব' });
+  else {
+    const log = API.Logs.add('student', studentId, marker, 'কর্মসূচি হিসাব', 'program_income');
+    API.Logs.update(log.id, { source_id: entry.id, date: entry.date || todayISO() });
+  }
+}
+
+function removeStudentProgramLog(studentId, incomeId) {
+  if (!window.API || !API.Logs || !API.Logs.remove || !studentId || !incomeId) return;
+  API.Logs.getByStudent(studentId)
+    .filter(l => l.tag === 'program_income' && l.source_id === incomeId)
+    .forEach(l => API.Logs.remove(l.id));
+}
+
+function renderProgramHistoryForStudent(sid) {
+  const student = window.API && API.Students ? API.Students.getById(sid) : null;
+  const localIds = new Set(Array.isArray(student && student.program_history) ? student.program_history.map(x => x && x.id).filter(Boolean) : []);
+  const rows = [];
+  (db.programs || []).forEach(p => {
+    (db.income[p.id] || []).forEach(x => {
+      if (x.studentId === sid && !localIds.has(x.id)) rows.push({ ...x, programId: p.id, programName: p.name });
+    });
+  });
+  rows.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  if (!rows.length) return '';
+  return '<div class="st-block"><h4>কর্মসূচিতে অংশগ্রহণ / অবদান</h4>' + rows.map(x => (
+    '<div class="st-logline"><strong>' + API.esc(x.programName || programNameById(x.programId) || 'কর্মসূচি') + '</strong> · ' +
+    API.esc(x.type || 'আয়') + ' · ' + money(x.amount) +
+    (Number(x.share || 0) > 0 ? ' · হিস্যা ' + bn(x.share) : '') +
+    '<small>' + API.esc(x.date || '') + (x.ref ? ' · ' + API.esc(x.ref) : '') + '</small></div>'
+  )).join('') + '</div>';
+}
+
 function findAttachment(id) {
   const buckets = db.attachments || {};
   for (const expenseId of Object.keys(buckets)) {
@@ -312,7 +420,7 @@ function renderIncomeTab() {
       <td style="color:var(--ink3)">${fmtDate(x.date)}</td>
       <td>${API.esc(x.type)}</td>
       <td style="color:var(--ink3)">${API.esc(x.personType || '')}</td>
-      <td><b>${API.esc(x.name)}</b></td>
+      <td>${renderIncomeName(x)}</td>
       <td style="text-align:center">${x.share ? bn(x.share) : '—'}</td>
       <td style="color:var(--green);font-weight:700">${money(x.amount)}</td>
       <td style="color:var(--ink3)">${API.esc(x.ref || '')}</td>
@@ -500,15 +608,50 @@ function openIncome(editId = '') {
   document.getElementById('inc-type').value         = r ? (r.type || types[0]) : types[0];
   document.getElementById('inc-person-type').value  = r ? (r.personType || 'সাধারণ মানুষ') : 'সাধারণ মানুষ';
   document.getElementById('inc-name').value         = r ? (r.name || '') : '';
+  populateIncomeStudentSelect(r ? r.studentId : '');
   document.getElementById('inc-share').value        = r ? (r.share || 1) : 1;
   document.getElementById('inc-is-share').checked   = !!(r && Number(r.share || 0) > 0);
   document.getElementById('inc-amount').value       = r ? (r.amount || '') : '';
   document.getElementById('inc-ref').value          = r ? (r.ref || '') : '';
+  syncIncomeStudentField();
   syncIncShareField();
   openModal('income');
 }
 
 function onIncTypeChange() { syncIncShareField(); }
+
+function isStudentIncomeType() {
+  return document.getElementById('inc-person-type') && document.getElementById('inc-person-type').value === 'ছাত্র';
+}
+
+function populateIncomeStudentSelect(selectedId) {
+  const sel = document.getElementById('inc-student');
+  if (!sel) return;
+  const students = activeStudents();
+  sel.innerHTML = '<option value="">ছাত্র নির্বাচন করুন</option>' + students.map(s =>
+    `<option value="${API.esc(s.id)}"${String(s.id) === String(selectedId || '') ? ' selected' : ''}>${API.esc(studentLabel(s))}</option>`
+  ).join('');
+}
+
+function syncIncomeStudentField() {
+  const wrap = document.getElementById('inc-student-wrap');
+  const name = document.getElementById('inc-name');
+  const on = isStudentIncomeType();
+  if (wrap) wrap.style.display = on ? 'block' : 'none';
+  if (name) {
+    name.readOnly = on;
+    name.placeholder = on ? 'ছাত্র নির্বাচন করলে নাম বসবে' : 'দাতার নাম';
+  }
+  if (on) onIncomeStudentChange();
+}
+
+function onIncomeStudentChange() {
+  const sel = document.getElementById('inc-student');
+  const name = document.getElementById('inc-name');
+  if (!sel || !name || !isStudentIncomeType()) return;
+  const s = API.Students.getById(sel.value);
+  name.value = s ? s.name : '';
+}
 
 function syncIncShareField() {
   const enabled = programHasShares(program());
@@ -522,23 +665,36 @@ function syncIncShareField() {
 
 async function saveIncome() {
   if (writeBlocked()) return;
+  const studentId = isStudentIncomeType() ? document.getElementById('inc-student').value : '';
+  if (isStudentIncomeType() && !studentId) { showToast('ছাত্র নির্বাচন করুন'); return; }
+  if (studentId) onIncomeStudentChange();
   const name   = document.getElementById('inc-name').value.trim();
   const amount = parseFloat(document.getElementById('inc-amount').value);
   if (!name)         { showToast('নাম দিন'); return; }
   if (!(amount > 0)) { showToast('সঠিক টাকার পরিমাণ দিন'); return; }
   const isShare = programHasShares(program()) && document.getElementById('inc-is-share').checked;
+  const editId = document.getElementById('inc-edit-id').value;
+  const prevRow = editId ? incomes().find(x => x.id === editId) : null;
+  const student = studentId ? API.Students.getById(studentId) : null;
   const row = {
-    id:         document.getElementById('inc-edit-id').value || uid(),
+    id:         editId || uid(),
     date:       document.getElementById('inc-date').value || todayISO(),
     type:       document.getElementById('inc-type').value,
     personType: document.getElementById('inc-person-type').value,
     name,
+    studentId:  student ? student.id : '',
+    studentPermanentId: student ? (student.permanent_id || '') : '',
+    studentClassId: student ? (student.class_id || '') : '',
     share:  isShare ? (parseFloat(document.getElementById('inc-share').value) || 1) : 0,
     amount,
     ref:    document.getElementById('inc-ref').value.trim(),
   };
   const res = await saveRemote(a => MMSharedAPI.upsertProgramIncome(a.id, a.pin, { ...row, programId: active }), 'আয় সংরক্ষিত হয়েছে ✓');
-  if (res) { closeModal('income'); setTab('income'); }
+  if (res) {
+    syncStudentProgramHistory(row, prevRow);
+    closeModal('income');
+    setTab('income');
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -592,8 +748,13 @@ async function saveExpense() {
 /* ── DELETE (confirm modal) ── */
 function askDel(kind, id) {
   if (writeBlocked()) return;
+  const prevIncome = kind === 'income' ? incomes().find(x => x.id === id) : null;
   showConfirm('এই এন্ট্রি মুছে ফেলবেন?', () => {
-    return saveRemote(a => MMSharedAPI.deleteProgramEntry(a.id, a.pin, kind, id), 'মুছে গেছে');
+    return saveRemote(a => MMSharedAPI.deleteProgramEntry(a.id, a.pin, kind, id), 'মুছে গেছে')
+      .then(res => {
+        if (res && prevIncome && prevIncome.studentId) removeStudentProgramHistory(prevIncome.studentId, prevIncome.id);
+        return res;
+      });
   });
 }
 
@@ -855,6 +1016,9 @@ function confirmYes() {
 
 /* ── INIT ── */
 async function initKormosuchiPage() {
+  if (window.MDRDaftarSupabase && MDRDaftarSupabase.sync) {
+    try { await MDRDaftarSupabase.sync(); } catch (err) { console.warn('[kormosuchi] student sync failed', err); }
+  }
   try {
     await dbLoad();
   } catch (err) {
@@ -866,5 +1030,15 @@ async function initKormosuchiPage() {
   }
   renderPage();
 }
+
+const previousStudentExtraInfo = window.mmStudentModalExtraInfo;
+window.mmStudentModalExtraInfo = function (sid, student) {
+  let html = '';
+  if (typeof previousStudentExtraInfo === 'function') {
+    try { html += previousStudentExtraInfo(sid, student) || ''; } catch (err) { console.warn('previous student extra info failed', err); }
+  }
+  html += renderProgramHistoryForStudent(sid);
+  return html;
+};
 
 initKormosuchiPage();
