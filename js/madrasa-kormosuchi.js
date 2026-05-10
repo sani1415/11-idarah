@@ -625,12 +625,46 @@ function isStudentIncomeType() {
 }
 
 function populateIncomeStudentSelect(selectedId) {
-  const sel = document.getElementById('inc-student');
-  if (!sel) return;
+  const input = document.getElementById('inc-student');
+  const hidden = document.getElementById('inc-student-id');
+  const list = document.getElementById('inc-student-list');
+  if (!input || !list) return;
   const students = activeStudents();
-  sel.innerHTML = '<option value="">ছাত্র নির্বাচন করুন</option>' + students.map(s =>
-    `<option value="${API.esc(s.id)}"${String(s.id) === String(selectedId || '') ? ' selected' : ''}>${API.esc(studentLabel(s))}</option>`
+  list.innerHTML = students.map(s =>
+    `<option value="${API.esc(studentLabel(s))}"></option>`
   ).join('');
+  const selected = selectedId ? findIncomeStudentById(selectedId, students) : null;
+  input.value = selected ? studentLabel(selected) : '';
+  if (hidden) hidden.value = selected ? selected.id : '';
+}
+
+function findIncomeStudentById(id, list) {
+  const students = list || activeStudents();
+  return students.find(s =>
+    String(s.id) === String(id) ||
+    String(s.supabase_id || '') === String(id) ||
+    String(s.permanent_id || '') === String(id)
+  ) || null;
+}
+
+function findIncomeStudentByPickerValue(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  const students = activeStudents();
+  const lowered = raw.toLowerCase();
+  return findIncomeStudentById(raw, students) ||
+    students.find(s => studentLabel(s) === raw) ||
+    students.find(s => studentLabel(s).toLowerCase() === lowered) ||
+    students.find(s => String(s.name || '').trim().toLowerCase() === lowered) ||
+    null;
+}
+
+function selectedIncomeStudentId() {
+  const hidden = document.getElementById('inc-student-id');
+  if (hidden && hidden.value) return hidden.value;
+  const input = document.getElementById('inc-student');
+  const s = input ? findIncomeStudentByPickerValue(input.value) : null;
+  return s ? s.id : '';
 }
 
 function syncIncomeStudentField() {
@@ -646,10 +680,12 @@ function syncIncomeStudentField() {
 }
 
 function onIncomeStudentChange() {
-  const sel = document.getElementById('inc-student');
+  const input = document.getElementById('inc-student');
+  const hidden = document.getElementById('inc-student-id');
   const name = document.getElementById('inc-name');
-  if (!sel || !name || !isStudentIncomeType()) return;
-  const s = API.Students.getById(sel.value);
+  if (!input || !name || !isStudentIncomeType()) return;
+  const s = findIncomeStudentByPickerValue(input.value);
+  if (hidden) hidden.value = s ? s.id : '';
   name.value = s ? s.name : '';
 }
 
@@ -665,8 +701,8 @@ function syncIncShareField() {
 
 async function saveIncome() {
   if (writeBlocked()) return;
-  const studentId = isStudentIncomeType() ? document.getElementById('inc-student').value : '';
-  if (isStudentIncomeType() && !studentId) { showToast('ছাত্র নির্বাচন করুন'); return; }
+  const studentId = isStudentIncomeType() ? selectedIncomeStudentId() : '';
+  if (isStudentIncomeType() && !studentId) { showToast('তালিকা থেকে ছাত্র নির্বাচন করুন'); return; }
   if (studentId) onIncomeStudentChange();
   const name   = document.getElementById('inc-name').value.trim();
   const amount = parseFloat(document.getElementById('inc-amount').value);
