@@ -42,9 +42,9 @@
 </div>
 
 <div class="content">
-  <div class="panel active">
+  <div class="panel active" id="panel-home">
 
-    <div style="background:linear-gradient(135deg,#6c3483,#8e44ad);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
+    <div style="background:linear-gradient(135deg,#1a6b3c,#27ae60);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
       <div style="font-size:13px;opacity:.6;margin-bottom:10px;">হিফজ বিভাগ · সামগ্রিক</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
         <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="total-hifz">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">হাফেজ ছাত্র</div></div>
@@ -53,16 +53,24 @@
       </div>
     </div>
 
-    <button class="add-btn" style="background:var(--purple);" onclick="openModal('add-group')">＋ নতুন ফরিক তৈরি করুন</button>
+    <button class="add-btn" style="background:var(--green);" onclick="openModal('add-group')">＋ নতুন ফরিক তৈরি করুন</button>
     <div class="sec-header"><span class="sec-title">সক্রিয় ফরিকসমূহ</span></div>
     <div id="group-list"></div>
+    <div class="pb-safe"></div>
+  </div>
+  <div class="panel" id="panel-log" style="display:none;">
+    <div class="sec-header"><span class="sec-title">সব লগ</span></div>
+    <div id="log-list"></div>
     <div class="pb-safe"></div>
   </div>
 </div>
 
 <nav class="bottom-nav" aria-label="নিচের নেভিগেশন">
-  <div class="nav-item active">
+  <div class="nav-item active" id="nav-home" onclick="switchPanel('home')">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">হোম</span>
+  </div>
+  <div class="nav-item" id="nav-log" onclick="switchPanel('log')">
+    <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">লগ</span>
   </div>
   <div class="nav-item" onclick="location.href='../chat.html'">
     <span class="nav-icon" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-label">বার্তা</span>
@@ -74,9 +82,10 @@
   <div class="modal">
     <div class="modal-title">নতুন ফরিক <button class="modal-close" onclick="closeModal('add-group')">✕</button></div>
     <div class="form-group"><label class="form-label">ফরিকের নাম</label><input class="form-input" id="grp-name" placeholder="যেমন: ফরিক আলিফ"></div>
+    <div class="form-group"><label class="form-label">দায়িত্বশীল</label><input class="form-input" id="grp-teacher" placeholder="দায়িত্বশীলের নাম"></div>
     <div class="form-group"><label class="form-label">শুরুর তারিখ</label><input class="form-input" id="grp-start" type="date"></div>
     <div class="form-group"><label class="form-label">মন্তব্য</label><input class="form-input" id="grp-note" placeholder="যেকোনো তথ্য"></div>
-    <button class="submit-btn" style="background:var(--purple);" onclick="addGroup()">ফরিক তৈরি করুন</button>
+    <button class="submit-btn" style="background:var(--green);" onclick="addGroup()">ফরিক তৈরি করুন</button>
   </div>
 </div>
 
@@ -87,12 +96,8 @@
       <div class="form-group"><label class="form-label">সম্পন্ন পারা</label><input class="form-input" id="upd-para" type="number" min="0" max="30" placeholder="০–৩০"></div>
       <div class="form-group"><label class="form-label">চলমান পারা নম্বর</label><input class="form-input" id="upd-current" type="number" min="1" max="30" placeholder="১–৩০"></div>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">মুরাজাআ পারা</label><input class="form-input" id="upd-revision" type="number" min="0" max="30" placeholder="০–৩০"></div>
-      <div class="form-group"><label class="form-label">সম্পন্ন সূরা</label><input class="form-input" id="upd-surah" type="number" min="0" max="114" placeholder="০–১১৪"></div>
-    </div>
     <div class="form-group"><label class="form-label">আজকের পর্যবেক্ষণ</label><textarea class="form-input form-textarea" id="upd-note" placeholder="আজ কী পড়ানো হলো, কার অবস্থা কেমন..."></textarea></div>
-    <button class="submit-btn" style="background:var(--purple);" onclick="saveProgress()">সংরক্ষণ করুন</button>
+    <button class="submit-btn" style="background:var(--green);" onclick="saveProgress()">সংরক্ষণ করুন</button>
   </div>
 </div>
 
@@ -107,7 +112,7 @@
       <div id="member-selected" style="font-size:12px;color:var(--green);margin-top:4px;min-height:16px;"></div>
     </div>
     <div class="form-group"><label class="form-label">যোগদানের তারিখ</label><input class="form-input" id="member-date" type="date"></div>
-    <button class="submit-btn" style="background:var(--purple);" onclick="addMember()">যোগ করুন</button>
+    <button class="submit-btn" style="background:var(--green);" onclick="addMember()">যোগ করুন</button>
   </div>
 </div>
 
@@ -123,7 +128,7 @@
       </select>
     </div>
     <div class="form-group"><label class="form-label">বিবরণ</label><textarea class="form-input form-textarea" id="act-text" placeholder="আজকের কার্যক্রম, অগ্রগতি..."></textarea></div>
-    <button class="submit-btn" style="background:var(--purple);" onclick="saveActivity()">সংরক্ষণ করুন</button>
+    <button class="submit-btn" style="background:var(--green);" onclick="saveActivity()">সংরক্ষণ করুন</button>
   </div>
 </div>
 
@@ -145,6 +150,17 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modal-edit-group">
+  <div class="modal">
+    <div class="modal-title">ফরিক সম্পাদনা <button class="modal-close" onclick="document.getElementById('modal-edit-group').classList.remove('open')">✕</button></div>
+    <div class="form-group"><label class="form-label">ফরিকের নাম</label><input class="form-input" id="egrp-name" placeholder="ফরিকের নাম"></div>
+    <div class="form-group"><label class="form-label">দায়িত্বশীল</label><input class="form-input" id="egrp-teacher" placeholder="দায়িত্বশীলের নাম"></div>
+    <div class="form-group"><label class="form-label">শুরুর তারিখ</label><input class="form-input" id="egrp-start" type="date"></div>
+    <div class="form-group"><label class="form-label">মন্তব্য</label><input class="form-input" id="egrp-note" placeholder="যেকোনো তথ্য"></div>
+    <button class="submit-btn" style="background:var(--green);" onclick="saveGroupEdit()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../supabase-config.js"></script>
@@ -154,6 +170,7 @@
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/monitor-mode.js"></script>
+<script src="../js/mm-hijri.js"></script>
 <script>
   if (!MMSession.requireStaffRoleOrAdminPerm('hifz', 'hifz', '../main-admin-madrasa.html')) { throw new Error('hifz permission denied'); }
   document.getElementById('top-name').textContent = MMSession.getName() || 'দায়িত্বশীল';
@@ -166,6 +183,12 @@
   const HIFZ_ACTIVITY_KEY = 'mm_hifz_activity';
 
   function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    if (window.MMHijri && MMHijri.hijriOrFallback) { const h=MMHijri.hijriOrFallback(iso); if (h) return h; }
+    const p=iso.split('-'); if (p.length<3) return iso;
+    return toBn(parseInt(p[2],10))+'/'+toBn(parseInt(p[1],10))+'/'+toBn(p[0]);
+  }
   if (!API.persistLoadArr(HIFZ_KEY).length) [HIFZ_KEY,HIFZ_PROG_KEY,HIFZ_MEMBERS_KEY,HIFZ_ACTIVITY_KEY].forEach(k=>API.persistSaveArr(k,[]));
 
   let currentGroupId = null, leavingMemberId = null, _availableStudents = [];
@@ -183,13 +206,13 @@
     document.getElementById('avg-para').textContent = toBn(paras.length ? Math.round(paras.reduce((a,b)=>a+b,0)/paras.length) : 0);
 
     document.getElementById('group-list').innerHTML = groups.map(g => {
-      const latest = prog.filter(p=>p.group_id===g.id).sort((a,b)=>b.date.localeCompare(a.date))[0];
+      const latest = prog.filter(p=>p.group_id===g.id).sort((a,b)=>b.date.localeCompare(a.date)||(b.id||'').localeCompare(a.id||''))[0];
       const gMembers = allMembers.filter(m=>m.group_id===g.id&&(!m.status||m.status==='active'));
-      const paraDone=latest?latest.para_done:0, curPara=latest?latest.current_para:1, revPara=latest?latest.revision_para:0;
+      const paraDone=latest?latest.para_done:0, curPara=latest?latest.current_para:1;
       const pct=Math.round(paraDone/30*100), isOpen=expandedGroups.has(g.id);
 
       const paraGrid = Array.from({length:30},(_,i)=>{
-        const n=i+1, cls=n<=paraDone&&n!==curPara?'done':n===curPara?'current':n<=revPara?'revision':'';
+        const n=i+1, cls=n<=paraDone&&n!==curPara?'done':n===curPara?'current':'';
         return '<div class="para-cell '+cls+'">'+toBn(n)+'</div>';
       }).join('');
 
@@ -207,35 +230,60 @@
 
       return '<div class="group-card">'
         +'<div style="display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;" onclick="toggleGroup(\''+g.id+'\')">'
-        +'<div><div class="group-name">'+API.esc(g.name)+'</div>'
-        +'<div class="group-meta">'+toBn(gMembers.length)+' সদস্য · শুরু '+API.esc(g.start||'')+'</div></div>'
+        +'<div><div style="display:flex;align-items:center;gap:6px;"><div class="group-name">'+API.esc(g.name)+'</div>'
+        +'<button type="button" onclick="event.stopPropagation();openEditGroupModal(\''+g.id+'\')" style="font-size:10px;color:var(--ink3);padding:2px 5px;border:1px solid var(--cream3);border-radius:3px;background:#fff;cursor:pointer;flex-shrink:0;">✎</button></div>'
+        +'<div class="group-meta">'+toBn(gMembers.length)+' সদস্য · শুরু '+API.esc(fmtDate(g.start))+'</div>'
+        +(g.teacher?'<div class="group-meta" style="color:var(--ink2);font-weight:600;margin-top:2px;">দায়িত্বশীল: '+API.esc(g.teacher)+'</div>':'')+'</div>'
         +'<div style="display:flex;align-items:center;gap:8px;">'
-        +'<div style="text-align:right;"><div style="font-family:\'Tiro Bangla\',serif;font-size:20px;font-weight:700;color:var(--purple);">'+toBn(paraDone)+'/৩০</div>'
+        +'<div style="text-align:right;"><div style="font-family:\'Tiro Bangla\',serif;font-size:20px;font-weight:700;color:var(--green);">'+toBn(paraDone)+'/৩০</div>'
         +'<div style="font-size:10px;color:var(--ink3);">পারা সম্পন্ন</div></div>'
         +'<span style="font-size:16px;color:var(--ink3);">'+(isOpen?'▼':'▶')+'</span></div></div>'
         +'<div style="height:6px;background:var(--cream3);border-radius:3px;overflow:hidden;margin-top:8px;">'
-        +'<div style="height:100%;width:'+pct+'%;background:var(--purple);border-radius:3px;"></div></div>'
-        +(latest?'<div style="display:flex;gap:12px;margin-top:6px;font-size:12px;flex-wrap:wrap;">'
-          +'<span style="color:var(--green);">✓ '+toBn(latest.surah_done)+' সূরা</span>'
-          +'<span style="color:var(--blue);">↻ '+toBn(revPara)+' মুরাজাআ</span>'
-          +'<span style="color:var(--gold);">'+toBn(curPara)+' নং পারা চলছে</span></div>':'')
+        +'<div style="height:100%;width:'+pct+'%;background:var(--green);border-radius:3px;"></div></div>'
+        +(latest?'<div style="font-size:12px;color:var(--gold);margin-top:6px;">'+toBn(curPara)+' নং পারা চলছে</div>':'')
         +(isOpen
           ?'<div style="margin-top:12px;">'
             +'<div class="legend">'
             +'<div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>সম্পন্ন</div>'
             +'<div class="legend-item"><div class="legend-dot" style="background:var(--gold2)"></div>চলছে</div>'
-            +'<div class="legend-item"><div class="legend-dot" style="background:var(--blue-light);border:1px solid var(--blue)"></div>মুরাজাআ</div></div>'
+            +'</div>'
             +'<div class="para-grid">'+paraGrid+'</div>'
             +'<div style="font-size:12px;color:var(--ink2);font-weight:600;margin:10px 0 4px;">সদস্য</div>'
             +'<div class="card-static">'+memberRows+'</div>'
             +'<div class="card-actions">'
-            +'<button class="add-btn" style="background:var(--purple);" onclick="event.stopPropagation();openProgressModal(\''+g.id+'\')">অগ্রগতি</button>'
+            +'<button class="add-btn" style="background:var(--green);" onclick="event.stopPropagation();openProgressModal(\''+g.id+'\')">অগ্রগতি</button>'
             +'<button class="add-btn" style="background:var(--green);" onclick="event.stopPropagation();openAddMemberModal(\''+g.id+'\')">＋ সদস্য</button>'
             +'<button class="add-btn" style="background:var(--ink3);" onclick="event.stopPropagation();openActivityModal(\''+g.id+'\')">লগ যোগ</button>'
             +'</div></div>'
           :'')
         +'</div>';
     }).join('') || '<div class="empty-state"><span class="empty-icon">📿</span><div class="empty-text">কোনো ফরিক নেই</div></div>';
+  }
+
+  function switchPanel(name) {
+    document.getElementById('panel-home').style.display = name==='home' ? '' : 'none';
+    document.getElementById('panel-log').style.display = name==='log' ? '' : 'none';
+    document.getElementById('nav-home').classList.toggle('active', name==='home');
+    document.getElementById('nav-log').classList.toggle('active', name==='log');
+    if (name==='log') renderLog();
+  }
+
+  function renderLog() {
+    const gMap = {}; API.persistLoadArr(HIFZ_KEY).forEach(g => gMap[g.id]=g);
+    const logs = [...API.persistLoadArr(HIFZ_ACTIVITY_KEY)].sort((a,b)=>b.date.localeCompare(a.date)||(b.id||'').localeCompare(a.id||''));
+    document.getElementById('log-list').innerHTML = logs.length
+      ? logs.map(l => {
+          const g=gMap[l.group_id];
+          return '<div style="padding:10px 0;border-bottom:1px solid var(--cream2);">'
+            +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">'
+            +'<span style="font-size:11px;color:var(--ink3);">'+API.esc(fmtDate(l.date))+'</span>'
+            +(g?'<span class="list-badge badge-ink" style="font-size:10px;">'+API.esc(g.name)+'</span>':'')
+            +'<span style="font-size:10px;background:var(--cream2);border-radius:3px;padding:1px 5px;">'+API.esc(l.type||'')+'</span></div>'
+            +'<div style="font-size:13px;color:var(--ink2);">'+API.esc(l.text||'')+'</div>'
+            +(l.by?'<div style="font-size:11px;color:var(--ink3);margin-top:3px;">— '+API.esc(l.by)+'</div>':'')
+            +'</div>';
+        }).join('')
+      : '<div style="text-align:center;color:var(--ink3);padding:40px 0;font-size:13px;">কোনো লগ নেই</div>';
   }
 
   function toggleGroup(gid) {
@@ -245,9 +293,10 @@
 
   function openProgressModal(gid) {
     currentGroupId = gid;
-    const latest = API.persistLoadArr(HIFZ_PROG_KEY).filter(p=>p.group_id===gid).sort((a,b)=>b.date.localeCompare(a.date))[0];
-    if (latest) ['upd-para','upd-current','upd-revision','upd-surah'].forEach((id,i)=>
-      document.getElementById(id).value=[latest.para_done,latest.current_para,latest.revision_para,latest.surah_done][i]);
+    const latest = API.persistLoadArr(HIFZ_PROG_KEY).filter(p=>p.group_id===gid).sort((a,b)=>b.date.localeCompare(a.date)||(b.id||'').localeCompare(a.id||''))[0];
+    document.getElementById('upd-para').value=latest?latest.para_done:'';
+    document.getElementById('upd-current').value=latest?latest.current_para:'';
+    document.getElementById('upd-note').value=latest?latest.note||'':'';
     openModal('update-progress');
   }
 
@@ -269,12 +318,11 @@
     if (mmMutationBlocked(showToast)) return;
     const para=parseInt(document.getElementById('upd-para').value)||0;
     const cur=parseInt(document.getElementById('upd-current').value)||1;
-    const rev=parseInt(document.getElementById('upd-revision').value)||0;
-    const surah=parseInt(document.getElementById('upd-surah').value)||0;
     const note=document.getElementById('upd-note').value;
-    const list=API.persistLoadArr(HIFZ_PROG_KEY);
-    list.push({id:API.uid(), group_id:currentGroupId, para_done:para, current_para:cur, revision_para:rev, surah_done:surah, note, date:API.today()});
-    API.persistSaveArr(HIFZ_PROG_KEY,list); closeModal('update-progress'); showToast('অগ্রগতি সংরক্ষিত ✓'); renderHome();
+    const td=API.today();
+    const cleaned=API.persistLoadArr(HIFZ_PROG_KEY).filter(p=>!(p.group_id===currentGroupId&&p.date===td));
+    cleaned.push({id:API.uid(), group_id:currentGroupId, para_done:para, current_para:cur, note, date:td});
+    API.persistSaveArr(HIFZ_PROG_KEY,cleaned); closeModal('update-progress'); showToast('অগ্রগতি সংরক্ষিত ✓'); renderHome();
   }
 
   function addMember() {
@@ -326,13 +374,32 @@
 
   function addGroup() {
     if (mmMutationBlocked(showToast)) return;
-    const name=document.getElementById('grp-name').value.trim(), start=document.getElementById('grp-start').value||API.today(), note=document.getElementById('grp-note').value;
+    const name=document.getElementById('grp-name').value.trim(), start=document.getElementById('grp-start').value||API.today(), note=document.getElementById('grp-note').value, teacher=document.getElementById('grp-teacher').value.trim();
     if (!name) { showToast('ফরিকের নাম দিন'); return; }
     const list=API.persistLoadArr(HIFZ_KEY);
     const gid='grp_'+API.uid();
-    list.push({id:gid, name, start, note, active:true});
+    list.push({id:gid, name, start, note, teacher, active:true});
     API.persistSaveArr(HIFZ_KEY,list); closeModal('add-group'); showToast('ফরিক তৈরি হয়েছে ✓');
     expandedGroups.add(gid); renderHome();
+  }
+
+  let editingGroupId = null;
+  function openEditGroupModal(gid) {
+    editingGroupId=gid;
+    const g=API.persistLoadArr(HIFZ_KEY).find(x=>x.id===gid); if(!g) return;
+    document.getElementById('egrp-name').value=g.name||'';
+    document.getElementById('egrp-teacher').value=g.teacher||'';
+    document.getElementById('egrp-start').value=g.start||'';
+    document.getElementById('egrp-note').value=g.note||'';
+    document.getElementById('modal-edit-group').classList.add('open');
+  }
+  function saveGroupEdit() {
+    if (mmMutationBlocked(showToast)||!editingGroupId) return;
+    const name=document.getElementById('egrp-name').value.trim(); if(!name){showToast('ফরিকের নাম দিন');return;}
+    const list=API.persistLoadArr(HIFZ_KEY), idx=list.findIndex(x=>x.id===editingGroupId); if(idx===-1) return;
+    list[idx]={...list[idx], name, teacher:document.getElementById('egrp-teacher').value.trim(), start:document.getElementById('egrp-start').value, note:document.getElementById('egrp-note').value};
+    API.persistSaveArr(HIFZ_KEY,list); document.getElementById('modal-edit-group').classList.remove('open');
+    editingGroupId=null; showToast('ফরিক আপডেট হয়েছে ✓'); renderHome();
   }
 
   function openPinChangeModal() {

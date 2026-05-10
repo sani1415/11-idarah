@@ -56,6 +56,10 @@
   }
   function weekdayBn(iso) { return BN_DOW[new Date(iso + 'T12:00:00').getDay()]; }
 
+  function fmtPartsNoEra(fmt, d) {
+    return fmt.formatToParts(d).filter(p => p.type !== 'era').map(p => p.value).join('').trim();
+  }
+
   /** প্রধান: হিজরী (বাংলা সংখ্যা) — Umm al-Qura */
   function hijriUmmalquraLongBn(iso, opts) {
     if (!iso) return null;
@@ -63,13 +67,14 @@
       const effectiveIso = opts && opts.skipOffset ? iso : applyOffset(iso, opts && opts.offsetDays);
       const d = new Date(effectiveIso + 'T12:00:00');
       if (isNaN(d.getTime())) return null;
-      return new Intl.DateTimeFormat('bn-BD', {
+      const fmt = new Intl.DateTimeFormat('bn-BD', {
         calendar: 'islamic-umalqura',
         day: 'numeric',
         month: 'long',
         year: 'numeric',
         numberingSystem: 'beng',
-      }).format(d);
+      });
+      return fmtPartsNoEra(fmt, d) || null;
     } catch (e) {
       return null;
     }
@@ -81,13 +86,14 @@
     try {
       const effectiveIso = opts && opts.skipOffset ? iso : applyOffset(iso, opts && opts.offsetDays);
       const d = new Date(effectiveIso + 'T12:00:00');
-      return new Intl.DateTimeFormat('bn-BD', {
+      const fmt = new Intl.DateTimeFormat('bn-BD', {
         calendar: 'islamic',
         day: 'numeric',
         month: 'long',
         year: 'numeric',
         numberingSystem: 'beng',
-      }).format(d);
+      });
+      return fmtPartsNoEra(fmt, d) || null;
     } catch (e) {
       return null;
     }

@@ -598,14 +598,15 @@ const API = (() => {
       const kitabs = load(KEYS.kitabs).filter(k => k.class_id === cid);
       const prog = load(KEYS.kitab_prog);
       return kitabs.map(k => {
-        const entries = prog.filter(p => p.kitab_id === k.id).sort((a,b) => b.date.localeCompare(a.date));
+        const entries = prog.filter(p => p.kitab_id === k.id).sort((a,b) => b.date.localeCompare(a.date) || (b.id||'').localeCompare(a.id||''));
         const latest = entries[0];
         return { ...k, pages_done: latest ? latest.pages_done : 0, last_updated: latest ? latest.date : null, history: entries };
       });
     },
     update(kitab_id, class_id, pages_done, note = '') {
-      const list = load(KEYS.kitab_prog);
-      list.push({ id: uid(), kitab_id, class_id, date: today(), pages_done, note });
+      const td = today();
+      const list = load(KEYS.kitab_prog).filter(p => !(p.kitab_id === kitab_id && p.date === td));
+      list.push({ id: uid(), kitab_id, class_id, date: td, pages_done, note });
       save(KEYS.kitab_prog, list);
     },
     addKitab(data) {
