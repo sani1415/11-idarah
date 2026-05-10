@@ -510,6 +510,9 @@ const MMSharedAPI = (() => {
     saveDeptTransaction(actorId, pin, deptCode, txn) {
       const honorAmount = Number(txn.honor_amount || (txn.metadata && txn.metadata.honor_amount) || 0);
       const hasItems = !!(txn.items && txn.items.length) || !!(txn.metadata && txn.metadata.line_items && txn.metadata.line_items.length);
+      const partyName = txn.type === 'expense'
+        ? (txn.seller_name || (txn.metadata && txn.metadata.seller_name) || null)
+        : (txn.buyer_name || (txn.metadata && txn.metadata.buyer_name) || null);
       const rpcAmount = txn.type === 'income' && !hasItems
         ? Math.max(Number(txn.amount || 0) - honorAmount, 0)
         : Number(txn.amount || 0);
@@ -523,7 +526,7 @@ const MMSharedAPI = (() => {
         p_category: txn.category || null,
         p_amount: rpcAmount,
         p_honor_amount: honorAmount,
-        p_buyer_name: txn.buyer_name || (txn.metadata && txn.metadata.buyer_name) || null,
+        p_buyer_name: partyName,
         p_buyer_phone: txn.buyer_phone || (txn.metadata && txn.metadata.buyer_phone) || null,
         p_items: txn.items || (txn.metadata && txn.metadata.line_items) || [],
         p_metadata: txn.metadata || {},
@@ -532,6 +535,9 @@ const MMSharedAPI = (() => {
     updateDeptTransaction(actorId, pin, deptCode, txnId, txn) {
       const honorAmount = Number(txn.honor_amount || (txn.metadata && txn.metadata.honor_amount) || 0);
       const hasItems = !!(txn.items && txn.items.length) || !!(txn.metadata && txn.metadata.line_items && txn.metadata.line_items.length);
+      const partyName = txn.type === 'expense'
+        ? (txn.seller_name || (txn.metadata && txn.metadata.seller_name) || null)
+        : (txn.buyer_name || (txn.metadata && txn.metadata.buyer_name) || null);
       const rpcAmount = txn.type === 'income' && !hasItems
         ? Math.max(Number(txn.amount || 0) - honorAmount, 0)
         : Number(txn.amount || 0);
@@ -545,7 +551,7 @@ const MMSharedAPI = (() => {
         p_category: txn.category || null,
         p_amount: rpcAmount,
         p_honor_amount: honorAmount,
-        p_buyer_name: txn.buyer_name || (txn.metadata && txn.metadata.buyer_name) || null,
+        p_buyer_name: partyName,
         p_buyer_phone: txn.buyer_phone || (txn.metadata && txn.metadata.buyer_phone) || null,
         p_items: txn.items || (txn.metadata && txn.metadata.line_items) || [],
         p_metadata: txn.metadata || {},
