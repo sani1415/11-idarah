@@ -478,6 +478,9 @@ const MMSharedAPI = (() => {
     listDepartments() {
       return rpc('dept_rel_list_departments', {});
     },
+    adminDepartments(pin) {
+      return rpc('dept_rel_admin_departments', { p_pin: pin });
+    },
     saveDepartment(pin, id, name, emoji, code, isActive) {
       return rpc('dept_rel_save_department', {
         p_pin: pin,
@@ -563,6 +566,75 @@ const MMSharedAPI = (() => {
         p_pin: pin,
         p_dept_code: deptCode,
         p_transaction_id: txnId,
+      });
+    },
+    saveDeptExtraField(pin, deptCode, field) {
+      return rpc('dept_rel_save_extra_field', {
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_field: field || {},
+      });
+    },
+    deleteDeptExtraField(pin, deptCode, key) {
+      return rpc('dept_rel_delete_extra_field', {
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_key: key,
+      });
+    },
+    saveDeptEditRequest(actorId, pin, deptCode, req) {
+      return rpc('dept_rel_save_edit_request', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_transaction_id: req.transaction_id && /^[0-9a-f-]{36}$/i.test(String(req.transaction_id)) ? req.transaction_id : null,
+        p_kind: req.kind || 'dept_transaction_edit',
+        p_reason: req.reason || '',
+        p_original: req.original || {},
+        p_proposed: req.proposed || null,
+      });
+    },
+    resolveDeptEditRequest(pin, requestId, status) {
+      return rpc('dept_rel_resolve_edit_request', {
+        p_pin: pin,
+        p_request_id: requestId,
+        p_status: status,
+      });
+    },
+    hifzBootstrap(actorId, pin) {
+      return rpc('mdr_rel_hifz_bootstrap', { p_actor_id: actorId || null, p_pin: pin });
+    },
+    hifzSaveGroup(actorId, pin, group) {
+      return rpc('mdr_rel_hifz_save_group', {
+        p_actor_id: actorId || null, p_pin: pin,
+        p_group_id: group.id || null, p_name: group.name,
+        p_teacher: group.teacher || null, p_start_date: group.start || null, p_note: group.note || null,
+      });
+    },
+    hifzSaveProgress(actorId, pin, groupId, paraDone, currentPara, note) {
+      return rpc('mdr_rel_hifz_save_progress', {
+        p_actor_id: actorId || null, p_pin: pin,
+        p_group_id: groupId, p_para_done: Number(paraDone),
+        p_current_para: Number(currentPara), p_note: note || null,
+      });
+    },
+    hifzAddMember(actorId, pin, groupId, studentId, joinedDate) {
+      return rpc('mdr_rel_hifz_add_member', {
+        p_actor_id: actorId || null, p_pin: pin,
+        p_group_id: groupId, p_student_id: studentId, p_joined_date: joinedDate || null,
+      });
+    },
+    hifzMemberLeave(actorId, pin, memberId, status, reason, leftAt, note) {
+      return rpc('mdr_rel_hifz_member_leave', {
+        p_actor_id: actorId || null, p_pin: pin,
+        p_member_id: memberId, p_status: status,
+        p_reason: reason || null, p_left_at: leftAt || null, p_note: note || null,
+      });
+    },
+    hifzSaveActivity(actorId, pin, groupId, type, text, byName) {
+      return rpc('mdr_rel_hifz_save_activity', {
+        p_actor_id: actorId || null, p_pin: pin,
+        p_group_id: groupId, p_type: type, p_text: text, p_by_name: byName || null,
       });
     },
     adjustDeptInventory(actorId, pin, deptCode, item) {

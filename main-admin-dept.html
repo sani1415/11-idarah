@@ -208,12 +208,6 @@
   if (!MMSession.isAdmin() || MMSession.isRestrictedAdmin()) { location.href = 'main-admin-madrasa.html'; }
   mmInsertMonitorBanner();
 
-  /* data version check — no longer clears departments (now from Supabase) */
-  const DEPT_DATA_VER = 3;
-  if (Number(localStorage.getItem('mm_dept_data_ver')||0) < DEPT_DATA_VER) {
-    localStorage.setItem('mm_dept_data_ver', DEPT_DATA_VER);
-  }
-
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = n => '৳' + toBn(Number(n).toLocaleString('en'));
   const fmtDate = d => { if (!d) return ''; const p = d.split('-'); return toBn(p[2]+'/'+p[1]); };
@@ -302,8 +296,28 @@
       : '<div style="text-align:center;color:var(--ink3);padding:40px 0;font-size:13px;">কোনো লেনদেন নেই</div>';
   }
 
-  function approveReq(id) { DeptAPI.EditRequests.approve(id); renderRequests(); showToast('অনুমোদন করা হয়েছে'); }
-  function rejectReq(id)  { DeptAPI.EditRequests.reject(id);  renderRequests(); showToast('প্রত্যাখ্যান করা হয়েছে'); }
+  async function approveReq(id) {
+    const pin = MMSession.getAdminPin();
+    if (!pin) { showToast('সেশন শেষ, আবার লগইন করুন।'); return; }
+    try {
+      await DeptSync.resolveEditRequest(pin, id, 'approved');
+      renderRequests();
+      showToast('অনুমোদন করা হয়েছে');
+    } catch (e) {
+      showToast('ত্রুটি: ' + (e.message || 'অনুমোদন ব্যর্থ'));
+    }
+  }
+  async function rejectReq(id)  {
+    const pin = MMSession.getAdminPin();
+    if (!pin) { showToast('সেশন শেষ, আবার লগইন করুন।'); return; }
+    try {
+      await DeptSync.resolveEditRequest(pin, id, 'rejected');
+      renderRequests();
+      showToast('প্রত্যাখ্যান করা হয়েছে');
+    } catch (e) {
+      showToast('ত্রুটি: ' + (e.message || 'প্রত্যাখ্যান ব্যর্থ'));
+    }
+  }
 
   function openAddDept() {
     ['nd-name','nd-emoji','nd-desc'].forEach(id => document.getElementById(id) && (document.getElementById(id).value=''));
@@ -319,6 +333,7 @@
     if (!pin) { showToast('সেশন মেয়াদ শেষ, আবার লগইন করুন।'); return; }
     try {
       await DeptSync.saveDepartment(pin, null, name, emoji);
+      await DeptSync.bootstrapAllData(null, pin);
       closeModal('modal-add-dept'); renderOverview(); showToast('বিভাগ যোগ হয়েছে');
     } catch (e) {
       showToast('ত্রুটি: ' + (e.message || 'সংরক্ষণ ব্যর্থ'));
@@ -373,6 +388,7 @@
     if (!pin) { showToast('সেশন শেষ, আবার লগইন করুন।'); return; }
     try {
       await DeptSync.toggleDepartment(pin, dbId, makeActive);
+      await DeptSync.bootstrapAllData(null, pin);
       openDeptSettings(); renderOverview();
     } catch (e) { showToast('ত্রুটি: ' + (e.message || 'আপডেট ব্যর্থ')); }
   }
@@ -433,27 +449,45 @@
     ).join('') : '<div style="text-align:center;color:var(--ink3);padding:12px;font-size:12px;">কোনো অতিরিক্ত ক্ষেত্র নেই।</div>';
   }
 
-  function addDeptField() {
+  async function addDeptField() {
     const label = document.getElementById('nf-label').value.trim();
     const type = document.getElementById('nf-type').value;
     const optional = document.getElementById('nf-optional').value === 'true';
     if (!label) { showToast('ক্ষেত্রের নাম লিখুন।'); return; }
+    const pin = MMSession.getAdminPin();
+    if (!pin) { showToast('সেশন শেষ, আবার লগইন করুন।'); return; }
     const key = 'f_' + Date.now().toString(36);
-    const ok = DeptAPI.ExtraFields.add(_activeDeptId, { key, label, type, optional });
-    if (!ok) { showToast('এই ক্ষেত্র ইতিমধ্যে আছে।'); return; }
-    document.getElementById('nf-label').value = '';
-    renderDeptFields(_activeDeptId);
-    showToast('ক্ষেত্র যোগ হয়েছে।');
+    try {
+      await DeptSync.saveExtraField(pin, _activeDeptId, { key, label, type, optional });
+      document.getElementById('nf-label').value = '';
+      renderDeptFields(_activeDeptId);
+      showToast('ক্ষেত্র যোগ হয়েছে।');
+    } catch (e) {
+      showToast('ত্রুটি: ' + (e.message || 'ক্ষেত্র যোগ হয়নি'));
+    }
   }
 
-  function removeDeptField(deptId, key) {
-    DeptAPI.ExtraFields.remove(deptId, key);
-    renderDeptFields(deptId);
+  async function removeDeptField(deptId, key) {
+    const pin = MMSession.getAdminPin();
+    if (!pin) { showToast('সেশন শেষ, আবার লগইন করুন।'); return; }
+    try {
+      await DeptSync.deleteExtraField(pin, deptId, key);
+      renderDeptFields(deptId);
+      showToast('ক্ষেত্র বাদ দেওয়া হয়েছে।');
+    } catch (e) {
+      showToast('ত্রুটি: ' + (e.message || 'ক্ষেত্র বাদ যায়নি'));
+    }
   }
 
   async function initPage() {
-    try { await DeptSync.bootstrap(); } catch (e) { /* localStorage fallback */ }
-    renderOverview();
+    const pin = MMSession.getAdminPin();
+    try {
+      await DeptSync.bootstrapAllData(null, pin);
+      renderOverview();
+    } catch (e) {
+      showToast('Supabase থেকে বিভাগ ডেটা লোড হয়নি');
+      document.getElementById('dept-list').innerHTML = '<div style="text-align:center;color:var(--red);padding:32px 0;font-size:13px;">ডাটাবেজ সংযোগ ব্যর্থ। আবার চেষ্টা করুন।</div>';
+    }
   }
 
   initPage();

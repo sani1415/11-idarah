@@ -10,52 +10,27 @@
 <link rel="stylesheet" href="../css/style.css">
 <link rel="stylesheet" href="../css/main-admin-nav.css">
 <style>
-  .group-card { background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:10px; }
-  .group-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--cream2); }
-  .group-name { font-family:'Tiro Bangla',serif; font-size:16px; font-weight:700; color:var(--ink2); }
-  .group-meta { font-size:11px; color:var(--ink3); margin-top:3px; }
-  .para-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin:10px 0; }
-  .para-cell { aspect-ratio:1; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; border:1.5px solid var(--cream3); background:#fff; color:var(--ink3); cursor:pointer; transition:all .15s; }
-  .para-cell.done { background:var(--green); border-color:var(--green); color:#fff; }
-  .para-cell.current { background:var(--gold2); border-color:var(--gold); color:var(--ink); }
-  .para-cell.revision { background:var(--blue-light); border-color:var(--blue); color:var(--blue); }
-  .progress-ring { transform:rotate(-90deg); }
-  .ring-bg { fill:none; stroke:var(--cream3); stroke-width:4; }
-  .ring-fill { fill:none; stroke:var(--green); stroke-width:4; stroke-linecap:round; transition:stroke-dashoffset .5s; }
-  .ring-label { font-family:'Tiro Bangla',serif; font-size:13px; font-weight:700; color:var(--green); }
-  .member-row { display:flex; align-items:center; padding:9px 0; border-bottom:1px solid var(--cream2); gap:10px; }
-  .member-row:last-child { border-bottom:none; }
-  .member-name { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
-  .member-class { font-size:11px; color:var(--ink3); }
-  .activity-log-item { background:#fff; border-radius:var(--radius-sm); padding:13px; box-shadow:var(--shadow); border-left:3px solid var(--purple); margin-bottom:8px; }
-  .legend { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
-  .legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--ink3); }
-  .legend-dot { width:12px; height:12px; border-radius:3px; }
-  .cls-overlay { position:fixed; inset:0; z-index:200; background:var(--bg,#faf6ef); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .25s ease; }
-  .cls-overlay.is-open { transform:translateX(0); }
-  .cls-ov-header { display:flex; align-items:center; gap:10px; padding:14px 16px 10px; background:var(--ink); color:var(--gold2); flex-shrink:0; }
-  .cls-ov-back { background:none; border:none; color:inherit; font-size:22px; cursor:pointer; padding:4px 10px 4px 0; line-height:1; }
-  .cls-ov-info { flex:1; min-width:0; }
-  .cls-ov-title { font-family:'Tiro Bangla',serif; font-size:16px; font-weight:700; }
-  .cls-ov-teacher { font-size:11px; color:rgba(255,255,255,.65); margin-top:2px; }
-  .cls-ov-tabs { display:flex; border-bottom:2px solid var(--cream2); background:#fff; flex-shrink:0; }
-  .cls-ov-tab { flex:1; padding:10px 4px; border:none; background:none; font-family:'Tiro Bangla',serif; font-size:12px; color:var(--ink3); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; transition:color .15s; }
-  .cls-ov-tab.active { color:var(--ink); font-weight:700; border-bottom-color:var(--gold); }
-  .cls-ov-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px; padding-bottom:32px; }
-  .ov-list { display:flex; flex-direction:column; gap:8px; }
-  .ov-student-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-  .ov-s-id { font-size:10px; color:var(--ink3); min-width:30px; }
-  .ov-s-name { flex:1; font-size:13px; font-family:'Tiro Bangla',serif; color:var(--ink); }
-  .ov-s-status { font-size:11px; font-weight:700; min-width:60px; text-align:right; }
-  .ov-kitab-row { padding:12px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-  .ov-k-name { font-size:13px; font-family:'Tiro Bangla',serif; color:var(--ink); margin-bottom:4px; }
-  .ov-k-pct { font-size:12px; font-weight:700; color:var(--green); margin-bottom:6px; }
-  .ov-k-bar { height:6px; background:var(--cream2); border-radius:3px; overflow:hidden; }
-  .ov-k-fill { height:100%; background:var(--green); border-radius:3px; }
-  .ov-log-row { padding:10px 12px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-  .ov-log-date { font-size:10px; color:var(--ink3); margin-bottom:4px; }
-  .ov-log-text { font-size:13px; color:var(--ink2); line-height:1.5; white-space:pre-wrap; }
-  .ov-empty { text-align:center; color:var(--ink3); padding:40px 0; font-size:13px; }
+  .group-card{background:#fff;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:10px;cursor:pointer;}
+  .group-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--cream2);}
+  .group-name{font-family:'Tiro Bangla',serif;font-size:16px;font-weight:700;color:var(--ink2);}
+  .group-meta{font-size:11px;color:var(--ink3);margin-top:3px;}
+  .para-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0;}
+  .para-cell{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:1.5px solid var(--cream3);background:#fff;color:var(--ink3);}
+  .para-cell.done{background:var(--green);border-color:var(--green);color:#fff;}
+  .para-cell.current{background:var(--gold2);border-color:var(--gold);color:var(--ink);}
+  .progress-ring{transform:rotate(-90deg);}
+  .ring-bg{fill:none;stroke:var(--cream3);stroke-width:4;}
+  .ring-fill{fill:none;stroke:var(--green);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .5s;}
+  .ring-label{font-family:'Tiro Bangla',serif;font-size:13px;font-weight:700;color:var(--green);}
+  .member-row{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--cream2);gap:10px;}
+  .member-row:last-child{border-bottom:none;}
+  .activity-log-item{background:#fff;border-radius:var(--radius-sm);padding:13px;box-shadow:var(--shadow);border-left:3px solid var(--green);margin-bottom:8px;}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3);}
+  .legend-dot{width:12px;height:12px;border-radius:3px;}
+  .sbadge{font-size:10px;padding:2px 6px;border-radius:10px;font-weight:600;}
+  .sbadge-active{background:var(--green-light);color:var(--green);}
+  .sbadge-other{background:var(--cream2);color:var(--ink3);}
 </style>
 </head>
 <body>
@@ -72,16 +47,16 @@
 
 <div class="content">
   <div class="panel active" id="panel-home">
-    <div style="background:linear-gradient(135deg,#6c3483,#8e44ad);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
+    <div style="background:linear-gradient(135deg,#1a6b3c,#27ae60);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
       <div style="font-size:13px;opacity:.6;margin-bottom:10px;">হিফজ বিভাগ · সামগ্রিক</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
-        <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="total-hifz">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">হাফেজ ছাত্র</div></div>
+        <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="total-hifz">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">সক্রিয় ছাত্র</div></div>
         <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="total-groups">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">সক্রিয় ফরিক</div></div>
         <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="avg-para">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">গড় পারা</div></div>
       </div>
     </div>
     <div class="sec-header"><span class="sec-title">সক্রিয় ফরিকসমূহ</span></div>
-    <div id="group-list"></div>
+    <div id="group-list"><div class="empty-state" style="padding:40px 0;"><span class="empty-icon">⏳</span><div class="empty-text">লোড হচ্ছে…</div></div></div>
     <div class="pb-safe"></div>
   </div>
 
@@ -98,25 +73,23 @@
     <div id="gtab-content-progress">
       <div class="card-static" style="margin-bottom:12px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div><div style="font-size:13px;color:var(--ink3);">সম্পন্ন পারা</div>
-          <div style="font-family:'Tiro Bangla',serif;font-size:24px;font-weight:700;color:var(--green);" id="g-para-done">—</div></div>
+          <div>
+            <div style="font-size:13px;color:var(--ink3);">সম্পন্ন পারা</div>
+            <div style="font-family:'Tiro Bangla',serif;font-size:24px;font-weight:700;color:var(--green);" id="g-para-done">—</div>
+          </div>
           <div id="progress-ring-container"></div>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:4px;">
           <div style="flex:1;background:var(--green-light);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-            <div style="font-family:'Tiro Bangla',serif;font-size:16px;font-weight:700;color:var(--green);" id="g-surah-done">—</div>
-            <div style="font-size:10px;color:var(--green);">সূরা সম্পন্ন</div>
-          </div>
-          <div style="flex:1;background:var(--blue-light);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-            <div style="font-family:'Tiro Bangla',serif;font-size:16px;font-weight:700;color:var(--blue);" id="g-revision">—</div>
-            <div style="font-size:10px;color:var(--blue);">মুরাজাআ পারা</div>
+            <div style="font-family:'Tiro Bangla',serif;font-size:16px;font-weight:700;color:var(--green);" id="g-current-para">—</div>
+            <div style="font-size:10px;color:var(--green);">চলমান পারা</div>
           </div>
         </div>
+        <div id="g-last-updated" style="font-size:11px;color:var(--ink3);margin-top:6px;"></div>
       </div>
       <div class="legend">
         <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>সম্পন্ন</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--gold2)"></div>চলছে</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--blue-light);border:1px solid var(--blue)"></div>মুরাজাআ</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--cream3)"></div>বাকি</div>
       </div>
       <div class="para-grid" id="para-grid"></div>
@@ -139,95 +112,155 @@
   <a class="main-nav-btn" href="../main-admin-recent.html" aria-label="কার্যক্রম"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg><span class="main-nav-lbl">কার্যক্রম</span></a>
 </nav>
 
-
 <div class="toast" id="toast"></div>
-<script src="../js/mm-sample-data.js"></script>
-<script src="../js/api.js"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-hijri.js"></script>
-<script src="../js/mm-student-modal.js"></script>
 <script>
-  if (!MMSession.requireAdminPerm('hifz', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
-  const HIFZ_KEY='mm_hifz_groups', HIFZ_PROG_KEY='mm_hifz_progress', HIFZ_MEMBERS_KEY='mm_hifz_members', HIFZ_ACTIVITY_KEY='mm_hifz_activity';
-  function toBn(n) { return String(n).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d]); }
-  if (!API.persistLoadArr(HIFZ_KEY).length) {
-    API.persistSaveArr(HIFZ_KEY,[]);
-    API.persistSaveArr(HIFZ_PROG_KEY,[]);
-    API.persistSaveArr(HIFZ_MEMBERS_KEY,[]);
-    API.persistSaveArr(HIFZ_ACTIVITY_KEY,[]);
-  }
-  let currentGroupId=null;
-  function switchPanel(name) { document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active')); document.getElementById('panel-'+name).classList.add('active'); window.scrollTo(0,0); }
-  function switchGroupTab(tab) {
-    ['progress','members','activity'].forEach(t=>{
-      document.getElementById('gtab-'+t).classList.toggle('active',t===tab);
-      document.getElementById('gtab-content-'+t).style.display=t===tab?'block':'none';
-    });
-    if(tab==='progress') renderGroupProgress(); else if(tab==='members') renderGroupMembers(); else renderGroupActivity();
-  }
-  function renderHome() {
-    const groups=API.persistLoadArr(HIFZ_KEY).filter(g=>g.active), members=API.persistLoadArr(HIFZ_MEMBERS_KEY), prog=API.persistLoadArr(HIFZ_PROG_KEY);
-    document.getElementById('total-hifz').textContent=toBn([...new Set(members.map(m=>m.student_id))].length);
-    document.getElementById('total-groups').textContent=toBn(groups.length);
-    const latestPG=groups.map(g=>{const p=prog.filter(p=>p.group_id===g.id).sort((a,b)=>b.date.localeCompare(a.date))[0];return p?p.para_done:0;});
-    document.getElementById('avg-para').textContent=toBn(latestPG.length?Math.round(latestPG.reduce((a,b)=>a+b,0)/latestPG.length):0);
-    document.getElementById('group-list').innerHTML=groups.map(g=>{
-      const latest=prog.filter(p=>p.group_id===g.id).sort((a,b)=>b.date.localeCompare(a.date))[0], mems=members.filter(m=>m.group_id===g.id), pct=latest?Math.round(latest.para_done/30*100):0;
-      return `<div class="group-card" onclick="openGroup('${g.id}')">
-        <div class="group-header"><div><div class="group-name">${API.esc(g.name)}</div><div class="group-meta">${toBn(mems.length)} সদস্য · শুরু ${API.esc(g.start||'')}</div></div>
-        <div style="text-align:right;"><div style="font-family:'Tiro Bangla',serif;font-size:20px;font-weight:700;color:var(--purple);">${latest?toBn(latest.para_done):'০'}/৩০</div><div style="font-size:10px;color:var(--ink3);">পারা সম্পন্ন</div></div></div>
-        <div style="height:6px;background:var(--cream3);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--purple);border-radius:3px;"></div></div>
-        ${latest?`<div style="display:flex;gap:12px;margin-top:8px;font-size:12px;"><span style="color:var(--green);">✓ ${toBn(latest.surah_done)} সূরা</span><span style="color:var(--blue);">↻ ${toBn(latest.revision_para)} পারা মুরাজাআ</span><span style="color:var(--gold);">চলছে: ${toBn(latest.current_para)} নং পারা</span></div>`:''}
-      </div>`;
-    }).join('')||'<div class="empty-state"><span class="empty-icon">📿</span><div class="empty-text">কোনো ফরিক নেই</div></div>';
-  }
-  function openGroup(gid) {
-    currentGroupId=gid; const g=API.persistLoadArr(HIFZ_KEY).find(g=>g.id===gid);
-    document.getElementById('group-detail-name').textContent=g?g.name:'';
-    ['progress','members','activity'].forEach((t,i)=>{document.getElementById('gtab-'+t).classList.toggle('active',i===0);document.getElementById('gtab-content-'+t).style.display=i===0?'block':'none';});
-    renderGroupProgress(); switchPanel('group');
-  }
-  function renderGroupProgress() {
-    const prog=API.persistLoadArr(HIFZ_PROG_KEY).filter(p=>p.group_id===currentGroupId).sort((a,b)=>b.date.localeCompare(a.date));
-    const latest=prog[0], paraDone=latest?latest.para_done:0, surahDone=latest?latest.surah_done:0, revisionPara=latest?latest.revision_para:0, currentPara=latest?latest.current_para:1;
-    document.getElementById('g-para-done').textContent=toBn(paraDone)+' / ৩০ পারা';
-    document.getElementById('g-surah-done').textContent=toBn(surahDone);
-    document.getElementById('g-revision').textContent=toBn(revisionPara);
-    const pct=Math.round(paraDone/30*100), r=28, circ=2*Math.PI*r;
-    document.getElementById('progress-ring-container').innerHTML=`<svg width="70" height="70" class="progress-ring" viewBox="0 0 70 70"><circle class="ring-bg" cx="35" cy="35" r="${r}"/><circle class="ring-fill" cx="35" cy="35" r="${r}" stroke-dasharray="${circ}" stroke-dashoffset="${circ-circ*pct/100}"/></svg><div style="text-align:center;margin-top:-60px;height:60px;display:flex;align-items:center;justify-content:center;position:relative;"><span class="ring-label">${toBn(pct)}%</span></div>`;
-    document.getElementById('para-grid').innerHTML=Array.from({length:30},(_,i)=>{const n=i+1;let cls='';if(n<=paraDone&&n!==currentPara)cls='done';else if(n===currentPara)cls='current';else if(n<=revisionPara)cls='revision';return `<div class="para-cell ${cls}">${toBn(n)}</div>`;}).join('');
-  }
-  function renderGroupMembers() {
-    const members=API.persistLoadArr(HIFZ_MEMBERS_KEY).filter(m=>m.group_id===currentGroupId);
-    document.getElementById('member-list').innerHTML=members.map(m=>{const s=API.Students.getById(m.student_id);const cls=s?API.Classes.getById(s.class_id):null;return s?`<div class="member-row"><div class="list-avatar">📿</div><div style="flex:1;"><div class="member-name"><button type="button" class="s-name-btn" style="font-size:13px;font-weight:600;color:var(--ink);" onclick="MMStudentModal.open('${s.id}')">${API.esc(s.name)}</button></div><div class="member-class">${cls?API.esc(cls.name):''} · যোগদান: ${API.esc(m.joined||'')}</div></div><span class="list-badge badge-ink">${API.escBn(s.permanent_id)}</span></div>`:''}).join('')||'<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো সদস্য নেই</div></div>';
-  }
-  function renderGroupActivity() {
-    const acts=API.persistLoadArr(HIFZ_ACTIVITY_KEY).filter(a=>a.group_id===currentGroupId).sort((a,b)=>b.date.localeCompare(a.date));
-    document.getElementById('activity-list').innerHTML=acts.map(a=>`<div class="activity-log-item"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span class="list-badge badge-ink">${API.esc(a.type)}</span><span style="font-size:11px;color:var(--ink3);">${API.esc(a.date)}</span></div><div style="font-size:13px;color:var(--ink);line-height:1.6;">${API.esc(a.text)}</div><div style="font-size:11px;color:var(--ink3);margin-top:4px;">${API.esc(a.by||'')}</div></div>`).join('')||'<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-text">কোনো লগ নেই</div></div>';
-  }
-  function openModal(id) { document.getElementById('modal-'+id).classList.add('open'); }
-  function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
-  function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
-  renderHome();
-</script>
+if (!MMSession.requireAdminPerm('hifz','../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
 
-<!-- CLASS DETAIL OVERLAY -->
-<div class="cls-overlay" id="cls-overlay">
-  <div class="cls-ov-header">
-    <button class="cls-ov-back" onclick="closeClassOverlay()" aria-label="ফিরে যাও">←</button>
-    <div class="cls-ov-info">
-      <div class="cls-ov-title" id="cls-ov-title">—</div>
-      <div class="cls-ov-teacher" id="cls-ov-teacher">—</div>
-    </div>
-  </div>
-  <div class="cls-ov-tabs">
-    <button class="cls-ov-tab active" data-tab="students" onclick="switchOvTab('students')">ছাত্র তালিকা</button>
-    <button class="cls-ov-tab" data-tab="kitab" onclick="switchOvTab('kitab')">বই</button>
-    <button class="cls-ov-tab" data-tab="khuluk" onclick="switchOvTab('khuluk')">হুসনুল খুলুক</button>
-    <button class="cls-ov-tab" data-tab="logs" onclick="switchOvTab('logs')">লগ</button>
-  </div>
-  <div class="cls-ov-body" id="cls-ov-body"></div>
-</div>
-<script src="../js/mam-overlay.js"></script>
+let hifzData = {groups:[],members:[],progress:[],activity:[]};
+let currentGroupId = null;
+
+function toBn(n) { return String(n).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d]); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(iso) {
+  if (!iso) return '';
+  try { const h=MMHijri.hijriOrFallback(iso); return h||iso; } catch(e) { return iso; }
+}
+
+async function loadHifzData() {
+  try {
+    const res = await MMSharedAPI.hifzBootstrap(MMSession.getId(), MMSession.getPin());
+    if (res && res.ok) {
+      hifzData = {groups:res.groups||[],members:res.members||[],progress:res.progress||[],activity:res.activity||[]};
+    } else {
+      showToast('ডেটা লোড ব্যর্থ');
+    }
+  } catch(e) { showToast('সংযোগ ত্রুটি'); }
+}
+
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function switchGroupTab(tab) {
+  ['progress','members','activity'].forEach(t=>{
+    document.getElementById('gtab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('gtab-content-'+t).style.display=t===tab?'block':'none';
+  });
+  if(tab==='progress') renderGroupProgress();
+  else if(tab==='members') renderGroupMembers();
+  else renderGroupActivity();
+}
+
+function latestProg(gid) {
+  return hifzData.progress.filter(p=>p.group_id===gid)
+    .sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id))[0]||null;
+}
+
+function renderHome() {
+  const groups = hifzData.groups.filter(g=>g.active);
+  const activeMembers = hifzData.members.filter(m=>m.status==='active');
+  document.getElementById('total-hifz').textContent = toBn(activeMembers.length);
+  document.getElementById('total-groups').textContent = toBn(groups.length);
+  const paras = groups.map(g=>{ const p=latestProg(g.id); return p?p.para_done:0; });
+  document.getElementById('avg-para').textContent = toBn(paras.length ? Math.round(paras.reduce((a,b)=>a+b,0)/paras.length) : 0);
+
+  document.getElementById('group-list').innerHTML = groups.map(g=>{
+    const latest = latestProg(g.id);
+    const memCount = hifzData.members.filter(m=>m.group_id===g.id&&m.status==='active').length;
+    const pct = latest ? Math.round(latest.para_done/30*100) : 0;
+    return `<div class="group-card" onclick="openGroup('${esc(g.id)}')">
+      <div class="group-header">
+        <div>
+          <div class="group-name">${esc(g.name)}</div>
+          <div class="group-meta">${g.teacher?esc(g.teacher)+' · ':''}${toBn(memCount)} সক্রিয় সদস্য${g.start?' · শুরু '+esc(g.start):''}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Tiro Bangla',serif;font-size:20px;font-weight:700;color:var(--green);">${latest?toBn(latest.para_done):'০'}/৩০</div>
+          <div style="font-size:10px;color:var(--ink3);">পারা সম্পন্ন</div>
+        </div>
+      </div>
+      <div style="height:6px;background:var(--cream3);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--green);border-radius:3px;"></div></div>
+      ${latest?`<div style="font-size:11px;color:var(--ink3);margin-top:6px;">চলমান: ${toBn(latest.current_para)} নং পারা</div>`:''}
+    </div>`;
+  }).join('')||'<div class="empty-state"><span class="empty-icon">📿</span><div class="empty-text">কোনো ফরিক নেই</div></div>';
+}
+
+function openGroup(gid) {
+  currentGroupId = gid;
+  const g = hifzData.groups.find(g=>g.id===gid);
+  document.getElementById('group-detail-name').textContent = g?g.name:'';
+  ['progress','members','activity'].forEach((t,i)=>{
+    document.getElementById('gtab-'+t).classList.toggle('active',i===0);
+    document.getElementById('gtab-content-'+t).style.display=i===0?'block':'none';
+  });
+  renderGroupProgress();
+  switchPanel('group');
+}
+
+function renderGroupProgress() {
+  const latest = latestProg(currentGroupId);
+  const paraDone = latest?latest.para_done:0, currentPara = latest?latest.current_para:1;
+  document.getElementById('g-para-done').textContent = toBn(paraDone)+' / ৩০ পারা';
+  document.getElementById('g-current-para').textContent = toBn(currentPara);
+  document.getElementById('g-last-updated').textContent = latest?'সর্বশেষ: '+fmtDate(latest.date):'';
+  const pct=Math.round(paraDone/30*100), r=28, circ=2*Math.PI*r;
+  document.getElementById('progress-ring-container').innerHTML =
+    `<svg width="70" height="70" class="progress-ring" viewBox="0 0 70 70"><circle class="ring-bg" cx="35" cy="35" r="${r}"/><circle class="ring-fill" cx="35" cy="35" r="${r}" stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${(circ-circ*pct/100).toFixed(2)}"/></svg><div style="text-align:center;margin-top:-60px;height:60px;display:flex;align-items:center;justify-content:center;position:relative;"><span class="ring-label">${toBn(pct)}%</span></div>`;
+  document.getElementById('para-grid').innerHTML = Array.from({length:30},(_,i)=>{
+    const n=i+1, cls=(n<=paraDone&&n!==currentPara)?'done':n===currentPara?'current':'';
+    return `<div class="para-cell ${cls}">${toBn(n)}</div>`;
+  }).join('');
+}
+
+function renderGroupMembers() {
+  const STATUS_LBL = {active:'সক্রিয়',completed:'সম্পন্ন',transferred:'স্থানান্তরিত',dropped:'বিদায়'};
+  const members = hifzData.members.filter(m=>m.group_id===currentGroupId)
+    .sort((a,b)=>{
+      if(a.status==='active'&&b.status!=='active') return -1;
+      if(a.status!=='active'&&b.status==='active') return 1;
+      return (a.student_name||'').localeCompare(b.student_name||'','bn');
+    });
+  document.getElementById('member-list').innerHTML = members.map(m=>{
+    const lbl = STATUS_LBL[m.status]||m.status;
+    const bc = m.status==='active'?'sbadge-active':'sbadge-other';
+    return `<div class="member-row">
+      <div class="list-avatar">📿</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;color:var(--ink);">${esc(m.student_name||'')}</div>
+        <div style="font-size:11px;color:var(--ink3);">${esc(m.class_name||'')} · যোগদান: ${fmtDate(m.joined||'')}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <span class="list-badge badge-ink">${esc(m.student_permanent_id||m.student_roll||'')}</span>
+        <span class="sbadge ${bc}">${esc(lbl)}</span>
+      </div>
+    </div>`;
+  }).join('')||'<div class="empty-state"><span class="empty-icon">👥</span><div class="empty-text">কোনো সদস্য নেই</div></div>';
+}
+
+function renderGroupActivity() {
+  const acts = hifzData.activity.filter(a=>a.group_id===currentGroupId)
+    .sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
+  document.getElementById('activity-list').innerHTML = acts.map(a=>
+    `<div class="activity-log-item">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+        <span class="list-badge badge-ink">${esc(a.type)}</span>
+        <span style="font-size:11px;color:var(--ink3);">${fmtDate(a.date)}</span>
+      </div>
+      <div style="font-size:13px;color:var(--ink);line-height:1.6;">${esc(a.text)}</div>
+      ${a.by?`<div style="font-size:11px;color:var(--ink3);margin-top:4px;">${esc(a.by)}</div>`:''}
+    </div>`
+  ).join('')||'<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-text">কোনো লগ নেই</div></div>';
+}
+
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+loadHifzData().then(()=>renderHome());
+</script>
 </body>
 </html>

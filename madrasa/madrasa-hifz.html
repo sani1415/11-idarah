@@ -16,7 +16,6 @@
   .para-cell { aspect-ratio:1; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border:1.5px solid var(--cream3); background:#fff; color:var(--ink3); }
   .para-cell.done { background:var(--green); border-color:var(--green); color:#fff; }
   .para-cell.current { background:var(--gold2); border-color:var(--gold); color:var(--ink); }
-  .para-cell.revision { background:var(--blue-light); border-color:var(--blue); color:var(--blue); }
   .member-row { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid var(--cream2); gap:8px; }
   .member-row:last-child { border-bottom:none; }
   .member-class { font-size:11px; color:var(--ink3); }
@@ -43,7 +42,6 @@
 
 <div class="content">
   <div class="panel active" id="panel-home">
-
     <div style="background:linear-gradient(135deg,#1a6b3c,#27ae60);border-radius:var(--radius);padding:16px;color:#fff;margin:8px 0 14px;">
       <div style="font-size:13px;opacity:.6;margin-bottom:10px;">হিফজ বিভাগ · সামগ্রিক</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
@@ -52,7 +50,6 @@
         <div><div style="font-family:'Tiro Bangla',serif;font-size:22px;font-weight:700;" id="avg-para">—</div><div style="font-size:10px;opacity:.7;margin-top:2px;">গড় পারা</div></div>
       </div>
     </div>
-
     <button class="add-btn" style="background:var(--green);" onclick="openModal('add-group')">＋ নতুন ফরিক তৈরি করুন</button>
     <div class="sec-header"><span class="sec-title">সক্রিয় ফরিকসমূহ</span></div>
     <div id="group-list"></div>
@@ -172,257 +169,190 @@
 <script src="../js/monitor-mode.js"></script>
 <script src="../js/mm-hijri.js"></script>
 <script>
-  if (!MMSession.requireStaffRoleOrAdminPerm('hifz', 'hifz', '../main-admin-madrasa.html')) { throw new Error('hifz permission denied'); }
+  if (!MMSession.requireStaffRoleOrAdminPerm('hifz','hifz','../main-admin-madrasa.html')) { throw new Error('hifz permission denied'); }
   document.getElementById('top-name').textContent = MMSession.getName() || 'দায়িত্বশীল';
   mmInsertMonitorBanner();
   MMSession.configureTopbarHubAndLockout();
 
-  const HIFZ_KEY = 'mm_hifz_groups';
-  const HIFZ_PROG_KEY = 'mm_hifz_progress';
-  const HIFZ_MEMBERS_KEY = 'mm_hifz_members';
-  const HIFZ_ACTIVITY_KEY = 'mm_hifz_activity';
-
-  function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
+  function toBn(n) { return String(n).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d]); }
   function fmtDate(iso) {
     if (!iso) return '—';
-    if (window.MMHijri && MMHijri.hijriOrFallback) { const h=MMHijri.hijriOrFallback(iso); if (h) return h; }
-    const p=iso.split('-'); if (p.length<3) return iso;
+    if (window.MMHijri && MMHijri.hijriOrFallback) { const h=MMHijri.hijriOrFallback(String(iso)); if (h) return h; }
+    const p=String(iso).split('-'); if (p.length<3) return String(iso);
     return toBn(parseInt(p[2],10))+'/'+toBn(parseInt(p[1],10))+'/'+toBn(p[0]);
   }
-  if (!API.persistLoadArr(HIFZ_KEY).length) [HIFZ_KEY,HIFZ_PROG_KEY,HIFZ_MEMBERS_KEY,HIFZ_ACTIVITY_KEY].forEach(k=>API.persistSaveArr(k,[]));
 
-  let currentGroupId = null, leavingMemberId = null, _availableStudents = [];
-  let expandedGroups = new Set();
+  let hifzData = {groups:[],members:[],progress:[],activity:[]};
+  let currentGroupId=null, leavingMemberId=null, editingGroupId=null;
+  let expandedGroups=new Set(), _availableStudents=[];
+
+  async function loadHifzData() {
+    try {
+      const res = await MMSharedAPI.hifzBootstrap(MMSession.getId(), MMSession.getPin());
+      if (res && res.ok) hifzData = {groups:res.groups||[],members:res.members||[],progress:res.progress||[],activity:res.activity||[]};
+    } catch(e) { console.warn('hifz load failed', e); }
+  }
 
   function renderHome() {
-    const groups = API.persistLoadArr(HIFZ_KEY).filter(g => g.active);
-    const allMembers = API.persistLoadArr(HIFZ_MEMBERS_KEY);
-    const prog = API.persistLoadArr(HIFZ_PROG_KEY);
-
-    const activeAll = allMembers.filter(m => !m.status || m.status === 'active');
-    document.getElementById('total-hifz').textContent = toBn(new Set(activeAll.map(m => m.student_id)).size);
-    document.getElementById('total-groups').textContent = toBn(groups.length);
-    const paras = groups.map(g => { const p = prog.filter(p=>p.group_id===g.id).sort((a,b)=>b.date.localeCompare(a.date))[0]; return p?p.para_done:0; });
-    document.getElementById('avg-para').textContent = toBn(paras.length ? Math.round(paras.reduce((a,b)=>a+b,0)/paras.length) : 0);
-
-    document.getElementById('group-list').innerHTML = groups.map(g => {
-      const latest = prog.filter(p=>p.group_id===g.id).sort((a,b)=>b.date.localeCompare(a.date)||(b.id||'').localeCompare(a.id||''))[0];
-      const gMembers = allMembers.filter(m=>m.group_id===g.id&&(!m.status||m.status==='active'));
+    const groups=hifzData.groups.filter(g=>g.active), members=hifzData.members, prog=hifzData.progress;
+    const activeAll=members.filter(m=>!m.status||m.status==='active');
+    document.getElementById('total-hifz').textContent=toBn(new Set(activeAll.map(m=>m.student_id)).size);
+    document.getElementById('total-groups').textContent=toBn(groups.length);
+    const paras=groups.map(g=>{const p=prog.filter(p=>p.group_id===g.id).sort((a,b)=>b.date.localeCompare(a.date))[0];return p?p.para_done:0;});
+    document.getElementById('avg-para').textContent=toBn(paras.length?Math.round(paras.reduce((a,b)=>a+b,0)/paras.length):0);
+    document.getElementById('group-list').innerHTML=groups.map(g=>{
+      const latest=prog.filter(p=>p.group_id===g.id).sort((a,b)=>b.date.localeCompare(a.date))[0];
+      const gMems=members.filter(m=>m.group_id===g.id&&(!m.status||m.status==='active'));
       const paraDone=latest?latest.para_done:0, curPara=latest?latest.current_para:1;
       const pct=Math.round(paraDone/30*100), isOpen=expandedGroups.has(g.id);
-
-      const paraGrid = Array.from({length:30},(_,i)=>{
-        const n=i+1, cls=n<=paraDone&&n!==curPara?'done':n===curPara?'current':'';
-        return '<div class="para-cell '+cls+'">'+toBn(n)+'</div>';
-      }).join('');
-
-      const memberRows = gMembers.map(m=>{
-        const s=API.Students.getById(m.student_id); if(!s) return '';
-        const c=API.Classes.getById(s.class_id);
-        return '<div class="member-row"><div class="list-avatar">📿</div>'
-          +'<div style="flex:1;"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">'
-          +(s.roll?'<span style="font-size:11px;color:var(--ink3);font-weight:700;">'+API.escBn(s.roll)+'</span>':'')
-          +'<button type="button" class="s-name-btn" style="font-size:13px;font-weight:600;color:var(--ink);" onclick="MMStudentModal.open(\''+s.id+'\')">'+API.esc(s.name)+'</button>'
-          +'<span class="list-badge badge-ink" style="font-size:10px;">'+API.escBn(s.permanent_id||'')+'</span>'
-          +'</div>'+(c?'<div class="member-class">'+API.esc(c.name)+'</div>':'')+'</div>'
-          +'<button type="button" class="topbar-btn" style="font-size:11px;padding:3px 7px;color:var(--red);" onclick="event.stopPropagation();openLeaveModal(\''+m.id+'\')">ত্যাগ</button></div>';
-      }).join('') || '<div style="padding:10px;text-align:center;color:var(--ink3);font-size:12px;">কোনো সদস্য নেই</div>';
-
-      return '<div class="group-card">'
-        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;" onclick="toggleGroup(\''+g.id+'\')">'
-        +'<div><div style="display:flex;align-items:center;gap:6px;"><div class="group-name">'+API.esc(g.name)+'</div>'
-        +'<button type="button" onclick="event.stopPropagation();openEditGroupModal(\''+g.id+'\')" style="font-size:10px;color:var(--ink3);padding:2px 5px;border:1px solid var(--cream3);border-radius:3px;background:#fff;cursor:pointer;flex-shrink:0;">✎</button></div>'
-        +'<div class="group-meta">'+toBn(gMembers.length)+' সদস্য · শুরু '+API.esc(fmtDate(g.start))+'</div>'
-        +(g.teacher?'<div class="group-meta" style="color:var(--ink2);font-weight:600;margin-top:2px;">দায়িত্বশীল: '+API.esc(g.teacher)+'</div>':'')+'</div>'
-        +'<div style="display:flex;align-items:center;gap:8px;">'
-        +'<div style="text-align:right;"><div style="font-family:\'Tiro Bangla\',serif;font-size:20px;font-weight:700;color:var(--green);">'+toBn(paraDone)+'/৩০</div>'
-        +'<div style="font-size:10px;color:var(--ink3);">পারা সম্পন্ন</div></div>'
-        +'<span style="font-size:16px;color:var(--ink3);">'+(isOpen?'▼':'▶')+'</span></div></div>'
-        +'<div style="height:6px;background:var(--cream3);border-radius:3px;overflow:hidden;margin-top:8px;">'
-        +'<div style="height:100%;width:'+pct+'%;background:var(--green);border-radius:3px;"></div></div>'
+      const paraGrid=Array.from({length:30},(_,i)=>{const n=i+1,cls=n<=paraDone&&n!==curPara?'done':n===curPara?'current':'';return '<div class="para-cell '+cls+'">'+toBn(n)+'</div>';}).join('');
+      const memberRows=gMems.map(m=>'<div class="member-row"><div class="list-avatar">📿</div><div style="flex:1;"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">'+(m.student_roll?'<span style="font-size:11px;color:var(--ink3);font-weight:700;">'+toBn(m.student_roll)+'</span>':'')+'<span style="font-size:13px;font-weight:600;color:var(--ink);">'+API.esc(m.student_name||'')+'</span>'+(m.student_permanent_id?'<span class="list-badge badge-ink" style="font-size:10px;">'+toBn(m.student_permanent_id)+'</span>':'')+'</div>'+(m.class_name?'<div class="member-class">'+API.esc(m.class_name)+'</div>':'')+'</div><button type="button" class="topbar-btn" style="font-size:11px;padding:3px 7px;color:var(--red);" onclick="event.stopPropagation();openLeaveModal(\''+m.id+'\')">ত্যাগ</button></div>').join('')||'<div style="padding:10px;text-align:center;color:var(--ink3);font-size:12px;">কোনো সদস্য নেই</div>';
+      return '<div class="group-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;" onclick="toggleGroup(\''+g.id+'\')">'
+        +'<div><div style="display:flex;align-items:center;gap:6px;"><div class="group-name">'+API.esc(g.name)+'</div><button type="button" onclick="event.stopPropagation();openEditGroupModal(\''+g.id+'\')" style="font-size:10px;color:var(--ink3);padding:2px 5px;border:1px solid var(--cream3);border-radius:3px;background:#fff;cursor:pointer;flex-shrink:0;">✎</button></div>'
+        +'<div class="group-meta">'+toBn(gMems.length)+' সদস্য · শুরু '+fmtDate(g.start)+'</div>'+(g.teacher?'<div class="group-meta" style="color:var(--ink2);font-weight:600;margin-top:2px;">দায়িত্বশীল: '+API.esc(g.teacher)+'</div>':'')+'</div>'
+        +'<div style="display:flex;align-items:center;gap:8px;"><div style="text-align:right;"><div style="font-family:\'Tiro Bangla\',serif;font-size:20px;font-weight:700;color:var(--green);">'+toBn(paraDone)+'/৩০</div><div style="font-size:10px;color:var(--ink3);">পারা সম্পন্ন</div></div><span style="font-size:16px;color:var(--ink3);">'+(isOpen?'▼':'▶')+'</span></div></div>'
+        +'<div style="height:6px;background:var(--cream3);border-radius:3px;overflow:hidden;margin-top:8px;"><div style="height:100%;width:'+pct+'%;background:var(--green);border-radius:3px;"></div></div>'
         +(latest?'<div style="font-size:12px;color:var(--gold);margin-top:6px;">'+toBn(curPara)+' নং পারা চলছে</div>':'')
-        +(isOpen
-          ?'<div style="margin-top:12px;">'
-            +'<div class="legend">'
-            +'<div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>সম্পন্ন</div>'
-            +'<div class="legend-item"><div class="legend-dot" style="background:var(--gold2)"></div>চলছে</div>'
-            +'</div>'
-            +'<div class="para-grid">'+paraGrid+'</div>'
-            +'<div style="font-size:12px;color:var(--ink2);font-weight:600;margin:10px 0 4px;">সদস্য</div>'
-            +'<div class="card-static">'+memberRows+'</div>'
-            +'<div class="card-actions">'
-            +'<button class="add-btn" style="background:var(--green);" onclick="event.stopPropagation();openProgressModal(\''+g.id+'\')">অগ্রগতি</button>'
-            +'<button class="add-btn" style="background:var(--green);" onclick="event.stopPropagation();openAddMemberModal(\''+g.id+'\')">＋ সদস্য</button>'
-            +'<button class="add-btn" style="background:var(--ink3);" onclick="event.stopPropagation();openActivityModal(\''+g.id+'\')">লগ যোগ</button>'
-            +'</div></div>'
-          :'')
+        +(isOpen?'<div style="margin-top:12px;"><div class="legend"><div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>সম্পন্ন</div><div class="legend-item"><div class="legend-dot" style="background:var(--gold2)"></div>চলছে</div></div><div class="para-grid">'+paraGrid+'</div><div style="font-size:12px;color:var(--ink2);font-weight:600;margin:10px 0 4px;">সদস্য</div><div class="card-static">'+memberRows+'</div><div class="card-actions"><button class="add-btn" style="background:var(--green);" onclick="event.stopPropagation();openProgressModal(\''+g.id+'\')">অগ্রগতি</button><button class="add-btn" style="background:var(--green);" onclick="event.stopPropagation();openAddMemberModal(\''+g.id+'\')">＋ সদস্য</button><button class="add-btn" style="background:var(--ink3);" onclick="event.stopPropagation();openActivityModal(\''+g.id+'\')">লগ যোগ</button></div></div>':'')
         +'</div>';
-    }).join('') || '<div class="empty-state"><span class="empty-icon">📿</span><div class="empty-text">কোনো ফরিক নেই</div></div>';
+    }).join('')||'<div class="empty-state"><span class="empty-icon">📿</span><div class="empty-text">কোনো ফরিক নেই</div></div>';
   }
 
   function switchPanel(name) {
-    document.getElementById('panel-home').style.display = name==='home' ? '' : 'none';
-    document.getElementById('panel-log').style.display = name==='log' ? '' : 'none';
-    document.getElementById('nav-home').classList.toggle('active', name==='home');
-    document.getElementById('nav-log').classList.toggle('active', name==='log');
+    document.getElementById('panel-home').style.display=name==='home'?'':'none';
+    document.getElementById('panel-log').style.display=name==='log'?'':'none';
+    document.getElementById('nav-home').classList.toggle('active',name==='home');
+    document.getElementById('nav-log').classList.toggle('active',name==='log');
     if (name==='log') renderLog();
   }
-
   function renderLog() {
-    const gMap = {}; API.persistLoadArr(HIFZ_KEY).forEach(g => gMap[g.id]=g);
-    const logs = [...API.persistLoadArr(HIFZ_ACTIVITY_KEY)].sort((a,b)=>b.date.localeCompare(a.date)||(b.id||'').localeCompare(a.id||''));
-    document.getElementById('log-list').innerHTML = logs.length
-      ? logs.map(l => {
-          const g=gMap[l.group_id];
-          return '<div style="padding:10px 0;border-bottom:1px solid var(--cream2);">'
-            +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">'
-            +'<span style="font-size:11px;color:var(--ink3);">'+API.esc(fmtDate(l.date))+'</span>'
-            +(g?'<span class="list-badge badge-ink" style="font-size:10px;">'+API.esc(g.name)+'</span>':'')
-            +'<span style="font-size:10px;background:var(--cream2);border-radius:3px;padding:1px 5px;">'+API.esc(l.type||'')+'</span></div>'
-            +'<div style="font-size:13px;color:var(--ink2);">'+API.esc(l.text||'')+'</div>'
-            +(l.by?'<div style="font-size:11px;color:var(--ink3);margin-top:3px;">— '+API.esc(l.by)+'</div>':'')
-            +'</div>';
-        }).join('')
-      : '<div style="text-align:center;color:var(--ink3);padding:40px 0;font-size:13px;">কোনো লগ নেই</div>';
+    const gMap={}; hifzData.groups.forEach(g=>gMap[g.id]=g);
+    const logs=[...hifzData.activity].sort((a,b)=>b.date.localeCompare(a.date));
+    document.getElementById('log-list').innerHTML=logs.length?logs.map(l=>{const g=gMap[l.group_id];return '<div style="padding:10px 0;border-bottom:1px solid var(--cream2);"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-size:11px;color:var(--ink3);">'+fmtDate(l.date)+'</span>'+(g?'<span class="list-badge badge-ink" style="font-size:10px;">'+API.esc(g.name)+'</span>':'')+'<span style="font-size:10px;background:var(--cream2);border-radius:3px;padding:1px 5px;">'+API.esc(l.type||'')+'</span></div><div style="font-size:13px;color:var(--ink2);">'+API.esc(l.text||'')+'</div>'+(l.by?'<div style="font-size:11px;color:var(--ink3);margin-top:3px;">— '+API.esc(l.by)+'</div>':'')+'</div>';}).join(''):'<div style="text-align:center;color:var(--ink3);padding:40px 0;font-size:13px;">কোনো লগ নেই</div>';
   }
-
-  function toggleGroup(gid) {
-    if (expandedGroups.has(gid)) expandedGroups.delete(gid); else expandedGroups.add(gid);
-    renderHome();
-  }
-
+  function toggleGroup(gid) { if(expandedGroups.has(gid))expandedGroups.delete(gid);else expandedGroups.add(gid); renderHome(); }
   function openProgressModal(gid) {
-    currentGroupId = gid;
-    const latest = API.persistLoadArr(HIFZ_PROG_KEY).filter(p=>p.group_id===gid).sort((a,b)=>b.date.localeCompare(a.date)||(b.id||'').localeCompare(a.id||''))[0];
+    currentGroupId=gid;
+    const latest=hifzData.progress.filter(p=>p.group_id===gid).sort((a,b)=>b.date.localeCompare(a.date))[0];
     document.getElementById('upd-para').value=latest?latest.para_done:'';
     document.getElementById('upd-current').value=latest?latest.current_para:'';
     document.getElementById('upd-note').value=latest?latest.note||'':'';
     openModal('update-progress');
   }
-
   function openAddMemberModal(gid) {
-    currentGroupId = gid;
-    const active = API.persistLoadArr(HIFZ_MEMBERS_KEY).filter(m=>m.group_id===gid&&(!m.status||m.status==='active'));
-    const existing = new Set(active.map(m=>m.student_id));
-    _availableStudents = API.Students.getAll().filter(s=>s.active!==false&&!existing.has(s.id));
+    currentGroupId=gid;
+    const existing=new Set(hifzData.members.filter(m=>m.group_id===gid&&(!m.status||m.status==='active')).map(m=>String(m.student_id)));
+    _availableStudents=API.Students.getAll().filter(s=>s.active!==false&&!existing.has(String(s.id)));
     document.getElementById('member-search').value=''; document.getElementById('member-student-id').value='';
     document.getElementById('member-selected').textContent=''; document.getElementById('member-date').value='';
     filterMemberSearch(); openModal('add-member');
   }
+  function openActivityModal(gid) { currentGroupId=gid; document.getElementById('act-text').value=''; openModal('add-activity'); }
 
-  function openActivityModal(gid) {
-    currentGroupId=gid; document.getElementById('act-text').value=''; openModal('add-activity');
-  }
-
-  function saveProgress() {
+  async function saveProgress() {
     if (mmMutationBlocked(showToast)) return;
-    const para=parseInt(document.getElementById('upd-para').value)||0;
-    const cur=parseInt(document.getElementById('upd-current').value)||1;
-    const note=document.getElementById('upd-note').value;
-    const td=API.today();
-    const cleaned=API.persistLoadArr(HIFZ_PROG_KEY).filter(p=>!(p.group_id===currentGroupId&&p.date===td));
-    cleaned.push({id:API.uid(), group_id:currentGroupId, para_done:para, current_para:cur, note, date:td});
-    API.persistSaveArr(HIFZ_PROG_KEY,cleaned); closeModal('update-progress'); showToast('অগ্রগতি সংরক্ষিত ✓'); renderHome();
+    const para=parseInt(document.getElementById('upd-para').value)||0, cur=parseInt(document.getElementById('upd-current').value)||1, note=document.getElementById('upd-note').value;
+    try {
+      const res=await MMSharedAPI.hifzSaveProgress(MMSession.getId(),MMSession.getPin(),currentGroupId,para,cur,note);
+      if (!res||!res.ok) { showToast('সংরক্ষণ ব্যর্থ'); return; }
+      await loadHifzData(); closeModal('update-progress'); showToast('অগ্রগতি সংরক্ষিত ✓'); renderHome();
+    } catch(e) { showToast('ত্রুটি হয়েছে'); }
   }
-
-  function addMember() {
+  async function addMember() {
     if (mmMutationBlocked(showToast)) return;
-    const sid=document.getElementById('member-student-id').value, date=document.getElementById('member-date').value||API.today();
+    const sid=document.getElementById('member-student-id').value, date=document.getElementById('member-date').value||null;
     if (!sid) { showToast('ছাত্র নির্বাচন করুন'); return; }
-    const list=API.persistLoadArr(HIFZ_MEMBERS_KEY);
-    list.push({id:API.uid(), group_id:currentGroupId, student_id:sid, joined:date, status:'active'});
-    API.persistSaveArr(HIFZ_MEMBERS_KEY,list); closeModal('add-member'); showToast('সদস্য যোগ করা হয়েছে ✓'); renderHome();
+    try {
+      const res=await MMSharedAPI.hifzAddMember(MMSession.getId(),MMSession.getPin(),currentGroupId,sid,date);
+      if (!res||!res.ok) { showToast('সংরক্ষণ ব্যর্থ'); return; }
+      await loadHifzData(); closeModal('add-member'); showToast('সদস্য যোগ করা হয়েছে ✓'); renderHome();
+    } catch(e) { showToast('ত্রুটি হয়েছে'); }
   }
-
   function filterMemberSearch() {
     document.getElementById('member-student-id').value=''; document.getElementById('member-selected').textContent='';
     const q=document.getElementById('member-search').value.toLowerCase();
     const items=_availableStudents.filter(s=>!q||s.name.toLowerCase().includes(q)||(s.roll||'').toLowerCase().includes(q)||(s.permanent_id||'').toLowerCase().includes(q));
     document.getElementById('member-search-list').innerHTML=items.map(s=>'<div onclick="selectMember(\''+s.id+'\',\''+API.esc(s.name)+'\')" style="padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--cream2);font-size:13px;">'+(s.roll?'<small style="color:var(--ink3);">'+API.toBn(s.roll)+' · </small>':'')+API.esc(s.name)+(s.permanent_id?'<small style="color:var(--ink3);"> ('+API.toBn(s.permanent_id)+')</small>':'')+' </div>').join('')||'<div style="padding:10px;color:var(--ink3);font-size:12px;">কেউ পাওয়া যায়নি</div>';
   }
-  function selectMember(id, name) {
+  function selectMember(id,name) {
     document.getElementById('member-student-id').value=id; document.getElementById('member-selected').textContent='✓ '+name;
     document.getElementById('member-search').value=''; document.getElementById('member-search-list').innerHTML='';
   }
-
   function openLeaveModal(memberId) {
     leavingMemberId=memberId;
-    const m=API.persistLoadArr(HIFZ_MEMBERS_KEY).find(x=>x.id===memberId);
-    const s=m?API.Students.getById(m.student_id):null;
-    document.getElementById('leave-member-name').textContent=s?s.name:'';
-    document.getElementById('leave-reason').value='হিফজ সম্পন্ন'; document.getElementById('leave-date').value=API.today();
+    const m=hifzData.members.find(x=>x.id===memberId);
+    document.getElementById('leave-member-name').textContent=m?m.student_name||'':'';
+    document.getElementById('leave-reason').value='হিফজ সম্পন্ন'; document.getElementById('leave-date').value='';
     document.getElementById('leave-note').value=''; document.getElementById('modal-member-leave').classList.add('open');
   }
-  function saveMemberLeave() {
+  async function saveMemberLeave() {
     if (mmMutationBlocked(showToast)||!leavingMemberId) return;
-    const reason=document.getElementById('leave-reason').value, date=document.getElementById('leave-date').value||API.today(), note=document.getElementById('leave-note').value;
+    const reason=document.getElementById('leave-reason').value, date=document.getElementById('leave-date').value||null, note=document.getElementById('leave-note').value;
     const statusMap={'হিফজ সম্পন্ন':'completed','অন্য প্রতিষ্ঠানে':'transferred'};
-    const list=API.persistLoadArr(HIFZ_MEMBERS_KEY), idx=list.findIndex(x=>x.id===leavingMemberId);
-    if (idx===-1) { showToast('সদস্য পাওয়া যায়নি'); return; }
-    list[idx]={...list[idx], status:statusMap[reason]||'dropped', left_reason:reason, left_at:date, left_note:note};
-    API.persistSaveArr(HIFZ_MEMBERS_KEY,list); closeModal('member-leave'); leavingMemberId=null; showToast('বিভাগ ত্যাগের তথ্য সংরক্ষিত ✓'); renderHome();
+    try {
+      const res=await MMSharedAPI.hifzMemberLeave(MMSession.getId(),MMSession.getPin(),leavingMemberId,statusMap[reason]||'dropped',reason,date,note);
+      if (!res||!res.ok) { showToast('সংরক্ষণ ব্যর্থ'); return; }
+      await loadHifzData(); closeModal('member-leave'); leavingMemberId=null; showToast('বিভাগ ত্যাগের তথ্য সংরক্ষিত ✓'); renderHome();
+    } catch(e) { showToast('ত্রুটি হয়েছে'); }
   }
-
-  function saveActivity() {
+  async function saveActivity() {
     if (mmMutationBlocked(showToast)) return;
     const type=document.getElementById('act-type').value, text=document.getElementById('act-text').value.trim();
     if (!text) { showToast('বিবরণ দিন'); return; }
-    const list=API.persistLoadArr(HIFZ_ACTIVITY_KEY);
-    list.push({id:API.uid(), group_id:currentGroupId, type, text, date:API.today(), by:MMSession.getName()||'দায়িত্বশীল'});
-    API.persistSaveArr(HIFZ_ACTIVITY_KEY,list); closeModal('add-activity'); showToast('লগ সংরক্ষিত ✓'); renderHome();
+    try {
+      const res=await MMSharedAPI.hifzSaveActivity(MMSession.getId(),MMSession.getPin(),currentGroupId,type,text,MMSession.getName()||'দায়িত্বশীল');
+      if (!res||!res.ok) { showToast('সংরক্ষণ ব্যর্থ'); return; }
+      await loadHifzData(); closeModal('add-activity'); showToast('লগ সংরক্ষিত ✓'); renderHome();
+    } catch(e) { showToast('ত্রুটি হয়েছে'); }
   }
-
-  function addGroup() {
+  async function addGroup() {
     if (mmMutationBlocked(showToast)) return;
-    const name=document.getElementById('grp-name').value.trim(), start=document.getElementById('grp-start').value||API.today(), note=document.getElementById('grp-note').value, teacher=document.getElementById('grp-teacher').value.trim();
-    if (!name) { showToast('ফরিকের নাম দিন'); return; }
-    const list=API.persistLoadArr(HIFZ_KEY);
-    const gid='grp_'+API.uid();
-    list.push({id:gid, name, start, note, teacher, active:true});
-    API.persistSaveArr(HIFZ_KEY,list); closeModal('add-group'); showToast('ফরিক তৈরি হয়েছে ✓');
-    expandedGroups.add(gid); renderHome();
+    const name=document.getElementById('grp-name').value.trim(); if (!name) { showToast('ফরিকের নাম দিন'); return; }
+    const start=document.getElementById('grp-start').value||null, note=document.getElementById('grp-note').value, teacher=document.getElementById('grp-teacher').value.trim();
+    try {
+      const res=await MMSharedAPI.hifzSaveGroup(MMSession.getId(),MMSession.getPin(),{name,teacher,start,note});
+      if (!res||!res.ok) { showToast('সংরক্ষণ ব্যর্থ'); return; }
+      const newId=res.id;
+      await loadHifzData(); closeModal('add-group'); showToast('ফরিক তৈরি হয়েছে ✓');
+      if (newId) expandedGroups.add(newId); renderHome();
+    } catch(e) { showToast('ত্রুটি হয়েছে'); }
   }
-
-  let editingGroupId = null;
   function openEditGroupModal(gid) {
     editingGroupId=gid;
-    const g=API.persistLoadArr(HIFZ_KEY).find(x=>x.id===gid); if(!g) return;
-    document.getElementById('egrp-name').value=g.name||'';
-    document.getElementById('egrp-teacher').value=g.teacher||'';
-    document.getElementById('egrp-start').value=g.start||'';
-    document.getElementById('egrp-note').value=g.note||'';
+    const g=hifzData.groups.find(x=>x.id===gid); if (!g) return;
+    document.getElementById('egrp-name').value=g.name||''; document.getElementById('egrp-teacher').value=g.teacher||'';
+    document.getElementById('egrp-start').value=g.start||''; document.getElementById('egrp-note').value=g.note||'';
     document.getElementById('modal-edit-group').classList.add('open');
   }
-  function saveGroupEdit() {
+  async function saveGroupEdit() {
     if (mmMutationBlocked(showToast)||!editingGroupId) return;
-    const name=document.getElementById('egrp-name').value.trim(); if(!name){showToast('ফরিকের নাম দিন');return;}
-    const list=API.persistLoadArr(HIFZ_KEY), idx=list.findIndex(x=>x.id===editingGroupId); if(idx===-1) return;
-    list[idx]={...list[idx], name, teacher:document.getElementById('egrp-teacher').value.trim(), start:document.getElementById('egrp-start').value, note:document.getElementById('egrp-note').value};
-    API.persistSaveArr(HIFZ_KEY,list); document.getElementById('modal-edit-group').classList.remove('open');
-    editingGroupId=null; showToast('ফরিক আপডেট হয়েছে ✓'); renderHome();
+    const name=document.getElementById('egrp-name').value.trim(); if (!name) { showToast('ফরিকের নাম দিন'); return; }
+    const teacher=document.getElementById('egrp-teacher').value.trim(), start=document.getElementById('egrp-start').value||null, note=document.getElementById('egrp-note').value;
+    try {
+      const res=await MMSharedAPI.hifzSaveGroup(MMSession.getId(),MMSession.getPin(),{id:editingGroupId,name,teacher,start,note});
+      if (!res||!res.ok) { showToast('সংরক্ষণ ব্যর্থ'); return; }
+      await loadHifzData(); document.getElementById('modal-edit-group').classList.remove('open');
+      editingGroupId=null; showToast('ফরিক আপডেট হয়েছে ✓'); renderHome();
+    } catch(e) { showToast('ত্রুটি হয়েছে'); }
   }
-
   function openPinChangeModal() {
     ['pc-cur','pc-new','pc-conf'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('pc-err').textContent=''; document.getElementById('modal-pin-change').classList.add('open');
   }
   function closePinChangeModal() { document.getElementById('modal-pin-change').classList.remove('open'); }
   async function saveOwnPin() {
-    var c=document.getElementById('pc-cur').value, n=document.getElementById('pc-new').value, f=document.getElementById('pc-conf').value, e=document.getElementById('pc-err');
-    if (!c||!n||!f) { e.textContent='সব ঘর পূরণ করুন'; return; }
-    if (n!==f) { e.textContent='PIN মিলছে না'; return; }
-    if (n.length!==4||!/^\d+$/.test(n)) { e.textContent='PIN ৪ সংখ্যার হতে হবে'; return; }
-    e.textContent='Saving...';
+    var c=document.getElementById('pc-cur').value,n=document.getElementById('pc-new').value,f=document.getElementById('pc-conf').value,e=document.getElementById('pc-err');
+    if (!c||!n||!f){e.textContent='সব ঘর পূরণ করুন';return;} if(n!==f){e.textContent='PIN মিলছে না';return;}
+    if(n.length!==4||!/^\d+$/.test(n)){e.textContent='PIN ৪ সংখ্যার হতে হবে';return;} e.textContent='Saving...';
     var result=await MMSession.changeStaffPin(c,n,function(uid,cur,next){return API.Teachers.changeOwnPin(uid,cur,next);});
-    if (!result.ok) { e.textContent=(MMSession.pinChangeErrorMessage&&MMSession.pinChangeErrorMessage(result.error))||'PIN change failed'; return; }
-    closePinChangeModal(); if (typeof showToast==='function') showToast('PIN সফলভাবে পরিবর্তন হয়েছে');
+    if(!result.ok){e.textContent=(MMSession.pinChangeErrorMessage&&MMSession.pinChangeErrorMessage(result.error))||'PIN change failed';return;}
+    closePinChangeModal(); showToast('PIN সফলভাবে পরিবর্তন হয়েছে');
   }
-
   function openModal(id) { if (mmMutationBlocked(showToast)) return; document.getElementById('modal-'+id).classList.add('open'); }
   function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
   function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
 
-  renderHome();
+  loadHifzData().then(()=>renderHome());
 </script>
 
 <div class="modal-bg" id="modal-pin-change" onclick="if(event.target===this)closePinChangeModal()">

@@ -187,8 +187,13 @@
 
   async function startPage() {
     updateYearDisplay();
-    try { await DeptSync.bootstrap(); } catch (e) { /* localStorage fallback */ }
-    init();
+    try {
+      await DeptSync.bootstrap();
+      init();
+    } catch (e) {
+      const el = document.getElementById('dept-list');
+      el.innerHTML = '<div style="text-align:center;color:var(--red);padding:32px 0;font-size:13px;">ডাটাবেজ সংযোগ ব্যর্থ। বিভাগ তালিকা লোড হয়নি।</div>';
+    }
   }
 
   function selectDept(id) {

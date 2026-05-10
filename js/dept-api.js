@@ -14,12 +14,26 @@ const DeptAPI = (() => {
     products:      'mm_dept_products',
   };
 
+  const CACHE = {};
+  const clone = value => JSON.parse(JSON.stringify(value));
   const uid  = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
   const today = () => new Date().toISOString().split('T')[0];
   const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-  function load(key) { try { return JSON.parse(localStorage.getItem(key))||[]; } catch { return []; } }
-  function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+  function load(key) {
+    const value = CACHE[key];
+    return Array.isArray(value) ? clone(value) : [];
+  }
+  function loadObj(key) {
+    const value = CACHE[key];
+    return value && typeof value === 'object' && !Array.isArray(value) ? clone(value) : {};
+  }
+  function save(key, data) { CACHE[key] = clone(data || []); }
+  function saveObj(key, data) { CACHE[key] = clone(data || {}); }
+  function cacheGet(key, fallback) {
+    return CACHE[key] === undefined ? clone(fallback) : clone(CACHE[key]);
+  }
+  function cacheSet(key, value) { CACHE[key] = clone(value); }
   function deptIcon(id, emoji) {
     if (id === 'dept_4' && (!emoji || emoji === '🧵')) return '✂️';
     return emoji || '🏢';
@@ -82,7 +96,7 @@ const DeptAPI = (() => {
     },
   };
 
-  /* ── Per-dept extra fields — hardcoded fallback (overridden by localStorage) ── */
+  /* ── Legacy default field definitions, kept only for reference. DB data is authoritative. ── */
   const SUBDEPT_EXTRA_FIELDS_DEFAULT = {
     dept_1: [{ key:'plot',      label:'জমি / প্লট রেফারেন্স',  type:'text',   optional:true }],
     dept_2: [{ key:'hives',     label:'মৌচাক সংখ্যা (ঐন)',     type:'number', optional:true }],
@@ -91,21 +105,19 @@ const DeptAPI = (() => {
   };
 
   function _loadExtraFields() {
-    try { return JSON.parse(localStorage.getItem(KEYS.extra_fields)) || {}; } catch { return {}; }
+    return loadObj(KEYS.extra_fields);
   }
 
   /* ── ExtraFields — প্রতিটি বিভাগের অতিরিক্ত ইনপুট ক্ষেত্র ── */
   const ExtraFields = {
     get(dept_id) {
       const stored = _loadExtraFields();
-      return stored[dept_id] !== undefined
-        ? stored[dept_id]
-        : (SUBDEPT_EXTRA_FIELDS_DEFAULT[dept_id] || []).slice();
+      return stored[dept_id] !== undefined ? stored[dept_id] : [];
     },
     set(dept_id, fields) {
       const all = _loadExtraFields();
       all[dept_id] = fields;
-      localStorage.setItem(KEYS.extra_fields, JSON.stringify(all));
+      saveObj(KEYS.extra_fields, all);
     },
     add(dept_id, field) {
       const fields = this.get(dept_id);
@@ -239,8 +251,20 @@ const DeptAPI = (() => {
     },
   };
 
-  seedIfEmpty();
-  purgeKnownSampleData();
-  return { Departments, Transactions, Inventory, EditRequests, ExtraFields, Products, getSubdeptFields, uid, today, esc };
+  return {
+    Departments,
+    Transactions,
+    Inventory,
+    EditRequests,
+    ExtraFields,
+    Products,
+    getSubdeptFields,
+    uid,
+    today,
+    esc,
+    __cacheGet: cacheGet,
+    __cacheSet: cacheSet,
+    __keys: KEYS,
+  };
 
 })();

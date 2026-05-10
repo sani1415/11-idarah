@@ -903,14 +903,9 @@
     const t = txnById(id);
     if (!t) return;
     if (!confirm('এই লেনদেন ডিলিট করবেন?')) return;
-    const isLocalOnly = String(t.id).startsWith('txn_');
     try {
       if (canDirectModify(t)) {
-        if (!isLocalOnly && window.DeptSync && staffUserId && staffPin) {
-          await DeptSync.deleteTransaction(staffUserId, staffPin, deptId, t.id);
-        }
-        if (isLocalOnly || !(window.DeptSync && staffUserId && staffPin)) restoreLocalInventoryForSale(t);
-        DeptAPI.Transactions.remove(String(t.id));
+        await DeptSync.deleteTransaction(staffUserId, staffPin, deptId, t.id);
         showToast('লেনদেন ডিলিট হয়েছে');
       } else {
         await requestTxnApproval('dept_transaction_delete', t, null);
@@ -938,11 +933,12 @@
       proposed:proposed || null,
       requestedAt:new Date().toISOString()
     };
-    DeptAPI.EditRequests.add({
+    await DeptSync.saveEditRequest(staffUserId, staffPin, deptId, {
       transaction_id: String(txn.id),
-      dept_id: deptId,
       kind,
       reason: kind === 'dept_transaction_edit' ? 'এডিট অনুরোধ' : 'ডিলিট অনুরোধ',
+      original: txn,
+      proposed: proposed || null,
     });
     const res = await ChatAPI.sendRemote(staffUserId, staffPin, 'dept-' + deptId, text, false, { request:req });
     if (!res || !res.ok) throw new Error((res && res.error) || 'request_failed');
@@ -953,14 +949,9 @@
     const t = txnById(activeTxnId);
     if (!t) return;
     if (!confirm('এই লেনদেন ডিলিট করবেন?')) return;
-    const isLocalOnly = String(t.id).startsWith('txn_');
     try {
       if (canDirectModify(t)) {
-        if (!isLocalOnly && window.DeptSync && staffUserId && staffPin) {
-          await DeptSync.deleteTransaction(staffUserId, staffPin, deptId, t.id);
-        }
-        if (isLocalOnly || !(window.DeptSync && staffUserId && staffPin)) restoreLocalInventoryForSale(t);
-        DeptAPI.Transactions.remove(String(t.id));
+        await DeptSync.deleteTransaction(staffUserId, staffPin, deptId, t.id);
         showToast('লেনদেন ডিলিট হয়েছে');
       } else {
         await requestTxnApproval('dept_transaction_delete', t, null);
@@ -1109,27 +1100,21 @@
     try {
       if (editingTxnId) {
         const original = txnById(editingTxnId);
-        const isLocalEdit = String(editingTxnId).startsWith('txn_');
         if (original && canDirectModify(original)) {
           let successMessage = 'লেনদেন আপডেট হয়েছে';
-          if (!isLocalEdit && window.DeptSync && staffUserId && staffPin) {
-            try {
-              await uploadExpenseReceipts(editingTxnId, payload);
-            } catch (receiptError) {
-              successMessage = 'লেনদেন আপডেট হয়েছে, রশিদ আপলোড হয়নি';
-              console.warn('[Dept] receipt upload failed:', receiptError);
-            }
-            await DeptSync.updateTransaction(staffUserId, staffPin, deptId, editingTxnId, payload);
-          } else {
-            applyLocalInventorySaleChange(original, payload);
-            DeptAPI.Transactions.update(editingTxnId, { ...payload, id: editingTxnId });
+          try {
+            await uploadExpenseReceipts(editingTxnId, payload);
+          } catch (receiptError) {
+            successMessage = 'লেনদেন আপডেট হয়েছে, রশিদ আপলোড হয়নি';
+            console.warn('[Dept] receipt upload failed:', receiptError);
           }
+          await DeptSync.updateTransaction(staffUserId, staffPin, deptId, editingTxnId, payload);
           showToast(successMessage);
         } else if (original) {
           await requestTxnApproval('dept_transaction_edit', original, payload);
           showToast('এডমিন অনুমতির জন্য পাঠানো হয়েছে');
         }
-      } else if (window.DeptSync && staffUserId && staffPin) {
+      } else {
         const savedId = await DeptSync.saveTransaction(staffUserId, staffPin, deptId, payload);
         let receiptUploadFailed = false;
         try {
@@ -1141,27 +1126,15 @@
           console.warn('[Dept] receipt upload failed:', receiptError);
         }
         showToast(receiptUploadFailed ? 'লেনদেন সংরক্ষিত, রশিদ আপলোড হয়নি' : 'লেনদেন সংরক্ষিত হয়েছে');
-      } else {
-        DeptAPI.Transactions.add(payload);
-        localInventoryDeductForSale(payload);
-        showToast('লেনদেন সংরক্ষিত হয়েছে');
       }
     } catch (e) {
-      console.warn('[Dept] transaction save failed, using local fallback:', e);
+      console.warn('[Dept] transaction save failed:', e);
       if (/stock|মজুদ|insufficient/i.test(String(e && e.message || e))) {
         showToast('মজুদ যথেষ্ট নেই — বিক্রি সংরক্ষণ হয়নি');
         return;
       }
-      if (editingTxnId) {
-        const original = txnById(editingTxnId);
-        applyLocalInventorySaleChange(original, payload);
-        DeptAPI.Transactions.update(editingTxnId, { ...payload, id: editingTxnId });
-        showToast('Supabase সংযোগ নেই — লোকালভাবে আপডেট হয়েছে');
-      } else {
-        DeptAPI.Transactions.add(payload);
-        localInventoryDeductForSale(payload);
-        showToast('Supabase সংযোগ নেই — লোকালভাবে সংরক্ষিত');
-      }
+      showToast('ডাটাবেজে সংরক্ষণ হয়নি');
+      return;
     }
     closeModal('modal-txn');
     editingTxnId = null;
@@ -1355,17 +1328,11 @@
     const price = parseFloat(document.getElementById('prd-price').value)||0;
     if (!name) { showToast('পণ্যের নাম দিন'); return; }
     try {
-      if (window.DeptSync && staffUserId && staffPin) {
-        await DeptSync.saveProduct(staffUserId, staffPin, deptId, { id: editId, name, unit, price, is_active:true });
-      } else {
-        if (editId) DeptAPI.Products.update(editId, { name, unit, price, is_active:true });
-        else DeptAPI.Products.add({ dept_id:deptId, name, unit, price });
-      }
+      await DeptSync.saveProduct(staffUserId, staffPin, deptId, { id: editId, name, unit, price, is_active:true });
     } catch (e) {
-      console.warn('[Dept] product save failed, using local fallback:', e);
-      if (editId) DeptAPI.Products.update(editId, { name, unit, price, is_active:true });
-      else DeptAPI.Products.add({ dept_id:deptId, name, unit, price });
-      showToast('Supabase সংযোগ হয়নি, লোকালভাবে সংরক্ষিত');
+      console.warn('[Dept] product save failed:', e);
+      showToast('ডাটাবেজে পণ্য সংরক্ষণ হয়নি');
+      return;
     }
     closeModal('modal-product');
     renderProducts();
@@ -1384,15 +1351,11 @@
     const product = DeptAPI.Products.getById(id);
     if (!product) return;
     try {
-      if (window.DeptSync && staffUserId && staffPin) {
-        await DeptSync.saveProduct(staffUserId, staffPin, deptId, { ...product, is_active:false });
-      } else {
-        DeptAPI.Products.remove(id);
-      }
+      await DeptSync.saveProduct(staffUserId, staffPin, deptId, { ...product, is_active:false });
     } catch (e) {
-      console.warn('[Dept] product remove failed, using local fallback:', e);
-      DeptAPI.Products.remove(id);
-      showToast('Supabase সংযোগ হয়নি, লোকালভাবে বাদ দেওয়া হয়েছে');
+      console.warn('[Dept] product remove failed:', e);
+      showToast('ডাটাবেজ থেকে পণ্য বাদ যায়নি');
+      return;
     }
     renderProducts();
     showToast('পণ্য বাদ দেওয়া হয়েছে');
@@ -1456,65 +1419,39 @@
     const delta = invMode === 'waste' ? -Math.abs(qty) : Math.abs(qty);
     if (delta < 0 && !validateSaleStock([{ product_id: productId || '', product_name:name, name, unit, qty:Math.abs(qty) }], null)) return;
     try {
-      if (window.DeptSync && staffUserId && staffPin) {
-        await DeptSync.adjustInventory(staffUserId, staffPin, deptId, {
-          product_id: productId || null,
-          item_name: name,
-          unit,
-          quantity_delta: delta,
-          reason: invMode,
-          notes
-        });
-      } else {
-        DeptAPI.Inventory.add({ dept_id:deptId, product_id:productId || null, item_name:name, unit, quantity:delta });
-      }
+      await DeptSync.adjustInventory(staffUserId, staffPin, deptId, {
+        product_id: productId || null,
+        item_name: name,
+        unit,
+        quantity_delta: delta,
+        reason: invMode,
+        notes
+      });
     } catch (e) {
-      console.warn('[Dept] inventory update failed, using local fallback:', e);
+      console.warn('[Dept] inventory update failed:', e);
       if (/stock|মজুদ|insufficient/i.test(String(e && e.message || e))) {
         showToast('মজুদ যথেষ্ট নেই — আপডেট হয়নি');
         return;
       }
-      DeptAPI.Inventory.add({ dept_id:deptId, product_id:productId || null, item_name:name, unit, quantity:delta });
-      showToast('Supabase সংযোগ হয়নি, লোকালভাবে সংরক্ষিত');
+      showToast('ডাটাবেজে মজুদ আপডেট হয়নি');
+      return;
     }
     closeModal('modal-inv');
     renderInv();
     showToast('মজুদ আপডেট হয়েছে');
   }
 
-  function localInventoryDeductForSale(payload) {
-    if (payload.type !== 'income' || !Array.isArray(payload.items)) return;
-    applyLocalInventoryDelta(payload.items, -1);
-  }
-
-  function restoreLocalInventoryForSale(txn) {
-    if (!txn || txn.type !== 'income') return;
-    applyLocalInventoryDelta(saleItemsFromTxn(txn), 1);
-  }
-
-  function applyLocalInventorySaleChange(originalTxn, nextPayload) {
-    restoreLocalInventoryForSale(originalTxn);
-    localInventoryDeductForSale(nextPayload);
-  }
-
-  function applyLocalInventoryDelta(items, sign) {
-    (items || []).forEach(item => {
-      const qty = Number(item.qty || item.quantity || 0);
-      if (qty > 0) {
-        DeptAPI.Inventory.add({
-          dept_id: deptId,
-          product_id: item.product_id || null,
-          item_name: item.product_name || item.name || '',
-          unit: item.unit || 'পিস',
-          quantity: qty * sign
-        });
-      }
-    });
-  }
-
   async function initDeptPage() {
-    if (window.DeptSync && staffUserId && staffPin && deptId) {
+    if (!(window.DeptSync && staffUserId && staffPin && deptId)) {
+      showToast('ডাটাবেজ সেশন পাওয়া যায়নি');
+      return;
+    }
+    try {
       await DeptSync.bootstrapData(staffUserId, staffPin, deptId);
+    } catch (e) {
+      console.warn('[Dept] bootstrap failed:', e);
+      showToast('ডাটাবেজ থেকে বিভাগ ডেটা লোড হয়নি');
+      return;
     }
     await syncChatForPending();
     renderTxn();
