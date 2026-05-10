@@ -67,7 +67,7 @@
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script>
-  if (!MMSession.requireAdminPerm('daftar', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
+  if (!MMSession.requireAdminPerm('dashboard', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
 
   const toBn = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
 

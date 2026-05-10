@@ -307,6 +307,18 @@
     return true;
   }
 
+  async function syncSettingsBooks() {
+    if (!global.MMSession || !global.MMSharedAPI || !global.API) return false;
+    var pin = MMSession.getAdminPin && MMSession.getAdminPin();
+    if (!pin || !MMSharedAPI.settingsBooksBootstrap) return false;
+    var actorId = MMSession.getAdminUserId && MMSession.getAdminUserId();
+    var res = await MMSharedAPI.settingsBooksBootstrap(actorId || null, pin);
+    if (!res || !res.ok) return false;
+    upsertLocalClasses(res.classes || []);
+    syncBookRows(res);
+    return true;
+  }
+
   async function syncTeacherClass() {
     if (!global.MMSession || !global.MMSharedAPI || !global.API) return false;
     var actorId = MMSession.getStaffUserId && MMSession.getStaffUserId();
@@ -336,6 +348,7 @@
     syncAdminStudents: syncAdminStudents,
     syncAdminUsers: syncAdminUsers,
     syncAdminDars: syncAdminDars,
+    syncSettingsBooks: syncSettingsBooks,
     syncTeacherClass: syncTeacherClass,
     syncAlumni: syncAlumni,
     syncTeacherExtras: syncTeacherExtras,

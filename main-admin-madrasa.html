@@ -210,7 +210,7 @@
 
   <!-- অনুপস্থিত তালিকা, বিশেষ পর্যবেক্ষণ, আলহামদুলিল্লাহ ও হুসনুল খুলুক গড় -->
   <div class="watch-row">
-    <div class="watch-card watch-card--absent" id="card-absent-list" data-admin-perm="daftar" onclick="goAbsentList()">
+    <div class="watch-card watch-card--absent" id="card-absent-list" onclick="goAbsentList()">
       <div class="watch-val watch-val--absent" id="w-absent">—</div>
       <div class="watch-lbl">অনুপস্থিত তালিকা</div>
     </div>
@@ -471,7 +471,9 @@
       el.style.display = MMSession.canAdmin(el.dataset.adminPerm) ? '' : 'none';
     });
     const settingsBtn = document.getElementById('btn-madrasa-settings');
-    if (settingsBtn && MMSession.isRestrictedAdmin()) settingsBtn.style.display = 'none';
+    if (settingsBtn && MMSession.isRestrictedAdmin()) {
+      settingsBtn.style.display = (MMSession.canAdmin('settings_teachers') || MMSession.canAdmin('settings_kitab')) ? '' : 'none';
+    }
   }
 
   function countWithdrawalsByDept(dept) {

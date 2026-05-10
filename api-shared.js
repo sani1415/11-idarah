@@ -70,6 +70,49 @@ const MMSharedAPI = (() => {
         p_is_active: user.is_active !== false,
       });
     },
+    saveScopedMadrasaUser(actorId, pin, user) {
+      return rpc('mdr_rel_save_scoped_user', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_user_id: user.id || null,
+        p_name: user.name,
+        p_role: user.role,
+        p_login_id: user.login_id || null,
+        p_user_pin: user.pin,
+        p_class_code: user.class_code || null,
+        p_is_active: user.is_active !== false,
+      });
+    },
+    settingsUsersBootstrap(actorId, pin) {
+      return rpc('mdr_rel_settings_users_bootstrap', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+      });
+    },
+    upsertBook(actorId, pin, book) {
+      return rpc('mdr_rel_upsert_book', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_book_id: book.id || null,
+        p_class_code: book.class_code,
+        p_name: book.name,
+        p_total_pages: Number(book.total_pages) || 0,
+        p_sort_order: Number(book.sort_order) || 0,
+      });
+    },
+    deleteBook(actorId, pin, bookId) {
+      return rpc('mdr_rel_delete_book', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_book_id: bookId,
+      });
+    },
+    settingsBooksBootstrap(actorId, pin) {
+      return rpc('mdr_rel_settings_books_bootstrap', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+      });
+    },
     staffChangeOwnPin(userId, currentPin, newPin) {
       return rpc('mdr_rel_staff_change_own_pin', {
         p_user_id: userId,
