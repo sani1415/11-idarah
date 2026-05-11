@@ -54,6 +54,59 @@ def hijri_year(month_name):
     n = MONTH_NUM.get(month_name, 0)
     return '1447' if n >= 9 else '1448'
 
+def to_en_digits(s):
+    if s is None:
+        return ''
+    out = []
+    for ch in str(s).strip():
+        if '\u09e6' <= ch <= '\u09ef':
+            out.append(str(ord(ch) - ord('\u09e6')))
+        elif '\u0660' <= ch <= '\u0669':
+            out.append(str(ord(ch) - ord('\u0660')))
+        elif '\u06f0' <= ch <= '\u06f9':
+            out.append(str(ord(ch) - ord('\u06f0')))
+        elif ch.isdigit():
+            out.append(ch)
+    return ''.join(out)
+
+def parse_hijri_day_cell(v):
+    if v is None or v == '':
+        return None
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, (int, float)):
+        try:
+            i = int(v)
+            return i if 1 <= i <= 30 else None
+        except (ValueError, TypeError, OverflowError):
+            return None
+    raw = nfc(str(v).strip())
+    if not raw:
+        return None
+    for sep in ['/', '-', '।']:
+        if sep in raw:
+            bits = [b.strip() for b in raw.replace('।', '.').split(sep) if str(b).strip()]
+            for b in reversed(bits):
+                s2 = to_en_digits(b)
+                if not s2 or len(s2) > 2:
+                    continue
+                try:
+                    i = int(s2)
+                    if 1 <= i <= 30:
+                        return i
+                except ValueError:
+                    pass
+    s = to_en_digits(raw)
+    if not s:
+        return None
+    try:
+        i = int(s)
+        if 1 <= i <= 30:
+            return i
+    except ValueError:
+        pass
+    return None
+
 _counter = [10000]
 def gen_id(prefix):
     _counter[0] += 1
@@ -83,10 +136,7 @@ for rno, row in enumerate(ws.iter_rows(min_row=5, values_only=True), start=5):
         print(f"  SKIP row {rno}: unrecognized month {month_raw!r}")
         skipped += 1
         continue
-    try:
-        day = int(day_raw) if day_raw is not None else None
-    except (ValueError, TypeError):
-        day = None
+    day = parse_hijri_day_cell(day_raw)
 
     rows.append({
         'id': gen_id('exp-tm-'),

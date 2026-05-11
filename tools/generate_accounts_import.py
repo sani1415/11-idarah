@@ -71,22 +71,83 @@ GREG_HIJRI_RANGES = [
     (date(2026, 7, 24), date(2026, 8, 21), 'সফর', 1448),
 ]
 
-def greg_to_hijri(d):
-    """Gregorian date → (hijri_month, hijri_year)"""
+def greg_to_hijri_full(d):
+    """Gregorian date → (hijri_month, hijri_year, hijri_day ১–৩০)। রেঞ্জের প্রথম দিন ≈ হিজরী ১।"""
     if d is None:
-        return None, None
+        return None, None, None
     if isinstance(d, datetime):
         d = d.date()
     if not isinstance(d, date):
-        return None, None
+        return None, None, None
     for start, end, month, year in GREG_HIJRI_RANGES:
         if start <= d <= end:
-            return month, year
-    return None, None
+            day_h = min(30, max(1, (d - start).days + 1))
+            return month, year, day_h
+    return None, None, None
+
+def greg_to_hijri(d):
+    """Gregorian date → (hijri_month, hijri_year) — পুরনো কলের জন্য"""
+    m, y, _ = greg_to_hijri_full(d)
+    return m, y
 
 def nfc(s):
     """NFC normalize + strip invisible chars — handles Excel's NFD Bengali chars"""
     return unicodedata.normalize('NFC', str(s)).replace('\u200c','').replace('\u200d','').strip()
+
+def to_en_digits(s):
+    """বাংলা/আরবি/ফার্সি অঙ্ক → ASCII অঙ্ক শুধু (সংখ্যা নয় এমন অক্ষর বাদ)"""
+    if s is None:
+        return ''
+    out = []
+    for ch in str(s).strip():
+        if '\u09e6' <= ch <= '\u09ef':
+            out.append(str(ord(ch) - ord('\u09e6')))
+        elif '\u0660' <= ch <= '\u0669':
+            out.append(str(ord(ch) - ord('\u0660')))
+        elif '\u06f0' <= ch <= '\u06f9':
+            out.append(str(ord(ch) - ord('\u06f0')))
+        elif ch.isdigit():
+            out.append(ch)
+    return ''.join(out)
+
+def parse_hijri_day_cell(v):
+    """এক্সেল দিন সেল: ইংরেজি/বাংলা সংখ্যা, অথবা ৫/১১ টাইপ — দিন ১–৩০"""
+    if v is None or v == '':
+        return None
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, (int, float)):
+        try:
+            i = int(v)
+            return i if 1 <= i <= 30 else None
+        except (ValueError, TypeError, OverflowError):
+            return None
+    raw = nfc(str(v).strip())
+    if not raw:
+        return None
+    for sep in ['/', '-', '।']:
+        if sep in raw:
+            bits = [b.strip() for b in raw.replace('।', '.').split(sep) if str(b).strip()]
+            for b in reversed(bits):
+                s2 = to_en_digits(b)
+                if not s2 or len(s2) > 2:
+                    continue
+                try:
+                    i = int(s2)
+                    if 1 <= i <= 30:
+                        return i
+                except ValueError:
+                    pass
+    s = to_en_digits(raw)
+    if not s:
+        return None
+    try:
+        i = int(s)
+        if 1 <= i <= 30:
+            return i
+    except ValueError:
+        pass
+    return None
 
 # Build NFC-normalized alias dict so lookup works regardless of source encoding
 _MONTH_ALIAS_NFC = {nfc(k): v for k, v in MONTH_ALIAS.items()}
@@ -190,10 +251,7 @@ for rno, row in enumerate(ws.iter_rows(min_row=11, values_only=True), start=11):
         continue
     acct = ACCOUNT_MAP.get(str(acct_raw or '').strip(), 'general')
     hijri_year = hijri_year_from_month(month)
-    day_int = None
-    if day_val:
-        try: day_int = int(float(day_val))
-        except: pass
+    day_int = parse_hijri_day_cell(day_val)
     rows_income.append({
         'id': gen_id('inc-47-'),
         'account': acct,
@@ -229,10 +287,7 @@ for rno, row in enumerate(ws.iter_rows(min_row=6, values_only=True), start=6):
     month = norm_month(month_raw)
     if not month or not amount:
         continue
-    day_int = None
-    if day_raw is not None:
-        try: day_int = int(float(str(day_raw)))
-        except: pass
+    day_int = parse_hijri_day_cell(day_raw)
     hijri_year = hijri_year_from_month(month)
     rows_expense.append({
         'id': gen_id('exp-mb-'),
@@ -276,10 +331,7 @@ for rno, row in enumerate(ws.iter_rows(min_row=7, values_only=True), start=7):
     month = norm_month(month_raw)
     if not month or not amount:
         continue
-    day_int = None
-    if day_raw is not None:
-        try: day_int = int(float(str(day_raw)))
-        except: pass
+    day_int = parse_hijri_day_cell(day_raw)
     hijri_year = hijri_year_from_month(month)
     rows_expense.append({
         'id': gen_id('exp-md-'),
@@ -324,10 +376,7 @@ for rno, row in enumerate(ws.iter_rows(min_row=5, values_only=True), start=5):
     month = norm_month(month_raw)
     if not month:
         continue
-    try:
-        day = int(day_raw) if day_raw is not None else None
-    except (ValueError, TypeError):
-        day = None
+    day = parse_hijri_day_cell(day_raw)
     hyear = hijri_year_from_month(month)
     rows_expense.append({
         'id': gen_id('exp-tm-'),
@@ -371,10 +420,7 @@ for rno, row in enumerate(ws.iter_rows(min_row=6, values_only=True), start=6):
     month = norm_month(month_raw)
     if not month or not amount:
         continue
-    day_int = None
-    if day_raw is not None:
-        try: day_int = int(float(str(day_raw)))
-        except: pass
+    day_int = parse_hijri_day_cell(day_raw)
     hijri_year = hijri_year_from_month(month)
     rows_expense.append({
         'id': gen_id('exp-bs-'),
@@ -414,17 +460,18 @@ for rno, row in enumerate(ws.iter_rows(min_row=4, values_only=True), start=4):
     greg = None
     if isinstance(greg_date, (date, datetime)):
         greg = greg_date if isinstance(greg_date, date) else greg_date.date()
-    month, hyear = greg_to_hijri(greg)
+    month, hyear, hday = greg_to_hijri_full(greg)
     if not month:
         month = 'জিলকদ'
         hyear = 1447
+        hday = hday or 1
     rows_expense.append({
         'id': gen_id('exp-bf-'),
         'account': 'general',
         'project': 'বিভিন্ন স্থানে অর্থ',
         'hijri_year': str(hyear),
         'month': month,
-        'day': None,
+        'day': hday,
         'gregorian_date': greg,
         'category': 'বিভিন্ন স্থানে অর্থ',
         'description': desc or '',
@@ -505,10 +552,11 @@ for rno, row in enumerate(ws.iter_rows(min_row=12, values_only=True), start=12):
     greg = None
     if isinstance(greg_date, (date, datetime)):
         greg = greg_date if isinstance(greg_date, date) else greg_date.date()
-    month, hyear = greg_to_hijri(greg)
+    month, hyear, hday = greg_to_hijri_full(greg)
     if not month:
         month = 'শাওয়াল'
         hyear = 1447
+        hday = hday or 1
     acct = SUPPLIER_ACCOUNT.get(supplier, 'matbakh')
     # Find matching due_id
     due_id = None
@@ -523,7 +571,7 @@ for rno, row in enumerate(ws.iter_rows(min_row=12, values_only=True), start=12):
         'supplier': supplier,
         'hijri_year': str(hyear),
         'month': month,
-        'day': None,
+        'day': hday,
         'gregorian_date': greg,
         'amount': amount,
         'receipt_no': receipt,

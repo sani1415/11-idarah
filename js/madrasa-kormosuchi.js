@@ -21,6 +21,7 @@ const money = x => '৳' + bn(Number(x || 0).toLocaleString('en-US'));
 const jsq = x => String(x ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 const fmtDate = d => {
   if (!d) return '';
+  if (window.MMHijri && MMHijri.hijriOrFallback) return MMHijri.hijriOrFallback(d);
   const [y, m, dd] = d.split('-');
   return bn(dd) + '/' + bn(m) + '/' + bn(y.slice(2));
 };

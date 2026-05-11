@@ -9,6 +9,37 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='repla
 
 EXCEL_PATH = r'C:\Users\sanim\Downloads\মাতবাখ-মাদরাসা-৪৭-৪৮.xlsx'
 
+# generate_accounts_import.py এর মতো — গ্রেগরিয়ান→হিজরী মাস + আনুমানিক দিন
+GREG_HIJRI_RANGES = [
+    (date(2025, 7, 7),  date(2025, 8, 5),  'মুহাররম', 1447),
+    (date(2025, 8, 6),  date(2025, 9, 3),  'সফর', 1447),
+    (date(2025, 9, 4),  date(2025, 10, 3), 'রবিউল আউয়াল', 1447),
+    (date(2025, 10, 4), date(2025, 11, 1), 'রবিউস সানি', 1447),
+    (date(2025, 11, 2), date(2025, 11, 30),'জুমাদাল উলা', 1447),
+    (date(2025, 12, 1), date(2025, 12, 29),'জুমাদাল উখরা', 1447),
+    (date(2025, 12, 30),date(2026, 1, 27), 'রজব', 1447),
+    (date(2026, 1, 28), date(2026, 2, 25), 'শাবান', 1447),
+    (date(2026, 2, 26), date(2026, 3, 28), 'রমজান', 1447),
+    (date(2026, 3, 29), date(2026, 4, 26), 'শাওয়াল', 1447),
+    (date(2026, 4, 27), date(2026, 5, 25), 'জিলকদ', 1447),
+    (date(2026, 5, 26), date(2026, 6, 24), 'জিলহজ', 1447),
+    (date(2026, 6, 25), date(2026, 7, 23), 'মুহাররম', 1448),
+    (date(2026, 7, 24), date(2026, 8, 21), 'সফর', 1448),
+]
+
+def greg_to_hijri_full(g):
+    if not g:
+        return None, None, None
+    if isinstance(g, datetime):
+        g = g.date()
+    if not isinstance(g, date):
+        return None, None, None
+    for start, end, month, year in GREG_HIJRI_RANGES:
+        if start <= g <= end:
+            day_h = min(30, max(1, (g - start).days + 1))
+            return month, year, day_h
+    return None, None, None
+
 def nfc(s):
     return unicodedata.normalize('NFC', str(s)).replace('\u200c','').replace('\u200d','').strip()
 
@@ -27,16 +58,6 @@ def num_val(v):
 HIJRI_MONTHS = ['মুহাররম','সফর','রবিউল আউয়াল','রবিউস সানি',
                 'জুমাদাল উলা','জুমাদাল উখরা','রজব','শাবান',
                 'রমজান','শাওয়াল','জিলকদ','জিলহজ']
-
-def greg_to_hijri(g):
-    if not g: return None, None
-    if isinstance(g, datetime): g = g.date()
-    if g >= date(2026,5,27): return 'জিলহজ', 1447
-    if g >= date(2026,4,28): return 'জিলকদ', 1447
-    if g >= date(2026,3,30): return 'শাওয়াল', 1447
-    if g >= date(2026,3,1):  return 'রমজান', 1447
-    if g >= date(2026,1,29): return 'শাবান', 1447
-    return 'রজব', 1447
 
 SUPPLIER_ACCOUNT = {
     'সাগর':'matbakh','আল মদিনা':'matbakh','গ্যাস':'matbakh',
@@ -116,8 +137,9 @@ for rno, row in enumerate(ws.iter_rows(min_row=12, values_only=True), start=12):
     greg = None
     if isinstance(greg_date, (date, datetime)):
         greg = greg_date if isinstance(greg_date, date) else greg_date.date()
-    month, hyear = greg_to_hijri(greg)
-    if not month: month, hyear = 'শাওয়াল', 1447
+    month, hyear, hday = greg_to_hijri_full(greg)
+    if not month:
+        month, hyear, hday = 'শাওয়াল', 1447, 1
     acct = SUPPLIER_ACCOUNT.get(supplier, 'matbakh')
     due_id = None
     for d in rows_due:
@@ -131,6 +153,7 @@ for rno, row in enumerate(ws.iter_rows(min_row=12, values_only=True), start=12):
         'supplier':     supplier,
         'hijri_year':   str(hyear),
         'month':        month,
+        'day':          hday,
         'gregorian_date': greg,
         'amount':       amount,
         'receipt_no':   receipt,
@@ -169,13 +192,14 @@ if rows_due:
 # INSERT due_payments
 if rows_due_payment:
     out.append('-- Step 4: insert corrected due_payments')
-    cols = '(id, due_id, account, supplier, hijri_year, month, gregorian_date, amount, receipt_no, source_sheet, source_row)'
+    cols = '(id, due_id, account, supplier, hijri_year, month, day, gregorian_date, amount, receipt_no, source_sheet, source_row)'
     vals = []
     for r in rows_due_payment:
         gd = f"'{r['gregorian_date']}'" if r['gregorian_date'] else 'NULL'
+        day_sql = str(int(r['day'])) if r.get('day') is not None else 'NULL'
         vals.append(
             f"({q(r['id'])},{q(r['due_id'])},{q(r['account'])},{q(r['supplier'])},"
-            f"{q(r['hijri_year'])},{q(r['month'])},{gd},{r['amount']},"
+            f"{q(r['hijri_year'])},{q(r['month'])},{day_sql},{gd},{r['amount']},"
             f"{q(r['receipt_no'])},{q('বাকির হিসাব')},{r['source_row']})"
         )
     out.append(f"INSERT INTO public.mdr_account_due_payments {cols} VALUES")

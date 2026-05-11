@@ -138,17 +138,80 @@ const MdrAccAPI = (() => {
   };
   const dateYear = (year, month) => year ? num(en(year)) : (monthNo(month) <= 8 ? systemHijriYear() + 1 : systemHijriYear());
   const dateKey = (year, month, day) => String(dateYear(year, month)).padStart(4,'0') + '-' + String(monthNo(month)).padStart(2,'0') + '-' + String(num(day)).padStart(2,'0');
+  /** `tools/generate_accounts_import.py` এর `GREG_HIJRI_RANGES` এর সাথে মিল রেখে: [sy,sm,sd, ey,em,ed, hijri_month, hijri_year] */
+  const GREG_HIJRI_RANGES = [
+    [2025, 7, 7, 2025, 8, 5, 'মুহাররম', 1447],
+    [2025, 8, 6, 2025, 9, 3, 'সফর', 1447],
+    [2025, 9, 4, 2025, 10, 3, 'রবিউল আউয়াল', 1447],
+    [2025, 10, 4, 2025, 11, 1, 'রবিউস সানি', 1447],
+    [2025, 11, 2, 2025, 11, 30, 'জুমাদাল উলা', 1447],
+    [2025, 12, 1, 2025, 12, 29, 'জুমাদাল উখরা', 1447],
+    [2025, 12, 30, 2026, 1, 27, 'রজব', 1447],
+    [2026, 1, 28, 2026, 2, 25, 'শাবান', 1447],
+    [2026, 2, 26, 2026, 3, 28, 'রমজান', 1447],
+    [2026, 3, 29, 2026, 4, 26, 'শাওয়াল', 1447],
+    [2026, 4, 27, 2026, 5, 25, 'জিলকদ', 1447],
+    [2026, 5, 26, 2026, 6, 24, 'জিলহজ', 1447],
+    [2026, 6, 25, 2026, 7, 23, 'মুহাররম', 1448],
+    [2026, 7, 24, 2026, 8, 21, 'সফর', 1448],
+  ];
+  const _utcMidnight = (y, mo, d) => Date.UTC(y, mo - 1, d);
+  /** ISO `YYYY-MM-DD` → হিজরী মাস/বছর/দিন (রেঞ্জের বাইরে হলে null) */
+  const gregorianISOToHijri = (iso) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || '').trim());
+    if (!m) return null;
+    const y = +m[1], mo = +m[2], d = +m[3];
+    const t = _utcMidnight(y, mo, d);
+    for (let i = 0; i < GREG_HIJRI_RANGES.length; i++) {
+      const row = GREG_HIJRI_RANGES[i];
+      const t0 = _utcMidnight(row[0], row[1], row[2]);
+      const t1 = _utcMidnight(row[3], row[4], row[5]);
+      if (t >= t0 && t <= t1) {
+        const dayH = Math.min(30, Math.max(1, Math.round((t - t0) / 86400000) + 1));
+        return { month: row[6], hijriYear: row[7], day: dayH };
+      }
+    }
+    return null;
+  };
+  const extractGregorianISO = (x) => {
+    const gRaw = x.date != null ? x.date : (x.gregorianDate != null ? x.gregorianDate : x.gregorian_date);
+    if (typeof gRaw === 'string') {
+      const s = gRaw.trim();
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    }
+    if (gRaw && typeof gRaw.toISOString === 'function') return gRaw.toISOString().slice(0, 10);
+    return '';
+  };
+  /** হিজরী দিন: বাংলা/আরবি/ইংরেজি সংখ্যা স্ট্রিং থেকে ১–৩০ */
+  const parseHijriDay = (raw) => {
+    if (raw === null || raw === undefined || raw === '') return null;
+    const n = num(en(String(raw).trim()));
+    return (n >= 1 && n <= 30) ? n : null;
+  };
   const NORM_STR_KEYS = ['description', 'category', 'supplier', 'note', 'project', 'unit', 'paymentMethod', 'receiptNo', 'rawDate', 'sourceFile', 'sourceSheet'];
   const norm = (r) => {
     const x = { ...r };
     NORM_STR_KEYS.forEach((k) => {
       if (typeof x[k] === 'string') x[k] = normText(x[k]);
     });
+    let monthK = monthKey(x.month);
+    let yearFor = x.hijriYear || x.year;
+    let dayParsed = parseHijriDay(x.day);
+    const gIso = extractGregorianISO(x);
+    const mapped = gIso ? gregorianISOToHijri(gIso) : null;
+    if (mapped) {
+      monthK = monthKey(mapped.month);
+      yearFor = mapped.hijriYear;
+      dayParsed = mapped.day;
+    }
+    const dayForKey = dayParsed != null ? dayParsed : 0;
+    const dk = dateKey(yearFor, monthK, dayForKey);
     return {
       ...x,
-      month: monthKey(x.month),
-      hijriYear: String(dateYear(x.hijriYear || x.year, x.month)),
-      dateKey: dateKey(x.hijriYear || x.year, x.month, x.day),
+      month: monthK,
+      hijriYear: String(dateYear(yearFor, monthK)),
+      ...(dayParsed != null ? { day: dayParsed } : {}),
+      dateKey: dk,
     };
   };
   const bn = (s) => String(s || '').replace(/\d/g, (d) => String.fromCharCode(0x09e6 + (+d)));
@@ -157,7 +220,18 @@ const MdrAccAPI = (() => {
     const a = '٠١٢٣٤٥٦٧٨٩'.indexOf(d); if (a >= 0) return a;
     return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
   });
-  const dateLabel = (r) => bn((r.dateKey || dateKey(r.hijriYear, r.month, r.day))) + (!r.day ? ' (দিন নেই)' : '');
+  const dateLabel = (r) => {
+    const x = norm(r && typeof r === 'object' ? { ...r } : {});
+    const dk = String(x.dateKey || dateKey(x.hijriYear, x.month, x.day));
+    const fromField = parseHijriDay(x.day);
+    let fromKey = null;
+    const parts = dk.split('-');
+    if (parts.length >= 3) fromKey = parseHijriDay(parts[2]);
+    const hasDay = fromField != null || (fromKey != null && fromKey > 0);
+    if (hasDay) return bn(dk);
+    if (parts.length >= 2) return bn(parts[0] + '-' + parts[1]);
+    return bn(dk);
+  };
   const parseDateInput = (v) => { const p = en(v).trim().split(/[-/\\.]/).map(num); return p.length === 3 ? { year:p[0], month:monthFromNo(p[1]), day:p[2] } : null; };
   const toDateKey = (v) => {
     if (!v || v === 'all') return 'all';

@@ -916,9 +916,11 @@ body.page-daftar #modal-account-entry .modal {
       </div>
     </div>
     <div id="acc-expense-fields" style="display:none">
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">হিসাব বই</label><select class="form-input form-select" id="acc-exp-account" onchange="onAccExpAccountChange(this.value)"><option value="matbakh">মাতবাখ</option><option value="madrasa">মাদরাসা</option><option value="tamirat">তামিরাত</option><option value="general">সাধারণ</option><option value="qard">করজে হাসানা</option></select></div>
-        <div class="form-group"><label class="form-label" id="acc-exp-supplier-label">সরবরাহকারী</label><input class="form-input" id="acc-exp-supplier" placeholder="নাম / দোকান"></div>
+      <div class="form-row" id="acc-exp-account-row">
+        <div class="form-group" style="flex:1"><label class="form-label">হিসাব বই</label><select class="form-input form-select" id="acc-exp-account" onchange="onAccExpAccountChange(this.value)"><option value="matbakh">মাতবাখ</option><option value="madrasa">মাদরাসা</option><option value="tamirat">তামিরাত</option><option value="general">সাধারণ</option></select></div>
+      </div>
+      <div class="form-row" id="acc-exp-supplier-row">
+        <div class="form-group" style="flex:1"><label class="form-label" id="acc-exp-supplier-label">সরবরাহকারী</label><input class="form-input" id="acc-exp-supplier" placeholder="নাম / দোকান" autocomplete="off"></div>
       </div>
       <!-- করজে হাসানা: শুধু পরিমাণ -->
       <div class="form-row" id="acc-qard-amt-row" style="display:none">
@@ -943,6 +945,7 @@ body.page-daftar #modal-account-entry .modal {
         <div style="text-align:right;font-weight:700;padding:8px 0 2px;font-size:14px;border-top:1px solid var(--cream2);margin-top:8px">মোট: ৳<span id="acc-grand-total">০</span></div>
       </div>
     </div>
+    <datalist id="acc-qard-category-datalist"></datalist>
     <button class="submit-btn gold" onclick="saveAccountEntry()">সংরক্ষণ করুন</button>
   </div>
 </div>
@@ -968,7 +971,7 @@ body.page-daftar #modal-account-entry .modal {
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/madrasa-accounts-api.js?v=20260503-accounts-topbar"></script>
 <script src="../js/chat-api.js"></script>
-<script src="../js/madrasa-daftar-accounts.js?v=20260504-filters4"></script>
+<script src="../js/madrasa-daftar-accounts.js?v=20260511-qard-hub"></script>
 <script src="../js/madrasa-accounts-reports.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mm-session.js"></script>

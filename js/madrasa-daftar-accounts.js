@@ -28,7 +28,7 @@ var _editEntryType = '';
 var _editNeedsApproval = false;
 var _paymentMethod = 'cash';
 var _qardTab = 'entries'; /* 'entries' | 'recovery' */
-var _payQardOpenSup = null; /* inline-expand-এ কোন supplier খোলা আছে */
+var _payQardOpenBucket = null; /* করজ আদায় কার্ড — কোন খাত-কী খোলা */
 
 (function () {
   var A   = MdrAccAPI;
@@ -103,14 +103,19 @@ body.page-daftar #panel-fees{margin-left:-12px;margin-right:-12px}
 .acc-btn-inc{background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#065f46}
 .acc-btn-exp{background:linear-gradient(135deg,#fee2e2,#fecaca);color:#991b1b}
 .acc-tabs{display:flex;margin:0 4px 6px;padding:3px;gap:3px;overflow-x:auto;scrollbar-width:none;background:rgba(255,255,255,.72);border:1px solid rgba(26,18,8,.07);border-radius:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
-.acc-qard-tab-bar{display:flex;gap:0;margin:-4px -12px 10px;border-bottom:2px solid var(--cream2)}
-.acc-qard-tab{flex:1;padding:9px 4px;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;background:none;font-family:inherit;font-size:13px;font-weight:600;color:var(--ink3);cursor:pointer;transition:color .15s,border-color .15s}
+.acc-qard-tab-bar{display:flex;gap:0;margin:0 0 12px;padding:0 2px;border-bottom:2px solid var(--cream2);border-radius:12px 12px 0 0;background:rgba(255,255,255,.5)}
+.acc-qard-toolbar{margin:0 0 10px}
+.acc-qard-new-btn{width:100%;padding:10px 12px;border-radius:12px;border:1.5px dashed rgba(154,106,33,.38);background:linear-gradient(180deg,#fffefb,#fff8e8);color:var(--ink2);font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(26,18,8,.05)}
+.acc-qard-new-btn:active{transform:scale(.99)}
+.acc-qard-tab{flex:1;padding:10px 6px;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;background:none;font-family:inherit;font-size:13px;font-weight:600;color:var(--ink3);cursor:pointer;transition:color .15s,border-color .15s}
 .acc-qard-tab.is-active{color:var(--ink2);border-bottom-color:var(--gold);font-weight:800}
 .acc-qard-tab.is-recovery.is-active{color:var(--green);border-bottom-color:var(--green)}
 .qard-person-card{background:#fff;border:1px solid rgba(26,18,8,.09);border-radius:14px;padding:11px 13px;margin-bottom:8px;box-shadow:0 4px 10px rgba(26,18,8,.05)}
 .qard-person-card:last-child{margin-bottom:0}
 .qard-expand-wrap{border-top:1px solid var(--cream2);margin-top:9px;padding-top:9px}
 .qard-expand-row{display:flex;gap:8px;align-items:center;margin-top:6px}
+.acc-qard-pane{display:flex;flex-direction:column;flex:1;min-height:0}
+.acc-qard-pane--recovery{padding-top:4px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .acc-tab-btn{padding:6px 10px;border:none;border-radius:11px;background:none;cursor:pointer;font-size:11px;color:var(--ink3);white-space:nowrap;font-family:inherit}
 .acc-tab-btn.active{color:#fff;background:linear-gradient(135deg,var(--gold),#9a6a21);font-weight:800;box-shadow:0 6px 14px rgba(154,106,33,.23)}
 .acc-content{padding:0 4px 10px}
@@ -160,11 +165,31 @@ body.page-daftar #panel-fees{margin-left:-12px;margin-right:-12px}
 .acc-ledger-table{margin-top:8px;border-top:1px dashed rgba(26,18,8,.12);padding-top:7px;display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:10px;color:var(--ink3)}
 .acc-ledger-table b{color:var(--ink2);font-size:11px}
 .acc-table-wrap{overflow:auto;border:1px solid rgba(26,18,8,.07);border-radius:16px;background:#fff;max-height:none;flex:1;min-height:0}
-body.page-daftar #modal-account-details .modal-title{margin-bottom:8px;gap:8px}
-body.page-daftar #account-details-title{display:flex;align-items:center;gap:6px;min-width:0;flex:1;white-space:nowrap;overflow:hidden}
-.acc-title-main{font-size:15px;overflow:hidden;text-overflow:ellipsis}
+body.page-daftar #modal-account-details .modal-title{margin-bottom:10px;gap:8px;align-items:flex-start}
+body.page-daftar #account-details-title{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden}
+body.page-daftar #account-details-title.acc-title-root--qard{flex-direction:column;align-items:stretch;gap:0;padding-right:2px;overflow:visible}
+.acc-title-main{font-size:15px;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .acc-title-meta{font-size:10px;color:var(--ink3);font-family:'Tiro Bangla',serif;font-weight:800;flex-shrink:0}
 .acc-title-total{font-family:'Tiro Bangla',serif;font-size:12px;font-weight:900;color:var(--red);background:#fff4d9;border:1px solid rgba(154,106,33,.16);border-radius:999px;padding:4px 7px;white-space:nowrap;flex-shrink:0}
+/* করজ মডাল শিরোনাম — এক কার্ডে মোট + তিন স্তম্ভ স্ট্যাট */
+.acc-qard-title-card{
+  width:100%;box-sizing:border-box;
+  background:linear-gradient(168deg,#fffcf7 0%,#fff6e8 45%,#fdf3df 100%);
+  border:1px solid rgba(184,134,45,.24);border-radius:16px;
+  padding:12px 12px 11px;box-shadow:0 8px 22px rgba(26,18,8,.07);
+}
+.acc-qard-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;min-width:0}
+.acc-qard-title-name{font-size:16px;font-weight:900;color:var(--ink2);line-height:1.25;min-width:0;flex:1}
+.acc-qard-title-amount{font-family:'Tiro Bangla',serif;font-size:20px;font-weight:900;color:#a67c1f;line-height:1;white-space:nowrap;flex-shrink:0;letter-spacing:-.02em}
+.acc-qard-title-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;text-align:center}
+.acc-qard-stat{
+  background:rgba(255,255,255,.88);border:1px solid rgba(26,18,8,.08);
+  border-radius:12px;padding:8px 4px 9px;min-width:0;
+}
+.acc-qard-stat-lbl{display:block;font-size:9px;font-weight:800;color:var(--ink3);margin:0 0 5px;line-height:1.2}
+.acc-qard-stat-val{display:block;font-size:13px;font-weight:900;color:var(--ink2);font-family:'Tiro Bangla',serif;line-height:1.2;word-break:break-word}
+.acc-qard-stat-val--green{color:#15803d}
+.acc-qard-stat-val--gold{color:#a16207}
 .acc-detail-tools{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:stretch}
 .acc-detail-tools .acc-sel{min-width:0;padding:6px 8px;flex:1}
 .acc-detail-tools .acc-filter-icon-btn{flex:0 0 auto;min-width:90px}
@@ -193,6 +218,16 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
 .acc-detail-table th:nth-child(7),.acc-detail-table td:nth-child(7){min-width:58px}
 .acc-detail-table th:nth-child(8),.acc-detail-table td:nth-child(8){min-width:64px}
 .acc-detail-table th:nth-child(9),.acc-detail-table td:nth-child(9){min-width:58px}
+/* করজে হাসানা: মাস কলাম নেই — nth-child ভিন্ন; না হলে খাত/বিবরণ কলাম ভুল min-width পায় */
+/* করজ এন্ট্রি টেবিল: মাস+সরবরাহকারী কলাম নেই — তারিখ,খাত,বিবরণ,পরিমাণ,রশিদ,টাকা,(কর্ম) */
+.acc-table-wrap--qard .acc-detail-table th:nth-child(1),.acc-table-wrap--qard .acc-detail-table td:nth-child(1){min-width:86px}
+.acc-table-wrap--qard .acc-detail-table th:nth-child(2),.acc-table-wrap--qard .acc-detail-table td:nth-child(2){min-width:76px}
+.acc-table-wrap--qard .acc-detail-table th:nth-child(3),.acc-table-wrap--qard .acc-detail-table td:nth-child(3){min-width:132px}
+.acc-table-wrap--qard .acc-detail-table th:nth-child(4),.acc-table-wrap--qard .acc-detail-table td:nth-child(4){min-width:76px}
+.acc-table-wrap--qard .acc-detail-table th:nth-child(5),.acc-table-wrap--qard .acc-detail-table td:nth-child(5){min-width:68px}
+.acc-table-wrap--qard .acc-detail-table th:nth-child(6),.acc-table-wrap--qard .acc-detail-table td:nth-child(6){min-width:70px}
+.acc-table-wrap--qard .acc-detail-table th:nth-child(7),.acc-table-wrap--qard .acc-detail-table td:nth-child(7){min-width:56px}
+.acc-table-wrap--qard.acc-table-wrap--qard-ro .acc-detail-table th:nth-child(6),.acc-table-wrap--qard.acc-table-wrap--qard-ro .acc-detail-table td:nth-child(6){min-width:74px}
 .acc-expense-wrap{overflow:auto;border:1px solid rgba(26,18,8,.07);border-radius:17px;background:#fff;max-height:60vh;box-shadow:0 10px 24px rgba(26,18,8,.055)}
 .acc-expense-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
 .acc-expense-table th{position:sticky;top:0;background:#faf3e8;color:var(--ink3);font-size:10px;font-weight:900;text-align:left;padding:7px 5px;border-bottom:1px solid rgba(26,18,8,.08);z-index:1;white-space:nowrap}
@@ -728,15 +763,43 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     });
   }
 
+  function ensureQardAccountOption(show) {
+    var accSel = document.getElementById('acc-exp-account');
+    if (!accSel) return;
+    var opt = accSel.querySelector('option[value="qard"]');
+    if (show) {
+      if (!opt) {
+        opt = document.createElement('option');
+        opt.value = 'qard';
+        opt.textContent = 'করজে হাসানা';
+        accSel.appendChild(opt);
+      }
+    } else if (opt) {
+      opt.remove();
+    }
+  }
+
+  function resetAccEntryAccountChrome() {
+    ensureQardAccountOption(false);
+    var row = document.getElementById('acc-exp-account-row');
+    if (row) row.style.display = '';
+    var si = document.getElementById('acc-exp-supplier');
+    if (si) si.removeAttribute('list');
+  }
+
   /* ══════════════ OPEN MODAL (new + edit) ══════════════ */
-  window.openAccModal = function (type, entryId) {
+  window.openAccModal = function (type, entryId, opts) {
+    opts = opts || {};
     if (isAccountsReadOnly()) { showToast('এডমিন পেইজে হিসাব দেখা যায়, এন্ট্রি বদলানো যায় না'); return; }
+    resetAccEntryAccountChrome();
     _editEntryId   = entryId || null;
     _editEntryType = type;
     var entry = entryId
       ? (type === 'income' ? A.Income.getById(entryId) : A.Expense.getById(entryId))
       : null;
     _editNeedsApproval = !!(entry && !isAdminSession() && entryAgeHours(entry) > 24);
+    var qardGiveOnly = !!(opts.qardGiveOnly && type === 'expense' && !entryId);
+    var forceQardUi = type === 'expense' && ((entry && entry.account === 'qard') || qardGiveOnly);
 
     _items = [_blank()];
     var incF = document.getElementById('acc-income-fields');
@@ -744,9 +807,15 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     if (incF) incF.style.display = type === 'income' ? '' : 'none';
     if (expF) expF.style.display = type === 'expense' ? '' : 'none';
     var t = document.getElementById('account-modal-title');
-    if (t) t.textContent = entryId
-      ? (type === 'income' ? 'আয় এডিট' : 'ব্যয় এডিট')
-      : (type === 'income' ? 'আয় এন্ট্রি' : 'ব্যয় এন্ট্রি');
+    if (t) {
+      if (type === 'expense' && forceQardUi) {
+        t.textContent = entryId ? 'করজে হাসানা — ব্যয় এডিট' : 'করজে হাসানা — নতুন করজ';
+      } else {
+        t.textContent = entryId
+          ? (type === 'income' ? 'আয় এডিট' : 'ব্যয় এডিট')
+          : (type === 'income' ? 'আয় এন্ট্রি' : 'ব্যয় এন্ট্রি');
+      }
+    }
     document.getElementById('account-entry-type').value = type;
 
     var hd = A.todayHijri();
@@ -771,9 +840,20 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       var se         = document.getElementById('acc-exp-supplier');
       var receiptEl  = document.getElementById('acc-exp-receipt');
       var qardAmtEl  = document.getElementById('acc-qard-amt');
-      var entryAccount = (entry ? entry.account : null) || 'matbakh';
+      var entryAccount = (entry ? entry.account : null) || (qardGiveOnly ? 'qard' : 'matbakh');
+      if (forceQardUi) {
+        ensureQardAccountOption(true);
+        var accRow = document.getElementById('acc-exp-account-row');
+        if (accRow) accRow.style.display = 'none';
+      }
       if (accSel) accSel.value = entryAccount;
-      if (se) se.value = entry ? A.clean(entry.supplier, '') : '';
+      if (se) {
+        se.value = entry
+          ? (entry.account === 'qard'
+            ? (A.clean(entry.category, '') || A.clean(entry.description, '') || A.clean(entry.supplier, ''))
+            : A.clean(entry.supplier, ''))
+          : '';
+      }
       if (receiptEl) receiptEl.value = entry ? (entry.receiptNo || '') : '';
       if (qardAmtEl) qardAmtEl.value = (entry && entry.account === 'qard') ? (entry.amount || '') : '';
       if (entry && entry.account !== 'qard') {
@@ -786,6 +866,11 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     }
     renderEditReasonField();
     openModal('account-entry');
+  };
+
+  window.openQardGiveModal = function () {
+    if (isAccountsReadOnly()) { showToast('এডমিন পেইজে হিসাব দেখা যায়, এন্ট্রি বদলানো যায় না'); return; }
+    window.openAccModal('expense', null, { qardGiveOnly: true });
   };
 
   /* করজে হাসানা সিলেক্ট হলে ব্যয় ফর্ম সংক্ষিপ্ত করো */
@@ -801,9 +886,15 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     if (payRow)       payRow.style.display        = isQard ? 'none' : '';
     if (itemsSection) itemsSection.style.display  = isQard ? 'none' : '';
     if (qardAmtRow)   qardAmtRow.style.display    = isQard ? '' : 'none';
-    if (supLabel)     supLabel.textContent         = isQard ? 'প্রাপক (ঋণগ্রহীতা)' : 'সরবরাহকারী';
-    if (isQard && supInput) supInput.placeholder  = 'যার নামে করজ দেওয়া হচ্ছে';
+    if (supLabel)     supLabel.textContent         = isQard ? 'খাত (করজ আদায়ের গ্রুপ)' : 'সরবরাহকারী';
+    if (isQard && supInput) supInput.placeholder  = 'যেমন: মেরামত, বিদ্যুৎ, বাজার, বেতন…';
     if (!isQard && supInput) supInput.placeholder = 'নাম / দোকান';
+    if (isQard) {
+      fillQardCategoryDatalist();
+      if (supInput) supInput.setAttribute('list', 'acc-qard-category-datalist');
+    } else if (supInput) {
+      supInput.removeAttribute('list');
+    }
   };
 
   window.setAccPayment = function (val) {
@@ -853,19 +944,19 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       var isQardEntry = account === 'qard';
       var valid;
       if (isQardEntry) {
-        /* করজে হাসানা: simple amount field থেকে নাও */
+        /* করজে হাসানা: পরিমাণ + খাত (আদায় গ্রুপের কী) */
         var qardAmtEl = document.getElementById('acc-qard-amt');
         var qardAmt = parseFloat(qardAmtEl ? qardAmtEl.value : 0) || 0;
         if (!qardAmt || qardAmt <= 0) { showToast('পরিমাণ লিখুন'); if (qardAmtEl) qardAmtEl.focus(); return; }
-        if (!supplier) { showToast('প্রাপকের নাম লিখুন'); document.getElementById('acc-exp-supplier').focus(); return; }
-        valid = [{ category: '', description: '', quantity: '', unit: '', unitPrice: '', amount: qardAmt }];
+        if (!supplier) { showToast('খাতের নাম লিখুন'); document.getElementById('acc-exp-supplier').focus(); return; }
+        valid = [{ category: supplier, description: '', quantity: '', unit: '', unitPrice: '', amount: qardAmt }];
       } else {
         valid = _items.filter(function (x) { return parseFloat(x.amount) > 0; });
         if (!valid.length) { showToast('কমপক্ষে একটি আইটেমের মোট টাকা দিন'); return; }
       }
       if (isEdit) {
         var x = valid[0];
-        var expensePatch = { account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: x.category, description: x.description, quantity: x.quantity, unit: x.unit, unitPrice: x.unitPrice, amount: parseFloat(x.amount), supplier, receiptNo, paymentMethod: isOnCredit ? 'due' : 'cash' };
+        var expensePatch = { account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: x.category, description: x.description, quantity: x.quantity, unit: x.unit, unitPrice: x.unitPrice, amount: parseFloat(x.amount), supplier: isQardEntry ? '' : supplier, receiptNo, paymentMethod: isOnCredit ? 'due' : 'cash' };
         if (_editNeedsApproval) {
           submitEntryApproval(type, originalEntry, { ...(originalEntry || {}), ...expensePatch });
           return;
@@ -876,13 +967,14 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
           var wasOnCredit = originalEntry.paymentMethod !== 'cash';
           if (oldSup && wasOnCredit) await A.Dues.cancelPurchase(oldSup, originalEntry.account, A.num(originalEntry.amount));
         }
-        if (supplier && isOnCredit) await A.Dues.addOrUpdate(supplier, account, parseFloat(x.amount));
+        if (!isQardEntry && supplier && isOnCredit) await A.Dues.addOrUpdate(supplier, account, parseFloat(x.amount));
         showToast('ব্যয় আপডেট হয়েছে ✓');
       } else {
         for (var vi = 0; vi < valid.length; vi++) {
           var item = valid[vi];
-          await A.Expense.add({ account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: item.category, description: item.description, quantity: item.quantity, unit: item.unit, unitPrice: item.unitPrice, amount: parseFloat(item.amount), supplier, receiptNo, paymentMethod: isOnCredit ? 'due' : 'cash' });
-          if (supplier && isOnCredit) await A.Dues.addOrUpdate(supplier, account, parseFloat(item.amount));
+          var supSave = isQardEntry ? '' : supplier;
+          await A.Expense.add({ account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: item.category, description: item.description, quantity: item.quantity, unit: item.unit, unitPrice: item.unitPrice, amount: parseFloat(item.amount), supplier: supSave, receiptNo, paymentMethod: isOnCredit ? 'due' : 'cash' });
+          if (supSave && isOnCredit) await A.Dues.addOrUpdate(supSave, account, parseFloat(item.amount));
         }
         showToast(count(valid.length, 'টি') + ' ব্যয় সংরক্ষিত ✓');
       }
@@ -942,26 +1034,18 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
           : '<td style="color:var(--green)">—</td>') +
         '</tr>';
     }).join('');
-    /* করজে হাসানা সারি — আলাদা রঙে */
-    var qardRow = tq > 0 ? ('<tr class="acc-sum-row" onclick="openAccAccountDetails(\'qard\')" style="cursor:pointer;opacity:.85">' +
-      '<td><div class="acc-break-name" style="color:var(--gold)">করজে হাসানা</div><div style="font-size:10px;color:var(--ink3)">ফেরতযোগ্য ঋণ</div></td>' +
-      '<td style="color:var(--gold);font-weight:800">৳' + fa(tq) + '</td>' +
-      '<td style="color:' + (tqr > 0 ? 'var(--green)' : 'var(--ink3)') + '">↩ ৳' + fa(tqr) + '</td>' +
-      '<td style="color:' + (tqRemaining > 0 ? 'var(--gold)' : 'var(--green)') + ';font-weight:700">৳' + fa(tqRemaining) + '</td>' +
-      '</tr>') : '';
     var tb = s.ti - s.te - tqRemaining;
-    var paid = Math.max(0, s.te - Math.max(0, s.td));
     var balCls = tb >= 0 ? 'good' : 'bad';
+    var qardMetric = tqRemaining > 0
+      ? '<button type="button" class="acc-metric acc-metric-click warn" onclick="openAccAccountDetails(\'qard\')"><div class="acc-metric-lbl">করজে হাসানা বাকি</div><div class="acc-metric-val">৳' + fa(tqRemaining) + '</div></button>'
+      : '<div class="acc-metric good"><div class="acc-metric-lbl">করজে হাসানা বাকি</div><div class="acc-metric-val">—</div></div>';
     var metrics = '<div class="acc-metrics">' +
       '<button type="button" class="acc-metric acc-metric-click good" onclick="openAccMetricModal(\'income\')"><div class="acc-metric-lbl">আয়</div><div class="acc-metric-val">৳' + fa(s.ti) + '</div></button>' +
       '<button type="button" class="acc-metric acc-metric-click bad" onclick="openAccMetricModal(\'expense\')"><div class="acc-metric-lbl">ব্যয়</div><div class="acc-metric-val">৳' + fa(s.te) + '</div></button>' +
-      '<div class="acc-metric good"><div class="acc-metric-lbl">পরিশোধ</div><div class="acc-metric-val">৳' + fa(paid) + '</div></div>' +
+      qardMetric +
       '<button type="button" class="acc-metric acc-metric-click warn" onclick="openAccMetricModal(\'dues\')"><div class="acc-metric-lbl">বর্তমান বকেয়া</div><div class="acc-metric-val">৳' + fa(s.td) + '</div></button>' +
       '</div>';
-    /* qard row আছে তখন thead-এ কলাম লেবেল বদলায় */
-    var thead = tq > 0
-      ? '<tr><th>খাত</th><th>ব্যয়/করজ</th><th>শতকরা/আদায়</th><th>বকেয়া/বাকি</th></tr>'
-      : '<tr><th>খাত</th><th>ব্যয়</th><th>শতকরা</th><th>বর্তমান বকেয়া</th></tr>';
+    var thead = '<tr><th>খাত</th><th>ব্যয়</th><th>শতকরা</th><th>বর্তমান বকেয়া</th></tr>';
     var tfoot = '<tr><td><strong>সর্বমোট</strong></td>' +
       '<td style="color:var(--red);font-weight:700">৳' + fa(s.te) + '</td>' +
       '<td>' + pct(100) + '</td><td style="color:var(--red);font-weight:700">৳' + fa(s.td) + '</td></tr>';
@@ -970,9 +1054,90 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       metrics +
       '<div class="acc-ledger-card"><div class="acc-ledger-title acc-ledger-title--center"><span>খাতওয়ারী হিসাব</span></div>' +
       '<div style="overflow-x:auto"><table class="acc-sum-tbl"><thead>' + thead + '</thead>' +
-      '<tbody>' + (tblRows || '<tr><td colspan="4" style="text-align:center;color:var(--ink3)">তথ্য নেই</td></tr>') + qardRow + '</tbody>' +
+      '<tbody>' + (tblRows || '<tr><td colspan="4" style="text-align:center;color:var(--ink3)">তথ্য নেই</td></tr>') + '</tbody>' +
       '<tfoot>' + tfoot + '</tfoot></table></div></div>' +
       '</div>';
+  }
+
+  /** করজে হাসানা: আদায়/বাকি গ্রুপ — খাত → বিবরণ → সরবরাহকারী (পুরনো ডাটা) */
+  function qardBucketKey(r) {
+    var c = A.clean(r.category, '');
+    if (c) return c;
+    var d = A.clean(r.description, '');
+    if (d) return d;
+    var s = A.clean(r.supplier, '');
+    if (s) return s;
+    return 'উল্লেখ নেই';
+  }
+
+  function fillQardCategoryDatalist() {
+    var dl = document.getElementById('acc-qard-category-datalist');
+    if (!dl) return;
+    var seen = {};
+    var out = [];
+    try {
+      A.Expense.getAll().filter(function (r) { return r.account === 'qard'; }).forEach(function (r) {
+        var k = qardBucketKey(r);
+        if (k && k !== 'উল্লেখ নেই' && !seen[k]) { seen[k] = true; out.push(k); }
+      });
+    } catch (e1) { /* ignore */ }
+    try {
+      (A.Categories.getAll() || []).forEach(function (c) {
+        var k = (c || '').trim();
+        if (k && !seen[k]) { seen[k] = true; out.push(k); }
+      });
+    } catch (e2) { /* ignore */ }
+    out.sort(function (a, b) { return a.localeCompare(b, 'bn'); });
+    dl.innerHTML = out.map(function (t) {
+      return '<option value="' + esc(t) + '"></option>';
+    }).join('');
+  }
+
+  /** qard_return note-এর payKey কোন খাত-বাকেটে যোগ (পুরনো নোটে বিবরণ/সরবরাহকারী হলে মিলিয়ে অনুপাতে ভাগ) */
+  function applyQardIncomeToBuckets(byBucket, payKey, returnAmt, qardExpenses) {
+    if (!payKey || returnAmt <= 0) return;
+    if (byBucket[payKey]) {
+      byBucket[payKey].returned += returnAmt;
+      return;
+    }
+    var matches = qardExpenses.filter(function (r) {
+      var d = A.clean(r.description, '');
+      var c = A.clean(r.category, '');
+      var s = A.clean(r.supplier, '');
+      return payKey === d || payKey === c || payKey === s || payKey === qardBucketKey(r);
+    });
+    if (!matches.length) {
+      if (!byBucket[payKey]) byBucket[payKey] = { given: 0, returned: 0 };
+      byBucket[payKey].returned += returnAmt;
+      return;
+    }
+    var sub = {};
+    matches.forEach(function (r) {
+      var k = qardBucketKey(r);
+      if (!sub[k]) sub[k] = 0;
+      sub[k] += A.num(r.amount);
+    });
+    var keys = Object.keys(sub);
+    if (keys.length === 1) {
+      if (!byBucket[keys[0]]) byBucket[keys[0]] = { given: 0, returned: 0 };
+      byBucket[keys[0]].returned += returnAmt;
+      return;
+    }
+    var totalG = keys.reduce(function (sum, k) { return sum + sub[k]; }, 0);
+    if (!totalG) {
+      if (!byBucket[payKey]) byBucket[payKey] = { given: 0, returned: 0 };
+      byBucket[payKey].returned += returnAmt;
+      return;
+    }
+    var cents = Math.round(returnAmt * 100);
+    var allocated = 0;
+    keys.forEach(function (k, idx) {
+      var share = idx === keys.length - 1 ? cents - allocated : Math.round(cents * sub[k] / totalG);
+      allocated += share;
+      var part = share / 100;
+      if (!byBucket[k]) byBucket[k] = { given: 0, returned: 0 };
+      byBucket[k].returned += part;
+    });
   }
 
   function renderAccAccountDetails(account) {
@@ -982,9 +1147,10 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     });
     var categories = [];
     var suppliers = [];
+    var isQardAcct = account === 'qard';
     baseRows.forEach(function (r) {
       var c = A.clean(r.category, '') || 'অন্যান্য';
-      var s = A.clean(r.supplier, '') || 'উল্লেখ নেই';
+      var s = isQardAcct ? qardBucketKey(r) : (A.clean(r.supplier, '') || 'উল্লেখ নেই');
       if (categories.indexOf(c) < 0) categories.push(c);
       if (suppliers.indexOf(s) < 0) suppliers.push(s);
     });
@@ -994,11 +1160,12 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       var month = A.monthKey(r.month);
       var category = A.clean(r.category, '') || 'অন্যান্য';
       var supplier = A.clean(r.supplier, '') || 'উল্লেখ নেই';
+      var bucket = isQardAcct ? qardBucketKey(r) : supplier;
       var desc = A.clean(r.description, '') || category || 'ব্যয়';
-      var haystack = [A.dateLabel(r), month, category, desc, supplier, String(r.amount || '')].join(' ').toLowerCase();
+      var haystack = [A.dateLabel(r), month, category, desc, supplier, bucket, String(r.amount || '')].join(' ').toLowerCase();
       return (!_detailMonthFs.length || _detailMonthFs.indexOf(month) >= 0) &&
         (!_detailCatFs.length || _detailCatFs.indexOf(category) >= 0) &&
-        (!_detailSupFs.length || _detailSupFs.indexOf(supplier) >= 0) &&
+        (!_detailSupFs.length || _detailSupFs.indexOf(bucket) >= 0) &&
         (!_detailSearch || haystack.indexOf(String(_detailSearch).toLowerCase()) >= 0);
     }).sort(function (a, b) {
       if (_detailSort === 'amount_desc') return A.num(b.amount) - A.num(a.amount);
@@ -1012,17 +1179,25 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     if (title) {
       var monMeta = _detailMonthFs.length ? (bn(_detailMonthFs.length) + ' মাস') : 'সব মাস';
       if (account === 'qard') {
-        /* করজে হাসানা: আদায় ও বাকি দেখাও */
+        /* করজে হাসানা: শিরোনাম দুই সারিতে — টেবিলে মাস কলাম নেই */
         var allQardInc = A.Income.getAll().filter(function (r) { return r.account === 'qard_return'; });
         var tqrTotal = allQardInc.reduce(function (s, r) { return s + A.num(r.amount); }, 0);
         var tqRem = Math.max(0, total - tqrTotal);
+        title.className = 'acc-title-root acc-title-root--qard';
         title.innerHTML =
-          '<span class="acc-title-main">' + esc(label) + '</span>' +
-          '<span class="acc-title-meta">' + esc(monMeta) + ' · ' + count(rows.length, 'টি') + '</span>' +
-          '<span class="acc-title-total" style="color:var(--gold)">৳' + fa(total) + '</span>' +
-          (tqrTotal ? '<span class="acc-title-meta" style="color:var(--green)"> ↩৳' + fa(tqrTotal) + ' আদায়</span>' : '') +
-          (tqRem ? '<span class="acc-title-meta" style="color:var(--gold)"> · বাকি ৳' + fa(tqRem) + '</span>' : '');
+          '<div class="acc-qard-title-card">' +
+            '<div class="acc-qard-title-row">' +
+              '<span class="acc-qard-title-name">' + esc(label) + '</span>' +
+              '<span class="acc-qard-title-amount">৳' + fa(total) + '</span>' +
+            '</div>' +
+            '<div class="acc-qard-title-grid">' +
+              '<div class="acc-qard-stat"><span class="acc-qard-stat-lbl">এন্ট্রি</span><span class="acc-qard-stat-val">' + count(rows.length, 'টি') + '</span></div>' +
+              '<div class="acc-qard-stat"><span class="acc-qard-stat-lbl">আদায়</span><span class="acc-qard-stat-val acc-qard-stat-val--green">৳' + fa(tqrTotal) + '</span></div>' +
+              '<div class="acc-qard-stat"><span class="acc-qard-stat-lbl">বাকি</span><span class="acc-qard-stat-val acc-qard-stat-val--gold">৳' + fa(tqRem) + '</span></div>' +
+            '</div>' +
+          '</div>';
       } else {
+        title.className = 'acc-title-root';
         title.innerHTML =
           '<span class="acc-title-main">' + esc(label) + '</span>' +
           '<span class="acc-title-meta">' + esc(monMeta) + ' · ' + count(rows.length, 'টি') + '</span>' +
@@ -1038,18 +1213,20 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
         var receiptNo = A.clean(r.receiptNo, '');
         var desc = A.clean(r.description, '') || category || 'ব্যয়';
         var qInfo = r.quantity ? bn(A.num(r.quantity)) + (r.unit ? ' ' + esc(r.unit) : '') + (r.unitPrice ? ' × ৳' + fa(r.unitPrice) : '') : 'উল্লেখ নেই';
-        /* qard-এ শুধু delete — আদায় supplier summary থেকে */
+        /* qard-এ শুধু delete — আদায় খাত-ভিত্তিক সারিতে */
         var actionBtns = isQard
           ? '<button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button>'
           : '<button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'expense\',\'' + esc(r.id) + '\')">✎</button>' +
             '<button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button>';
+        var monthTd = isQard ? '' : ('<td>' + esc(A.monthKey(r.month) || '') + '</td>');
+        var supTd = isQard ? '' : ('<td>' + esc(supplier || 'উল্লেখ নেই') + '</td>');
         return '<tr>' +
           '<td>' + esc(A.dateLabel(r)) + '</td>' +
-          '<td>' + esc(A.monthKey(r.month) || '') + '</td>' +
+          monthTd +
           '<td>' + esc(category || 'অন্যান্য') + '</td>' +
           '<td class="acc-desc-cell">' + esc(desc) + '</td>' +
           '<td>' + qInfo + '</td>' +
-          '<td>' + esc(supplier || 'উল্লেখ নেই') + '</td>' +
+          supTd +
           '<td style="color:var(--ink3);font-size:11px">' + (receiptNo ? esc(receiptNo) : '—') + '</td>' +
           '<td class="acc-ledger-amt">৳' + fa(r.amount) + '</td>' +
           (readOnly ? '' : '<td><div class="acc-row-actions">' + actionBtns + '</div></td>') +
@@ -1079,8 +1256,12 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
         '</select>' +
         (detailFilterOn ? '<button type="button" class="acc-detail-clear" onclick="clearAccDetailFilters()">রিসেট</button>' : '') +
         '</div>';
-      var tableHtml = '<div class="acc-table-wrap"><table class="acc-detail-table"><thead><tr><th>তারিখ</th><th>মাস</th><th>খাত</th><th>বিবরণ</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>রশিদ নং</th><th>টাকা</th>' + (readOnly ? '' : '<th></th>') + '</tr></thead><tbody>' +
-        (body || '<tr><td colspan="' + (readOnly ? '8' : '9') + '" style="text-align:center;color:var(--ink3)">এই হিসাব বইতে তথ্য নেই</td></tr>') +
+      var monthTh = isQard ? '' : '<th>মাস</th>';
+      var supTh = isQard ? '' : '<th>সরবরাহকারী</th>';
+      var emptyColspan = isQard ? (readOnly ? 6 : 7) : (readOnly ? 8 : 9);
+      var wrapCls = 'acc-table-wrap' + (isQard ? ' acc-table-wrap--qard' + (readOnly ? ' acc-table-wrap--qard-ro' : '') : '');
+      var tableHtml = '<div class="' + wrapCls + '"><table class="acc-detail-table"><thead><tr><th>তারিখ</th>' + monthTh + '<th>খাত</th><th>বিবরণ</th><th>পরিমাণ</th>' + supTh + '<th>রশিদ নং</th><th>টাকা</th>' + (readOnly ? '' : '<th></th>') + '</tr></thead><tbody>' +
+        (body || '<tr><td colspan="' + emptyColspan + '" style="text-align:center;color:var(--ink3)">এই হিসাব বইতে তথ্য নেই</td></tr>') +
         '</tbody></table></div>';
       if (isQard) {
         /* করজে হাসানা: tab system — এন্ট্রি সমূহ | ↩ আদায় */
@@ -1091,11 +1272,12 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
           '</div>';
         root.innerHTML =
           tabBar +
-          '<div id="qard-tab-entries"' + (_qardTab !== 'entries' ? ' style="display:none"' : '') + '>' +
+          '<div id="qard-tab-entries" class="acc-qard-pane"' + (_qardTab !== 'entries' ? ' style="display:none"' : '') + '>' +
+          (readOnly ? '' : '<div class="acc-qard-toolbar"><button type="button" class="acc-qard-new-btn" onclick="openQardGiveModal()">＋ নতুন করজ</button></div>') +
           filters + tableHtml +
           '</div>' +
-          '<div id="qard-tab-recovery"' + (_qardTab !== 'recovery' ? ' style="display:none"' : '') + '>' +
-          buildQardSupplierSummary(baseRows, readOnly) +
+          '<div id="qard-tab-recovery" class="acc-qard-pane acc-qard-pane--recovery"' + (_qardTab !== 'recovery' ? ' style="display:none"' : '') + '>' +
+          buildQardBucketSummary(baseRows, readOnly) +
           '</div>';
       } else {
         root.innerHTML = filters + tableHtml;
@@ -1103,52 +1285,50 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     }
   }
 
-  /* ব্যক্তি/supplier-ভিত্তিক করজে হাসানা সারসংক্ষেপ — card + inline expand */
-  function buildQardSupplierSummary(expenseRows, readOnly) {
+  /* খাত-ভিত্তিক করজে হাসানা আদায় সারসংক্ষেপ — card + inline expand */
+  function buildQardBucketSummary(expenseRows, readOnly) {
     var PREFIX = 'করজে হাসানা আদায় — ';
-    var bySupplier = {};
+    var byBucket = {};
     expenseRows.forEach(function (r) {
-      var sup = A.clean(r.supplier, '') || 'উল্লেখ নেই';
-      if (!bySupplier[sup]) bySupplier[sup] = { given: 0, returned: 0 };
-      bySupplier[sup].given += A.num(r.amount);
+      var k = qardBucketKey(r);
+      if (!byBucket[k]) byBucket[k] = { given: 0, returned: 0 };
+      byBucket[k].given += A.num(r.amount);
     });
     A.Income.getAll().filter(function (r) { return r.account === 'qard_return'; }).forEach(function (r) {
       var note = A.clean(r.note, '');
-      var sup = note.indexOf(PREFIX) === 0 ? note.slice(PREFIX.length).trim() : (A.clean(r.source, '') || 'উল্লেখ নেই');
-      if (!bySupplier[sup]) bySupplier[sup] = { given: 0, returned: 0 };
-      bySupplier[sup].returned += A.num(r.amount);
+      var payKey = note.indexOf(PREFIX) === 0 ? note.slice(PREFIX.length).trim() : '';
+      if (!payKey) payKey = A.clean(r.source, '') || '';
+      applyQardIncomeToBuckets(byBucket, payKey, A.num(r.amount), expenseRows);
     });
-    var rows = Object.keys(bySupplier).map(function (sup) {
-      var d = bySupplier[sup];
-      return { sup: sup, given: d.given, returned: d.returned, remaining: Math.max(0, d.given - d.returned) };
+    var rows = Object.keys(byBucket).map(function (key) {
+      var d = byBucket[key];
+      return { key: key, given: d.given, returned: d.returned, remaining: Math.max(0, d.given - d.returned) };
     }).sort(function (a, b) { return b.remaining - a.remaining; });
     if (!rows.length) return '<div style="color:var(--ink3);font-size:13px;padding:16px 0;text-align:center">আদায়যোগ্য করজ নেই</div>';
     var cards = rows.map(function (r) {
-      var isOpen = _payQardOpenSup === r.sup;
+      var isOpen = _payQardOpenBucket === r.key;
       var remColor = r.remaining > 0 ? 'var(--gold)' : 'var(--green)';
-      /* header row: name + আদায় button */
+      var keyJs = JSON.stringify(r.key);
       var payBtn = (!readOnly && r.remaining > 0)
-        ? '<button type="button" class="acc-pay-btn" style="' + (isOpen ? 'background:var(--ink2);color:#fff;border-color:var(--ink2)' : 'background:var(--green);color:#fff;border-color:var(--green)') + ';padding:5px 12px;font-size:12px" onclick="toggleQardExpand(\'' + esc(r.sup) + '\',' + r.remaining + ')">' + (isOpen ? '▲ বন্ধ' : '↩ আদায়') + '</button>'
+        ? '<button type="button" class="acc-pay-btn" style="' + (isOpen ? 'background:var(--ink2);color:#fff;border-color:var(--ink2)' : 'background:var(--green);color:#fff;border-color:var(--green)') + ';padding:5px 12px;font-size:12px" onclick="toggleQardExpand(' + keyJs + ',' + r.remaining + ')">' + (isOpen ? '▲ বন্ধ' : '↩ আদায়') + '</button>'
         : (r.remaining === 0 ? '<span style="color:var(--green);font-size:12px;font-weight:700">✓ পরিশোধিত</span>' : '');
-      /* stats row */
       var statsHtml =
         '<div style="display:flex;gap:14px;margin-top:5px;font-size:11px;color:var(--ink3);flex-wrap:wrap">' +
         '<span>মোট করজ: <b style="color:var(--ink2)">৳' + fa(r.given) + '</b></span>' +
         '<span>আদায়: <b style="color:var(--green)">৳' + fa(r.returned) + '</b></span>' +
         '<span>বাকি: <b style="color:' + remColor + '">' + (r.remaining > 0 ? '৳' + fa(r.remaining) : '—') + '</b></span>' +
         '</div>';
-      /* inline expand */
       var expandHtml = (isOpen && !readOnly)
         ? '<div class="qard-expand-wrap">' +
           '<div style="font-size:11px;color:var(--ink3);font-weight:600">আদায়ের পরিমাণ · বাকি ৳' + fa(r.remaining) + '</div>' +
           '<div class="qard-expand-row">' +
           '<input type="number" id="qpay-expand-amt" class="form-input" placeholder="০" min="0.01" max="' + r.remaining + '" step="0.01" style="flex:1;min-height:0;height:40px;font-size:14px;padding:8px 12px">' +
-          '<button type="button" style="height:40px;padding:0 16px;border:none;border-radius:10px;background:var(--green);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0" onclick="confirmQardPay(\'' + esc(r.sup) + '\')">✓ সংরক্ষণ</button>' +
+          '<button type="button" style="height:40px;padding:0 16px;border:none;border-radius:10px;background:var(--green);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0" onclick="confirmQardPay(' + keyJs + ')">✓ সংরক্ষণ</button>' +
           '</div></div>'
         : '';
       return '<div class="qard-person-card">' +
-        '<div style="display:flex;align-items:center;gap:8px">' +
-        '<span style="font-weight:700;font-size:14px;flex:1;min-width:0">' + esc(r.sup) + '</span>' +
+        '<div style="display:flex;align-items:flex-start;gap:8px">' +
+        '<span style="font-weight:700;font-size:14px;flex:1;min-width:0;line-height:1.35;word-break:break-word">' + esc(r.key) + '</span>' +
         payBtn +
         '</div>' +
         statsHtml +
@@ -1160,7 +1340,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
 
   window.switchQardTab = function (tab) {
     _qardTab = tab;
-    _payQardOpenSup = null; /* ট্যাব বদলালে expand বন্ধ */
+    _payQardOpenBucket = null; /* ট্যাব বদলালে expand বন্ধ */
     renderAccAccountDetails(_detailAccount);
   };
 
@@ -1169,7 +1349,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     _settingsModalOpen = false;
     _detailAccount = account;
     _qardTab = 'entries'; /* modal খুললে সর্বদা এন্ট্রি ট্যাব প্রথমে */
-    _payQardOpenSup = null;
+    _payQardOpenBucket = null;
     _detailMonthFs = _monFs.length ? _monFs.slice() : [];
     _detailCatFs = [];
     _detailCategory = 'all';
@@ -1211,7 +1391,10 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     var title = document.getElementById('account-details-title');
     if (!root) return;
     _detailAccount = '';
-    if (title) title.textContent = metricTitle(_metricModalKind);
+    if (title) {
+      title.className = '';
+      title.textContent = metricTitle(_metricModalKind);
+    }
     if (_metricModalKind === 'income') root.innerHTML = buildIncomeList();
     else if (_metricModalKind === 'expense') root.innerHTML = buildExpenseList();
     else if (_metricModalKind === 'dues') root.innerHTML = buildDues('renderAccMetricModal()');
@@ -1334,9 +1517,10 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       sections.push({ id: sid, title: title });
       return html;
     }
+    var supGroupTitle = (_detailAccount === 'qard') ? 'খাত (করজ গ্রুপ)' : 'সরবরাহকারী';
     var sectionsHtml = _ddGroup('মাস', avMons, _detailMonthFs, 'toggleDetailMonth', 'toggleAllDetailMonths') +
       _ddGroup('খাত', avCats, _detailCatFs, 'toggleDetailCat', 'toggleAllDetailCats') +
-      _ddGroup('সরবরাহকারী', avSups, _detailSupFs, 'toggleDetailSupplier', 'toggleAllDetailSuppliers');
+      _ddGroup(supGroupTitle, avSups, _detailSupFs, 'toggleDetailSupplier', 'toggleAllDetailSuppliers');
     var tabsHtml = '<div class="acc-dd-tabs">' +
       '<button type="button" class="acc-dd-tab acc-dd-tab-on" data-target="all" onclick="window._filterByTab(this)">সব</button>' +
       sections.map(function (s) {
@@ -1488,7 +1672,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       var desc = A.clean(r.description, '') || category || 'ব্যয়';
       var qInfo = r.quantity ? bn(A.num(r.quantity)) + (r.unit ? ' ' + esc(r.unit) : '') + (r.unitPrice ? ' × ৳' + fa(r.unitPrice) : '') : 'উল্লেখ নেই';
       var isQardRow = r.account === 'qard';
-      /* qard-এ আদায় করজে হাসানা modal-এর supplier summary থেকে; এখানে শুধু del */
+      /* qard-এ আদায় করজে হাসানা modal-এর খাত-ভিত্তিক সারি থেকে; এখানে শুধু del */
       var actionBtns = isQardRow
         ? '<button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button>'
         : '<button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'expense\',\'' + esc(r.id) + '\')">✎</button><button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button>';
@@ -1796,7 +1980,10 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   function renderAccSettingsModal() {
     var title = document.getElementById('account-details-title');
     var root = document.getElementById('account-details-root');
-    if (title) title.textContent = 'হিসাব সেটিংস';
+    if (title) {
+      title.className = '';
+      title.textContent = 'হিসাব সেটিংস';
+    }
     if (root) root.innerHTML = buildSettings();
   }
 
@@ -1815,7 +2002,10 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     _settingsModalOpen = false;
     var title = document.getElementById('account-details-title');
     var root = document.getElementById('account-details-root');
-    if (title) title.textContent = 'হিসাব রিপোর্ট';
+    if (title) {
+      title.className = '';
+      title.textContent = 'হিসাব রিপোর্ট';
+    }
     if (root) {
       if (typeof window.renderAccountsReports === 'function') window.renderAccountsReports(root, { reset: true });
       else root.innerHTML = '<div class="acc-empty">রিপোর্ট লোড হয়নি</div>';
@@ -1906,12 +2096,12 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   };
 
   /* ↩ আদায় — inline expand toggle */
-  window.toggleQardExpand = function (sup, remaining) {
-    _payQardOpenSup = (_payQardOpenSup === sup) ? null : sup;
+  window.toggleQardExpand = function (bucketKey, remaining) {
+    _payQardOpenBucket = (_payQardOpenBucket === bucketKey) ? null : bucketKey;
     _qardTab = 'recovery';
     renderAccAccountDetails(_detailAccount);
     /* expand খুললে পরিমাণ input-এ focus */
-    if (_payQardOpenSup === sup) {
+    if (_payQardOpenBucket === bucketKey) {
       setTimeout(function () {
         var el = document.getElementById('qpay-expand-amt');
         if (el) { el.focus(); el.select(); }
@@ -1920,7 +2110,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   };
 
   /* ↩ আদায় — ইনপুট থেকে সংরক্ষণ */
-  window.confirmQardPay = async function (supplier) {
+  window.confirmQardPay = async function (bucketKey) {
     if (isAccountsReadOnly()) { showToast('এডমিন পেইজে আদায় নথিভুক্ত করা যায় না'); return; }
     var amtEl = document.getElementById('qpay-expand-amt');
     var amt = parseFloat(amtEl ? amtEl.value : 0);
@@ -1933,10 +2123,10 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
         month: todayH.month,
         day: todayH.day,
         amount: amt,
-        note: 'করজে হাসানা আদায় — ' + supplier,
+        note: 'করজে হাসানা আদায় — ' + String(bucketKey || ''),
         source: 'করজে হাসানা',
       });
-      _payQardOpenSup = null;
+      _payQardOpenBucket = null;
       refreshAccountsViews();
       showToast('আদায় নথিভুক্ত ✓');
     } catch (err) {

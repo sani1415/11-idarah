@@ -36,7 +36,7 @@
 .k-tabs { display:flex; gap:5px; background:var(--gold-light); border-radius:var(--radius-sm); padding:4px; margin-bottom:10px; overflow-x:auto; }
 .k-tab { border:none; background:transparent; border-radius:var(--radius-sm); padding:8px 11px; font-family:'Tiro Bangla',serif; font-weight:700; font-size:12px; color:var(--ink3); white-space:nowrap; cursor:pointer; transition:.12s; }
 .k-tab.active { background:var(--ink); color:var(--gold2); }
-.tbl-wrap { overflow:auto; border:1px solid var(--cream2); border-radius:var(--radius-sm); }
+.tbl-wrap { overflow:auto; border:1px solid var(--cream2); border-radius:var(--radius-sm); max-height:420px; }
 .tbl { border-collapse:collapse; width:100%; min-width:650px; font-size:13px; }
 .tbl th { background:var(--cream); color:var(--ink3); text-align:right; padding:8px; font-size:11px; font-weight:700; }
 .tbl td { padding:8px; border-bottom:1px solid var(--cream2); white-space:nowrap; }
@@ -69,8 +69,7 @@
 .add-row { display:flex; gap:8px; margin-top:6px; }
 .add-row .form-input { flex:1; }
 .student-income-picker { display:none; }
-@media(max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.type-config-grid{grid-template-columns:1fr}}
-</style>
+@media(max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.type-config-grid{grid-template-columns:1fr}}</style>
 </head>
 <body>
 
@@ -338,6 +337,7 @@
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mdr-daftar-supabase.js"></script>
 <script src="../js/daftar-bottom-nav.js"></script>
+<script src="../js/mm-hijri.js"></script>
 <script src="../js/madrasa-kormosuchi.js"></script>
 <script>
   (function () {
