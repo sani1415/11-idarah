@@ -71,7 +71,10 @@ var _rptSearch = '';
   }
   function groupedAccount() {
     var out = {};
-    Object.keys(A.ACCOUNT_LABELS).forEach(function (k) { out[k] = { amount: 0, count: 0 }; });
+    Object.keys(A.ACCOUNT_LABELS).forEach(function (k) {
+      if (k === 'qard_return') return; /* আয়ের ধরন — ব্যয় হিসাব বই নয় */
+      out[k] = { amount: 0, count: 0 };
+    });
     A.Expense.getAll().forEach(function (r) {
       var k = r.account || 'general';
       if (!out[k]) out[k] = { amount: 0, count: 0 };
@@ -157,7 +160,7 @@ var _rptSearch = '';
     var total = Object.keys(data).reduce(function (s, k) { return s + num(data[k].amount); }, 0);
     if (!total) return '<div class="rpt-empty">হিসাব বইয়ের ব্যয় নেই</div>';
     var max = Math.max.apply(null, Object.keys(data).map(function (k) { return data[k].amount; }).concat([1]));
-    return Object.keys(A.ACCOUNT_LABELS).map(function (k) {
+    return Object.keys(A.ACCOUNT_LABELS).filter(function (k) { return k !== 'qard_return'; }).map(function (k) {
       var v = data[k] || { amount: 0, count: 0 };
       return '<div class="rpt-bar-row"><div class="rpt-bar-lbl">' + esc(A.ACCOUNT_LABELS[k]) + '</div><div class="rpt-bar-wrap"><div class="rpt-bar-fill" style="width:' + Math.round(num(v.amount) / max * 100) + '%;background:var(--gold)"></div></div><div class="rpt-bar-val">' + money(v.amount) + ' <span style="color:var(--ink3)">(' + pct(Math.round(num(v.amount) / total * 100)) + ')</span></div></div>';
     }).join('');

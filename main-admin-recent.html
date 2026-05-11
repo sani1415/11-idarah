@@ -86,6 +86,8 @@
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = n => '৳' + toBn(Math.round(Number(n)).toLocaleString('en'));
   const fmtDate = d => { if (!d) return ''; const p = String(d).split('-'); return p[2] + '/' + p[1]; };
+  const khActorId = MMSession.getId ? MMSession.getId() : MMSession.getAdminUserId();
+  const khPin = MMSession.getPin ? MMSession.getPin() : MMSession.getAdminPin();
 
   function canSeeLog(log) {
     if (!MMSession.isRestrictedAdmin()) return true;
@@ -127,7 +129,15 @@
     ).join('') || '<div class="recent-empty">এখনো কোনো কার্যক্রমের রেকর্ড নেই।</div>';
   }
 
-  renderRecent();
+  async function initRecent() {
+    try {
+      if (!MMSession.isRestrictedAdmin()) await KhAPI.bootstrapRemote(khActorId, khPin);
+    } catch (err) {
+      console.error('[Recent] khedmat bootstrap failed:', err);
+    }
+    renderRecent();
+  }
+  initRecent();
 </script>
 <script src="js/admin-nav.js"></script>
 </body>

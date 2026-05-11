@@ -120,6 +120,9 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script src="../js/mm-sample-data.js"></script>
@@ -127,6 +130,8 @@
 <script>
   if (!MMSession.isAdmin()) { location.href = '../index.html'; }
   mmInsertMonitorBanner();
+  const khActorId = MMSession.getId ? MMSession.getId() : MMSession.getAdminUserId();
+  const khPin = MMSession.getPin ? MMSession.getPin() : MMSession.getAdminPin();
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = n => '৳' + toBn(Number(n).toLocaleString('en'));
@@ -138,6 +143,8 @@
     const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2200);
   }
+  function showDbError(err) { console.error('[Khedmat Admin] database operation failed:', err); showToast('ডাটাবেজে সংরক্ষণ হয়নি'); }
+  async function refreshKhedmatData() { await KhAPI.bootstrapRemote(khActorId, khPin); }
   function openModal(id) {
     if (mmMutationBlocked(showToast)) return;
     document.getElementById(id).classList.add('open');
@@ -246,7 +253,7 @@
     ).join('');
   }
 
-  function saveFin() {
+  async function saveFin() {
     if (mmMutationBlocked(showToast)) return;
     const type   = document.getElementById('fn-type').value;
     const amount = parseFloat(document.getElementById('fn-amount').value);
@@ -254,25 +261,38 @@
     const source = document.getElementById('fn-source').value.trim();
     if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
     if (!desc) { showToast('বিবরণ দিন'); return; }
-    KhAPI.Finance.add({ type, amount, description:desc, source:source||null });
-    closeModal('modal-fin');
-    renderFinance();
-    showToast('লেনদেন সংরক্ষিত হয়েছে');
+    try {
+      await KhAPI.Finance.add({ type, amount, description:desc, source:source||null }, khActorId, khPin);
+      closeModal('modal-fin');
+      renderFinance();
+      showToast('লেনদেন সংরক্ষিত হয়েছে');
+    } catch (err) { showDbError(err); }
   }
 
-  function saveType() {
+  async function saveType() {
     if (mmMutationBlocked(showToast)) return;
     const emoji = document.getElementById('tp-emoji').value.trim() || '🤝';
     const name  = document.getElementById('tp-name').value.trim();
     if (!name) { showToast('নাম দিন'); return; }
-    KhAPI.ActivityTypes.add({ name, emoji });
-    closeModal('modal-type');
-    renderSettings();
-    showToast('ধরন যোগ হয়েছে');
+    try {
+      await KhAPI.ActivityTypes.add({ name, emoji }, khActorId, khPin);
+      closeModal('modal-type');
+      renderSettings();
+      showToast('ধরন যোগ হয়েছে');
+    } catch (err) { showDbError(err); }
   }
 
-  buildMonthOptions();
-  renderOverview();
+  async function initKhedmatAdmin() {
+    try {
+      await refreshKhedmatData();
+    } catch (err) {
+      console.error('[Khedmat Admin] bootstrap failed:', err);
+      showToast('ডাটাবেজ থেকে খেদমত ডেটা লোড হয়নি');
+    }
+    buildMonthOptions();
+    renderOverview();
+  }
+  initKhedmatAdmin();
 </script>
 </body>
 </html>

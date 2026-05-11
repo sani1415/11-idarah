@@ -625,6 +625,56 @@ const MMSharedAPI = (() => {
         p_status: status,
       });
     },
+    khedmatBootstrap(actorId, pin) {
+      return rpc('khedmat_rel_bootstrap', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+      });
+    },
+    khedmatUpsertBeneficiary(actorId, pin, payload) {
+      return rpc('khedmat_rel_upsert_beneficiary', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_payload: payload || {},
+      });
+    },
+    khedmatUpsertActivityType(actorId, pin, payload) {
+      return rpc('khedmat_rel_upsert_activity_type', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_payload: payload || {},
+      });
+    },
+    khedmatInsertActivity(actorId, pin, payload) {
+      return rpc('khedmat_rel_insert_activity', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_payload: payload || {},
+      });
+    },
+    khedmatAddActivityImages(actorId, pin, activityId, images) {
+      return rpc('khedmat_rel_add_activity_images', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_activity_id: activityId,
+        p_images: images || [],
+      });
+    },
+    khedmatInsertDailyLog(actorId, pin, content, byName) {
+      return rpc('khedmat_rel_insert_daily_log', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_content: content || '',
+        p_by: byName || null,
+      });
+    },
+    khedmatInsertFinance(actorId, pin, payload) {
+      return rpc('khedmat_rel_insert_finance', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_payload: payload || {},
+      });
+    },
     hifzBootstrap(actorId, pin) {
       return rpc('mdr_rel_hifz_bootstrap', { p_actor_id: actorId || null, p_pin: pin });
     },

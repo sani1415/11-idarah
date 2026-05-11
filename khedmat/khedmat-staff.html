@@ -242,6 +242,8 @@
   if (myRole !== 'khedmat' && myRole !== 'admin') { location.href = '../index.html'; }
   mmInsertMonitorBanner();
   MMSession.configureTopbarHubAndLockout();
+  const khActorId = MMSession.getId ? MMSession.getId() : (MMSession.isAdmin() ? MMSession.getAdminUserId() : MMSession.getStaffUserId());
+  const khPin = MMSession.getPin ? MMSession.getPin() : (MMSession.isAdmin() ? MMSession.getAdminPin() : MMSession.getStaffPin());
 
   const BN_MONTHS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
@@ -260,6 +262,8 @@
   function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
   function openModal(id) { if (mmMutationBlocked(showToast)) return; document.getElementById(id).classList.add('open'); }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  function showDbError(err) { console.error('[Khedmat] database operation failed:', err); showToast('ডাটাবেজে সংরক্ষণ হয়নি'); }
+  async function refreshKhedmatData() { await KhAPI.bootstrapRemote(khActorId, khPin); }
 
   function switchPanel(name) {
     ['ben','fin','log'].forEach(p => {
@@ -286,13 +290,15 @@
 
   function openAddBen() { ['b-name','b-addr','b-phone','b-family','b-notes'].forEach(id => document.getElementById(id).value=''); openModal('modal-ben'); }
 
-  function saveBen() {
+  async function saveBen() {
     if (mmMutationBlocked(showToast)) return;
     const name = document.getElementById('b-name').value.trim();
     const addr = document.getElementById('b-addr').value.trim();
     if (!name) { showToast('নাম দিন'); return; }
-    KhAPI.Beneficiaries.add({ name, address:addr, phone:document.getElementById('b-phone').value.trim(), family_info:document.getElementById('b-family').value.trim(), notes:document.getElementById('b-notes').value.trim() });
-    closeModal('modal-ben'); renderBen(); showToast('মাখদুম যোগ হয়েছে');
+    try {
+      await KhAPI.Beneficiaries.add({ name, address:addr, phone:document.getElementById('b-phone').value.trim(), family_info:document.getElementById('b-family').value.trim(), notes:document.getElementById('b-notes').value.trim() }, khActorId, khPin);
+      closeModal('modal-ben'); renderBen(); showToast('মাখদুম যোগ হয়েছে');
+    } catch (err) { showDbError(err); }
   }
 
   function openBenDetail(id) {
@@ -346,16 +352,19 @@
     openModal('modal-edit-ben');
   }
 
-  function saveEditBen() {
+  async function saveEditBen() {
     if (mmMutationBlocked(showToast)) return;
     const name = document.getElementById('eb-name').value.trim();
     if (!name) { showToast('নাম দিন'); return; }
-    KhAPI.Beneficiaries.update(activeBenId, { name, address:document.getElementById('eb-addr').value.trim(), phone:document.getElementById('eb-phone').value.trim(), family_info:document.getElementById('eb-family').value.trim(), notes:document.getElementById('eb-notes').value.trim() });
-    closeModal('modal-edit-ben');
-    const ben = KhAPI.Beneficiaries.getById(activeBenId);
-    document.getElementById('bd-title').textContent = ben.name;
-    renderBenDetail(ben);
-    showToast('তথ্য আপডেট হয়েছে');
+    try {
+      await KhAPI.Beneficiaries.update(activeBenId, { name, address:document.getElementById('eb-addr').value.trim(), phone:document.getElementById('eb-phone').value.trim(), family_info:document.getElementById('eb-family').value.trim(), notes:document.getElementById('eb-notes').value.trim() }, khActorId, khPin);
+      closeModal('modal-edit-ben');
+      const ben = KhAPI.Beneficiaries.getById(activeBenId);
+      document.getElementById('bd-title').textContent = ben.name;
+      renderBenDetail(ben);
+      renderBen();
+      showToast('তথ্য আপডেট হয়েছে');
+    } catch (err) { showDbError(err); }
   }
 
   function openAddAct() {
@@ -366,7 +375,7 @@
     openModal('modal-act');
   }
 
-  function saveAct() {
+  async function saveAct() {
     if (mmMutationBlocked(showToast)) return;
     const type_id = document.getElementById('act-type').value;
     const title = document.getElementById('act-title-inp').value.trim();
@@ -374,15 +383,14 @@
     const amount = parseFloat(document.getElementById('act-amount').value)||0;
     if (!title) { showToast('শিরোনাম দিন'); return; }
     if (!desc) { showToast('বিবরণ দিন'); return; }
-    const act = KhAPI.Activities.add({ beneficiary_id:activeBenId, type_id, title, description:desc, amount });
-    const files = document.getElementById('act-images-inp').files;
-    if (files && files.length) {
-      readFilesAsBase64(files, function(images) {
-        if (images.length) KhAPI.Activities.addImages(act.id, images);
-        refreshDetail();
-      });
-    } else { refreshDetail(); }
-    closeModal('modal-act'); showToast('কার্যক্রম যোগ হয়েছে');
+    try {
+      const files = document.getElementById('act-images-inp').files;
+      const images = files && files.length ? await readFilesAsBase64Async(files) : [];
+      await KhAPI.Activities.add({ beneficiary_id:activeBenId, type_id, title, description:desc, amount, images }, khActorId, khPin);
+      refreshDetail();
+      renderBen();
+      closeModal('modal-act'); showToast('কার্যক্রম যোগ হয়েছে');
+    } catch (err) { showDbError(err); }
   }
 
   function triggerImgUpload(actId) {
@@ -390,16 +398,18 @@
     document.getElementById('act-img-adder').click();
   }
 
-  function onExtraImagesSelected(e) {
+  async function onExtraImagesSelected(e) {
     const files = e.target.files;
     if (!files || !files.length || !pendingImgActId) return;
-    readFilesAsBase64(files, function(images) {
-      if (images.length) KhAPI.Activities.addImages(pendingImgActId, images);
-      refreshDetail();
-      showToast(toBn(images.length)+' টি ছবি যোগ হয়েছে');
-    });
+    const activityId = pendingImgActId;
     e.target.value = '';
     pendingImgActId = null;
+    try {
+      const images = await readFilesAsBase64Async(files);
+      if (images.length) await KhAPI.Activities.addImages(activityId, images, khActorId, khPin);
+      refreshDetail();
+      showToast(toBn(images.length)+' টি ছবি যোগ হয়েছে');
+    } catch (err) { showDbError(err); }
   }
 
   function refreshDetail() {
@@ -407,7 +417,15 @@
     if (ben) renderBenDetail(ben);
   }
 
-  function readFilesAsBase64(files, cb) { const results=[]; let done=0; Array.from(files).forEach(file=>{ const r=new FileReader(); r.onload=function(){results.push(r.result);done++;if(done===files.length)cb(results);}; r.readAsDataURL(file); }); }
+  function readFilesAsBase64(files, cb) { readFilesAsBase64Async(files).then(cb); }
+  function readFilesAsBase64Async(files) {
+    return Promise.all(Array.from(files).map(file => new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = function () { resolve(r.result); };
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    })));
+  }
   function openLightbox(actId, index) {
     const acts = KhAPI.Activities.getByBeneficiary(activeBenId);
     const act = acts.find(a => a.id === actId);
@@ -541,7 +559,7 @@
 
   function openAddFin() { ['fn-amount','fn-desc','fn-source'].forEach(id => document.getElementById(id).value=''); openModal('modal-fin'); }
 
-  function saveFin() {
+  async function saveFin() {
     if (mmMutationBlocked(showToast)) return;
     const type = document.getElementById('fn-type').value;
     const amount = parseFloat(document.getElementById('fn-amount').value);
@@ -549,8 +567,10 @@
     const source = document.getElementById('fn-source').value.trim();
     if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
     if (!desc) { showToast('বিবরণ দিন'); return; }
-    KhAPI.Finance.add({ type, amount, description:desc, source:source||null });
-    closeModal('modal-fin'); renderFin(); showToast('লেনদেন সংরক্ষিত হয়েছে');
+    try {
+      await KhAPI.Finance.add({ type, amount, description:desc, source:source||null }, khActorId, khPin);
+      closeModal('modal-fin'); renderFin(); showToast('লেনদেন সংরক্ষিত হয়েছে');
+    } catch (err) { showDbError(err); }
   }  function renderLog() {
     document.getElementById('log-date-label').textContent = 'আজকের লগ ('+fmtDate(KhAPI.today())+')';
     const logs = KhAPI.DailyLogs.getAll();
@@ -559,13 +579,15 @@
       : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো লগ নেই</div>';
   }
 
-  function saveLog() {
+  async function saveLog() {
     if (mmMutationBlocked(showToast)) return;
     const txt = document.getElementById('log-input').value.trim();
     if (!txt) { showToast('লগ লিখুন'); return; }
-    KhAPI.DailyLogs.add(txt, myName);
-    document.getElementById('log-input').value = '';
-    renderLog(); showToast('লগ সংরক্ষিত হয়েছে');
+    try {
+      await KhAPI.DailyLogs.add(txt, myName, khActorId, khPin);
+      document.getElementById('log-input').value = '';
+      renderLog(); showToast('লগ সংরক্ষিত হয়েছে');
+    } catch (err) { showDbError(err); }
   }
 
   /* ═══ PIN ─── */
@@ -581,11 +603,18 @@
     closePinChangeModal(); if(typeof showToast==='function')showToast('PIN সফলভাবে পরিবর্তন হয়েছে');
   }
 
-  renderBen();
-  (function () {
+  async function initKhedmatPage() {
+    try {
+      await refreshKhedmatData();
+    } catch (err) {
+      console.error('[Khedmat] bootstrap failed:', err);
+      showToast('ডাটাবেজ থেকে খেদমত ডেটা লোড হয়নি');
+    }
+    renderBen();
     var h = (location.hash || '').replace(/^#/, '');
     if (['ben', 'fin', 'log'].indexOf(h) >= 0) switchPanel(h);
-  })();
+  }
+  initKhedmatPage();
 </script>
 
 <div class="modal-bg modal-float" id="modal-pin-change" onclick="if(event.target===this)closePinChangeModal()">

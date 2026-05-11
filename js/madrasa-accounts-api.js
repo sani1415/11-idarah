@@ -44,6 +44,8 @@ const MdrAccAPI = (() => {
      Intl 9=Ramadan → idx 0; formula: (intlMonth + 3) % 12 */
   const ACCOUNT_LABELS = {
     matbakh:'মাতবাখ', madrasa:'মাদরাসা', tamirat:'তামিরাত', general:'সাধারণ',
+    qard:'করজে হাসানা',
+    qard_return:'করজে হাসানা আদায়',
   };
 
   const DEFAULT_CATS = [

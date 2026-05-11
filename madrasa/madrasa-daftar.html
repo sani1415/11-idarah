@@ -917,22 +917,31 @@ body.page-daftar #modal-account-entry .modal {
     </div>
     <div id="acc-expense-fields" style="display:none">
       <div class="form-row">
-        <div class="form-group"><label class="form-label">হিসাব বই</label><select class="form-input form-select" id="acc-exp-account"><option value="matbakh">মাতবাখ</option><option value="madrasa">মাদরাসা</option><option value="tamirat">তামিরাত</option><option value="general">সাধারণ</option></select></div>
-        <div class="form-group"><label class="form-label">সরবরাহকারী</label><input class="form-input" id="acc-exp-supplier" placeholder="নাম / দোকান"></div>
+        <div class="form-group"><label class="form-label">হিসাব বই</label><select class="form-input form-select" id="acc-exp-account" onchange="onAccExpAccountChange(this.value)"><option value="matbakh">মাতবাখ</option><option value="madrasa">মাদরাসা</option><option value="tamirat">তামিরাত</option><option value="general">সাধারণ</option><option value="qard">করজে হাসানা</option></select></div>
+        <div class="form-group"><label class="form-label" id="acc-exp-supplier-label">সরবরাহকারী</label><input class="form-input" id="acc-exp-supplier" placeholder="নাম / দোকান"></div>
       </div>
-      <div class="form-row">
+      <!-- করজে হাসানা: শুধু পরিমাণ -->
+      <div class="form-row" id="acc-qard-amt-row" style="display:none">
+        <div class="form-group"><label class="form-label">পরিমাণ (টাকা)</label><input class="form-input" type="number" id="acc-qard-amt" placeholder="০" min="0" step="0.01"></div>
+      </div>
+      <!-- রশিদ নং (qard-এ লুকানো) -->
+      <div class="form-row" id="acc-exp-receipt-row">
         <div class="form-group"><label class="form-label">রশিদ নং <span style="font-size:10px;color:var(--ink3);font-weight:400">(ঐচ্ছিক)</span></label><input class="form-input" id="acc-exp-receipt" placeholder="যেমন: ১২৩"></div>
       </div>
-      <div class="form-group" style="margin-bottom:10px">
+      <!-- পরিশোধ পদ্ধতি (qard-এ লুকানো) -->
+      <div class="form-group" id="acc-exp-pay-row" style="margin-bottom:10px">
         <label class="form-label">পরিশোধ পদ্ধতি</label>
         <div style="display:flex;gap:8px;margin-top:4px">
           <button type="button" id="acc-pay-cash" onclick="setAccPayment('cash')" style="flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--green2);background:var(--green-light);color:var(--green);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">নগদ পরিশোধ</button>
           <button type="button" id="acc-pay-due" onclick="setAccPayment('due')" style="flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--cream3);background:#fff;color:var(--ink3);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">বাকি / বকেয়া</button>
         </div>
       </div>
-      <div style="font-size:11px;color:var(--ink3);margin:6px 0 4px;font-weight:600">আইটেম সমূহ</div><div id="acc-items-container"></div>
-      <button type="button" onclick="addAccItem()" style="width:100%;margin-top:6px;padding:8px;border:1px dashed var(--ink3);border-radius:8px;background:none;cursor:pointer;font-size:12px;color:var(--ink2);font-family:inherit">＋ আরেকটি আইটেম</button>
-      <div style="text-align:right;font-weight:700;padding:8px 0 2px;font-size:14px;border-top:1px solid var(--cream2);margin-top:8px">মোট: ৳<span id="acc-grand-total">০</span></div>
+      <!-- আইটেম সমূহ (qard-এ লুকানো) -->
+      <div id="acc-items-section">
+        <div style="font-size:11px;color:var(--ink3);margin:6px 0 4px;font-weight:600">আইটেম সমূহ</div><div id="acc-items-container"></div>
+        <button type="button" onclick="addAccItem()" style="width:100%;margin-top:6px;padding:8px;border:1px dashed var(--ink3);border-radius:8px;background:none;cursor:pointer;font-size:12px;color:var(--ink2);font-family:inherit">＋ আরেকটি আইটেম</button>
+        <div style="text-align:right;font-weight:700;padding:8px 0 2px;font-size:14px;border-top:1px solid var(--cream2);margin-top:8px">মোট: ৳<span id="acc-grand-total">০</span></div>
+      </div>
     </div>
     <button class="submit-btn gold" onclick="saveAccountEntry()">সংরক্ষণ করুন</button>
   </div>

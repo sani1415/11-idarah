@@ -1,196 +1,250 @@
-/* ═══════════════════════════════════════════
-   মাদরাসাতুল মদীনা — khedmat-api.js
-   খেদমতে খালক মডিউলের ডেটা লজিক
-   ═══════════════════════════════════════════ */
+/* Madrasa module: Khedmat-e-Khalq database cache and RPC wrappers. */
 
 const KhAPI = (() => {
-
-  const KEYS = {
-    beneficiaries:  'mm_kh_beneficiaries',
-    activities:     'mm_kh_activities',
-    activity_types: 'mm_kh_activity_types',
-    daily_logs:     'mm_kh_daily_logs',
-    finance:        'mm_kh_finance',
+  const CACHE = {
+    beneficiaries: [],
+    activities: [],
+    activity_types: [],
+    daily_logs: [],
+    finance: [],
   };
 
-  const uid   = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   const today = () => new Date().toISOString().split('T')[0];
-  const esc   = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  function load(key) { try { return JSON.parse(localStorage.getItem(key))||[]; } catch { return []; } }
-  function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-  function purgeKnownSampleData() {
-    const sample = row => /^(bn|act|lg|fn|at)_\d+$/.test(String(row && row.id || '')) ||
-      /^(bn|act)_\d+$/.test(String(row && (row.beneficiary_id || row.activity_id) || ''));
-    [KEYS.beneficiaries, KEYS.activity_types, KEYS.activities, KEYS.daily_logs, KEYS.finance].forEach(key => {
-      const rows = load(key);
-      const next = rows.filter(row => !sample(row));
-      if (next.length !== rows.length) save(key, next);
-    });
+  function asArray(v) {
+    return Array.isArray(v) ? v : [];
   }
 
-  /* ── SEED ── */
-  function seedIfEmpty() {
-    if (load(KEYS.beneficiaries).length) return;
-    save(KEYS.beneficiaries, []);
+  function asNumber(v) {
+    const n = Number(v || 0);
+    return Number.isFinite(n) ? n : 0;
   }
 
-  /* ── BENEFICIARIES ── */
+  function normalizeBeneficiary(row) {
+    return {
+      id: String(row && row.id || ''),
+      name: row && row.name || '',
+      address: row && row.address || '',
+      phone: row && row.phone || '',
+      family_info: row && row.family_info || '',
+      notes: row && row.notes || '',
+      first_contact: row && row.first_contact || today(),
+    };
+  }
+
+  function normalizeType(row) {
+    return {
+      id: String(row && row.id || ''),
+      name: row && row.name || '',
+      emoji: row && row.emoji || '🤝',
+      is_active: !row || row.is_active !== false,
+      sort_order: Number(row && row.sort_order || 0),
+    };
+  }
+
+  function normalizeActivity(row) {
+    return {
+      id: String(row && row.id || ''),
+      beneficiary_id: row && row.beneficiary_id || '',
+      type_id: row && row.type_id || '',
+      title: row && row.title || '',
+      description: row && row.description || '',
+      amount: asNumber(row && row.amount),
+      date: row && row.date || today(),
+      images: asArray(row && row.images),
+    };
+  }
+
+  function normalizeLog(row) {
+    return {
+      id: String(row && row.id || ''),
+      content: row && row.content || '',
+      by: row && row.by || '',
+      date: row && row.date || today(),
+    };
+  }
+
+  function normalizeFinance(row) {
+    return {
+      id: String(row && row.id || ''),
+      type: row && row.type === 'income' ? 'income' : 'expense',
+      amount: asNumber(row && row.amount),
+      description: row && row.description || '',
+      source: row && row.source || null,
+      activity_id: row && row.activity_id || null,
+      date: row && row.date || today(),
+    };
+  }
+
+  function setCache(payload) {
+    CACHE.beneficiaries = asArray(payload && payload.beneficiaries).map(normalizeBeneficiary);
+    CACHE.activity_types = asArray(payload && payload.activity_types).map(normalizeType);
+    CACHE.activities = asArray(payload && payload.activities).map(normalizeActivity);
+    CACHE.daily_logs = asArray(payload && payload.daily_logs).map(normalizeLog);
+    CACHE.finance = asArray(payload && payload.finance).map(normalizeFinance);
+  }
+
+  function replaceById(list, row) {
+    const idx = list.findIndex(item => item.id === row.id);
+    if (idx >= 0) list[idx] = row;
+    else list.push(row);
+    return row;
+  }
+
+  function requireSharedAPI() {
+    if (!window.MMSharedAPI) throw new Error('Database API is not loaded');
+    return window.MMSharedAPI;
+  }
+
+  function getActorId(actorId) {
+    if (actorId) return actorId;
+    if (window.MMSession && MMSession.getId) return MMSession.getId();
+    return null;
+  }
+
+  function getPin(pin) {
+    if (pin) return pin;
+    if (window.MMSession && MMSession.getPin) return MMSession.getPin();
+    return '';
+  }
+
+  function unwrap(res, key) {
+    if (!res || res.ok !== true) throw new Error((res && res.error) || 'database_error');
+    return res[key] || null;
+  }
+
+  async function bootstrapRemote(actorId, pin) {
+    const res = await requireSharedAPI().khedmatBootstrap(getActorId(actorId), getPin(pin));
+    if (!res || res.ok !== true) throw new Error((res && res.error) || 'khedmat_bootstrap_failed');
+    setCache(res);
+    return res;
+  }
+
   const Beneficiaries = {
-    getAll:  () => load(KEYS.beneficiaries).sort((a,b)=>b.first_contact.localeCompare(a.first_contact)),
-    getById: id => load(KEYS.beneficiaries).find(b=>b.id===id),
-    add(data) {
-      const list = load(KEYS.beneficiaries);
-      const b = { id:'bn_'+uid(), first_contact:today(), ...data };
-      list.push(b);
-      save(KEYS.beneficiaries, list);
-      return b;
+    getAll: () => CACHE.beneficiaries.slice().sort((a, b) => String(b.first_contact || '').localeCompare(String(a.first_contact || ''))),
+    getById: id => CACHE.beneficiaries.find(b => b.id === id),
+    async add(data, actorId, pin) {
+      const payload = { id: 'bn_' + uid(), first_contact: today(), ...(data || {}) };
+      const row = normalizeBeneficiary(unwrap(await requireSharedAPI().khedmatUpsertBeneficiary(getActorId(actorId), getPin(pin), payload), 'beneficiary'));
+      return replaceById(CACHE.beneficiaries, row);
     },
-    update(id, data) {
-      save(KEYS.beneficiaries, load(KEYS.beneficiaries).map(b=>b.id===id?{...b,...data}:b));
+    async update(id, data, actorId, pin) {
+      const current = this.getById(id) || {};
+      const payload = { ...current, ...(data || {}), id };
+      const row = normalizeBeneficiary(unwrap(await requireSharedAPI().khedmatUpsertBeneficiary(getActorId(actorId), getPin(pin), payload), 'beneficiary'));
+      return replaceById(CACHE.beneficiaries, row);
     },
   };
 
-  /* ── ACTIVITY TYPES ── */
   const ActivityTypes = {
-    getAll: () => load(KEYS.activity_types).filter(t=>t.is_active),
-    getById: id => load(KEYS.activity_types).find(t=>t.id===id),
-    add(data) {
-      const list = load(KEYS.activity_types);
-      const t = { id:'at_'+uid(), is_active:true, emoji:'🤝', ...data };
-      list.push(t);
-      save(KEYS.activity_types, list);
-      return t;
+    getAll: () => CACHE.activity_types.filter(t => t.is_active).sort((a, b) => a.sort_order - b.sort_order),
+    getById: id => CACHE.activity_types.find(t => t.id === id),
+    async add(data, actorId, pin) {
+      const payload = { id: 'at_' + uid(), is_active: true, emoji: '🤝', ...(data || {}) };
+      const row = normalizeType(unwrap(await requireSharedAPI().khedmatUpsertActivityType(getActorId(actorId), getPin(pin), payload), 'activity_type'));
+      return replaceById(CACHE.activity_types, row);
     },
   };
 
-  /* ── ACTIVITIES ── */
   const Activities = {
-    getAll:           () => load(KEYS.activities).sort((a,b)=>b.date.localeCompare(a.date)),
-    getByBeneficiary: id => load(KEYS.activities).filter(a=>a.beneficiary_id===id).sort((a,b)=>b.date.localeCompare(a.date)),
+    getAll: () => CACHE.activities.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))),
+    getByBeneficiary: id => CACHE.activities.filter(a => a.beneficiary_id === id).sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))),
     getThisMonth() {
-      const m = new Date().toISOString().slice(0,7);
-      return load(KEYS.activities).filter(a=>a.date.startsWith(m));
+      const m = new Date().toISOString().slice(0, 7);
+      return CACHE.activities.filter(a => String(a.date || '').startsWith(m));
     },
-    add(data) {
-      const list = load(KEYS.activities);
-      const a = { id:'act_'+uid(), date:today(), images:[], ...data };
-      list.push(a);
-      save(KEYS.activities, list);
-      return a;
+    async add(data, actorId, pin) {
+      const payload = { id: 'act_' + uid(), date: today(), images: [], ...(data || {}) };
+      const row = normalizeActivity(unwrap(await requireSharedAPI().khedmatInsertActivity(getActorId(actorId), getPin(pin), payload), 'activity'));
+      return replaceById(CACHE.activities, row);
     },
-    addImages(activityId, imageBase64Arr) {
-      const list = load(KEYS.activities);
-      const act = list.find(a => a.id === activityId);
-      if (act) {
-        if (!act.images) act.images = [];
-        act.images.push(...imageBase64Arr);
-        save(KEYS.activities, list);
-      }
-      return act;
+    async addImages(activityId, imageBase64Arr, actorId, pin) {
+      const row = normalizeActivity(unwrap(await requireSharedAPI().khedmatAddActivityImages(getActorId(actorId), getPin(pin), activityId, imageBase64Arr || []), 'activity'));
+      return replaceById(CACHE.activities, row);
     },
     getSummaryByType() {
-      const acts  = load(KEYS.activities);
-      const types = load(KEYS.activity_types);
-      return types.map(t => ({
+      const acts = CACHE.activities;
+      return CACHE.activity_types.map(t => ({
         ...t,
-        count: acts.filter(a=>a.type_id===t.id).length,
-        total: acts.filter(a=>a.type_id===t.id).reduce((s,a)=>s+(a.amount||0),0),
+        count: acts.filter(a => a.type_id === t.id).length,
+        total: acts.filter(a => a.type_id === t.id).reduce((s, a) => s + asNumber(a.amount), 0),
       }));
     },
   };
 
-  /* ── DAILY LOGS ── */
   const DailyLogs = {
-    getAll:   () => load(KEYS.daily_logs).sort((a,b)=>b.date.localeCompare(a.date)),
-    getLatest:()  => load(KEYS.daily_logs).sort((a,b)=>b.date.localeCompare(a.date))[0] || null,
-    add(content, by) {
-      const list = load(KEYS.daily_logs);
-      const l = { id:'lg_'+uid(), content, by, date:today() };
-      list.push(l);
-      save(KEYS.daily_logs, list);
-      return l;
+    getAll: () => CACHE.daily_logs.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))),
+    getLatest: () => DailyLogs.getAll()[0] || null,
+    async add(content, by, actorId, pin) {
+      const row = normalizeLog(unwrap(await requireSharedAPI().khedmatInsertDailyLog(getActorId(actorId), getPin(pin), content, by), 'log'));
+      return replaceById(CACHE.daily_logs, row);
     },
   };
 
-  /* ── FINANCE ── */
   const Finance = {
-    getAll: () => load(KEYS.finance).sort((a,b)=>b.date.localeCompare(a.date)),
-    add(data) {
-      const list = load(KEYS.finance);
-      const f = { id:'fn_'+uid(), date:today(), activity_id:null, source:null, ...data };
-      list.push(f);
-      save(KEYS.finance, list);
-      return f;
+    getAll: () => CACHE.finance.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))),
+    async add(data, actorId, pin) {
+      const payload = { id: 'fn_' + uid(), date: today(), activity_id: null, source: null, ...(data || {}) };
+      const row = normalizeFinance(unwrap(await requireSharedAPI().khedmatInsertFinance(getActorId(actorId), getPin(pin), payload), 'finance'));
+      return replaceById(CACHE.finance, row);
     },
     getSummary(month) {
-      const txns = month
-        ? load(KEYS.finance).filter(f=>f.date.startsWith(month))
-        : load(KEYS.finance);
-      const income  = txns.filter(f=>f.type==='income') .reduce((s,f)=>s+f.amount,0);
-      const expense = txns.filter(f=>f.type==='expense').reduce((s,f)=>s+f.amount,0);
-      return { income, expense, balance: income-expense };
+      const txns = month ? CACHE.finance.filter(f => String(f.date || '').startsWith(month)) : CACHE.finance;
+      const income = txns.filter(f => f.type === 'income').reduce((s, f) => s + asNumber(f.amount), 0);
+      const expense = txns.filter(f => f.type === 'expense').reduce((s, f) => s + asNumber(f.amount), 0);
+      return { income, expense, balance: income - expense };
     },
-
-    /* ── একাউন্টিং ফাংশন ── */
     getBalanceBefore(dateStr) {
-      const all = load(KEYS.finance);
-      const income  = all.filter(f=>f.type==='income'  && f.date < dateStr).reduce((s,f)=>s+f.amount,0);
-      const expense = all.filter(f=>f.type==='expense' && f.date < dateStr).reduce((s,f)=>s+f.amount,0);
+      const income = CACHE.finance.filter(f => f.type === 'income' && f.date < dateStr).reduce((s, f) => s + asNumber(f.amount), 0);
+      const expense = CACHE.finance.filter(f => f.type === 'expense' && f.date < dateStr).reduce((s, f) => s + asNumber(f.amount), 0);
       return income - expense;
     },
     getForDay(dateStr) {
-      return load(KEYS.finance).filter(f=>f.date===dateStr).sort((a,b)=>a.date.localeCompare(b.date));
+      return CACHE.finance.filter(f => f.date === dateStr).sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
     },
     getForMonth(yearMonth) {
-      return load(KEYS.finance).filter(f=>f.date.startsWith(yearMonth)).sort((a,b)=>a.date.localeCompare(b.date));
+      return CACHE.finance.filter(f => String(f.date || '').startsWith(yearMonth)).sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
     },
     getForYear(year) {
-      return load(KEYS.finance).filter(f=>f.date.startsWith(year)).sort((a,b)=>a.date.localeCompare(b.date));
+      return CACHE.finance.filter(f => String(f.date || '').startsWith(year)).sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
     },
     getDailySummary(yearMonth) {
-      const all = load(KEYS.finance).filter(f=>f.date.startsWith(yearMonth));
       const days = {};
-      all.forEach(f => {
+      CACHE.finance.filter(f => String(f.date || '').startsWith(yearMonth)).forEach(f => {
         const d = f.date;
-        if (!days[d]) days[d] = { date:d, income:0, expense:0 };
-        if (f.type==='income') days[d].income += f.amount;
-        else days[d].expense += f.amount;
+        if (!days[d]) days[d] = { date: d, income: 0, expense: 0 };
+        if (f.type === 'income') days[d].income += asNumber(f.amount);
+        else days[d].expense += asNumber(f.amount);
       });
-      return Object.values(days)
-        .map(d => ({ ...d, net: d.income - d.expense }))
-        .sort((a,b) => a.date.localeCompare(b.date));
+      return Object.values(days).map(d => ({ ...d, net: d.income - d.expense })).sort((a, b) => a.date.localeCompare(b.date));
     },
     getMonthlySummary(year) {
-      const all = load(KEYS.finance).filter(f=>f.date.startsWith(year));
       const months = {};
-      all.forEach(f => {
-        const m = f.date.substring(0,7);
-        if (!months[m]) months[m] = { month:m, income:0, expense:0 };
-        if (f.type==='income') months[m].income += f.amount;
-        else months[m].expense += f.amount;
+      CACHE.finance.filter(f => String(f.date || '').startsWith(year)).forEach(f => {
+        const m = f.date.substring(0, 7);
+        if (!months[m]) months[m] = { month: m, income: 0, expense: 0 };
+        if (f.type === 'income') months[m].income += asNumber(f.amount);
+        else months[m].expense += asNumber(f.amount);
       });
-      return Object.values(months)
-        .map(m => ({ ...m, net: m.income - m.expense }))
-        .sort((a,b) => a.month.localeCompare(b.month));
+      return Object.values(months).map(m => ({ ...m, net: m.income - m.expense })).sort((a, b) => a.month.localeCompare(b.month));
     },
     getYearlySummary() {
-      const all = load(KEYS.finance);
       const years = {};
-      all.forEach(f => {
-        const y = f.date.substring(0,4);
-        if (!years[y]) years[y] = { year:y, income:0, expense:0 };
-        if (f.type==='income') years[y].income += f.amount;
-        else years[y].expense += f.amount;
+      CACHE.finance.forEach(f => {
+        const y = String(f.date || '').substring(0, 4);
+        if (!years[y]) years[y] = { year: y, income: 0, expense: 0 };
+        if (f.type === 'income') years[y].income += asNumber(f.amount);
+        else years[y].expense += asNumber(f.amount);
       });
-      return Object.values(years)
-        .map(y => ({ ...y, net: y.income - y.expense }))
-        .sort((a,b) => a.year.localeCompare(b.year));
+      return Object.values(years).map(y => ({ ...y, net: y.income - y.expense })).sort((a, b) => a.year.localeCompare(b.year));
     },
   };
 
-  seedIfEmpty();
-  purgeKnownSampleData();
-  return { Beneficiaries, ActivityTypes, Activities, DailyLogs, Finance, uid, today, esc };
-
+  return { bootstrapRemote, setCache, Beneficiaries, ActivityTypes, Activities, DailyLogs, Finance, uid, today, esc };
 })();
+
+if (typeof window !== 'undefined') {
+  window.KhAPI = KhAPI;
+}
