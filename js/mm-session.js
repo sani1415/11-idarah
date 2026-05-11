@@ -66,6 +66,12 @@
     getDeptId: function () { return sessionStorage.getItem(K.deptId); },
     getDeptName: function () { return sessionStorage.getItem(K.deptName); },
     getDeptEmoji: function () { return sessionStorage.getItem(K.deptEmoji); },
+    getId: function () {
+      return this.isAdmin() ? this.getAdminUserId() : this.getStaffUserId();
+    },
+    getPin: function () {
+      return this.isAdmin() ? this.getAdminPin() : this.getStaffPin();
+    },
     getChatActorId: function () {
       return this.isAdmin() ? this.getAdminUserId() : this.getStaffUserId();
     },
