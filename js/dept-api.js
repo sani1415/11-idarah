@@ -268,3 +268,7 @@ const DeptAPI = (() => {
   };
 
 })();
+
+if (typeof window !== 'undefined') {
+  window.DeptAPI = DeptAPI;
+}

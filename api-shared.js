@@ -23,10 +23,34 @@ const MMSharedAPI = (() => {
   const supabaseClient = createClientOrNull();
 
   async function rpc(name, params) {
-    if (!supabaseClient) throw new Error('Supabase client is not configured');
-    const { data, error } = await supabaseClient.rpc(name, params || {});
-    if (error) throw error;
-    return data;
+    if (supabaseClient) {
+      const { data, error } = await supabaseClient.rpc(name, params || {});
+      if (error) throw error;
+      return data;
+    }
+    const key = getSupabaseKey();
+    if (!cfg.url || !key || typeof fetch !== 'function') {
+      throw new Error('Supabase client is not configured');
+    }
+    const res = await fetch(String(cfg.url).replace(/\/+$/, '') + '/rest/v1/rpc/' + encodeURIComponent(name), {
+      method: 'POST',
+      headers: {
+        apikey: key,
+        Authorization: 'Bearer ' + key,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params || {}),
+    });
+    const text = await res.text();
+    let payload = null;
+    if (text) {
+      try { payload = JSON.parse(text); } catch (e) { payload = text; }
+    }
+    if (!res.ok) {
+      const msg = payload && payload.message ? payload.message : (text || ('RPC failed: ' + name));
+      throw new Error(msg);
+    }
+    return payload;
   }
 
   return {

@@ -94,6 +94,12 @@ const publishableKey =
   process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || existing.publishableKey || '';
 const buildVersion = createBuildVersion();
 
+if (!url || !publishableKey) {
+  throw new Error(
+    'Missing Supabase config. Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY (or SUPABASE_ANON_KEY) before building.'
+  );
+}
+
 const configJs = `window.MM_SUPABASE_CONFIG = ${JSON.stringify({ url, publishableKey }, null, 2)};\n`;
 
 rmrf(OUT);

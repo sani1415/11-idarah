@@ -191,8 +191,11 @@
       await DeptSync.bootstrap();
       init();
     } catch (e) {
+      console.error('[Dept] department list bootstrap failed:', e);
       const el = document.getElementById('dept-list');
-      el.innerHTML = '<div style="text-align:center;color:var(--red);padding:32px 0;font-size:13px;">ডাটাবেজ সংযোগ ব্যর্থ। বিভাগ তালিকা লোড হয়নি।</div>';
+      const msg = e && e.message ? String(e.message) : 'unknown_error';
+      init();
+      el.insertAdjacentHTML('afterbegin', '<div style="grid-column:1/-1;text-align:center;color:var(--red);padding:8px 0 4px;font-size:12px;">ডাটাবেজ সংযোগ ব্যর্থ।<div style="margin-top:4px;font-size:10px;color:var(--ink3);word-break:break-word;">'+DeptAPI.esc(msg)+'</div></div>');
     }
   }
 
