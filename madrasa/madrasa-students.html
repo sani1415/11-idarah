@@ -102,7 +102,7 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
         <input class="form-input" id="add-roll" placeholder="যেমন: ১০১">
       </div>
       <div class="form-group">
-        <label class="form-label">স্থায়ী আইডি <span style="color:var(--red)">*</span></label>
+        <label class="form-label">স্থায়ী দাখেলা <span style="color:var(--red)">*</span></label>
         <input class="form-input" id="add-pid" placeholder="যেমন: ৪৭০১২" autocomplete="off">
       </div>
       <div class="form-group">
@@ -143,10 +143,10 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
     <div style="margin-top:8px;">
       <div style="background:var(--cream2);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;font-size:12px;color:var(--ink2);line-height:1.7;">
         <strong>CSV ফরম্যাট:</strong> প্রথম সারি হেডার।<br>
-        <strong>নয় কলাম:</strong> <code style="background:#fff;padding:1px 5px;border-radius:4px;">নাম, বর্ষ, রোল, অভিভাবক, পেশা, ফোন, জেলা, উপজেলা, স্থায়ী_আইডি</code> — ভর্তি বছর স্থায়ী আইডি থেকেই ধরা; আলাদা কলাম নেই।<br>
-        <em>আট কলাম</em> (ফোন, এক লাইন ঠিকানা, স্থায়ী আইডি) — পুরনো বিন্যাস; উপজেলায় এক লাইন, জেলা ফাঁকা। পুরনো ৯-কলাম (ঠিকানা+হিজরী+আইডি) স্বয়ংক্রিয় ধরা হয়।<br>
+        <strong>নয় কলাম:</strong> <code style="background:#fff;padding:1px 5px;border-radius:4px;">নাম, বর্ষ, রোল, অভিভাবক, পেশা, ফোন, জেলা, উপজেলা, স্থায়ী_দাখেলা</code> — ভর্তি বছর স্থায়ী দাখেলা থেকেই ধরা; আলাদা কলাম নেই।<br>
+        <em>আট কলাম</em> (ফোন, এক লাইন ঠিকানা, স্থায়ী দাখেলা) — পুরনো বিন্যাস; উপজেলায় এক লাইন, জেলা ফাঁকা। পুরনো ৯-কলাম (ঠিকানা+হিজরী+দাখেলা) স্বয়ংক্রিয় ধরা হয়।<br>
         <em>বর্ষ কলামে</em> সঠিক বর্ষের নাম (যেমন: ১ম বর্ষ)।<br>
-        <span style="color:var(--ink2);">স্থায়ী আইডি: ডুপ্লিকেট (অ্যাপে আগে থেকে + একই ফাইলে দুবার) হলে সারি বাতিল।</span><br>
+        <span style="color:var(--ink2);">স্থায়ী দাখেলা: ডুপ্লিকেট (অ্যাপে আগে থেকে + একই ফাইলে দুবার) হলে সারি বাতিল।</span><br>
         <em style="font-size:11px;">সেভ: Excel এ “CSV UTF-8 (Comma delimited)”, বা Google Sheets → CSV.</em>
       </div>
       <button class="dl-btn" onclick="downloadTemplate()">⬇ নমুনা CSV ডাউনলোড</button>
@@ -280,8 +280,8 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
     if (!classId) { showToast('বর্ষ নির্বাচন করুন'); return; }
     const dept = document.getElementById('add-dept').value;
     const pid = document.getElementById('add-pid').value.trim();
-    if (!pid) { showToast('স্থায়ী আইডি আবশ্যক'); return; }
-    if (API.Students.isPermanentIdTaken(pid)) { showToast('এই স্থায়ী আইডি ইতিমধ্যে কারো আছে'); return; }
+    if (!pid) { showToast('স্থায়ী দাখেলা আবশ্যক'); return; }
+    if (API.Students.isPermanentIdTaken(pid)) { showToast('এই স্থায়ী দাখেলা ইতিমধ্যে কারো আছে'); return; }
     API.Students.add({
       name, roll, class_id: classId, permanent_id: pid,
       guardian: document.getElementById('add-guardian').value.trim(),
@@ -301,7 +301,7 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
   let csvRows = [];
   function downloadTemplate() {
     const clsNames = API.Classes.getAll().map(c=>c.name).join(', ');
-    const header = 'নাম,বর্ষ,রোল,অভিভাবক,পেশা,ফোন,জেলা,উপজেলা,স্থায়ী_আইডি';
+    const header = 'নাম,বর্ষ,রোল,অভিভাবক,পেশা,ফোন,জেলা,উপজেলা,স্থায়ী_দাখেলা';
     const note = `# বর্ষের নাম: ${clsNames}`;
     const sample = 'মুহাম্মাদ আব্দুল্লাহ,১ম বর্ষ,১০১,আব্দুর রহীম,চাষাবাদ,০১৭০০-০০০০০০,ঢাকা,দোহার,৪৭০১২';
     /* UTF-8 BOM: Windows/Excel-এ .csv বাংলা ঠিক দেখার জন্য (BOM ছাড়া প্রায়ই ????? হয়) */
@@ -318,7 +318,7 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
     document.getElementById('csv-preview-wrap').style.display = 'none';
     document.getElementById('csv-file').value = '';
   }
-  /** স্থায়ী আইডি বাধ্যতামূলক; একই ব্যাচ + DB-তে ডুপ্লিকেট চেক */
+  /** স্থায়ী দাখেলা বাধ্যতামূলক; একই ব্যাচ + DB-তে ডুপ্লিকেট চেক */
   function applyCsvPermanentIds() {
     const inBatch = new Set();
     csvRows.forEach((r) => {
@@ -327,11 +327,11 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
       if (String(r._baseErr || '').trim() || !r.cls) return;
       const manual = (r.manual_pid || '').trim();
       if (!manual) {
-        r.err = (r._baseErr && r._baseErr.trim() ? r._baseErr + ' ' : '') + 'স্থায়ী আইডি বাধ্যতামূলক';
+        r.err = (r._baseErr && r._baseErr.trim() ? r._baseErr + ' ' : '') + 'স্থায়ী দাখেলা বাধ্যতামূলক';
         return;
       }
       if (inBatch.has(manual) || API.Students.isPermanentIdTaken(manual)) {
-        r.err = (r._baseErr && r._baseErr.trim() ? r._baseErr + ' ' : '') + 'স্থায়ী আইডি ডুপ্লিকেট/ব্যবহৃত';
+        r.err = (r._baseErr && r._baseErr.trim() ? r._baseErr + ' ' : '') + 'স্থায়ী দাখেলা ডুপ্লিকেট/ব্যবহৃত';
       } else {
         inBatch.add(manual);
         r.resolved_pid = manual;
@@ -343,7 +343,7 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
     applyCsvPermanentIds();
     const validN = csvRows.filter((r) => !r.err).length, errN = csvRows.length - validN;
     document.getElementById('csv-count-lbl').textContent = toBn(validN) + ' টি সঠিক, ' + toBn(errN) + ' টিতে সমস্যা';
-    const thead = '<thead><tr><th>#</th><th>নাম</th><th>বর্ষ</th><th>রোল</th><th>জেলা</th><th>উপজেলা</th><th>স্থায়ী আইডি</th><th>অভিভাবক</th><th>ফোন</th><th>অবস্থা</th></tr></thead>';
+    const thead = '<thead><tr><th>#</th><th>নাম</th><th>বর্ষ</th><th>রোল</th><th>জেলা</th><th>উপজেলা</th><th>স্থায়ী দাখেলা</th><th>অভিভাবক</th><th>ফোন</th><th>অবস্থা</th></tr></thead>';
     const tbody = '<tbody>' + csvRows.map((r) => {
       const st = r.err ? ('<span class="err-tag">' + API.esc(r.err) + '</span>') : '✓';
       const idCell = r.err ? '—' : API.esc(r.resolved_pid || '—');
@@ -390,7 +390,7 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
         let baseErr = (!name ? 'নাম নেই ' : '') + ((!cls && clsName) ? 'বর্ষ খুঁজে পাওয়া যায়নি ' : '') + (!roll ? 'রোল নেই' : '');
         const pidStr = (manualPid || '').trim();
         if (cols.length < 8) baseErr += (baseErr.trim() ? ' ' : '') + 'কমপক্ষে ৮ কলাম লাগবে।';
-        if (!pidStr) baseErr += (baseErr.trim() ? ' ' : '') + 'স্থায়ী আইডি বাধ্যতামূলক';
+        if (!pidStr) baseErr += (baseErr.trim() ? ' ' : '') + 'স্থায়ী দাখেলা বাধ্যতামূলক';
         return {
           idx: i + 1, name: name || '', clsName: clsName || '', cls, roll: roll || '',
           guardian: guardian || '', job: job || '', phone: phone || '',

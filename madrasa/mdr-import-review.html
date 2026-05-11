@@ -49,7 +49,7 @@
   <div class="review-card">
     <div class="review-title">পুরনো backup থেকে pending ছাত্র</div>
     <div class="muted">
-      এখানে ছাত্ররা এখনো final ছাত্র তালিকায় যায়নি। প্রতিটি ছাত্র দেখে স্থায়ী আইডি, শ্রেণি ও রোল ঠিক করে অনুমোদন করলে মূল ছাত্র তালিকায় যাবে।
+      এখানে ছাত্ররা এখনো final ছাত্র তালিকায় যায়নি। প্রতিটি ছাত্র দেখে স্থায়ী দাখেলা, শ্রেণি ও রোল ঠিক করে অনুমোদন করলে মূল ছাত্র তালিকায় যাবে।
     </div>
     <div class="toolbar">
       <input class="form-input" id="admin-pin" type="password" maxlength="4" placeholder="জিম্মাদার PIN">
@@ -72,7 +72,7 @@
       <select class="form-input form-select" id="class-filter" onchange="renderList()">
         <option value="">সব বর্ষ/শ্রেণি</option>
       </select>
-      <input class="form-input wide" id="search-box" placeholder="নাম, বাবার নাম, পুরনো ID বা রোল দিয়ে খুঁজুন" oninput="renderList()">
+      <input class="form-input wide" id="search-box" placeholder="নাম, বাবার নাম, পুরনো দাখেলা বা রোল দিয়ে খুঁজুন" oninput="renderList()">
     </div>
     <div id="student-list" class="student-list"></div>
     <div class="pager">
@@ -89,7 +89,7 @@
     <div class="modal-title">ছাত্র অনুমোদন <button class="modal-close" onclick="closeApproveModal()">✕</button></div>
     <div class="modal-note" id="approve-summary"></div>
     <div class="form-group">
-      <label class="form-label">নতুন স্থায়ী আইডি</label>
+      <label class="form-label">নতুন স্থায়ী দাখেলা</label>
       <input class="form-input" id="student-id" placeholder="যেমন: 47101 / মক্তব: 047101">
     </div>
     <div class="form-group">
@@ -212,14 +212,14 @@
           <div>
             <div class="student-name">${esc(c.name)}</div>
             <div class="student-meta">
-              পুরনো ID: ${esc(c.old_student_id)} · পিতা: ${esc(c.guardian_name || '—')}<br>
+              পুরনো দাখেলা: ${esc(c.old_student_id)} · পিতা: ${esc(c.guardian_name || '—')}<br>
               পুরনো শ্রেণি/রোল: ${esc(c.old_class_name || '—')} / ${esc(c.old_roll || '—')} · নতুন mapping: ${esc(className(c.class_code))}
             </div>
           </div>
           <span class="tag">${sourceName(c.source)}</span>
         </div>
         <div class="row-actions">
-          <button class="mini-btn primary" onclick="openApproveModal('${esc(c.id)}')">ID দিয়ে অনুমোদন</button>
+          <button class="mini-btn primary" onclick="openApproveModal('${esc(c.id)}')">দাখেলা দিয়ে অনুমোদন</button>
           <button class="mini-btn danger" onclick="skipCandidate('${esc(c.id)}')">এখন বাদ</button>
         </div>
       </div>
@@ -255,11 +255,11 @@
     const classCode = document.getElementById('approve-class').value;
     const roll = document.getElementById('approve-roll').value.trim();
     const hijriYear = document.getElementById('approve-hijri').value.trim();
-    if (!studentId) { showToast('স্থায়ী আইডি দিন'); return; }
+    if (!studentId) { showToast('স্থায়ী দাখেলা দিন'); return; }
     if (!classCode) { showToast('বর্তমান মূল বর্ষ নির্বাচন করুন'); return; }
     if (!roll) { showToast('রোল দিন'); return; }
     if (state.current.source === 'moktob_backup' && !/^0\d+$/.test(studentId)) {
-      if (!confirm('মক্তব ছাত্রের স্থায়ী ID সাধারণত 0 দিয়ে শুরু হবে। তারপরও সংরক্ষণ করবেন?')) return;
+      if (!confirm('মক্তব ছাত্রের স্থায়ী দাখেলা সাধারণত 0 দিয়ে শুরু হবে। তারপরও সংরক্ষণ করবেন?')) return;
     }
     if (state.current.source === 'moktob_backup' && !roll.startsWith('ম')) {
       if (!confirm('মক্তব ছাত্রের রোল সাধারণত “ম” দিয়ে শুরু হবে। তারপরও সংরক্ষণ করবেন?')) return;
@@ -279,7 +279,7 @@
       await refreshSummaryOnly();
       renderList();
     } catch (err) {
-      showToast(err.message === 'student_id_already_exists' ? 'এই স্থায়ী ID আগে থেকেই আছে' : 'অনুমোদন করা যায়নি');
+      showToast(err.message === 'student_id_already_exists' ? 'এই স্থায়ী দাখেলা আগে থেকেই আছে' : 'অনুমোদন করা যায়নি');
     } finally {
       setLoading(false);
     }

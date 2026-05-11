@@ -213,7 +213,7 @@
     if (!row) return '';
     var legacyBits = [
       row.legacy_batch ? '<div><b>ব্যাচ:</b> ' + esc(row.legacy_batch) + '</div>' : '',
-      row.proposed_legacy_id ? '<div><b>অস্থায়ী legacy ID:</b> ' + esc(row.proposed_legacy_id) + '</div>' : '',
+      row.proposed_legacy_id ? '<div><b>অস্থায়ী legacy দাখেলা:</b> ' + esc(row.proposed_legacy_id) + '</div>' : '',
       row.old_address ? '<div><b>পুরনো ঠিকানা:</b> ' + esc(row.old_address) + '</div>' : '',
       allPhones(row) ? '<div><b>সংরক্ষিত ফোন:</b> ' + esc(allPhones(row)) + '</div>' : '',
       row.old_current_status ? '<div><b>পুরনো বর্তমান অবস্থা:</b> ' + esc(row.old_current_status) + '</div>' : '',

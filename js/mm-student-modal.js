@@ -257,7 +257,7 @@
     var clsName = cls ? cls.name : '—';
     var deptLbl =
       cls && cls.dept === 'maktab' ? 'মক্তব বিভাগ' : cls && cls.dept === 'kitab' ? 'কিতাব বিভাগ' : '—';
-    var stSub = [clsName, s.permanent_id ? 'আইডি ' + s.permanent_id : '', s.roll ? 'রোল ' + s.roll : '']
+    var stSub = [clsName, s.permanent_id ? 'দাখেলা ' + s.permanent_id : '', s.roll ? 'রোল ' + s.roll : '']
       .filter(Boolean)
       .join(' · ');
 
@@ -278,7 +278,7 @@
       : kv('ঠিকানা', API.esc(s.address || '—'));
     var infoBlock =
       '<div class="st-kv-grid">' +
-      kv('স্থায়ী আইডি', API.escBn(s.permanent_id || '—')) +
+      kv('স্থায়ী দাখেলা', API.escBn(s.permanent_id || '—')) +
       kv('রোল', API.escBn(s.roll || '—')) +
       kv('বর্তমান বর্ষ', API.esc(clsName)) +
       kv('বিভাগ', API.esc(deptLbl)) +

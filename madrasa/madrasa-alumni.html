@@ -155,7 +155,7 @@
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">স্থায়ী আইডি</label>
+        <label class="form-label">স্থায়ী দাখেলা</label>
         <input class="form-input" id="al-id" placeholder="যেমন: ৪৫০০১">
       </div>
       <div class="form-group">
@@ -320,7 +320,7 @@
           <div class="alumni-avatar">${a.status === 'সম্পন্ন' ? '🎓' : '👤'}</div>
           <div class="alumni-info">
             <div class="alumni-name">${API.esc(a.name)}</div>
-            <div class="alumni-id">${API.esc(a.permanent_id || a.proposed_legacy_id || 'আইডি নেই')}</div>
+            <div class="alumni-id">${API.esc(a.permanent_id || a.proposed_legacy_id || 'দাখেলা নেই')}</div>
           </div>
           <div class="alumni-status">
             <span class="source-chip" style="margin-top:0;">${API.esc(sourceLabel)}</span>
@@ -340,7 +340,7 @@
     document.getElementById('detail-name').textContent = a.name;
     document.getElementById('detail-header').innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">
-        <div><div style="font-size:10px;opacity:.5;">আইডি</div><div style="font-weight:700;">${API.esc(a.permanent_id || a.proposed_legacy_id || '—')}</div></div>
+        <div><div style="font-size:10px;opacity:.5;">দাখেলা</div><div style="font-weight:700;">${API.esc(a.permanent_id || a.proposed_legacy_id || '—')}</div></div>
         <div><div style="font-size:10px;opacity:.5;">বিদায়/শেষ</div><div style="font-weight:700;">${API.esc(tools.displayYear(a))}</div></div>
         <div><div style="font-size:10px;opacity:.5;">কারণ</div><div style="font-weight:600;">${API.esc(a.reason||'—')}</div></div>
         <div><div style="font-size:10px;opacity:.5;">ফোন</div><div style="font-weight:600;">${API.esc(tools.allPhones(a)||'—')}</div></div>

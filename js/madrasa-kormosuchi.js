@@ -237,13 +237,23 @@ function studentByIncome(row) {
 function studentLabel(s) {
   if (!s) return '';
   const cls = API.Classes.getName(s.class_id);
-  return [s.name, s.permanent_id ? 'আইডি ' + s.permanent_id : '', cls || '', s.roll ? 'রোল ' + s.roll : ''].filter(Boolean).join(' · ');
+  return [s.name, s.permanent_id ? 'দাখেলা ' + s.permanent_id : '', cls || '', s.roll ? 'রোল ' + s.roll : ''].filter(Boolean).join(' · ');
+}
+
+function incomeStudentPermanentId(row, student) {
+  return (student && student.permanent_id) || (row && row.studentPermanentId) || '';
 }
 
 function renderIncomeName(row) {
   const s = studentByIncome(row);
-  if (!s) return `<b>${API.esc(row.name)}</b>`;
-  return `<button type="button" class="s-name-btn" style="font-size:13px;font-weight:800" onclick="MMStudentModal.open('${jsq(s.id)}')">${API.esc(s.name)}</button>`;
+  const permanentId = incomeStudentPermanentId(row, s);
+  const nameHtml = s
+    ? `<button type="button" class="s-name-btn" style="font-size:13px;font-weight:800" onclick="MMStudentModal.open('${jsq(s.id)}')">${API.esc(s.name)}</button>`
+    : `<b>${API.esc(row.name)}</b>`;
+  const idHtml = permanentId
+    ? `<div style="font-size:11px;color:var(--ink3);margin-top:2px">দাখেলা ${API.escBn(permanentId)}</div>`
+    : '';
+  return nameHtml + idHtml;
 }
 
 function programNameById(id) {

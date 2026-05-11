@@ -102,11 +102,18 @@
       <div class="form-row" id="acc-exp-account-row">
         <div class="form-group" style="flex:1"><label class="form-label">হিসাব বই</label><select class="form-input form-select" id="acc-exp-account" onchange="onAccExpAccountChange(this.value)"><option value="matbakh">মাতবাখ</option><option value="madrasa">মাদরাসা</option><option value="tamirat">তামিরাত</option><option value="general">সাধারণ</option></select></div>
       </div>
+      <div class="form-row" id="acc-qard-cat-pick-row" style="display:none">
+        <div class="form-group" style="flex:1">
+          <label class="form-label" for="acc-qard-cat-pick">আগের করজ খাত</label>
+          <select class="form-input form-select" id="acc-qard-cat-pick" onchange="onAccQardCatPick(this.value)"><option value="">— ইতিপূর্বে যুক্ত খাত বেছে নিন —</option></select>
+          <p style="font-size:10px;color:var(--ink3);margin:5px 0 0;font-weight:600;line-height:1.35">শুধু আগে করজে হিসেবে লেখা খাতগুলো। তালিকায় না থাকলে নিচের ঘরে নতুন নাম লিখুন।</p>
+        </div>
+      </div>
       <div class="form-row" id="acc-exp-supplier-row">
         <div class="form-group" style="flex:1"><label class="form-label" id="acc-exp-supplier-label">সরবরাহকারী</label><input class="form-input" id="acc-exp-supplier" placeholder="নাম / দোকান" autocomplete="off"></div>
       </div>
       <div class="form-row" id="acc-qard-amt-row" style="display:none">
-        <div class="form-group"><label class="form-label">পরিমাণ (টাকা)</label><input class="form-input" type="number" id="acc-qard-amt" placeholder="০" min="0" step="0.01"></div>
+        <div class="form-group"><label class="form-label">পরিমাণ (টাকা)</label><input class="form-input" type="text" inputmode="decimal" id="acc-qard-amt" placeholder="০"></div>
       </div>
       <div class="form-row" id="acc-exp-receipt-row">
         <div class="form-group"><label class="form-label">রশিদ নং <span style="font-size:10px;color:var(--ink3);font-weight:400">(ঐচ্ছিক)</span></label><input class="form-input" id="acc-exp-receipt" placeholder="যেমন: ১২৩"></div>
@@ -124,7 +131,6 @@
         <div style="text-align:right;font-weight:700;padding:8px 0 2px;font-size:14px;border-top:1px solid var(--cream2);margin-top:8px">মোট: ৳<span id="acc-grand-total">০</span></div>
       </div>
     </div>
-    <datalist id="acc-qard-category-datalist"></datalist>
     <button class="submit-btn gold" onclick="saveAccountEntry()">সংরক্ষণ করুন</button>
   </div>
 </div>
@@ -145,7 +151,7 @@
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/madrasa-accounts-api.js?v=20260503-accounts-topbar"></script>
-<script src="../js/madrasa-daftar-accounts.js?v=20260511-qard-hub"></script>
+<script src="../js/madrasa-daftar-accounts.js?v=20260511-income-sort"></script>
 <script src="../js/madrasa-accounts-reports.js"></script>
 <script>
   if (!MMSession.requireAdminPerm('daftar', '../main-admin-madrasa.html')) { throw new Error('accounts permission denied'); }
