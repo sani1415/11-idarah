@@ -195,6 +195,7 @@
 <script src="../js/api.js"></script>
 <script src="../js/mdr-daftar-supabase.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mdr-supabase-sync.js"></script>
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mam-overlay.js"></script>
@@ -499,6 +500,7 @@
     if (window.MDRDaftarSupabase && window.MMSharedAPI) {
       try {
         await MDRDaftarSupabase.sync();
+        if (window.MDRSupabaseSync) await MDRSupabaseSync.syncAdminStudents();
       } catch (e) {
         console.warn('Admin daftar Supabase sync failed', e);
       }

@@ -177,6 +177,7 @@
     syncDeptTabs();
     try {
       if (window.MDRSupabaseSync) await MDRSupabaseSync.syncAdminUsers();
+      if (window.MDRSupabaseSync) await MDRSupabaseSync.syncAdminStudents();
     } catch (e) {
       console.warn('madrasa teacher sync failed', e);
     }

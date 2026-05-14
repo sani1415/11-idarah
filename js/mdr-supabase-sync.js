@@ -260,12 +260,100 @@
     mergeScopedArray('mm_kitab_progress', function (p) { return !!classIds[String(p.class_id || '')]; }, progress);
   }
 
+  function scopedClassIdsFromRows(rows) {
+    var classIds = {};
+    (rows || []).forEach(function (c) {
+      var localId = CLASS_CODE_TO_LOCAL_ID[c.code] || c.code || c.id || '';
+      if (localId) classIds[String(localId)] = true;
+    });
+    return classIds;
+  }
+
+  function scopedStudentIds() {
+    var studentIds = {};
+    if (!global.API || !API.Students) return studentIds;
+    API.Students.getAll().forEach(function (s) {
+      studentIds[String(s.id)] = true;
+      if (s.supabase_id) studentIds[String(s.supabase_id)] = true;
+    });
+    return studentIds;
+  }
+
+  function syncAttendanceRows(res) {
+    if (!res || !global.API) return;
+    var studentIds = scopedStudentIds();
+    var rows = (res.attendance || []).map(function (a) {
+      return {
+        id: String(a.id || ''),
+        student_id: String(a.student_id || ''),
+        date: String(a.date || '').slice(0, 10),
+        status: a.status || 'absent',
+        absent_reason: a.absent_reason || '',
+        hijri_year: a.hijri_year || null,
+      };
+    }).filter(function (a) { return a.id && a.student_id && a.date; });
+    mergeScopedArray('mm_attendance', function (a) { return studentIds[String(a.student_id)]; }, rows);
+  }
+
+  function syncAdminTeacherRows(res) {
+    if (!res || !global.API) return;
+    var classIds = scopedClassIdsFromRows(res.classes || []);
+    var studentIds = scopedStudentIds();
+
+    var akhlaq = (res.akhlaq || []).map(function (a) {
+      return {
+        id: String(a.id || ''),
+        student_id: String(a.student_id || ''),
+        score: Number(a.score) || 0,
+        reason: a.reason || '',
+        date: String(a.date || '').slice(0, 10) || API.today(),
+        by: a.by || '',
+      };
+    }).filter(function (a) { return a.id && a.student_id; });
+    mergeScopedArray('mm_khuluk', function (k) { return studentIds[String(k.student_id)]; }, akhlaq);
+
+    var logs = (res.logs || []).map(function (l) {
+      var isStudent = l.type === 'student';
+      return {
+        id: String(l.id || ''),
+        type: isStudent ? 'student' : 'class',
+        ref_id: isStudent ? String(l.student_id || '') : (CLASS_CODE_TO_LOCAL_ID[l.class_code] || l.class_code || ''),
+        text: l.content || '',
+        date: String(l.date || '').slice(0, 10) || API.today(),
+        by: l.by || '',
+        tag: 'normal',
+      };
+    }).filter(function (l) { return l.id && l.ref_id; });
+    mergeScopedArray('mm_logs', function (l) {
+      return (l.type === 'class' && classIds[String(l.ref_id || '')]) ||
+        (l.type === 'student' && studentIds[String(l.ref_id || '')]);
+    }, logs);
+  }
+
   async function syncAdminStudents() {
-    if (!global.MMSession || !global.MMMadrasaAPI || !global.API) return false;
+    if (!global.MMSession || !global.API) return false;
     var pin = MMSession.getAdminPin && MMSession.getAdminPin();
     if (!pin) return false;
-    var res = await MMMadrasaAPI.adminStudents(pin);
+    var actorId = MMSession.getAdminUserId && MMSession.getAdminUserId();
+    var res;
+    if (global.MMSharedAPI && MMSharedAPI.adminMadrasaBootstrap) {
+      try {
+        res = await MMSharedAPI.adminMadrasaBootstrap(actorId || null, pin);
+        if (!res || !res.ok) return false;
+      } catch (e) {
+        if (!global.MMMadrasaAPI) throw e;
+        res = await MMMadrasaAPI.adminStudents(pin);
+      }
+    } else if (global.MMMadrasaAPI) {
+      res = await MMMadrasaAPI.adminStudents(pin);
+    } else {
+      return false;
+    }
+    upsertLocalClasses(res.classes || []);
     API.Students.replaceAll((res.students || []).map(toLocalStudent));
+    syncAttendanceRows(res);
+    syncBookRows(res);
+    syncAdminTeacherRows(res);
     return true;
   }
 
@@ -351,6 +439,7 @@
     syncSettingsBooks: syncSettingsBooks,
     syncTeacherClass: syncTeacherClass,
     syncAlumni: syncAlumni,
+    syncAdminTeacherRows: syncAdminTeacherRows,
     syncTeacherExtras: syncTeacherExtras,
     toLocalStudent: toLocalStudent,
   };

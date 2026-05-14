@@ -171,6 +171,12 @@ const MMSharedAPI = (() => {
         p_pin: pin,
       });
     },
+    adminMadrasaBootstrap(actorId, pin) {
+      return rpc('mdr_rel_admin_madrasa_bootstrap', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+      });
+    },
     setSpecialWatch(actorId, pin, studentId, specialWatch) {
       return rpc('mdr_rel_set_special_watch', {
         p_actor_id: actorId,

@@ -699,6 +699,11 @@
     } catch (e) {
       console.warn('madrasa supabase sync failed', e);
     }
+    try {
+      await MDRSupabaseSync.syncAdminDars();
+    } catch (e) {
+      console.warn('madrasa dars sync failed', e);
+    }
     syncDeptTabUI();
     renderStats();
     updateWatchCounts();

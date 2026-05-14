@@ -275,6 +275,7 @@
     syncDeptTabs();
     if (window.MDRSupabaseSync && window.MMSharedAPI) {
       try {
+        await MDRSupabaseSync.syncAdminStudents();
         await MDRSupabaseSync.syncAlumni(MMSession.getAdminUserId && MMSession.getAdminUserId(), MMSession.getAdminPin && MMSession.getAdminPin());
       } catch (e) {
         console.warn('Withdrawn Supabase sync failed', e);
