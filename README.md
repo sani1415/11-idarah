@@ -1,177 +1,97 @@
-# Supabase CLI
+# Madrasatul Madina Idarah
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=develop)](https://coveralls.io/github/supabase/cli?branch=develop) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+মাদরাসা, বিভাগ এবং খেদমতে খালক কাজ পরিচালনার জন্য vanilla HTML/CSS/JS ভিত্তিক একটি management app. এই ফাইলটি human developer এবং AI agent-এর প্রথম project brief.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+## Quick Map
 
-This repository contains all the functionality for Supabase CLI.
+| অংশ | পথ / ফাইল |
+| --- | --- |
+| মূল login | `index.html` |
+| মাদরাসা admin | `main-admin-madrasa.html`, `madrasa/` |
+| বিভাগ admin | `main-admin-dept.html`, `dept/` |
+| খেদমত admin | `main-admin-khedmat.html`, `khedmat/` |
+| shared JS | `js/` |
+| shared CSS | `css/style.css` |
+| Supabase helper | `api-shared.js`, `api-mdr.js`, `supabase-config.js` |
+| Supabase migrations | `supabase/migrations/` |
+| older/legacy migrations | `migrations/` |
+| scripts/tools | `scripts/`, `tools/` |
+| agent rules | `CLAUDE.md` |
+| user guide | `USER_MANUAL.md` |
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+## Stack
 
-## Getting started
+- Frontend: plain HTML, CSS, vanilla JavaScript.
+- Backend/data: Supabase PostgreSQL through RPC functions.
+- Auth model: app-level PIN/login verification through Supabase RPCs and `js/mm-session.js`.
+- Styling: shared `css/style.css` plus page-specific CSS where needed.
+- Build check: `npm run build`.
 
-### Install the CLI
+This is not a React/Vue/Next app. Do not add a framework unless the user explicitly asks.
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+## Current Architecture
 
-```bash
-npm i supabase --save-dev
-```
+The app started as a local prototype, so some old helpers and local sample-data code still exist. Current direction is database-backed behavior through Supabase. New work should treat Supabase/RPC as the source of truth and should not add new write-side `localStorage` fallback unless the user explicitly asks for a temporary prototype.
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+Important client-side files:
 
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
+- `api-shared.js`: shared Supabase RPC wrapper.
+- `api-mdr.js`: madrasa-specific RPC wrapper.
+- `js/mm-session.js`: shared session/login state helper.
+- `js/mdr-supabase-sync.js`: madrasa Supabase sync layer.
+- `js/dept-supabase-sync.js`: department Supabase sync layer.
+- `js/api.js`, `js/dept-api.js`, `js/khedmat-api.js`: module-facing APIs; inspect current implementation before assuming storage behavior.
 
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+Important database prefixes:
 
-<details>
-  <summary><b>macOS</b></summary>
+- `shared_*`: shared users/session-related data.
+- `mdr_*`: madrasa module.
+- `dept_*`: department module.
+- `kh_*`: khedmat module.
+- `private.*`: helper functions not directly callable by frontend.
 
-  Available via [Homebrew](https://brew.sh). To install:
+RPC functions are usually `SECURITY DEFINER`; public tables generally keep RLS enabled with deny-all policies, then expose controlled operations through RPC.
 
-  ```sh
-  brew install supabase/tap/supabase
-  ```
+## Module Notes
 
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
+- Madrasa: students, attendance, daftar/accounts, dars, exams, hifz, library, alumni, kormosuchi, settings and admin views live mostly under `madrasa/` and `js/mdr-*`.
+- Department: department login, staff portal, admin view, transactions, inventory, dynamic fields and edit requests live under `dept/`, `main-admin-dept.html`, `js/dept-*`.
+- Khedmat: admin/staff flows live under `khedmat/`, `main-admin-khedmat.html`, `js/khedmat-api.js`, and newer Supabase migration/RPC work.
+- Chat/session/navigation helpers are shared across modules.
 
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
+Always verify the exact current file before changing behavior; several modules have been migrated gradually.
 
-<details>
-  <summary><b>Windows</b></summary>
+## Running And Checking
 
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
+Install dependencies if needed:
 
 ```bash
-supabase bootstrap
+npm install
 ```
 
-Or using npx:
+Run the repo build check:
 
 ```bash
-npx supabase bootstrap
+npm run build
 ```
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+For a focused JS syntax check:
 
-## Docs
-
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
-
-## Breaking changes
-
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
-
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
-
-## Developing
-
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
+```bash
+node --check js/some-file.js
 ```
+
+For Supabase changes:
+
+- Add or update SQL in `supabase/migrations/`.
+- Keep RPC signatures aligned with the frontend wrapper.
+- Verify migration syntax and, when appropriate, push/apply through the approved Supabase workflow.
+- Do not expose service-role keys in frontend files.
+
+## Documentation Roles
+
+- `README.md`: project map, architecture, current source of truth.
+- `CLAUDE.md`: AI agent operating rules.
+- `USER_MANUAL.md`: user-facing usage guide.
+
+`WORKFLOW.md` was merged into this README to avoid duplicate and stale instructions.
