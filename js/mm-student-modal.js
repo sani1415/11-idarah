@@ -48,15 +48,24 @@
     return ch || '?';
   }
 
+  var PHOTO_STORAGE_URL = 'https://bbdtoucanihtrymzpynq.supabase.co/storage/v1/object/public/student-photos/';
+
+  function photoBase() {
+    if (global.MMPhotoBase) return global.MMPhotoBase;
+    var path = (global.location && global.location.pathname) || '';
+    var parts = path.replace(/\\/g, '/').split('/');
+    var dir = parts[parts.length - 2] || '';
+    return ['madrasa', 'dept', 'khedmat'].indexOf(dir) >= 0 ? '../photos/' : 'photos/';
+  }
+
   function photoUrl(s) {
     var p = s.photo || s.photo_url;
-    if (!p || typeof p !== 'string') return null;
-    var t = p.trim();
-    if (!t) return null;
-    if (t.indexOf('data:') === 0) return t;
-    if (t.indexOf('http://') === 0 || t.indexOf('https://') === 0) return t;
-    if (t.indexOf('//') === 0) return t;
-    return t;
+    if (p && typeof p === 'string' && p.trim()) return p.trim();
+    if (s.permanent_id && String(s.permanent_id).trim()) {
+      var pid = String(s.permanent_id).trim();
+      return PHOTO_STORAGE_URL + pid + '.jpg';
+    }
+    return null;
   }
 
   function setAvatar(s) {
@@ -65,6 +74,8 @@
     var ph = document.getElementById('st-modal-avatar-ph');
     if (!root || !img || !ph) return;
     var url = photoUrl(s);
+    root.dataset.photoUrl = '';
+    root.classList.remove('st-avatar--clickable');
     img.removeAttribute('src');
     img.alt = '';
     img.onload = null;
@@ -77,20 +88,69 @@
         img.style.display = '';
         ph.style.display = 'none';
         root.classList.remove('st-avatar--empty');
+        root.classList.add('st-avatar--clickable');
+        root.dataset.photoUrl = url;
       };
       img.onerror = function () {
         img.style.display = 'none';
         ph.style.display = '';
         ph.textContent = initialChar(s.name);
         root.classList.add('st-avatar--empty');
+        root.classList.remove('st-avatar--clickable');
+        root.dataset.photoUrl = '';
       };
       img.src = url;
     } else {
       img.style.display = 'none';
       ph.style.display = '';
       ph.textContent = initialChar(s.name);
+      root.dataset.photoUrl = '';
     }
     root.classList.toggle('st-avatar--empty', !url);
+  }
+
+  function ensurePhotoPreview() {
+    if (document.getElementById('modal-student-photo-preview')) return;
+    var wrap = document.createElement('div');
+    wrap.id = 'modal-student-photo-preview';
+    wrap.className = 'modal-bg st-photo-preview-bg';
+    wrap.innerHTML =
+      '<div class="st-photo-preview" id="st-photo-preview-inner">' +
+      '<button type="button" class="st-photo-close" id="st-photo-close" aria-label="বন্ধ">×</button>' +
+      '<img id="st-photo-preview-img" class="st-photo-preview-img" alt="" />' +
+      '</div>';
+
+    wrap.addEventListener('click', function (e) {
+      if (e.target.id === 'modal-student-photo-preview') closePhotoPreview();
+    });
+    var inner = wrap.querySelector('#st-photo-preview-inner');
+    if (inner) inner.addEventListener('click', function (e) { e.stopPropagation(); });
+    var btn = wrap.querySelector('#st-photo-close');
+    if (btn) btn.addEventListener('click', closePhotoPreview);
+    document.body.appendChild(wrap);
+  }
+
+  function openPhotoPreview() {
+    var root = document.getElementById('st-modal-avatar');
+    var img = document.getElementById('st-modal-avatar-img');
+    var url = root && root.dataset ? root.dataset.photoUrl : '';
+    if (!url && img && img.style.display !== 'none') url = img.currentSrc || img.src || '';
+    if (!url) return;
+    ensurePhotoPreview();
+    var preview = document.getElementById('modal-student-photo-preview');
+    var previewImg = document.getElementById('st-photo-preview-img');
+    if (previewImg) {
+      previewImg.src = url;
+      previewImg.alt = img && img.alt ? img.alt : '';
+    }
+    if (preview) preview.classList.add('open');
+  }
+
+  function closePhotoPreview() {
+    var preview = document.getElementById('modal-student-photo-preview');
+    var previewImg = document.getElementById('st-photo-preview-img');
+    if (preview) preview.classList.remove('open');
+    if (previewImg) previewImg.removeAttribute('src');
   }
 
   function ensureModal() {
@@ -102,7 +162,7 @@
       '<div class="modal modal--student" id="st-modal-inner">' +
       '<div class="st-modal-hd">' +
       '<div class="st-modal-hd-main">' +
-      '<div class="st-avatar st-avatar--empty" id="st-modal-avatar" aria-hidden="true">' +
+      '<div class="st-avatar st-avatar--empty" id="st-modal-avatar" role="button" tabindex="0" aria-label="ছবি বড় করে দেখুন">' +
       '<img class="st-avatar-img" id="st-modal-avatar-img" alt="" />' +
       '<span class="st-avatar-ph" id="st-modal-avatar-ph">?</span>' +
       '</div>' +
@@ -120,6 +180,16 @@
     if (inner) inner.addEventListener('click', function (e) { e.stopPropagation(); });
     var btn = wrap.querySelector('#st-modal-close');
     if (btn) btn.addEventListener('click', function () { close(); });
+    var avatar = wrap.querySelector('#st-modal-avatar');
+    if (avatar) {
+      avatar.addEventListener('click', openPhotoPreview);
+      avatar.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openPhotoPreview();
+        }
+      });
+    }
 
     document.body.appendChild(wrap);
   }
@@ -215,6 +285,7 @@
 
   function close() {
     _openSid = null;
+    closePhotoPreview();
     var el = document.getElementById(MODAL_ID);
     if (el) el.classList.remove('open');
     if (typeof global.closeModal === 'function') {
@@ -566,7 +637,7 @@
     if (modal) modal.classList.add('open');
   }
 
-  global.MMStudentModal = { open: open, close: close, switchTab: switchTab, submitStudentLog: submitStudentLog, submitStatusChange: submitStatusChange };
+  global.MMStudentModal = { open: open, close: close, switchTab: switchTab, submitStudentLog: submitStudentLog, submitStatusChange: submitStatusChange, openPhotoPreview: openPhotoPreview };
   global.switchStudentTab = switchTab;
   global.openStudentDetail = function (sid) {
     return open(sid);

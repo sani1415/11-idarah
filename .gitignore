@@ -5,3 +5,4 @@ public/
 !.env.example
 node_modules/
 supabase/.temp/
+photos

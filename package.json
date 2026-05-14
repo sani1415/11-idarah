@@ -4,5 +4,8 @@
   "private": true,
   "scripts": {
     "build": "node build.js"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.105.4"
   }
 }
