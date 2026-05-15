@@ -1211,7 +1211,7 @@ body.page-daftar #modal-account-entry .modal {
     }
 
     const existing = API.Attendance.getByDate(daftarAttDate);
-    const active   = API.Students.getAll().filter(s => s.active);
+    const active   = getAttendanceStudents();
     let p = 0, a = 0, h = 0;
     active.forEach(s => {
       const st = currentAttStatus(s.id, existing);
@@ -1316,7 +1316,7 @@ body.page-daftar #modal-account-entry .modal {
       return;
     }
     const bySid = new Map(recs.map(r => [r.student_id, r]));
-    const active = API.Students.getAll().filter(s => s.active);
+    const active = getAttendanceStudents();
     active.forEach(s => {
       const r = bySid.get(s.id);
       if (!r) return;
@@ -1359,12 +1359,22 @@ body.page-daftar #modal-account-entry .modal {
   }
 
   function getStudentsInScope() {
-    if (attClassFilter === 'all') {
-      const out = [];
-      API.Classes.getAll().forEach(c => API.Students.getByClass(c.id).forEach(s => out.push(s)));
-      return out;
-    }
-    return API.Students.getByClass(attClassFilter);
+    const students = getAttendanceStudents();
+    if (attClassFilter === 'all') return students;
+    return students.filter(s => s.class_id === attClassFilter);
+  }
+
+  function isUuid(v) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ''));
+  }
+
+  function getAttendanceStudents() {
+    const classIds = new Set(API.Classes.getAll().map(c => c.id));
+    const requireRemoteId = !!(window.MDRDaftarSupabase && window.MMSharedAPI);
+    return API.Students.getAll().filter(s => {
+      if (!s.active || !classIds.has(s.class_id)) return false;
+      return !requireRemoteId || isUuid(s.supabase_id || s.id);
+    });
   }
 
   function currentAttStatus(sid, existing) {
@@ -1401,7 +1411,7 @@ body.page-daftar #modal-account-entry .modal {
   /* ── RENDER ATTENDANCE ── */
   function renderAttendance() {
     const existing  = API.Attendance.getByDate(daftarAttDate);
-    const allActive = API.Students.getAll().filter(s => s.active);
+    const allActive = getAttendanceStudents();
     const el        = document.getElementById('att-list');
 
     if (!allActive.length) {
@@ -1536,7 +1546,7 @@ body.page-daftar #modal-account-entry .modal {
 
   async function saveAllAttendance() {
     if (mmMutationBlocked(showToast)) return;
-    const students = API.Students.getAll().filter(s => s.active);
+    const students = getAttendanceStudents();
     const existing = API.Attendance.getByDate(daftarAttDate);
     const needReason = students.filter(s => {
       const st = currentAttStatus(s.id, existing);
@@ -1557,9 +1567,17 @@ body.page-daftar #modal-account-entry .modal {
     if (window.MDRDaftarSupabase && window.MMSharedAPI) {
       try {
         const settings = API.Settings.get ? API.Settings.get() : {};
-        await MDRDaftarSupabase.saveDay(daftarAttDate, rows, settings.hijri_year || null);
+        const saved = await MDRDaftarSupabase.saveDay(daftarAttDate, rows, settings.hijri_year || null);
+        if (saved !== true) throw new Error('attendance_save_not_confirmed');
       } catch (e) {
-        showToast('Supabase-এ হাজিরা সেভ হয়নি');
+        console.warn('[Daftar] attendance save failed:', e);
+        if (e && e.message === 'missing_remote_session') {
+          showToast('সেশন পুরনো হয়েছে — লগআউট করে আবার দফতর পিন দিয়ে লগইন করুন');
+        } else if (e && e.message === 'empty_attendance_payload') {
+          showToast('সেভ করার মতো কোনো ছাত্র পাওয়া যায়নি');
+        } else {
+          showToast('Supabase-এ হাজিরা সেভ হয়নি');
+        }
         return;
       }
     } else {
@@ -1950,7 +1968,8 @@ body.page-daftar #modal-account-entry .modal {
     if (wantsAccounts) switchPanel('fees');
     if (window.MDRDaftarSupabase && window.MMSharedAPI) {
       try {
-        await MDRDaftarSupabase.sync();
+        const synced = await MDRDaftarSupabase.sync();
+        if (synced !== true) showToast('দফতর সেশন পুরনো — লগআউট করে আবার লগইন করুন');
       } catch (e) {
         showToast('Supabase থেকে দফতর ডেটা লোড হয়নি');
       }

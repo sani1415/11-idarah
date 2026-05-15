@@ -50,6 +50,58 @@ const API = (() => {
     }
   }
 
+  function isQuotaError(e) {
+    return !!(e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014));
+  }
+
+  function compactAttendanceCache(rows, maxDates = 90, requiredDates = []) {
+    const list = Array.isArray(rows) ? rows : [];
+    const required = new Set((requiredDates || []).map((d) => String(d || '')).filter(Boolean));
+    const dates = Array.from(new Set(list.map((a) => String(a && a.date || '')).filter(Boolean)))
+      .sort((a, b) => b.localeCompare(a))
+      .slice(0, maxDates);
+    const keep = new Set(dates.concat(Array.from(required)));
+    return list.filter((a) => keep.has(String(a && a.date || '')));
+  }
+
+  function saveAttendanceCache(rows, requiredDates = []) {
+    const list = Array.isArray(rows) ? rows : [];
+    try {
+      save(KEYS.attendance, list);
+      return;
+    } catch (e) {
+      if (!isQuotaError(e)) throw e;
+    }
+    console.warn('[API.Attendance] local cache quota exceeded; compacting attendance cache');
+    const windows = [90, 45, 14, 7, 1];
+    let lastErr = null;
+    for (const days of windows) {
+      try {
+        save(KEYS.attendance, compactAttendanceCache(list, days, requiredDates));
+        return;
+      } catch (e2) {
+        lastErr = e2;
+        if (!isQuotaError(e2)) throw e2;
+      }
+    }
+    const required = new Set((requiredDates || []).map((d) => String(d || '')).filter(Boolean));
+    if (required.size) {
+      try {
+        save(KEYS.attendance, list.filter((a) => required.has(String(a && a.date || ''))));
+        return;
+      } catch (e3) {
+        lastErr = e3;
+        if (!isQuotaError(e3)) throw e3;
+      }
+    }
+    try {
+      save(KEYS.attendance, []);
+      return;
+    } catch (e4) {
+      throw lastErr || e4 || new Error('attendance_cache_save_failed');
+    }
+  }
+
   function purgeKnownSampleData() {
     const filterKey = (key, isSample) => {
       const rows = load(key);
@@ -475,7 +527,14 @@ const API = (() => {
     },
     getByDate: date => load(KEYS.attendance).filter(a => a.date === date),
     replaceAll(list) {
-      save(KEYS.attendance, Array.isArray(list) ? list : []);
+      saveAttendanceCache(Array.isArray(list) ? list : []);
+    },
+    replaceDate(date, rows) {
+      const day = String(date || '');
+      if (!day) return;
+      const incoming = (Array.isArray(rows) ? rows : []).filter(a => String(a.date || '') === day);
+      const next = load(KEYS.attendance).filter(a => String(a.date || '') !== day).concat(incoming);
+      saveAttendanceCache(next, [day]);
     },
     /** ছাত্রের সকল হাজিরা রেকর্ড — নতুন থেকে পুরনো */
     getByStudent: sid =>

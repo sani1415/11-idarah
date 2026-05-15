@@ -143,13 +143,18 @@
   }
 
   async function saveDay(date, records, hijriYear) {
-    if (!global.MMSharedAPI || !global.API) return false;
+    if (!global.MMSharedAPI || !global.API) throw new Error('supabase_unavailable');
     var a = actor();
-    if (!a || !a.id || !a.pin) return false;
+    if (!a || !a.id || !a.pin) throw new Error('missing_remote_session');
+    if (!Array.isArray(records) || !records.length) throw new Error('empty_attendance_payload');
     var res = await MMSharedAPI.saveAttendanceDay(a.id, a.pin, date, records || [], hijriYear || null);
     if (!res || !res.ok) throw new Error((res && res.error) || 'attendance_save_failed');
-    if (API.Attendance && API.Attendance.replaceAll) {
-      API.Attendance.replaceAll((res.attendance || []).map(toLocalAttendance));
+    if (API.Attendance) {
+      var dayRows = (res.attendance || []).filter(function (row) {
+        return String(row.date || '').slice(0, 10) === String(date || '').slice(0, 10);
+      }).map(toLocalAttendance);
+      if (API.Attendance.replaceDate) API.Attendance.replaceDate(date, dayRows);
+      else if (API.Attendance.replaceAll) API.Attendance.replaceAll(dayRows);
     }
     return true;
   }
