@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>এডমিন ওভারভিউ প্রোটোটাইপ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  body{background:#f7f2e9;color:#1f160b;font-family:'Tiro Bangla',serif}
+  .ov-topbar{position:sticky;top:0;z-index:50;background:#1a1208;color:#f2c86b;padding:12px 14px;box-shadow:0 8px 24px rgba(26,18,8,.18)}
+  .ov-topbar-inner{max-width:1160px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .ov-kicker{font-size:10px;color:rgba(255,255,255,.62);line-height:1.2}
+  .ov-title{font-size:18px;font-weight:800;line-height:1.25}
+  .ov-actions{display:flex;gap:8px;align-items:center}
+  .ov-icon-btn{border:1px solid rgba(242,200,107,.35);background:rgba(255,255,255,.06);color:#f2c86b;border-radius:10px;min-width:38px;height:36px;padding:0 11px;font:inherit;font-weight:800;cursor:pointer}
+  .ov-icon-btn:active{transform:scale(.98)}
+  .ov-wrap{max-width:1160px;margin:0 auto;padding:12px 12px 80px}
+  .ov-notice{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff7df;border:1px solid rgba(201,149,42,.24);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#6d4b12;line-height:1.45}
+  .ov-notice b{color:#1f160b}
+  .ov-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+  .ov-hero{background:#fff;border:1px solid rgba(26,18,8,.07);border-radius:8px;padding:14px;box-shadow:0 8px 24px rgba(26,18,8,.06)}
+  .ov-hero-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .ov-hero-title{font-size:20px;font-weight:900;color:#1f160b}
+  .ov-hero-sub{font-size:11px;color:#7b6b52;line-height:1.55;margin-top:3px}
+  .ov-chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:#f1f5f9;color:#334155;padding:5px 9px;font-size:10px;font-weight:900;white-space:nowrap}
+  .ov-chip.ok{background:#dcfce7;color:#166534}.ov-chip.warn{background:#ffedd5;color:#9a3412}
+  .ov-kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+  .ov-kpi{min-width:0;background:#faf7ef;border:1px solid rgba(26,18,8,.06);border-radius:8px;padding:10px 8px;text-align:center}
+  .ov-kpi span{display:block;font-size:9px;font-weight:800;color:#7b6b52;line-height:1.25;margin-bottom:5px}
+  .ov-kpi strong{display:block;font-size:18px;font-weight:900;color:#1f160b;line-height:1.1;overflow-wrap:anywhere}
+  .ov-kpi.good strong{color:#167a50}.ov-kpi.bad strong{color:#c1440e}.ov-kpi.gold strong{color:#b7791f}
+  .ov-panel{background:#fff;border:1px solid rgba(26,18,8,.07);border-radius:8px;box-shadow:0 8px 24px rgba(26,18,8,.06);overflow:hidden}
+  .ov-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 13px;border-bottom:1px solid rgba(26,18,8,.07)}
+  .ov-panel-title{font-size:14px;font-weight:900;color:#1f160b}
+  .ov-muted{font-size:10px;color:#7b6b52;line-height:1.35}
+  .ov-panel-body{padding:12px}
+  .ov-fin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .ov-fin{border:1px solid rgba(26,18,8,.07);border-radius:8px;padding:10px;background:#fff}
+  .ov-fin h3{margin:0 0 8px;font-size:13px;color:#1f160b}
+  .ov-fin-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:#7b6b52;margin-top:4px}
+  .ov-fin-row strong{font-size:12px;color:#1f160b}.ov-fin-row .in{color:#167a50}.ov-fin-row .out{color:#c1440e}
+  .ov-rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,1fr);gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:4px}
+  .ov-hub{scroll-snap-align:start;border:1px solid rgba(26,18,8,.07);border-radius:8px;background:#fff;min-height:175px;padding:12px;cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .ov-hub:hover{box-shadow:0 10px 28px rgba(26,18,8,.09)}
+  .ov-hub:active{transform:scale(.99)}
+  .ov-hub-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:12px}
+  .ov-hub-title{font-size:15px;font-weight:900;color:#1f160b}
+  .ov-hub-note{font-size:10px;color:#7b6b52;line-height:1.5;margin-top:3px}
+  .ov-hub-num{font-size:20px;font-weight:900;color:#167a50;line-height:1}
+  .ov-mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .ov-mini{background:#faf7ef;border:1px solid rgba(26,18,8,.05);border-radius:8px;padding:8px 6px;text-align:center}
+  .ov-mini span{display:block;font-size:8px;color:#7b6b52;line-height:1.25}
+  .ov-mini strong{display:block;margin-top:3px;font-size:13px;color:#1f160b}
+  .ov-feed{display:grid;gap:8px}
+  .ov-feed-row{display:grid;grid-template-columns:86px 1fr auto;gap:8px;align-items:center;border:1px solid rgba(26,18,8,.06);border-radius:8px;background:#fff;padding:9px 10px}
+  .ov-feed-type{font-size:10px;font-weight:900;color:#7b6b52}
+  .ov-feed-text{font-size:12px;color:#1f160b;line-height:1.45;min-width:0}
+  .ov-feed-date{font-size:10px;color:#7b6b52;white-space:nowrap}
+  .ov-empty{padding:18px 10px;text-align:center;color:#7b6b52;font-size:12px}
+  .ov-section{margin-top:12px}
+  .ov-modal-bg{position:fixed;inset:0;z-index:100;background:rgba(26,18,8,.38);display:none;align-items:center;justify-content:center;padding:14px}
+  .ov-modal-bg.open{display:flex}
+  .ov-modal{width:min(760px,100%);max-height:88vh;overflow:auto;background:#fff;border-radius:10px;box-shadow:0 28px 80px rgba(26,18,8,.28)}
+  .ov-modal-head{position:sticky;top:0;background:#fff;border-bottom:1px solid rgba(26,18,8,.08);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px}
+  .ov-modal-title{font-size:16px;font-weight:900;color:#1f160b}
+  .ov-close{width:34px;height:34px;border:0;border-radius:50%;background:#f1eadf;color:#1f160b;font:inherit;font-weight:900;cursor:pointer}
+  .ov-modal-body{padding:12px}
+  .ov-table-wrap{overflow:auto;border:1px solid rgba(26,18,8,.07);border-radius:8px}
+  .ov-table{width:100%;min-width:560px;border-collapse:collapse;font-size:12px}
+  .ov-table th{background:#1a1208;color:#f2c86b;text-align:right;font-size:10px;padding:8px;white-space:nowrap}
+  .ov-table td{padding:8px;border-bottom:1px solid rgba(26,18,8,.06);white-space:nowrap}
+  .ov-table tr:last-child td{border-bottom:0}
+  .ov-list{display:grid;gap:8px}
+  .ov-list-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#faf7ef;border:1px solid rgba(26,18,8,.06);border-radius:8px;padding:10px 11px}
+  .ov-list-row strong{font-size:13px;color:#1f160b}.ov-list-row span{font-size:11px;color:#7b6b52}
+  @media(max-width:900px){.ov-grid{grid-template-columns:1fr}.ov-kpi-grid{grid-template-columns:repeat(3,1fr)}.ov-fin-grid{grid-template-columns:1fr}.ov-feed-row{grid-template-columns:70px 1fr}.ov-feed-date{grid-column:2}.ov-wrap{padding-bottom:90px}}
+  @media(max-width:520px){.ov-kpi-grid{grid-template-columns:repeat(2,1fr)}.ov-rail{grid-auto-columns:85%}.ov-topbar-inner{align-items:flex-start}.ov-title{font-size:16px}.ov-actions{flex-shrink:0}.ov-notice{display:block}.ov-notice .ov-muted{margin-top:5px}}
+</style>
+</head>
+<body>
+  <header class="ov-topbar">
+    <div class="ov-topbar-inner">
+      <div>
+        <div class="ov-kicker">প্রস্তাবিত read-only overview</div>
+        <div class="ov-title">এডমিন ইনফরমেশন সেন্টার</div>
+      </div>
+      <div class="ov-actions">
+        <button class="ov-icon-btn" title="রিফ্রেশ" onclick="refreshOverview()">↻</button>
+        <button class="ov-icon-btn" title="ফিরে যান" onclick="location.href='../main-admin-madrasa.html'">←</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="ov-wrap">
+    <section class="ov-notice">
+      <div><b>প্রোটোটাইপ:</b> এটি মূল অ্যাডমিন ফাইল বদলাচ্ছে না। বর্তমান session থাকলে Supabase থেকে ডাটা এনে একই জায়গায় সারাংশ দেখায়।</div>
+      <div class="ov-muted" id="ov-sync-status">ডাটা প্রস্তুত হচ্ছে...</div>
+    </section>
+
+    <section class="ov-grid">
+      <div class="ov-hero">
+        <div class="ov-hero-head">
+          <div>
+            <div class="ov-hero-title">আজকের সামগ্রিক অবস্থা</div>
+            <div class="ov-hero-sub">ছাত্র, হাজিরা, হুসনুল খুলুক, দফতর হিসাব, কর্মসূচি এবং খেদমত এক নজরে।</div>
+          </div>
+          <span class="ov-chip" id="ov-session-chip">সেশন যাচাই</span>
+        </div>
+        <div class="ov-kpi-grid" id="ov-kpis"></div>
+      </div>
+
+      <aside class="ov-panel">
+        <div class="ov-panel-head">
+          <div>
+            <div class="ov-panel-title">অগ্রাধিকার সংকেত</div>
+            <div class="ov-muted">যে তথ্যগুলো দ্রুত চোখে পড়া দরকার</div>
+          </div>
+        </div>
+        <div class="ov-panel-body">
+          <div class="ov-list" id="ov-priority"></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="ov-section ov-panel">
+      <div class="ov-panel-head">
+        <div>
+          <div class="ov-panel-title">হিসাবের একত্র চিত্র</div>
+          <div class="ov-muted">দফতর, কর্মসূচি, খেদমত আলাদা থাকলেও এডমিন এখানে মোট অবস্থা দেখতে পারবেন</div>
+        </div>
+      </div>
+      <div class="ov-panel-body">
+        <div class="ov-fin-grid" id="ov-finance"></div>
+      </div>
+    </section>
+
+    <section class="ov-section ov-panel">
+      <div class="ov-panel-head">
+        <div>
+          <div class="ov-panel-title">বড় কার্ড স্লাইড</div>
+          <div class="ov-muted">প্রতিটি কার্ডে ক্লিক করলে বিস্তারিত floating modal খুলবে</div>
+        </div>
+      </div>
+      <div class="ov-panel-body">
+        <div class="ov-rail" id="ov-hubs"></div>
+      </div>
+    </section>
+
+    <section class="ov-section ov-panel">
+      <div class="ov-panel-head">
+        <div>
+          <div class="ov-panel-title">সর্বশেষ আপডেট</div>
+          <div class="ov-muted">শিক্ষক, দফতর, কর্মসূচি ও খেদমতের সাম্প্রতিক তথ্য</div>
+        </div>
+      </div>
+      <div class="ov-panel-body">
+        <div class="ov-feed" id="ov-feed"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="ov-modal-bg" id="ov-modal-bg" onclick="if(event.target===this) closeOverviewModal()">
+    <div class="ov-modal">
+      <div class="ov-modal-head">
+        <div class="ov-modal-title" id="ov-modal-title">বিস্তারিত</div>
+        <button class="ov-close" onclick="closeOverviewModal()">×</button>
+      </div>
+      <div class="ov-modal-body" id="ov-modal-body"></div>
+    </div>
+  </div>
+
+  <script src="../supabase-config.js"></script>
+  <script src="../api-shared.js"></script>
+  <script src="../api-mdr.js"></script>
+  <script src="../js/mm-sample-data.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/mm-session.js"></script>
+  <script src="../js/mdr-supabase-sync.js"></script>
+  <script src="../js/dept-api.js"></script>
+  <script src="../js/dept-supabase-sync.js"></script>
+  <script src="../js/khedmat-api.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    const BN = '০১২৩৪৫৬৭৮৯';
+    const state = { programs: { programs: [], income: {}, expense: {} }, errors: [] };
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    const bn = v => String(v == null ? 0 : v).replace(/[0-9]/g, d => BN[d]);
+    const num = v => Number(v || 0);
+    const money = v => '৳' + bn(Math.round(num(v)).toLocaleString('en-US'));
+    const today = () => (window.API && API.today ? API.today() : new Date().toISOString().slice(0, 10));
+    const dateLabel = d => d ? bn(String(d)) : 'তারিখ নেই';
+    const sortRecent = rows => (rows || []).slice().sort((a, b) => {
+      const bd = String(b.date || b.txn_date || b.created_at || '');
+      const ad = String(a.date || a.txn_date || a.created_at || '');
+      return bd.localeCompare(ad);
+    });
+
+    function setSyncStatus(text, type) {
+      $('ov-sync-status').textContent = text;
+      const chip = $('ov-session-chip');
+      chip.className = 'ov-chip ' + (type || '');
+      chip.textContent = type === 'ok' ? 'DB সংযুক্ত' : type === 'warn' ? 'আংশিক ডাটা' : 'প্রোটোটাইপ';
+    }
+
+    function getSession() {
+      const pin = window.MMSession && MMSession.getAdminPin ? MMSession.getAdminPin() : '';
+      const actorId = window.MMSession && MMSession.getAdminUserId ? MMSession.getAdminUserId() : null;
+      return { pin, actorId };
+    }
+
+    async function tryTask(label, fn) {
+      try {
+        await fn();
+      } catch (err) {
+        state.errors.push(label + ': ' + (err && err.message ? err.message : err));
+      }
+    }
+
+    async function syncRemoteData() {
+      const { pin, actorId } = getSession();
+      state.errors = [];
+      if (!pin) {
+        setSyncStatus('এডমিন session নেই, তাই শুধু browser cache/sample দেখাচ্ছে।', 'warn');
+        return;
+      }
+
+      await Promise.all([
+        tryTask('madrasa', async () => {
+          if (window.MDRSupabaseSync) {
+            await MDRSupabaseSync.syncAdminUsers();
+            await MDRSupabaseSync.syncAdminStudents();
+            await MDRSupabaseSync.syncAdminDars();
+          }
+        }),
+        tryTask('departments', async () => {
+          if (window.DeptSync) await DeptSync.bootstrapAllData(null, pin);
+        }),
+        tryTask('programs', async () => {
+          if (window.MMSharedAPI && MMSharedAPI.programsBootstrap) {
+            const res = await MMSharedAPI.programsBootstrap(actorId || null, pin);
+            if (!res || res.ok !== true) throw new Error((res && res.error) || 'program_bootstrap_failed');
+            state.programs = res;
+          }
+        }),
+        tryTask('khedmat', async () => {
+          if (window.KhAPI) await KhAPI.bootstrapRemote(actorId || null, pin);
+        }),
+      ]);
+
+      if (state.errors.length) setSyncStatus('কিছু উৎস লোড হয়নি: ' + state.errors.length + 'টি। প্রোটোটাইপ বাকি cache দেখাচ্ছে।', 'warn');
+      else setSyncStatus('সব উপলব্ধ ডাটা DB/cache থেকে লোড হয়েছে।', 'ok');
+    }
+
+    function activeStudents() {
+      return window.API ? API.Students.getAll().filter(s => s && s.active !== false) : [];
+    }
+
+    function classRows() {
+      return window.API ? API.Classes.getAll() : [];
+    }
+
+    function khulukScores() {
+      if (!window.API) return [];
+      return activeStudents()
+        .map(s => API.Khuluk.getLatest(s.id))
+        .filter(k => k && Number.isFinite(Number(k.score)))
+        .map(k => Number(k.score));
+    }
+
+    function allKitabs() {
+      if (!window.API) return [];
+      return classRows().flatMap(c => API.KitabProgress.getByClass(c.id).map(k => ({ ...k, className: c.name, classId: c.id })));
+    }
+
+    function latestKitabHistory(limit) {
+      return allKitabs().flatMap(k => (k.history || []).map(h => ({
+        type: 'দর্স',
+        date: h.date,
+        text: `${k.className} - ${k.name}: ${bn(h.pages_done || 0)} পৃষ্ঠা`,
+        raw: h,
+      }))).sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, limit || 8);
+    }
+
+    function deptFinance() {
+      if (!window.DeptAPI) return { income: 0, expense: 0, balance: 0, txns: [], pending: [] };
+      const txns = DeptAPI.Transactions.getAll();
+      const income = txns.filter(t => t.type === 'income').reduce((s, t) => s + num(t.amount), 0);
+      const expense = txns.filter(t => t.type === 'expense').reduce((s, t) => s + num(t.amount), 0);
+      return { income, expense, balance: income - expense, txns, pending: DeptAPI.EditRequests.getPending() };
+    }
+
+    function programFinance() {
+      const programs = state.programs.programs || [];
+      const incomeRows = programs.flatMap(p => (state.programs.income && state.programs.income[p.id] || []).map(r => ({ ...r, programName: p.name })));
+      const expenseRows = programs.flatMap(p => (state.programs.expense && state.programs.expense[p.id] || []).map(r => ({ ...r, programName: p.name })));
+      const income = incomeRows.reduce((s, r) => s + num(r.amount), 0);
+      const expense = expenseRows.reduce((s, r) => s + num(r.amount), 0);
+      return { programs, incomeRows, expenseRows, income, expense, balance: income - expense };
+    }
+
+    function khedmatFinance() {
+      if (!window.KhAPI) return { income: 0, expense: 0, balance: 0, rows: [], acts: [], beneficiaries: [] };
+      const summary = KhAPI.Finance.getSummary(null);
+      return {
+        ...summary,
+        rows: KhAPI.Finance.getAll(),
+        acts: KhAPI.Activities.getAll(),
+        beneficiaries: KhAPI.Beneficiaries.getAll(),
+        log: KhAPI.DailyLogs.getLatest(),
+      };
+    }
+
+    function renderKpis() {
+      const students = activeStudents();
+      const att = window.API ? API.Attendance.getDateSummary(today()) : { present: 0, absent: 0, total: 0 };
+      const scores = khulukScores();
+      const avgKh = scores.length ? Math.round(scores.reduce((s, n) => s + n, 0) / scores.length) : 0;
+      const dept = deptFinance();
+      const prog = programFinance();
+      const kh = khedmatFinance();
+      const items = [
+        ['মোট ছাত্র', students.length, ''],
+        ['আজ উপস্থিত', att.present || 0, 'good'],
+        ['আজ অনুপস্থিত', att.absent || 0, 'bad'],
+        ['গড় হুসনুল', avgKh || '—', 'good'],
+        ['কর্মসূচি ব্যালেন্স', money(prog.balance), prog.balance >= 0 ? 'good' : 'bad'],
+        ['মোট নগদ চিত্র', money(dept.balance + prog.balance + kh.balance), 'gold'],
+      ];
+      $('ov-kpis').innerHTML = items.map(([label, value, cls]) => `<div class="ov-kpi ${cls}"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
+    }
+
+    function renderPriority() {
+      const absent = window.API ? API.Attendance.getStudentsWithAbsentSorted().slice(0, 3) : [];
+      const dept = deptFinance();
+      const prog = programFinance();
+      const kh = khedmatFinance();
+      const rows = [
+        { title: 'অনুপস্থিত তালিকা', text: absent.length ? `${bn(absent.length)} জনের অনুপস্থিতি রেকর্ড আছে` : 'আজ কোনো সতর্কতা নেই' },
+        { title: 'দফতর অনুমোদন', text: dept.pending.length ? `${bn(dept.pending.length)}টি pending request` : 'pending request নেই' },
+        { title: 'কর্মসূচি', text: `${bn(prog.programs.length)}টি কর্মসূচি, ব্যালেন্স ${money(prog.balance)}` },
+        { title: 'খেদমত', text: `${bn(kh.beneficiaries.length)} পরিবার/ব্যক্তি, ব্যালেন্স ${money(kh.balance)}` },
+      ];
+      $('ov-priority').innerHTML = rows.map(r => `<div class="ov-list-row"><strong>${esc(r.title)}</strong><span>${esc(r.text)}</span></div>`).join('');
+    }
+
+    function renderFinance() {
+      const dept = deptFinance();
+      const prog = programFinance();
+      const kh = khedmatFinance();
+      const blocks = [
+        ['দফতর হিসাব', dept],
+        ['কর্মসূচি হিসাব', prog],
+        ['খেদমত হিসাব', kh],
+      ];
+      $('ov-finance').innerHTML = blocks.map(([title, s]) => `
+        <div class="ov-fin">
+          <h3>${esc(title)}</h3>
+          <div class="ov-fin-row"><span>আয়</span><strong class="in">${money(s.income)}</strong></div>
+          <div class="ov-fin-row"><span>ব্যয়</span><strong class="out">${money(s.expense)}</strong></div>
+          <div class="ov-fin-row"><span>ব্যালেন্স</span><strong>${money(s.balance)}</strong></div>
+        </div>`).join('');
+    }
+
+    function renderHubs() {
+      const students = activeStudents();
+      const classes = classRows();
+      const dept = deptFinance();
+      const prog = programFinance();
+      const kh = khedmatFinance();
+      const kitabRows = allKitabs();
+      const donePct = kitabRows.length ? Math.round(kitabRows.reduce((s, k) => s + (num(k.total_pages) ? (num(k.pages_done) / num(k.total_pages) * 100) : 0), 0) / kitabRows.length) : 0;
+      const cards = [
+        { key: 'madrasa', title: 'মাদ্রাসা', note: 'ছাত্র, হাজিরা, হুসনুল খুলুক', num: students.length, mini: [['বর্ষ', classes.length], ['ছাত্র', students.length], ['দর্স', donePct + '%']] },
+        { key: 'dept', title: 'দফতর হিসাব', note: 'সব বিভাগের আয়-ব্যয় ও request', num: money(dept.balance), mini: [['লেনদেন', dept.txns.length], ['Pending', dept.pending.length], ['ব্যয়', money(dept.expense)]] },
+        { key: 'program', title: 'কর্মসূচি', note: 'বিশেষ আয়োজনের আলাদা হিসাব', num: prog.programs.length, mini: [['আয়', money(prog.income)], ['ব্যয়', money(prog.expense)], ['ব্যালেন্স', money(prog.balance)]] },
+        { key: 'khedmat', title: 'খেদমত', note: 'সেবা, beneficiary, খরচ', num: kh.beneficiaries.length, mini: [['সেবা', kh.acts.length], ['আয়', money(kh.income)], ['ব্যয়', money(kh.expense)]] },
+        { key: 'updates', title: 'সাম্প্রতিক আপডেট', note: 'শিক্ষক ও বিভাগের সর্বশেষ নোট', num: buildFeed().length, mini: [['দর্স', latestKitabHistory(99).length], ['দফতর', dept.txns.length], ['খেদমত', kh.acts.length]] },
+      ];
+      $('ov-hubs').innerHTML = cards.map(c => `
+        <article class="ov-hub" onclick="openHub('${c.key}')">
+          <div class="ov-hub-top">
+            <div><div class="ov-hub-title">${esc(c.title)}</div><div class="ov-hub-note">${esc(c.note)}</div></div>
+            <div class="ov-hub-num">${esc(bn(c.num))}</div>
+          </div>
+          <div class="ov-mini-grid">${c.mini.map(([a, b]) => `<div class="ov-mini"><span>${esc(a)}</span><strong>${esc(bn(b))}</strong></div>`).join('')}</div>
+        </article>`).join('');
+    }
+
+    function buildFeed() {
+      const dept = deptFinance().txns.slice(0, 8).map(t => ({ type: 'দফতর', date: t.date || t.txn_date, text: `${t.type === 'income' ? 'আয়' : 'ব্যয়'} - ${t.description || t.category || ''} ${money(t.amount)}` }));
+      const prog = programFinance();
+      const pRows = sortRecent(prog.incomeRows.concat(prog.expenseRows)).slice(0, 8).map(r => ({ type: 'কর্মসূচি', date: r.date, text: `${r.programName || ''} - ${r.type || r.note || ''} ${money(r.amount)}` }));
+      const kRows = khedmatFinance().acts.slice(0, 6).map(a => ({ type: 'খেদমত', date: a.date, text: `${a.title || 'সেবা'} ${a.amount ? money(a.amount) : ''}` }));
+      const logs = window.API ? API.Logs.getAll().slice(0, 8).map(l => ({ type: 'নোট', date: l.date, text: l.text || l.content || '' })) : [];
+      return dept.concat(pRows, kRows, latestKitabHistory(8), logs)
+        .filter(r => r.text)
+        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
+        .slice(0, 18);
+    }
+
+    function renderFeed() {
+      const feed = buildFeed();
+      $('ov-feed').innerHTML = feed.length ? feed.map(r => `
+        <div class="ov-feed-row">
+          <div class="ov-feed-type">${esc(r.type)}</div>
+          <div class="ov-feed-text">${esc(r.text)}</div>
+          <div class="ov-feed-date">${esc(dateLabel(r.date))}</div>
+        </div>`).join('') : '<div class="ov-empty">এখনো কোনো সাম্প্রতিক আপডেট পাওয়া যায়নি</div>';
+    }
+
+    function table(headers, rows) {
+      if (!rows.length) return '<div class="ov-empty">ডাটা নেই</div>';
+      return `<div class="ov-table-wrap"><table class="ov-table"><thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+    }
+
+    window.openHub = function (key) {
+      const titleMap = { madrasa: 'মাদ্রাসা বিস্তারিত', dept: 'দফতর হিসাব বিস্তারিত', program: 'কর্মসূচি বিস্তারিত', khedmat: 'খেদমত বিস্তারিত', updates: 'সাম্প্রতিক আপডেট' };
+      $('ov-modal-title').textContent = titleMap[key] || 'বিস্তারিত';
+      let html = '';
+      if (key === 'madrasa') {
+        const rows = classRows().map(c => {
+          const students = API.Students.getByClass(c.id).length;
+          const avg = API.Khuluk.getClassAvg(c.id);
+          const kitabs = API.KitabProgress.getByClass(c.id);
+          const done = kitabs.length ? Math.round(kitabs.reduce((s, k) => s + (num(k.total_pages) ? num(k.pages_done) / num(k.total_pages) * 100 : 0), 0) / kitabs.length) : 0;
+          return `<tr><td>${esc(c.name)}</td><td>${bn(students)}</td><td>${avg ? bn(avg) : '—'}</td><td>${bn(done)}%</td></tr>`;
+        });
+        html = table(['বর্ষ', 'ছাত্র', 'হুসনুল', 'দর্স'], rows);
+      } else if (key === 'dept') {
+        const rows = deptFinance().txns.slice(0, 30).map(t => `<tr><td>${dateLabel(t.date || t.txn_date)}</td><td>${esc(t.dept_id || '')}</td><td>${esc(t.type === 'income' ? 'আয়' : 'ব্যয়')}</td><td>${esc(t.description || t.category || '')}</td><td>${money(t.amount)}</td></tr>`);
+        html = table(['তারিখ', 'বিভাগ', 'ধরন', 'বিবরণ', 'টাকা'], rows);
+      } else if (key === 'program') {
+        const prog = programFinance();
+        const rows = prog.programs.map(p => {
+          const inc = (state.programs.income[p.id] || []).reduce((s, r) => s + num(r.amount), 0);
+          const exp = (state.programs.expense[p.id] || []).reduce((s, r) => s + num(r.amount), 0);
+          return `<tr><td>${esc(p.name)}</td><td>${esc(p.status || '')}</td><td>${money(inc)}</td><td>${money(exp)}</td><td>${money(inc - exp)}</td></tr>`;
+        });
+        html = table(['কর্মসূচি', 'অবস্থা', 'আয়', 'ব্যয়', 'ব্যালেন্স'], rows);
+      } else if (key === 'khedmat') {
+        const rows = khedmatFinance().acts.slice(0, 30).map(a => `<tr><td>${dateLabel(a.date)}</td><td>${esc(a.title || '')}</td><td>${esc(a.description || '')}</td><td>${money(a.amount)}</td></tr>`);
+        html = table(['তারিখ', 'সেবা', 'বিবরণ', 'টাকা'], rows);
+      } else {
+        html = `<div class="ov-feed">${buildFeed().map(r => `<div class="ov-feed-row"><div class="ov-feed-type">${esc(r.type)}</div><div class="ov-feed-text">${esc(r.text)}</div><div class="ov-feed-date">${esc(dateLabel(r.date))}</div></div>`).join('') || '<div class="ov-empty">ডাটা নেই</div>'}</div>`;
+      }
+      $('ov-modal-body').innerHTML = html;
+      $('ov-modal-bg').classList.add('open');
+    };
+
+    window.closeOverviewModal = function () {
+      $('ov-modal-bg').classList.remove('open');
+    };
+
+    function renderAll() {
+      renderKpis();
+      renderPriority();
+      renderFinance();
+      renderHubs();
+      renderFeed();
+    }
+
+    window.refreshOverview = async function () {
+      setSyncStatus('ডাটা রিফ্রেশ হচ্ছে...', '');
+      await syncRemoteData();
+      renderAll();
+    };
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeOverviewModal();
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await window.refreshOverview();
+    });
+  })();
+  </script>
+</body>
+</html>

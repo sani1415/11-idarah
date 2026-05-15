@@ -643,7 +643,7 @@ const API = (() => {
       const scores = sids.map(sid => { const k = Khuluk.getLatest(sid); return k ? k.score : null; }).filter(s => s !== null);
       return scores.length ? Math.round(scores.reduce((a,b) => a+b, 0) / scores.length) : null;
     },
-    /** সর্বশেষ হুসনুল খুলুক: ৮১+ মুজতাহিদ, ৬০–৮০ মুতাওয়াস্সিত, ৬০-এর নিচে মুসতায়িদ, রেকর্ড ছাড়া আলাদা (মেইন এডমিন ও বর্ষ পেজ এক মাপ) */
+    /** সর্বশেষ হুসনুল খুলুক: ৮১+ মুস্তাহিদ, ৬০–৮০ মুতাওয়াস্সিত, ৬০-এর নিচে মুজতাহিদ, রেকর্ড ছাড়া আলাদা (মেইন এডমিন ও বর্ষ পেজ এক মাপ) */
     getClassKhulukBands(cid) {
       const sids = Students.getByClass(cid).map(s => s.id);
       const out = { high: 0, mid: 0, low: 0, none: 0, total: sids.length };

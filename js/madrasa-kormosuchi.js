@@ -346,6 +346,19 @@ function findAttachment(id) {
   return null;
 }
 
+function newestFirstRows(rows) {
+  return (Array.isArray(rows) ? rows.slice() : []).sort((a, b) => {
+    const ad = String(a && a.date || '');
+    const bd = String(b && b.date || '');
+    const byDate = bd.localeCompare(ad);
+    if (byDate !== 0) return byDate;
+    const at = Number(a && (a._updatedAt || a._at || 0)) || 0;
+    const bt = Number(b && (b._updatedAt || b._at || 0)) || 0;
+    if (bt !== at) return bt - at;
+    return String(b && b.id || '').localeCompare(String(a && a.id || ''));
+  });
+}
+
 function stats() {
   const inc = incomes(), exp = expenses();
   const income = inc.reduce((s, x) => s + Number(x.amount || 0), 0);
@@ -421,7 +434,7 @@ function renderRoot() {
 
 /* ── INCOME TAB ── */
 function renderIncomeTab() {
-  const rows = incomes();
+  const rows = newestFirstRows(incomes());
   if (!rows.length) return '<div class="empty-state"><span class="empty-icon">💰</span><div class="empty-text">এখনো কোনো আয় নেই</div></div>';
   return `<div class="tbl-wrap"><table class="tbl">
     <thead><tr>
@@ -445,7 +458,7 @@ function renderIncomeTab() {
 
 /* ── EXPENSE TAB ── */
 function renderExpenseTab() {
-  const rows = expenses();
+  const rows = newestFirstRows(expenses());
   if (!rows.length) return '<div class="empty-state"><span class="empty-icon">💸</span><div class="empty-text">এখনো কোনো ব্যয় নেই</div></div>';
   return `<div class="tbl-wrap"><table class="tbl">
     <thead><tr>

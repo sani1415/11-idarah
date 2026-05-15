@@ -423,9 +423,9 @@
   <div class="modal modal-large">
     <div class="modal-title">হুসনুল খুলুক <button type="button" class="modal-close" onclick="closeModal('modal-khuluk-cat')">✕</button></div>
     <div class="modal-tabs" role="tablist" aria-label="হুসনুল খুলুক ক্যাটাগরি">
-      <button type="button" class="modal-tab active" id="khcat-tab-high" onclick="setKhulukCatTab('high')" aria-selected="true">মুজতাহিদ</button>
+      <button type="button" class="modal-tab active" id="khcat-tab-high" onclick="setKhulukCatTab('high')" aria-selected="true">মুস্তাহিদ</button>
       <button type="button" class="modal-tab" id="khcat-tab-mid" onclick="setKhulukCatTab('mid')" aria-selected="false">মুতাওয়াস্সিত</button>
-      <button type="button" class="modal-tab" id="khcat-tab-low" onclick="setKhulukCatTab('low')" aria-selected="false">মুসতায়িদ</button>
+      <button type="button" class="modal-tab" id="khcat-tab-low" onclick="setKhulukCatTab('low')" aria-selected="false">মুজতাহিদ</button>
     </div>
     <p id="khcat-sub" class="watch-list-sub">—</p>
     <div class="modal-panel watch-list-panel">
@@ -559,9 +559,9 @@
     const watchCount = students.filter(function (s) { return s.special_watch; }).length;
     const ahCount = students.filter(function (s) { return s.alhamdulillah; }).length;
     const threeLines =
-      '<div class="kh-line kh-line--gr"><span class="kh-cat">মুজতাহিদ</span><span class="kh-n">' + toBn(bands.high) + '</span></div>' +
+      '<div class="kh-line kh-line--gr"><span class="kh-cat">মুস্তাহিদ</span><span class="kh-n">' + toBn(bands.high) + '</span></div>' +
       '<div class="kh-line kh-line--sky"><span class="kh-cat">মুতাওয়াস্সিত</span><span class="kh-n">' + toBn(bands.mid) + '</span></div>' +
-      '<div class="kh-line kh-line--red"><span class="kh-cat">মুসতায়িদ</span><span class="kh-n">' + toBn(bands.low) + '</span></div>';
+      '<div class="kh-line kh-line--red"><span class="kh-cat">মুজতাহিদ</span><span class="kh-n">' + toBn(bands.low) + '</span></div>';
 
     grid.innerHTML =
       '<div class="stat-tile"><span class="stat-num">' + toBn(students.length) + '</span><span class="stat-label">মোট ছাত্র</span></div>' +
