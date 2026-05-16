@@ -969,18 +969,18 @@ body.page-daftar #modal-account-entry .modal {
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../supabase-config.js"></script>
-<script src="../api-shared.js"></script>
+<script src="../supabase-config.js?v=20260516-attendance-persist"></script>
+<script src="../api-shared.js?v=20260516-attendance-persist"></script>
 <script src="../js/mm-sample-data.js"></script>
-<script src="../js/api.js"></script>
-<script src="../js/mdr-daftar-supabase.js"></script>
+<script src="../js/api.js?v=20260516-attendance-persist"></script>
+<script src="../js/mdr-daftar-supabase.js?v=20260516-attendance-persist"></script>
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/madrasa-accounts-api.js?v=20260503-accounts-topbar"></script>
 <script src="../js/chat-api.js"></script>
 <script src="../js/madrasa-daftar-accounts.js?v=20260511-income-sort"></script>
 <script src="../js/madrasa-accounts-reports.js"></script>
 <script src="../js/mm-student-modal.js"></script>
-<script src="../js/mm-session.js"></script>
+<script src="../js/mm-session.js?v=20260516-attendance-persist"></script>
 <script src="../js/daftar-bottom-nav.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script>
@@ -1575,6 +1575,8 @@ body.page-daftar #modal-account-entry .modal {
           showToast('সেশন পুরনো হয়েছে — লগআউট করে আবার দফতর পিন দিয়ে লগইন করুন');
         } else if (e && e.message === 'empty_attendance_payload') {
           showToast('সেভ করার মতো কোনো ছাত্র পাওয়া যায়নি');
+        } else if (e && e.message === 'attendance_readback_mismatch') {
+          showToast('ডাটাবেসে সব হাজিরা পাওয়া যায়নি — আবার সেভ করুন');
         } else {
           showToast('Supabase-এ হাজিরা সেভ হয়নি');
         }

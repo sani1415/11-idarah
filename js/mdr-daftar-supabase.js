@@ -149,9 +149,22 @@
     if (!Array.isArray(records) || !records.length) throw new Error('empty_attendance_payload');
     var res = await MMSharedAPI.saveAttendanceDay(a.id, a.pin, date, records || [], hijriYear || null);
     if (!res || !res.ok) throw new Error((res && res.error) || 'attendance_save_failed');
+    var fresh = await MMSharedAPI.daftarBootstrap(a.id, a.pin);
+    if (!fresh || !fresh.ok) throw new Error((fresh && fresh.error) || 'attendance_readback_failed');
+    var attendanceRows = fresh.attendance || res.attendance || [];
+    var expectedDate = String(date || '').slice(0, 10);
+    var savedCount = (attendanceRows || []).filter(function (row) {
+      return String(row.date || '').slice(0, 10) === expectedDate;
+    }).length;
+    if (savedCount < records.length) {
+      var err = new Error('attendance_readback_mismatch');
+      err.expected = records.length;
+      err.actual = savedCount;
+      throw err;
+    }
     if (API.Attendance) {
-      var dayRows = (res.attendance || []).filter(function (row) {
-        return String(row.date || '').slice(0, 10) === String(date || '').slice(0, 10);
+      var dayRows = attendanceRows.filter(function (row) {
+        return String(row.date || '').slice(0, 10) === expectedDate;
       }).map(toLocalAttendance);
       if (API.Attendance.replaceDate) API.Attendance.replaceDate(date, dayRows);
       else if (API.Attendance.replaceAll) API.Attendance.replaceAll(dayRows);

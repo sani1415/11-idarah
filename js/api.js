@@ -25,6 +25,7 @@ const API = (() => {
   };
 
   /* ── HELPERS ── */
+  const volatileStore = {};
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   const today = () => new Date().toISOString().split('T')[0];
   const now = () => new Date().toISOString();
@@ -38,12 +39,15 @@ const API = (() => {
   }
 
   function load(key) {
+    if (Object.prototype.hasOwnProperty.call(volatileStore, key)) return volatileStore[key];
     try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
   }
   function loadObj(key, def = {}) {
+    if (Object.prototype.hasOwnProperty.call(volatileStore, key)) return volatileStore[key];
     try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; }
   }
   function save(key, data) {
+    volatileStore[key] = data;
     localStorage.setItem(key, JSON.stringify(data));
     if (key === KEYS.settings && typeof window !== 'undefined' && window.dispatchEvent) {
       window.dispatchEvent(new CustomEvent('mm-settings-updated', { detail: data }));
@@ -66,8 +70,10 @@ const API = (() => {
 
   function saveAttendanceCache(rows, requiredDates = []) {
     const list = Array.isArray(rows) ? rows : [];
+    volatileStore[KEYS.attendance] = list;
     try {
       save(KEYS.attendance, list);
+      volatileStore[KEYS.attendance] = list;
       return;
     } catch (e) {
       if (!isQuotaError(e)) throw e;
@@ -78,6 +84,7 @@ const API = (() => {
     for (const days of windows) {
       try {
         save(KEYS.attendance, compactAttendanceCache(list, days, requiredDates));
+        volatileStore[KEYS.attendance] = list;
         return;
       } catch (e2) {
         lastErr = e2;
@@ -88,6 +95,7 @@ const API = (() => {
     if (required.size) {
       try {
         save(KEYS.attendance, list.filter((a) => required.has(String(a && a.date || ''))));
+        volatileStore[KEYS.attendance] = list;
         return;
       } catch (e3) {
         lastErr = e3;
@@ -96,9 +104,13 @@ const API = (() => {
     }
     try {
       save(KEYS.attendance, []);
+      volatileStore[KEYS.attendance] = list;
       return;
     } catch (e4) {
-      throw lastErr || e4 || new Error('attendance_cache_save_failed');
+      if (!isQuotaError(e4)) throw lastErr || e4 || new Error('attendance_cache_save_failed');
+      console.warn('[API.Attendance] local cache unavailable; using memory for this page session');
+      volatileStore[KEYS.attendance] = list;
+      return;
     }
   }
 
