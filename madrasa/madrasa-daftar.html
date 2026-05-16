@@ -1217,7 +1217,7 @@ body.page-daftar #modal-account-entry .modal {
       const st = currentAttStatus(s.id, existing);
       if (st === 'absent') a++;
       else if (st === 'holiday') h++;
-      else p++;
+      else if (st === 'present') p++;
     });
     document.getElementById('st-present').textContent = toBn(p);
     document.getElementById('st-absent').textContent  = toBn(a);
@@ -1383,7 +1383,7 @@ body.page-daftar #modal-account-entry .modal {
       return (s === 'absent' || s === 'holiday') ? s : 'present';
     }
     const rec = existing.find ? existing.find(a => a.student_id === sid) : null;
-    return rec ? API.Attendance.statusOf(rec) : 'present';
+    return rec ? API.Attendance.statusOf(rec) : 'not_marked';
   }
 
   function getAbsentReason(sid, existing) {
@@ -1443,10 +1443,11 @@ body.page-daftar #modal-account-entry .modal {
       if (!groupMap.has(cls.id)) return;
       const arr  = groupMap.get(cls.id);
       const pres = arr.filter(s => currentAttStatus(s.id, existing) === 'present').length;
+      const marked = arr.filter(s => currentAttStatus(s.id, existing) !== 'not_marked').length;
       html += `<div class="class-sep">
         <span class="cs-name">${API.esc(cls.name)}</span>
         <span class="cs-badge">${toBn(arr.length)} জন</span>
-        <span class="cs-pct">${toBn(pres)} উপস্থিত</span>
+        <span class="cs-pct">${toBn(pres)} উপস্থিত · ${toBn(marked)} চিহ্নিত</span>
       </div>`;
       arr.forEach(s => {
         const st = currentAttStatus(s.id, existing);
@@ -1548,6 +1549,11 @@ body.page-daftar #modal-account-entry .modal {
     if (mmMutationBlocked(showToast)) return;
     const students = getAttendanceStudents();
     const existing = API.Attendance.getByDate(daftarAttDate);
+    const notMarked = students.filter(s => currentAttStatus(s.id, existing) === 'not_marked');
+    if (notMarked.length) {
+      showToast('হাজিরা বাকি: ' + notMarked.slice(0, 2).map(s => s.name).join('، ') + (notMarked.length > 2 ? '…' : ''));
+      return;
+    }
     const needReason = students.filter(s => {
       const st = currentAttStatus(s.id, existing);
       return st === 'absent' && !getAbsentReason(s.id, existing);
