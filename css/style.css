@@ -869,15 +869,124 @@ body {
 .st-badg { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
 .st-badg--p { color: var(--green); background: var(--green-light); }
 .st-badg--a { color: var(--red); background: var(--red-light); }
-.st-badg--l { color: var(--gold); background: var(--gold-light); }
+.st-badg--l,
+.st-badg--h { color: var(--gold); background: var(--gold-light); }
 .st-subdate { font-size: 10px; opacity: 0.7; }
+.st-att-overview { display: flex; flex-direction: column; gap: 12px; }
+.st-att-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.st-att-card {
+  min-width: 0;
+  border: 1px solid var(--cream2);
+  border-radius: 8px;
+  background: #fff;
+  padding: 9px 7px;
+  text-align: center;
+}
+.st-att-card span {
+  display: block;
+  font-size: 9px;
+  color: var(--ink3);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.st-att-card strong {
+  display: block;
+  margin-top: 4px;
+  font-family: 'Tiro Bangla', serif;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--ink2);
+}
+.st-att-card--p strong { color: var(--green); }
+.st-att-card--a strong { color: var(--red); }
+.st-att-month,
+.st-att-section {
+  border-top: 1px solid var(--cream2);
+  padding-top: 10px;
+}
+.st-att-section-hd {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--ink2);
+}
+.st-att-section-hd strong {
+  font-family: 'Tiro Bangla', serif;
+  font-size: 12px;
+}
+.st-att-section-hd span { font-size: 10px; color: var(--ink3); }
+.st-att-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+.st-att-day {
+  height: 26px;
+  border-radius: 7px;
+  border: 1px solid var(--cream2);
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-family: 'Tiro Bangla', serif;
+  color: var(--ink3);
+}
+.st-att-day--p { color: var(--green); border-color: rgba(45,106,79,.32); background: rgba(45,106,79,.10); }
+.st-att-day--a { color: var(--red); border-color: rgba(193,68,14,.32); background: rgba(193,68,14,.10); }
+.st-att-day--h { color: var(--gold); border-color: rgba(201,149,42,.35); background: rgba(201,149,42,.12); }
+.st-att-day--x { color: rgba(107,90,62,.38); background: #fbfaf7; }
+.st-att-month-row,
+.st-att-abs-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) auto auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--cream2);
+  font-size: 11px;
+  color: var(--ink2);
+}
+.st-att-month-row:last-child,
+.st-att-abs-row:last-child { border-bottom: none; }
+.st-att-month-row strong,
+.st-att-abs-row strong {
+  min-width: 0;
+  font-family: 'Tiro Bangla', serif;
+  font-size: 11px;
+  color: var(--ink2);
+}
+.st-att-month-row span { white-space: nowrap; color: var(--ink3); }
+.st-att-abs-row {
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.4fr);
+  align-items: start;
+}
+.st-att-abs-row span { color: var(--ink3); line-height: 1.35; }
 .st-fee-line { font-size: 12px; padding: 8px 0; border-bottom: 1px solid var(--cream2); }
 .st-fee-line:last-child { border-bottom: none; }
 .st-fee-mo { font-weight: 700; color: var(--ink2); font-family: 'Tiro Bangla', serif; margin-bottom: 4px; }
 .st-empty { text-align: center; padding: 20px 12px; color: var(--ink3); font-size: 12px; }
+.st-empty--sm { padding: 10px 8px; text-align: left; }
 .st-logline { font-size: 11px; padding: 6px 0; border-bottom: 1px solid var(--cream2); color: var(--ink2); }
 .st-logline small { color: var(--ink3); display: block; margin-top: 2px; }
 .st-note { font-size: 11px; color: var(--ink3); margin-top: 8px; }
+@media (max-width: 520px) {
+  .st-att-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .st-att-card { padding: 8px 6px; }
+  .st-att-day { height: 24px; font-size: 9px; }
+  .st-att-month-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 6px;
+  }
+  .st-att-month-row span:nth-child(4) { display: none; }
+  .st-att-abs-row { grid-template-columns: 1fr; gap: 3px; }
+}
 @media (max-width: 380px) {
   .st-kv-grid { grid-template-columns: 1fr; }
   .st-tab { font-size: 10px; padding: 8px 4px; }

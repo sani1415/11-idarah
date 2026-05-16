@@ -41,6 +41,101 @@
     return getApi().esc(iso);
   }
 
+  function attStatusMeta(API, row) {
+    var st = API.Attendance.statusOf(row);
+    if (st === 'absent') return { key: 'a', label: 'অনুপস্থিত' };
+    if (st === 'holiday') return { key: 'h', label: 'ছুটি' };
+    return { key: 'p', label: 'উপস্থিত' };
+  }
+
+  function monthLabel(ym) {
+    var months = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+    var parts = String(ym || '').split('-');
+    var y = Number(parts[0]) || 0;
+    var m = Number(parts[1]) || 1;
+    return (months[m - 1] || ym) + ' ' + toBn(y);
+  }
+
+  function buildAttendancePanel(API, sid) {
+    var allRows = API.Attendance.getByStudent(sid);
+    if (!allRows.length) {
+      return '<div class="st-empty">কোনো হাজিরা রেকর্ড পাওয়া যায়নি।</div>';
+    }
+
+    var counts = { p: 0, a: 0, h: 0 };
+    allRows.forEach(function (r) {
+      counts[attStatusMeta(API, r).key] += 1;
+    });
+    var counted = counts.p + counts.a;
+    var pct = counted ? Math.round((counts.p / counted) * 100) : 0;
+
+    var recentMonth = String(allRows[0].date || '').slice(0, 7);
+    var monthRows = allRows.filter(function (r) { return String(r.date || '').slice(0, 7) === recentMonth; });
+    var byDate = {};
+    monthRows.forEach(function (r) { byDate[String(r.date || '').slice(0, 10)] = r; });
+    var y = Number(recentMonth.slice(0, 4));
+    var m = Number(recentMonth.slice(5, 7));
+    var daysInMonth = new Date(y, m, 0).getDate();
+    var monthCells = '';
+    for (var d = 1; d <= daysInMonth; d++) {
+      var iso = recentMonth + '-' + String(d).padStart(2, '0');
+      var row = byDate[iso];
+      var meta = row ? attStatusMeta(API, row) : { key: 'x', label: '' };
+      monthCells += '<span class="st-att-day st-att-day--' + meta.key + '" title="' + API.esc(iso + (meta.label ? ' · ' + meta.label : '')) + '">' + toBn(d) + '</span>';
+    }
+
+    var byMonth = {};
+    allRows.forEach(function (r) {
+      var ym = String(r.date || '').slice(0, 7);
+      if (!ym) return;
+      if (!byMonth[ym]) byMonth[ym] = { p: 0, a: 0, h: 0 };
+      byMonth[ym][attStatusMeta(API, r).key] += 1;
+    });
+    var monthSummary = Object.keys(byMonth).sort().reverse().slice(0, 4).map(function (ym) {
+      var x = byMonth[ym];
+      var denom = x.p + x.a;
+      var rate = denom ? Math.round((x.p / denom) * 100) : 0;
+      return '<div class="st-att-month-row"><strong>' + API.esc(monthLabel(ym)) + '</strong><span>উপস্থিত ' + toBn(x.p) + '</span><span>অনুপস্থিত ' + toBn(x.a) + '</span><span>' + toBn(rate) + '%</span></div>';
+    }).join('');
+
+    var absentRows = allRows.filter(function (r) { return attStatusMeta(API, r).key === 'a'; }).slice(0, 8);
+    var absentHtml = absentRows.length
+      ? absentRows.map(function (r) {
+          return '<div class="st-att-abs-row"><strong>' + stFmtAttDateLine(r.date) + '</strong><span>' + API.esc(r.absent_reason || 'কারণ সংরক্ষিত নেই') + '</span></div>';
+        }).join('')
+      : '<div class="st-empty st-empty--sm">অনুপস্থিতির রেকর্ড নেই।</div>';
+
+    var recentHtml = allRows.slice(0, 10).map(function (r) {
+      var meta = attStatusMeta(API, r);
+      var reason = meta.key === 'a' && r.absent_reason ? '<div class="st-note">' + API.esc(r.absent_reason) + '</div>' : '';
+      return (
+        '<div class="st-hist-item"><div class="st-hist-date">' +
+        stFmtAttDateLine(r.date) +
+        reason +
+        '</div><div class="st-hist-meta"><span class="st-badg st-badg--' +
+        meta.key +
+        '">' +
+        meta.label +
+        '</span></div></div>'
+      );
+    }).join('');
+
+    return (
+      '<div class="st-att-overview">' +
+      '<div class="st-att-cards">' +
+      '<div class="st-att-card"><span>মোট দিন</span><strong>' + toBn(allRows.length) + '</strong></div>' +
+      '<div class="st-att-card st-att-card--p"><span>উপস্থিত</span><strong>' + toBn(counts.p) + '</strong></div>' +
+      '<div class="st-att-card st-att-card--a"><span>অনুপস্থিত</span><strong>' + toBn(counts.a) + '</strong></div>' +
+      '<div class="st-att-card"><span>হার</span><strong>' + toBn(pct) + '%</strong></div>' +
+      '</div>' +
+      '<div class="st-att-month"><div class="st-att-section-hd"><strong>' + API.esc(monthLabel(recentMonth)) + '</strong><span>সাম্প্রতিক মাস</span></div><div class="st-att-grid">' + monthCells + '</div></div>' +
+      '<div class="st-att-section"><div class="st-att-section-hd"><strong>মাসভিত্তিক সারাংশ</strong></div>' + monthSummary + '</div>' +
+      '<div class="st-att-section"><div class="st-att-section-hd"><strong>অনুপস্থিতির কারণ</strong></div>' + absentHtml + '</div>' +
+      '<div class="st-att-section"><div class="st-att-section-hd"><strong>শেষ ১০ দিন</strong></div>' + recentHtml + '</div>' +
+      '</div>'
+    );
+  }
+
   function initialChar(name) {
     if (!name || !String(name).trim()) return '?';
     var t = String(name).trim();
@@ -443,33 +538,7 @@
         '</div>';
     }
 
-    var attRows = API.Attendance.getByStudent(sid).slice(0, 60);
-    var attPanel;
-    if (!attRows.length) {
-      attPanel = '<div class="st-empty">কোনো হাজিরা রেকর্ড পাওয়া যায়নি।</div>';
-    } else {
-      attPanel = attRows
-        .map(function (r) {
-          var st = API.Attendance.statusOf(r);
-          var lbl = st === 'absent' ? 'অনুপস্থিত' : st === 'leave' ? 'ছুটি' : 'উপস্থিত';
-          var c = st === 'absent' ? 'a' : st === 'leave' ? 'l' : 'p';
-          var reas =
-            st === 'absent' && r.absent_reason
-              ? '<div class="st-note">' + API.esc(r.absent_reason) + '</div>'
-              : '';
-          return (
-            '<div class="st-hist-item"><div class="st-hist-date">' +
-            stFmtAttDateLine(r.date) +
-            reas +
-            '</div><div class="st-hist-meta"><span class="st-badg st-badg--' +
-            c +
-            '">' +
-            lbl +
-            '</span></div></div>'
-          );
-        })
-        .join('');
-    }
+    var attPanel = buildAttendancePanel(API, sid);
 
     var feeRows = API.Fees.getByClass(s.class_id);
     var wajPanel;
