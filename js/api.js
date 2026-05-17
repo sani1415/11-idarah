@@ -165,67 +165,7 @@ const API = (() => {
      LEGACY LOCAL MIGRATIONS
      ══════════════════════════════ */
   function seedIfEmpty() {
-    function defaultTeacherLoginId(t) {
-      if (!t || !t.class_id) return t && t.login_id;
-      const id = String(t.id || '').trim();
-      const m = id.match(/^tch_(\d+)$/);
-      if (m) return 't' + m[1];
-      return id ? id.toLowerCase().replace(/[^a-z0-9_-]+/g, '-') : '';
-    }
-
-    /* ── MIGRATION: force all PINs to 0000 ── */
-    const allT = load(KEYS.teachers);
-    if (allT.length && allT.some(t => t.pin !== '0000')) {
-      save(KEYS.teachers, allT.map(t => ({ ...t, pin: '0000' })));
-    }
-    const existingSettings = loadObj(KEYS.settings, {});
-    if (existingSettings.admin_pin && existingSettings.admin_pin !== '0000') {
-      save(KEYS.settings, { ...existingSettings, admin_pin: '0000' });
-    }
-
-    /* ── MIGRATION: add khedmat user if missing ── */
-    const allT2 = load(KEYS.teachers);
-    if (allT2.length && !allT2.find(t => t.id === 'usr_khedmat')) {
-      save(KEYS.teachers, [...allT2, { id:'usr_khedmat', name:'খেদমত দায়িত্বশীল', class_id:null, pin:'0000', role:'khedmat' }]);
-    }
-
-    /* ── MIGRATION: বর্ষ দায়িত্বশীল direct login — login_id নিশ্চিত করুন ── */
-    const allT3 = load(KEYS.teachers);
-    if (allT3.length && allT3.some(t => t.class_id && !t.login_id)) {
-      save(KEYS.teachers, allT3.map(t => t.class_id && !t.login_id ? { ...t, login_id: defaultTeacherLoginId(t) } : t));
-    }
-
-    /* ── MIGRATION: ছাত্র — ভর্তি_বছর সরান; একক ঠিকানা → জেলা+উপজেলা (পুরনো পুরো লাইন উপজেলায়) ── */
-    {
-      const stud = load(KEYS.students);
-      if (stud.some((s) => s.admitted != null || s.address)) {
-        save(
-          KEYS.students,
-          stud.map((s) => {
-            const o = { ...s };
-            if ('admitted' in o) delete o.admitted;
-            if (o.address != null && String(o.address).trim() !== '' && o.district == null && o.upazila == null) {
-              o.district = '';
-              o.upazila = String(o.address).trim();
-            }
-            if ('address' in o) delete o.address;
-            return o;
-          })
-        );
-      }
-    }
-
-    if (load(KEYS.classes).length) return;
-
-    const buildM = globalThis.MMSampleData && globalThis.MMSampleData.buildMadrasaSample;
-    if (!buildM) {
-      console.warn('[MMSampleData] mm-sample-data.js api.js-এর আগে লোড করুন।');
-      return;
-    }
-    const pack = buildM(today());
-    if (!pack || !pack.mm_classes || !pack.mm_classes.length) return;
-    save(KEYS.classes, pack.mm_classes);
-    if (!localStorage.getItem(KEYS.settings)) save(KEYS.settings, pack.mm_settings || {});
+    return false;
   }
 
   /* ══════════════════════════════
@@ -480,6 +420,9 @@ const API = (() => {
     update(id, data) {
       save(KEYS.classes, load(KEYS.classes).map(c => c.id === id ? normalizeClass({ ...c, ...data, id: c.id }) : c));
     },
+    replaceAll(list) {
+      save(KEYS.classes, Array.isArray(list) ? list.map(normalizeClass) : []);
+    },
   };
 
   /* ══════════════════════════════
@@ -538,6 +481,7 @@ const API = (() => {
       return a.present ? 'present' : 'absent';
     },
     getByDate: date => load(KEYS.attendance).filter(a => a.date === date),
+    getAll: () => load(KEYS.attendance).slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))),
     replaceAll(list) {
       saveAttendanceCache(Array.isArray(list) ? list : []);
     },
@@ -816,12 +760,7 @@ const API = (() => {
      SETTINGS
      ══════════════════════════════ */
   const Settings = {
-    get: () => loadObj(
-      KEYS.settings,
-      (globalThis.MMSampleData && globalThis.MMSampleData.defaultSettings)
-        ? { ...globalThis.MMSampleData.defaultSettings }
-        : { institution: '—', hijri_year: '—', admin_pin: '0000' }
-    ),
+    get: () => loadObj(KEYS.settings, {}),
     save: data => save(KEYS.settings, data),
   };
 

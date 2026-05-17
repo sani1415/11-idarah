@@ -9,12 +9,12 @@ const MMSharedAPI = (() => {
 
   function createClientOrNull() {
     if (!window.supabase || !window.supabase.createClient) {
-      console.warn('[MMSharedAPI] Supabase client script is not loaded; using local fallback.');
+      console.warn('[MMSharedAPI] Supabase client script is not loaded.');
       return null;
     }
     const key = getSupabaseKey();
     if (!cfg.url || !key) {
-      console.warn('[MMSharedAPI] supabase-config.js is missing SUPABASE_URL or publishable key; using local fallback.');
+      console.warn('[MMSharedAPI] supabase-config.js is missing SUPABASE_URL or publishable key.');
       return null;
     }
     return window.supabase.createClient(cfg.url, key);

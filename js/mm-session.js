@@ -336,9 +336,6 @@
     if (!settings && global.API && global.API.Settings) {
       try { settings = global.API.Settings.get(); } catch (e2) { settings = null; }
     }
-    if (!settings && global.MMSampleData && global.MMSampleData.defaultSettings) {
-      settings = global.MMSampleData.defaultSettings;
-    }
     var year = settings && settings.hijri_year != null ? String(settings.hijri_year).trim() : '';
     if (!year || year === '-' || year === '\u2014') return '';
     return year.replace(/[0-9]/g, function (d) { return '\u09e6\u09e7\u09e8\u09e9\u09ea\u09eb\u09ec\u09ed\u09ee\u09ef'[d]; });

@@ -681,7 +681,7 @@
     try {
       if (window.MDRExamsSync) await MDRExamsSync.bootstrap();
     } catch(err) {
-      console.warn('Exam bootstrap failed, using local data:', err.message);
+      console.warn('Exam bootstrap failed:', err.message);
     } finally { setBusy(false); }
     switchPanel('home');
     renderHome();

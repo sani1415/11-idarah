@@ -49,6 +49,18 @@
     };
   }
 
+  function toLocalClass(row) {
+    var localId = CLASS_CODE_TO_LOCAL_ID[row.code] || row.code || row.id || '';
+    return {
+      id: String(localId),
+      name: row.name || '',
+      dept: row.division_code === 'maktab' ? 'maktab' : 'kitab',
+      roll_prefix: row.roll_prefix || '',
+      sort_order: row.sort_order || 999,
+      active: true,
+    };
+  }
+
   function toLocalAttendance(row) {
     var out = {
       id: String(row.id || ''),
@@ -129,6 +141,9 @@
     if (!a || !a.id || !a.pin) return false;
     var res = await MMSharedAPI.daftarBootstrap(a.id, a.pin);
     if (!res || !res.ok) return false;
+    if (API.Classes && API.Classes.replaceAll) {
+      API.Classes.replaceAll((res.classes || []).map(toLocalClass).filter(function (c) { return c.id; }));
+    }
     API.Students.replaceAll((res.students || []).map(toLocalStudent));
     if (API.Attendance && API.Attendance.replaceAll) {
       API.Attendance.replaceAll((res.attendance || []).map(toLocalAttendance));

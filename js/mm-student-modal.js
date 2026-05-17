@@ -42,6 +42,7 @@
   }
 
   function attStatusMeta(API, row) {
+    if (row && row._missingAttendance) return { key: 'm', label: 'চিহ্নিত নয়' };
     var st = API.Attendance.statusOf(row);
     if (st === 'absent') return { key: 'a', label: 'অনুপস্থিত' };
     if (st === 'holiday') return { key: 'h', label: 'ছুটি' };
@@ -56,17 +57,62 @@
     return (months[m - 1] || ym) + ' ' + toBn(y);
   }
 
+  function attendanceDateKey(row) {
+    return String(row && row.date || '').slice(0, 10);
+  }
+
+  function latestRowsByDate(rows) {
+    var out = {};
+    (rows || []).forEach(function (r) {
+      var date = attendanceDateKey(r);
+      if (!date || out[date]) return;
+      out[date] = r;
+    });
+    return out;
+  }
+
+  function studentIdSetForClass(API, classId) {
+    var out = {};
+    if (!classId || !API.Students || !API.Students.getByClass) return out;
+    API.Students.getByClass(classId).forEach(function (s) {
+      if (!s) return;
+      if (s.id) out[String(s.id)] = true;
+      if (s.supabase_id) out[String(s.supabase_id)] = true;
+    });
+    return out;
+  }
+
+  function buildAttendanceTimeline(API, sid, studentRows) {
+    var rowByDate = latestRowsByDate(studentRows);
+    var dates = {};
+    Object.keys(rowByDate).forEach(function (date) { dates[date] = true; });
+
+    var s = API.Students && API.Students.getById ? API.Students.getById(sid) : null;
+    var classStudentIds = s ? studentIdSetForClass(API, s.class_id) : {};
+    var allAttendance = API.Attendance.getAll ? API.Attendance.getAll() : studentRows;
+    allAttendance.forEach(function (r) {
+      var date = attendanceDateKey(r);
+      if (!date) return;
+      if (classStudentIds[String(r.student_id || '')]) dates[date] = true;
+    });
+
+    return Object.keys(dates).sort().reverse().map(function (date) {
+      return rowByDate[date] || { date: date, student_id: sid, _missingAttendance: true };
+    });
+  }
+
   function buildAttendancePanel(API, sid) {
-    var allRows = API.Attendance.getByStudent(sid);
+    var studentRows = API.Attendance.getByStudent(sid);
+    var allRows = buildAttendanceTimeline(API, sid, studentRows);
     if (!allRows.length) {
       return '<div class="st-empty">কোনো হাজিরা রেকর্ড পাওয়া যায়নি।</div>';
     }
 
-    var counts = { p: 0, a: 0, h: 0 };
+    var counts = { p: 0, a: 0, h: 0, m: 0 };
     allRows.forEach(function (r) {
       counts[attStatusMeta(API, r).key] += 1;
     });
-    var counted = counts.p + counts.a;
+    var counted = counts.p + counts.a + counts.m;
     var pct = counted ? Math.round((counts.p / counted) * 100) : 0;
 
     var recentMonth = String(allRows[0].date || '').slice(0, 7);
@@ -88,14 +134,15 @@
     allRows.forEach(function (r) {
       var ym = String(r.date || '').slice(0, 7);
       if (!ym) return;
-      if (!byMonth[ym]) byMonth[ym] = { p: 0, a: 0, h: 0 };
+      if (!byMonth[ym]) byMonth[ym] = { p: 0, a: 0, h: 0, m: 0 };
       byMonth[ym][attStatusMeta(API, r).key] += 1;
     });
     var monthSummary = Object.keys(byMonth).sort().reverse().slice(0, 4).map(function (ym) {
       var x = byMonth[ym];
-      var denom = x.p + x.a;
+      var denom = x.p + x.a + x.m;
       var rate = denom ? Math.round((x.p / denom) * 100) : 0;
-      return '<div class="st-att-month-row"><strong>' + API.esc(monthLabel(ym)) + '</strong><span>উপস্থিত ' + toBn(x.p) + '</span><span>অনুপস্থিত ' + toBn(x.a) + '</span><span>' + toBn(rate) + '%</span></div>';
+      var missing = x.m ? '<span>চিহ্নিত নয় ' + toBn(x.m) + '</span>' : '';
+      return '<div class="st-att-month-row"><strong>' + API.esc(monthLabel(ym)) + '</strong><span>উপস্থিত ' + toBn(x.p) + '</span><span>অনুপস্থিত ' + toBn(x.a) + '</span>' + missing + '<span>' + toBn(rate) + '%</span></div>';
     }).join('');
 
     var absentRows = allRows.filter(function (r) { return attStatusMeta(API, r).key === 'a'; }).slice(0, 8);
@@ -119,15 +166,20 @@
         '</span></div></div>'
       );
     }).join('');
+    var coverageNote = counts.m
+      ? '<div class="st-att-note">এই ছাত্রের জন্য ' + toBn(counts.m) + ' দিনে আলাদা হাজিরা row নেই। তাই এগুলো “চিহ্নিত নয়” ধরা হয়েছে; ঐ দিনগুলোর হাজিরা আবার সেভ করলে হিসাব পূর্ণ হবে।</div>'
+      : '';
 
     return (
       '<div class="st-att-overview">' +
       '<div class="st-att-cards">' +
-      '<div class="st-att-card"><span>মোট দিন</span><strong>' + toBn(allRows.length) + '</strong></div>' +
+      '<div class="st-att-card"><span>হাজিরা নেওয়া দিন</span><strong>' + toBn(allRows.length) + '</strong></div>' +
       '<div class="st-att-card st-att-card--p"><span>উপস্থিত</span><strong>' + toBn(counts.p) + '</strong></div>' +
       '<div class="st-att-card st-att-card--a"><span>অনুপস্থিত</span><strong>' + toBn(counts.a) + '</strong></div>' +
+      '<div class="st-att-card st-att-card--m"><span>চিহ্নিত নয়</span><strong>' + toBn(counts.m) + '</strong></div>' +
       '<div class="st-att-card"><span>হার</span><strong>' + toBn(pct) + '%</strong></div>' +
       '</div>' +
+      coverageNote +
       '<div class="st-att-month"><div class="st-att-section-hd"><strong>' + API.esc(monthLabel(recentMonth)) + '</strong><span>সাম্প্রতিক মাস</span></div><div class="st-att-grid">' + monthCells + '</div></div>' +
       '<div class="st-att-section"><div class="st-att-section-hd"><strong>মাসভিত্তিক সারাংশ</strong></div>' + monthSummary + '</div>' +
       '<div class="st-att-section"><div class="st-att-section-hd"><strong>অনুপস্থিতির কারণ</strong></div>' + absentHtml + '</div>' +

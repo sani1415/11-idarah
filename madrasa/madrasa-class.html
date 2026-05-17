@@ -26,14 +26,21 @@
   button.stat-tile:active { opacity: 0.92; }
   button.stat-tile:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.35); }
   button.stat-tile.stat-tile--ah:focus-visible { box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.4); }
+  button.stat-tile.stat-tile--absent:focus-visible { box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.32); }
   button.stat-tile.stat-tile--kh:focus-visible { box-shadow: 0 0 0 2px rgba(201, 149, 42, 0.45); }
+  .stat-tile--absent .stat-num { color: var(--red); }
   #modal-watch-list .modal-large > .watch-list-sub,
-  #modal-ah-list .modal-large > .watch-list-sub { flex-shrink: 0; font-size: 12px; color: var(--ink3); margin: 0 0 10px; line-height: 1.35; }
+  #modal-ah-list .modal-large > .watch-list-sub,
+  #modal-class-absent-list .modal-large > .watch-list-sub { flex-shrink: 0; font-size: 12px; color: var(--ink3); margin: 0 0 10px; line-height: 1.35; }
   #modal-watch-list .modal-large .watch-list-panel,
-  #modal-ah-list .modal-large .watch-list-panel { flex: 1 1 auto; min-height: 0; margin-top: 0; padding-right: 2px; }
+  #modal-ah-list .modal-large .watch-list-panel,
+  #modal-class-absent-list .modal-large .watch-list-panel { flex: 1 1 auto; min-height: 0; margin-top: 0; padding-right: 2px; }
   .watch-list-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #fff; border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--cream3); }
   .watch-list-item:last-child { margin-bottom: 0; }
   .watch-list-item .watch-open-std { flex: 1; text-align: left; border: none; background: transparent; padding: 0; cursor: pointer; font: inherit; font-weight: 600; color: var(--ink); min-width: 0; }
+  .absent-list-info { flex: 1; min-width: 0; }
+  .absent-list-meta { font-size: 10px; color: var(--ink3); margin-top: 3px; line-height: 1.35; }
+  .absent-list-days { font-size: 12px; font-weight: 800; color: var(--red); flex-shrink: 0; white-space: nowrap; }
   .stat-tile--kh { padding:6px 4px; min-height:96px; justify-content:center; }
   .stat-num { font-family:'Tiro Bangla',serif; font-size:20px; font-weight:700; color:var(--ink2); display:block; line-height:1.1; }
   .stat-label { font-size:9px; color:var(--ink3); margin-top:4px; display:block; line-height:1.2; }
@@ -210,6 +217,14 @@
   .modal.modal-large .modal-panel { flex:1 1 auto; min-height:0; overflow:auto; padding-right:2px; }
   .modal-history-list { max-height:310px; overflow:auto; padding:8px; background:var(--cream2); border-radius:12px; }
   .modal.modal-large .modal-history-list { max-height:none; min-height:100%; box-sizing:border-box; }
+  .modal-entry-history { padding:16px; }
+  .modal-entry-history .modal-title { margin-bottom:8px; }
+  .modal-entry-history .entry-context { font-size:13px; color:var(--ink2); font-weight:700; margin:0 0 6px; line-height:1.35; }
+  .modal-entry-history .kh-latest-summary { margin:0 0 8px; padding:8px 10px; font-size:11px; line-height:1.4; }
+  .modal-entry-history .form-group { margin-bottom:10px; }
+  .modal-entry-history .submit-btn { padding:12px; margin-top:0; }
+  .modal-entry-history .inline-history-title { margin:12px 0 6px; font-size:11px; font-weight:800; color:var(--ink2); }
+  .modal.modal-large .inline-history { max-height:260px; min-height:0; }
   .mini-edit-btn { border:1px solid var(--cream3); border-radius:8px; background:#fff; color:var(--ink2); font-family:'Tiro Bangla',serif; font-size:10px; font-weight:700; padding:3px 8px; cursor:pointer; }
   .form-group { margin-bottom:14px; }
   .form-label { display:block; font-size:12px; font-weight:600; color:var(--ink2); margin-bottom:6px; }
@@ -316,14 +331,10 @@
 
 <!-- MODAL: হুসনুল খুলুক -->
 <div class="modal-bg" id="modal-khuluk">
-  <div class="modal modal-large">
+  <div class="modal modal-large modal-entry-history">
     <div class="modal-title">হুসনুল খুলুক <button class="modal-close" onclick="closeModal('modal-khuluk')">✕</button></div>
-    <div style="font-size:13px;color:var(--ink2);font-weight:600;margin-bottom:6px;" id="kh-std-name">—</div>
+    <div class="entry-context" id="kh-std-name">—</div>
     <p id="kh-latest-summary" class="kh-latest-summary" style="display:none"></p>
-    <div class="modal-tabs" role="tablist" aria-label="হুসনুল খুলুক">
-      <button type="button" class="modal-tab active" id="kh-tab-form" onclick="setKhulukModalTab('form')" aria-selected="true">নতুন / এডিট</button>
-      <button type="button" class="modal-tab" id="kh-tab-history" onclick="setKhulukModalTab('history')" aria-selected="false">সম্পূর্ণ ইতিহাস</button>
-    </div>
     <div class="modal-panel" id="kh-panel-form">
       <div class="form-group">
         <label class="form-label">নতুন হুসনুল খুলুক (০–১০০)</label>
@@ -334,23 +345,18 @@
         <input class="form-input" id="kh-reason" placeholder="সংক্ষিপ্ত বিবরণ (প্রতি সেভে ইতিহাসে সঞ্চিত)">
       </div>
       <button type="button" class="submit-btn" onclick="saveKhuluk()">সংরক্ষণ করুন</button>
-    </div>
-    <div class="modal-panel" id="kh-panel-history" hidden>
-      <div id="kh-history-wrap" class="kh-history-wrap modal-history-list"></div>
+      <div class="inline-history-title">ইতিহাস</div>
+      <div id="kh-history-wrap" class="kh-history-wrap modal-history-list inline-history"></div>
     </div>
   </div>
 </div>
 
 <!-- MODAL: কিতাব অগ্রগতি -->
 <div class="modal-bg" id="modal-book-prog">
-  <div class="modal modal-large">
+  <div class="modal modal-large modal-entry-history">
     <div class="modal-title">কিতাব অগ্রগতি <button type="button" class="modal-close" onclick="closeModal('modal-book-prog')">✕</button></div>
-    <div style="font-size:13px;color:var(--ink2);font-weight:600;margin-bottom:6px;margin-top:-8px;" id="bp-book-label">—</div>
+    <div class="entry-context" id="bp-book-label">—</div>
     <p id="bp-latest-summary" class="kh-latest-summary" style="display:none;margin-top:0;"></p>
-    <div class="modal-tabs" role="tablist" aria-label="কিতাব অগ্রগতি">
-      <button type="button" class="modal-tab active" id="bp-tab-form" onclick="setBookProgModalTab('form')" aria-selected="true">আপডেট</button>
-      <button type="button" class="modal-tab" id="bp-tab-history" onclick="setBookProgModalTab('history')" aria-selected="false">ইতিহাস</button>
-    </div>
     <div class="modal-panel" id="bp-panel-form">
       <input type="hidden" id="bp-book-id" value="">
       <div class="form-group">
@@ -362,21 +368,16 @@
         <input class="form-input" id="bp-note" placeholder="সংক্ষিপ্ত মন্তব্য">
       </div>
       <button type="button" class="submit-btn" onclick="saveBookProg()">সংরক্ষণ করুন</button>
-    </div>
-    <div class="modal-panel" id="bp-panel-history" hidden>
-      <div id="bp-history-wrap" class="modal-history-list"></div>
+      <div class="inline-history-title">ইতিহাস</div>
+      <div id="bp-history-wrap" class="modal-history-list inline-history"></div>
     </div>
   </div>
 </div>
 
 <!-- MODAL: লগ (বর্ষ / নির্দিষ্ট ছাত্র — পুরনো অ্যাপের মতো) -->
 <div class="modal-bg" id="modal-log">
-  <div class="modal modal-large">
+  <div class="modal modal-large modal-entry-history">
     <div class="modal-title"><span id="log-modal-heading" class="log-modal-heading">নতুন লগ</span><button type="button" class="modal-close" onclick="closeLogModal()">✕</button></div>
-    <div class="modal-tabs" role="tablist" aria-label="লগ">
-      <button type="button" class="modal-tab active" id="log-modal-tab-form" onclick="setLogModalTab('form')" aria-selected="true">নতুন / এডিট</button>
-      <button type="button" class="modal-tab" id="log-modal-tab-history" onclick="setLogModalTab('history')" aria-selected="false">পুরনো লগ</button>
-    </div>
     <div class="modal-panel" id="log-modal-panel-form">
       <div class="form-group" id="log-student-field-wrap">
         <label class="form-label">কার জন্য</label>
@@ -386,12 +387,11 @@
       </div>
       <div class="form-group">
         <label class="form-label">লগের বিষয়বস্তু</label>
-        <textarea class="form-input" id="log-text" rows="4" placeholder="আজকের বর্ষের কার্যক্রম, অথবা নির্দিষ্ট ছাত্র সম্পর্কে বিবরণ…" style="resize:none;"></textarea>
+        <textarea class="form-input" id="log-text" rows="3" placeholder="আজকের বর্ষের কার্যক্রম, অথবা নির্দিষ্ট ছাত্র সম্পর্কে বিবরণ…" style="resize:none;"></textarea>
       </div>
       <button type="button" class="submit-btn" onclick="saveLog()">সংরক্ষণ করুন</button>
-    </div>
-    <div class="modal-panel" id="log-modal-panel-history" hidden>
-      <div id="log-modal-history-wrap" class="modal-history-list"></div>
+      <div class="inline-history-title">পুরনো লগ</div>
+      <div id="log-modal-history-wrap" class="modal-history-list inline-history"></div>
     </div>
   </div>
 </div>
@@ -414,6 +414,17 @@
     <p id="ah-list-sub" class="watch-list-sub">—</p>
     <div class="modal-panel watch-list-panel">
       <div id="ah-list-body" class="modal-history-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: এই বর্ষের অনুপস্থিত তালিকা -->
+<div class="modal-bg" id="modal-class-absent-list">
+  <div class="modal modal-large">
+    <div class="modal-title">অনুপস্থিত তালিকা <button type="button" class="modal-close" onclick="closeModal('modal-class-absent-list')">✕</button></div>
+    <p id="class-absent-list-sub" class="watch-list-sub">—</p>
+    <div class="modal-panel watch-list-panel">
+      <div id="class-absent-list-body" class="modal-history-list"></div>
     </div>
   </div>
 </div>
@@ -544,10 +555,7 @@
     if (!classId) { grid.innerHTML = ''; return; }
 
     const students = API.Students.getByClass(classId);
-    const today = API.today();
-    const att = API.Attendance.getByClassDate(classId, today) || {};
-    const recs = att.records || [];
-    const present = recs.filter(r => r.status === 'present').length;
+    const absentRows = getClassAbsentRows();
     const avg = API.Khuluk.getClassAvg(classId);
 
     const st = API.Settings.get();
@@ -565,7 +573,7 @@
 
     grid.innerHTML =
       '<div class="stat-tile"><span class="stat-num">' + toBn(students.length) + '</span><span class="stat-label">মোট ছাত্র</span></div>' +
-      '<div class="stat-tile"><span class="stat-num" style="color:var(--green)">' + toBn(present) + '</span><span class="stat-label">আজ উপস্থিত</span></div>' +
+      '<button type="button" class="stat-tile stat-tile--absent" onclick="openClassAbsentListModal()"><span class="stat-num">' + toBn(absentRows.length) + '</span><span class="stat-label">অনুপস্থিত তালিকা</span></button>' +
       '<div class="stat-tile"><span class="stat-num stat-num--leave">' + toBn(leaveCount) + '</span><span class="stat-label">বিদায়ী</span></div>' +
       '<button type="button" class="stat-tile" onclick="openWatchListModal()"><span class="stat-num" style="color:#7c3aed">' + toBn(watchCount) + '</span><span class="stat-label">পর্যবেক্ষণ</span></button>' +
       '<button type="button" class="stat-tile stat-tile--ah" onclick="openAhListModal()"><span class="stat-num" style="color:#b45309">' + toBn(ahCount) + '</span><span class="stat-label">আলহামদুলিল্লাহ</span></button>' +
@@ -574,6 +582,53 @@
       '<div class="stat-kh-hd">' + '\u09B9\u09C1\u09B8\u09A8\u09C1\u09B2 \u0996\u09C1\u09B2\u09C1\u0995' + '</div>' +
       '<div class="kh-mini">' + threeLines + '</div>' +
       '</button>';
+  }
+
+  /* ── অনুপস্থিত তালিকা ── */
+  function getClassAbsentRows() {
+    if (!classId || !API.Attendance) return [];
+    const students = API.Students.getByClass(classId);
+    return students.map(function (s) {
+      const absentDays = API.Attendance.getByStudent(s.id).filter(function (a) {
+        return API.Attendance.statusOf(a) === 'absent';
+      }).length;
+      return { student: s, absentDays: absentDays };
+    }).filter(function (x) {
+      return x.absentDays > 0;
+    }).sort(function (a, b) {
+      return (b.absentDays || 0) - (a.absentDays || 0) ||
+        String(a.student.roll || '').localeCompare(String(b.student.roll || ''), undefined, { numeric: true }) ||
+        String(a.student.name || '').localeCompare(String(b.student.name || ''), 'bn');
+    });
+  }
+
+  function openClassAbsentListModal() {
+    if (!classId) return;
+    const body = document.getElementById('class-absent-list-body');
+    const sub = document.getElementById('class-absent-list-sub');
+    if (!body) return;
+    const rows = getClassAbsentRows();
+    if (sub) sub.textContent = rows.length
+      ? 'মোট ' + toBn(rows.length) + ' জন — বেশি অনুপস্থিত দিন থেকে কম সাজানো'
+      : 'কেউ নেই';
+    if (!rows.length) {
+      body.innerHTML = '<div class="log-panel-empty">এই বর্ষে কোনো ছাত্রের অনুপস্থিত রেকর্ড নেই।</div>';
+    } else {
+      body.innerHTML = rows.map(function (x, i) {
+        const s = x.student;
+        var hasR = s.roll != null && String(s.roll).trim() !== '';
+        var rollPill = hasR ? API.escBn(String(s.roll)) : '—';
+        return '<div class="watch-list-item">' +
+          '<span class="std-roll">' + toBn(i + 1) + '</span>' +
+          '<div class="absent-list-info">' +
+            '<button type="button" class="watch-open-std" onclick="closeModal(\'modal-class-absent-list\'); MMStudentModal.open(\'' + _jsQuote(s.id) + '\')">' + API.esc(s.name) + '</button>' +
+            '<div class="absent-list-meta">রোল ' + rollPill + '</div>' +
+          '</div>' +
+          '<div class="absent-list-days">' + toBn(x.absentDays) + ' দিন</div>' +
+          '</div>';
+      }).join('');
+    }
+    openModal('modal-class-absent-list');
   }
 
   /* ── হুসনুল খুলুক ক্যাটাগরি মোডাল ── */
@@ -786,13 +841,8 @@
   let khulukTargetId = '';
   let khulukEditId = '';
   function setKhulukModalTab(which) {
-    const form = which !== 'history';
-    document.getElementById('kh-panel-form').hidden = !form;
-    document.getElementById('kh-panel-history').hidden = form;
-    document.getElementById('kh-tab-form').classList.toggle('active', form);
-    document.getElementById('kh-tab-history').classList.toggle('active', !form);
-    document.getElementById('kh-tab-form').setAttribute('aria-selected', form ? 'true' : 'false');
-    document.getElementById('kh-tab-history').setAttribute('aria-selected', form ? 'false' : 'true');
+    const form = document.getElementById('kh-panel-form');
+    if (form) form.hidden = false;
   }
   function fillKhulukHistory(sid) {
     const sumEl = document.getElementById('kh-latest-summary');
@@ -881,13 +931,8 @@
 
   /* ── KITAB ── */
   function setBookProgModalTab(which) {
-    const form = which !== 'history';
-    document.getElementById('bp-panel-form').hidden = !form;
-    document.getElementById('bp-panel-history').hidden = form;
-    document.getElementById('bp-tab-form').classList.toggle('active', form);
-    document.getElementById('bp-tab-history').classList.toggle('active', !form);
-    document.getElementById('bp-tab-form').setAttribute('aria-selected', form ? 'true' : 'false');
-    document.getElementById('bp-tab-history').setAttribute('aria-selected', form ? 'false' : 'true');
+    const form = document.getElementById('bp-panel-form');
+    if (form) form.hidden = false;
   }
   function fillBookProgHistory(book) {
     const wrap = document.getElementById('bp-history-wrap');
@@ -999,13 +1044,8 @@
     closeModal('modal-log');
   }
   function setLogModalTab(which) {
-    const form = which !== 'history';
-    document.getElementById('log-modal-panel-form').hidden = !form;
-    document.getElementById('log-modal-panel-history').hidden = form;
-    document.getElementById('log-modal-tab-form').classList.toggle('active', form);
-    document.getElementById('log-modal-tab-history').classList.toggle('active', !form);
-    document.getElementById('log-modal-tab-form').setAttribute('aria-selected', form ? 'true' : 'false');
-    document.getElementById('log-modal-tab-history').setAttribute('aria-selected', form ? 'false' : 'true');
+    const form = document.getElementById('log-modal-panel-form');
+    if (form) form.hidden = false;
   }
   function renderModalLogHistory() {
     const wrap = document.getElementById('log-modal-history-wrap');

@@ -871,11 +871,12 @@ body {
 .st-badg--a { color: var(--red); background: var(--red-light); }
 .st-badg--l,
 .st-badg--h { color: var(--gold); background: var(--gold-light); }
+.st-badg--m { color: var(--gold); background: rgba(201,149,42,.12); }
 .st-subdate { font-size: 10px; opacity: 0.7; }
 .st-att-overview { display: flex; flex-direction: column; gap: 12px; }
 .st-att-cards {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 .st-att-card {
@@ -903,6 +904,7 @@ body {
 }
 .st-att-card--p strong { color: var(--green); }
 .st-att-card--a strong { color: var(--red); }
+.st-att-card--m strong { color: var(--gold); }
 .st-att-month,
 .st-att-section {
   border-top: 1px solid var(--cream2);
@@ -941,11 +943,12 @@ body {
 .st-att-day--p { color: var(--green); border-color: rgba(45,106,79,.32); background: rgba(45,106,79,.10); }
 .st-att-day--a { color: var(--red); border-color: rgba(193,68,14,.32); background: rgba(193,68,14,.10); }
 .st-att-day--h { color: var(--gold); border-color: rgba(201,149,42,.35); background: rgba(201,149,42,.12); }
+.st-att-day--m { color: var(--gold); border-color: rgba(201,149,42,.28); background: rgba(201,149,42,.08); }
 .st-att-day--x { color: rgba(107,90,62,.38); background: #fbfaf7; }
 .st-att-month-row,
 .st-att-abs-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) auto auto auto;
+  grid-template-columns: minmax(0, 1.25fr) repeat(4, auto);
   gap: 8px;
   align-items: center;
   padding: 7px 0;
@@ -968,6 +971,15 @@ body {
   align-items: start;
 }
 .st-att-abs-row span { color: var(--ink3); line-height: 1.35; }
+.st-att-note {
+  border: 1px solid rgba(201,149,42,.28);
+  border-radius: 8px;
+  background: rgba(201,149,42,.08);
+  color: var(--ink2);
+  font-size: 11px;
+  line-height: 1.45;
+  padding: 8px 10px;
+}
 .st-fee-line { font-size: 12px; padding: 8px 0; border-bottom: 1px solid var(--cream2); }
 .st-fee-line:last-child { border-bottom: none; }
 .st-fee-mo { font-weight: 700; color: var(--ink2); font-family: 'Tiro Bangla', serif; margin-bottom: 4px; }

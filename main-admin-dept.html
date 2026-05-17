@@ -51,6 +51,7 @@
   .ds-field-item { display:flex; align-items:center; gap:8px; padding:9px 12px; background:#fff; border-radius:var(--radius-sm); border:1px solid rgba(26,18,8,.06); box-shadow:var(--shadow); margin-bottom:7px; }
   .ds-field-label { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
   .ds-field-meta { font-size:10px; color:var(--ink3); margin-top:2px; }
+  .ds-pin-chip { display:inline-flex; align-items:center; gap:5px; margin-top:4px; padding:3px 8px; border-radius:999px; background:var(--cream2); color:var(--ink2); font-size:11px; font-weight:700; }
   .ds-inp { width:100%; box-sizing:border-box; border:1px solid rgba(26,18,8,.14); border-radius:10px; padding:9px 11px; font-size:13px; font-family:'Tiro Bangla',serif; color:var(--ink); background:#fafafa; }
   .ds-inp:focus { outline:none; border-color:var(--gold2); background:#fff; }
   .ds-row { display:flex; gap:8px; }
@@ -257,7 +258,7 @@
           <div class="dept-emoji">${d.emoji}</div>
           <div class="dept-info">
             <div class="dept-name">${DeptAPI.esc(d.name)}</div>
-            <div class="dept-pin-info">${DeptAPI.esc(d.description||'')}</div>
+            <div class="dept-pin-info">${d.pin ? 'দায়িত্বশীল PIN: ' + DeptAPI.esc(d.pin) : 'দায়িত্বশীল PIN সেট নেই'}</div>
           </div>
         </div>
         <div class="dept-fin">
@@ -403,6 +404,7 @@
         <span class="ds-dept-ico">${d.emoji||'🏢'}</span>
         <span class="ds-dept-name" style="${inactive?'opacity:.5;':''}">
           ${DeptAPI.esc(d.name)}${inactive?' <small style="color:var(--red);font-size:10px;">(নিষ্ক্রিয়)</small>':''}
+          <span class="ds-pin-chip">PIN: ${DeptAPI.esc(d.pin || '—')}</span>
         </span>
         <div style="display:flex;gap:5px;flex-shrink:0;">
           <button class="ds-btn" onclick="openDeptConfig('${d.id}')">⚙</button>

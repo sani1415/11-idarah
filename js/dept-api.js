@@ -47,35 +47,11 @@ const DeptAPI = (() => {
     });
   }
 
-  /* ── SEED ── */
   function seedIfEmpty() {
-    const existing = load(KEYS.departments);
-    const defaultDepts = [
-      { id:'dept_1', name:'কৃষি বিভাগ', emoji:'🌾', pin:'0000', is_active:true },
-      { id:'dept_2', name:'মধু বিভাগ', emoji:'🍯', pin:'0000', is_active:true },
-      { id:'dept_3', name:'বেকারি বিভাগ', emoji:'🍞', pin:'0000', is_active:true },
-      { id:'dept_4', name:'সেলাই বিভাগ', emoji:'✂️', pin:'0000', is_active:true },
-      { id:'dept_5', name:'স্টোর', emoji:'📦', pin:'0000', is_active:true },
-      { id:'dept_6', name:'রান্নাঘর', emoji:'🍽️', pin:'0000', is_active:true },
-      { id:'dept_7', name:'বই বিতরণ', emoji:'📚', pin:'0000', is_active:true },
-    ];
-    if (existing.length) {
-      /* migration: নতুন বিভাগ যোগ হলে শুধু সেটা ঢুকিয়ে দাও */
-      let changed = false;
-      defaultDepts.forEach(nd => {
-        if (!existing.find(d => d.id === nd.id)) { existing.push(nd); changed = true; }
-      });
-      existing.forEach(d => {
-        const nextEmoji = deptIcon(d.id, d.emoji);
-        if (d.emoji !== nextEmoji) { d.emoji = nextEmoji; changed = true; }
-      });
-      if (changed) save(KEYS.departments, existing);
-      return;
-    }
-    save(KEYS.departments, defaultDepts);
+    return false;
   }
 
-  /* ── DEPARTMENTS ── */
+  /* DEPARTMENTS */
   const Departments = {
     getAll:   () => load(KEYS.departments).filter(d => d.is_active !== false),
     getAll_:  () => load(KEYS.departments),
@@ -94,14 +70,6 @@ const DeptAPI = (() => {
     update(id, data) {
       save(KEYS.departments, load(KEYS.departments).map(d => d.id===id ? {...d,...data} : d));
     },
-  };
-
-  /* ── Legacy default field definitions, kept only for reference. DB data is authoritative. ── */
-  const SUBDEPT_EXTRA_FIELDS_DEFAULT = {
-    dept_1: [{ key:'plot',      label:'জমি / প্লট রেফারেন্স',  type:'text',   optional:true }],
-    dept_2: [{ key:'hives',     label:'মৌচাক সংখ্যা (ঐন)',     type:'number', optional:true }],
-    dept_3: [{ key:'batch',     label:'ব্যাচ / লট',             type:'text',   optional:true }],
-    dept_4: [{ key:'item_type', label:'পণ্যের ধরন',             type:'text',   optional:true }],
   };
 
   function _loadExtraFields() {

@@ -162,16 +162,14 @@
     if (!el) return;
     try {
       const s = JSON.parse(localStorage.getItem('mm_settings') || '{}');
-      const raw = (s.hijri_year != null ? String(s.hijri_year) :
-        (window.MMSampleData && window.MMSampleData.defaultSettings && window.MMSampleData.defaultSettings.hijri_year != null
-          ? String(window.MMSampleData.defaultSettings.hijri_year) : '')).trim();
+      const raw = (s.hijri_year != null ? String(s.hijri_year) : '').trim();
       el.textContent = raw ? raw.replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]) + ' হিজরী শিক্ষাবর্ষ' : '';
     } catch(e) { el.textContent = ''; }
   }
   window.addEventListener('storage', e => { if (!e.key || e.key === 'mm_settings') updateYearDisplay(); });
   window.addEventListener('mm-settings-updated', updateYearDisplay);
 
-  /* sample data re-seed বন্ধ: existing local data মুছবে না */
+  /* DB bootstrap only; no local department seed. */
   function init() {
     const depts = DeptAPI.Departments.getAll();
     const el = document.getElementById('dept-list');

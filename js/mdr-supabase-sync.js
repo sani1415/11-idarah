@@ -203,7 +203,12 @@
 
   function upsertLocalClasses(rows) {
     if (!global.API || !API.Classes) return;
-    (rows || []).map(toLocalClass).filter(function (c) { return c.id; }).forEach(function (c) {
+    var mapped = (rows || []).map(toLocalClass).filter(function (c) { return c.id; });
+    if (API.Classes.replaceAll) {
+      API.Classes.replaceAll(mapped);
+      return;
+    }
+    mapped.forEach(function (c) {
       if (API.Classes.getById && API.Classes.getById(c.id)) API.Classes.update(c.id, c);
       else if (API.Classes.add) API.Classes.add(c);
     });

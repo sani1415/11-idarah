@@ -226,7 +226,7 @@
       const { pin, actorId } = getSession();
       state.errors = [];
       if (!pin) {
-        setSyncStatus('এডমিন session নেই, তাই শুধু browser cache/sample দেখাচ্ছে।', 'warn');
+        setSyncStatus('এডমিন session নেই, তাই ডাটাবেজ ডেটা লোড করা যাচ্ছে না।', 'warn');
         return;
       }
 

@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=20260516-student-attendance-profile">
+<link rel="stylesheet" href="../css/style.css?v=20260517-attendance-consistency">
 <style>
 /* ── হিরো কার্ড (সঘন) ── */
 .hero {
@@ -972,14 +972,14 @@ body.page-daftar #modal-account-entry .modal {
 <script src="../supabase-config.js?v=20260516-attendance-persist"></script>
 <script src="../api-shared.js?v=20260516-attendance-persist"></script>
 <script src="../js/mm-sample-data.js"></script>
-<script src="../js/api.js?v=20260516-attendance-persist"></script>
+<script src="../js/api.js?v=20260517-attendance-consistency"></script>
 <script src="../js/mdr-daftar-supabase.js?v=20260516-attendance-persist"></script>
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/madrasa-accounts-api.js?v=20260503-accounts-topbar"></script>
 <script src="../js/chat-api.js"></script>
 <script src="../js/madrasa-daftar-accounts.js?v=20260511-income-sort"></script>
 <script src="../js/madrasa-accounts-reports.js"></script>
-<script src="../js/mm-student-modal.js?v=20260516-student-attendance-profile"></script>
+<script src="../js/mm-student-modal.js?v=20260517-attendance-consistency"></script>
 <script src="../js/mm-session.js?v=20260516-attendance-persist"></script>
 <script src="../js/daftar-bottom-nav.js"></script>
 <script src="../js/monitor-mode.js"></script>
@@ -1939,23 +1939,11 @@ body.page-daftar #modal-account-entry .modal {
     renderStudentList();
   });
 
-  /* ── SAMPLE DATA ── */
   function ensureDaftarSampleData() {
-    const classes = API.Classes.getAll(); if (!classes.length) return;
-    if (API.Students.getAll().filter(s => s.active).length) return;
-    const classId = classes[0].id;
-    [
-      { permanent_id:'ডেমো-০০১', name:'ডেমো ছাত্র ১', roll:'১', guardian:'ডেমো অভিভাবক', guardian_job:'চাষাবাদ', phone:'০১০০০-০০০০০০', district:'কুমিল্লা', upazila:'ডেমো পাড়া' },
-      { permanent_id:'ডেমো-০০২', name:'ডেমো ছাত্র ২', roll:'২', guardian:'ডেমো অভিভাবক', guardian_job:'ব্যবসা',   phone:'০১১১১-১১১১১১', district:'কুমিল্লা', upazila:'ডেমো পাড়া' },
-      { permanent_id:'ডেমো-০০৩', name:'ডেমো ছাত্র ৩', roll:'৩', guardian:'ডেমো অভিভাবক', guardian_job:'দোকান',   phone:'০১২২২-২২২২২২', district:'কুমিল্লা', upazila:'ডেমো পাড়া' },
-      { permanent_id:'ডেমো-০০৪', name:'ডেমো ছাত্র ৪', roll:'৪', guardian:'ডেমো অভিভাবক', guardian_job:'কর্মচারী',phone:'০১৩৩৩-৩৩৩৩৩৩', district:'কুমিল্লা', upazila:'ডেমো পাড়া' },
-    ].forEach(d => API.Students.add({ ...d, class_id: classId, dept:'kitab' }));
-    API.Students.getByClass(classId).slice(0,4).forEach((s, i) =>
-      API.Attendance.save(s.id, daftarAttDate, i === 2 ? 'absent' : 'present', i === 2 ? 'ডেমো: বাড়িতে' : undefined));
-    showToast('ডেমো হাজিরা তথ্য যোগ করা হয়েছে');
+    return false;
   }
 
-  /* ── POPULATE CLASS FILTER ── */
+  /* POPULATE CLASS FILTER ── */
   function populateClassFilter() {
     const sel = document.getElementById('class-filter-sel');
     API.Classes.getAll().forEach(c => {

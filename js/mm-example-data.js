@@ -1,9 +1,5 @@
-/**
- * @deprecated
- * সব নমুনা ডেটা এখন `mm-sample-data.js` এ — প্রথম সিডে অন্তর্ভুক্ত।
- * পুরনো HTML যেখানে এটা স্ক্রিপ্ট ট্যাগে ছিল, সরানো হয়েছে।
- * (এই ফাইল সামঞ্জস্যের জন্য শূন্য রাখা যেতে পারে।)
- */
+/* Deprecated compatibility stub.
+   Sample/example data is disabled; data should come from Supabase. */
 (function () {
   'use strict';
 }());

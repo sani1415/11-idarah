@@ -26,7 +26,7 @@ const fmtDate = d => {
   return bn(dd) + '/' + bn(m) + '/' + bn(y.slice(2));
 };
 
-/* ── DEFAULT DATA ── */
+/* ── TYPE PRESETS ── */
 const DEFAULTS = () => ({
   presets: {
     qurbani: {
@@ -60,24 +60,9 @@ const DEFAULTS = () => ({
       expenseTypes: ['ব্যয়', 'অন্যান্য'],
     },
   },
-  programs: [
-    { id: 'q1', name: 'কোরবানি আয়োজন ১৪৪৭', status: 'চলমান', date: '', note: 'হিস্যা ভিত্তিক হিসাব।', shareEnabled: true, incomeTypes: ['হিস্যা', 'আংশিক টাকা'], expenseTypes: ['গরু ক্রয়', 'পরিবহন', 'খাদ্য', 'কসাই / জবাই', 'অন্যান্য'] },
-    { id: 'm1', name: 'বার্ষিক মাহফিল ১৪৪৭', status: 'পরিকল্পনা', date: '', note: '', shareEnabled: false, incomeTypes: ['অনুদান', 'কালেকশন', 'স্পন্সর'], expenseTypes: ['মাইক / সাউন্ড', 'খাবার', 'মেহমানদারি', 'স্টেজ', 'অন্যান্য'] },
-  ],
-  income: {
-    q1: [
-      { id: uid(), date: todayISO(), type: 'হিস্যা', personType: 'সাধারণ মানুষ', name: 'হাজী আবু বকর', share: 2, amount: 34000, ref: '017xx' },
-      { id: uid(), date: todayISO(), type: 'আংশিক টাকা', personType: 'সাধারণ মানুষ', name: 'সাধারণ অনুদান', share: 0, amount: 3000, ref: 'নগদ' },
-    ],
-    m1: [],
-  },
-  expense: {
-    q1: [
-      { id: uid(), date: todayISO(), type: 'গরু ক্রয়', amount: 92000, note: '১টি গরু বুকিং' },
-      { id: uid(), date: todayISO(), type: 'পরিবহন', amount: 3500, note: 'হাট থেকে আনা' },
-    ],
-    m1: [],
-  },
+  programs: [],
+  income: {},
+  expense: {},
 });
 
 /* ── STATE ── */
@@ -118,11 +103,16 @@ function programHasShares(p) {
   return p && (p.shareEnabled === true || p.shareEnabled === 'true');
 }
 
+function programRequiresDonorName(p) {
+  return !(p && (p.donorNameRequired === false || p.donorNameRequired === 'false'));
+}
+
 function ensureProgramShape(p) {
   const src = defaultTypesForProgram(p);
   p.incomeTypes = uniqList(p.incomeTypes || src.incomeTypes, src.incomeTypes);
   p.expenseTypes = uniqList(p.expenseTypes || src.expenseTypes, src.expenseTypes);
   p.shareEnabled = programHasShares(p);
+  p.donorNameRequired = programRequiresDonorName(p);
   delete p.template;
   return p;
 }
@@ -249,11 +239,15 @@ function renderIncomeName(row) {
   const permanentId = incomeStudentPermanentId(row, s);
   const nameHtml = s
     ? `<button type="button" class="s-name-btn" style="font-size:13px;font-weight:800" onclick="MMStudentModal.open('${jsq(s.id)}')">${API.esc(s.name)}</button>`
-    : `<b>${API.esc(row.name)}</b>`;
+    : `<b>${API.esc(row.name || '—')}</b>`;
   const idHtml = permanentId
     ? `<div style="font-size:11px;color:var(--ink3);margin-top:2px">দাখেলা ${API.escBn(permanentId)}</div>`
     : '';
   return nameHtml + idHtml;
+}
+
+function expenseTypeLabel(type) {
+  return String(type || '').trim() || 'সাধারণ';
 }
 
 function programNameById(id) {
@@ -466,7 +460,7 @@ function renderExpenseTab() {
     </tr></thead>
     <tbody>${rows.map(x => `<tr>
       <td style="color:var(--ink3)">${fmtDate(x.date)}</td>
-      <td>${API.esc(x.type)}</td>
+      <td>${API.esc(expenseTypeLabel(x.type))}</td>
       <td style="color:var(--ink3)">${API.esc(x.note || '')}</td>
       <td>${renderReceiptCell(x.id)}</td>
       <td style="color:var(--red);font-weight:700">${money(x.amount)}</td>
@@ -512,7 +506,10 @@ function renderReport() {
 
   const byInc = {}, byExp = {};
   fInc.forEach(x => { byInc[x.type] = (byInc[x.type] || 0) + Number(x.amount || 0); });
-  fExp.forEach(x => { byExp[x.type] = (byExp[x.type] || 0) + Number(x.amount || 0); });
+  fExp.forEach(x => {
+    const key = expenseTypeLabel(x.type);
+    byExp[key] = (byExp[key] || 0) + Number(x.amount || 0);
+  });
 
   const customRow = rptRange === 'custom' ? `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -562,6 +559,7 @@ function newProgram() {
   document.getElementById('prog-date').value      = '';
   document.getElementById('prog-note-inp').value  = '';
   document.getElementById('prog-share-enabled').checked = false;
+  document.getElementById('prog-donor-required').checked = true;
   document.getElementById('prog-income-types').value = typesToLines(DEFAULTS().presets.custom.incomeTypes);
   document.getElementById('prog-expense-types').value = typesToLines(DEFAULTS().presets.custom.expenseTypes);
   document.getElementById('prog-del-btn').style.display = 'none';
@@ -579,6 +577,7 @@ function editProgram() {
   document.getElementById('prog-date').value      = p.date || '';
   document.getElementById('prog-note-inp').value  = p.note || '';
   document.getElementById('prog-share-enabled').checked = programHasShares(p);
+  document.getElementById('prog-donor-required').checked = programRequiresDonorName(p);
   document.getElementById('prog-income-types').value = typesToLines(p.incomeTypes);
   document.getElementById('prog-expense-types').value = typesToLines(p.expenseTypes);
   document.getElementById('prog-del-btn').style.display = '';
@@ -598,6 +597,7 @@ async function saveProgram() {
     date:     document.getElementById('prog-date').value,
     note:     document.getElementById('prog-note-inp').value,
     shareEnabled: document.getElementById('prog-share-enabled').checked,
+    donorNameRequired: document.getElementById('prog-donor-required').checked,
     incomeTypes,
     expenseTypes,
   };
@@ -639,6 +639,7 @@ function openIncome(editId = '') {
   document.getElementById('inc-ref').value          = r ? (r.ref || '') : '';
   syncIncomeStudentField();
   syncIncShareField();
+  syncDonorRequirement();
   openModal('income');
 }
 
@@ -646,6 +647,14 @@ function onIncTypeChange() { syncIncShareField(); }
 
 function isStudentIncomeType() {
   return document.getElementById('inc-person-type') && document.getElementById('inc-person-type').value === 'ছাত্র';
+}
+
+function syncDonorRequirement() {
+  const mark = document.getElementById('inc-name-required-mark');
+  const name = document.getElementById('inc-name');
+  const required = isStudentIncomeType() || programRequiresDonorName(program());
+  if (mark) mark.style.display = required ? '' : 'none';
+  if (name) name.required = required;
 }
 
 function populateIncomeStudentSelect(selectedId) {
@@ -701,6 +710,7 @@ function syncIncomeStudentField() {
     name.placeholder = on ? 'ছাত্র নির্বাচন করলে নাম বসবে' : 'দাতার নাম';
   }
   if (on) onIncomeStudentChange();
+  syncDonorRequirement();
 }
 
 function onIncomeStudentChange() {
@@ -730,7 +740,7 @@ async function saveIncome() {
   if (studentId) onIncomeStudentChange();
   const name   = document.getElementById('inc-name').value.trim();
   const amount = parseFloat(document.getElementById('inc-amount').value);
-  if (!name)         { showToast('নাম দিন'); return; }
+  if (!name && programRequiresDonorName(program())) { showToast('দাতার নাম দিন'); return; }
   if (!(amount > 0)) { showToast('সঠিক টাকার পরিমাণ দিন'); return; }
   const isShare = programHasShares(program()) && document.getElementById('inc-is-share').checked;
   const editId = document.getElementById('inc-edit-id').value;
@@ -765,13 +775,13 @@ function openExpense(editId = '') {
   const p = program();
   if (!p) return;
   const types = uniqList(p.expenseTypes, DEFAULTS().presets.custom.expenseTypes);
-  document.getElementById('exp-type').innerHTML = types.map(x =>
+  document.getElementById('exp-type').innerHTML = '<option value="">সাধারণ</option>' + types.map(x =>
     `<option>${API.esc(x)}</option>`).join('');
   document.getElementById('exp-modal-title').textContent = editId ? 'ব্যয় এডিট' : 'ব্যয় যোগ';
   document.getElementById('exp-edit-id').value = editId;
   const r = editId ? expenses().find(x => x.id === editId) : null;
   document.getElementById('exp-date').value   = r ? (r.date || todayISO()) : todayISO();
-  document.getElementById('exp-type').value   = r ? (r.type || types[0]) : types[0];
+  document.getElementById('exp-type').value   = r ? (r.type || '') : '';
   document.getElementById('exp-amount').value = r ? (r.amount || '') : '';
   document.getElementById('exp-note').value   = r ? (r.note || '') : '';
   const fileInput = document.getElementById('exp-files');
@@ -787,7 +797,7 @@ async function saveExpense() {
   const row = {
     id:     document.getElementById('exp-edit-id').value || uid(),
     date:   document.getElementById('exp-date').value || todayISO(),
-    type:   document.getElementById('exp-type').value,
+    type:   expenseTypeLabel(document.getElementById('exp-type').value),
     amount,
     note:   document.getElementById('exp-note').value.trim(),
   };
@@ -977,6 +987,7 @@ function loadSettingsProgram(id) {
   document.getElementById('set-prog-date').value = p.date || '';
   document.getElementById('set-prog-note').value = p.note || '';
   document.getElementById('set-prog-share-enabled').checked = programHasShares(p);
+  document.getElementById('set-prog-donor-required').checked = programRequiresDonorName(p);
   document.getElementById('set-prog-income-types').value = typesToLines(p.incomeTypes);
   document.getElementById('set-prog-expense-types').value = typesToLines(p.expenseTypes);
 }
@@ -994,6 +1005,7 @@ async function saveSettingsProgram() {
     date: document.getElementById('set-prog-date').value,
     note: document.getElementById('set-prog-note').value,
     shareEnabled: document.getElementById('set-prog-share-enabled').checked,
+    donorNameRequired: document.getElementById('set-prog-donor-required').checked,
     incomeTypes: linesToTypes(document.getElementById('set-prog-income-types').value, DEFAULTS().presets.custom.incomeTypes),
     expenseTypes: linesToTypes(document.getElementById('set-prog-expense-types').value, DEFAULTS().presets.custom.expenseTypes),
   };
@@ -1020,7 +1032,7 @@ function deleteSettingsProgram() {
 }
 
 function resetDemo() {
-  showToast('এখন ডাটাবেজই মূল উৎস, লোকাল ডেমো রিসেট নেই');
+  showToast('এখন ডাটাবেজই মূল উৎস, লোকাল রিসেট নেই');
 }
 
 /* ══════════════════════════════════════════

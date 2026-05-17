@@ -93,6 +93,8 @@
   .txn-action-row button { border:0; border-radius:var(--radius-sm); padding:10px; font-family:'Tiro Bangla',serif; font-weight:800; cursor:pointer; }
   .txn-action-row .edit { background:var(--cream2); color:var(--ink2); }
   .txn-action-row .delete { background:var(--red-light); color:var(--red); }
+  .dept-settings-note { font-size:12px; line-height:1.6; color:var(--ink3); margin:0 0 12px; }
+  .dept-settings-error { min-height:18px; color:var(--red); font-size:12px; margin-top:8px; }
   .txn-item--pending { background:#fffbf0; border-right:3px solid #f59e0b; cursor:default; opacity:.92; }
   .pending-tag { display:inline-flex; align-items:center; gap:3px; background:#fef3c7; color:#92400e; border-radius:999px; padding:2px 8px; font-size:10px; font-weight:800; margin-top:3px; }
   @media (max-width:640px) {
@@ -120,6 +122,7 @@
   </div>
   <div class="topbar-actions">
     <button type="button" class="topbar-btn" id="topbar-hub" style="display:none" onclick="location.href='../main-admin-madrasa.html'">এডমিন</button>
+    <button type="button" class="topbar-btn topbar-btn--icon" onclick="openDeptSettings()" title="সেটিং" aria-label="সেটিং"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
     <button type="button" class="topbar-btn topbar-btn--icon" id="topbar-lockout" onclick="MMSession.logoutToIndex('../index.html')" title="লগআউট" aria-label="লগআউট"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
   </div>
 </div>
@@ -309,6 +312,29 @@
   </div>
 </div>
 
+<div class="modal-bg modal-float" id="modal-dept-settings">
+  <div class="modal">
+    <div class="modal-title">সেটিং <button class="modal-close" onclick="closeDeptSettings()">✕</button></div>
+    <p class="dept-settings-note">নিজের বিভাগের লগইন PIN পরিবর্তন করুন। পরিবর্তন ডাটাবেজে সেভ হবে, তাই জিম্মাদারের বিভাগ সেটিংয়েও সর্বশেষ PIN দেখা যাবে।</p>
+    <div class="form-group">
+      <label class="form-label">বর্তমান PIN</label>
+      <input class="form-input" id="dept-pin-current" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password" placeholder="বর্তমান PIN">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">নতুন PIN</label>
+        <input class="form-input" id="dept-pin-new" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" placeholder="৪ সংখ্যা">
+      </div>
+      <div class="form-group">
+        <label class="form-label">আবার দিন</label>
+        <input class="form-input" id="dept-pin-confirm" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" placeholder="৪ সংখ্যা">
+      </div>
+    </div>
+    <button class="submit-btn" id="dept-pin-submit" onclick="saveDeptPin()">PIN পরিবর্তন করুন</button>
+    <div class="dept-settings-error" id="dept-pin-error"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -325,7 +351,7 @@
   const deptName = MMSession.getDeptName();
   const deptEmoji= MMSession.getDeptEmoji();
   const staffUserId = MMSession.getStaffUserId && MMSession.getStaffUserId();
-  const staffPin = MMSession.getStaffPin && MMSession.getStaffPin();
+  let staffPin = MMSession.getStaffPin && MMSession.getStaffPin();
   const isAdmin  = MMSession.isAdmin();
   if (!deptId && !isAdmin) { location.href = 'dept-index.html'; }
 
@@ -1439,6 +1465,52 @@
     closeModal('modal-inv');
     renderInv();
     showToast('মজুদ আপডেট হয়েছে');
+  }
+
+  function openDeptSettings() {
+    ['dept-pin-current', 'dept-pin-new', 'dept-pin-confirm'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    const err = document.getElementById('dept-pin-error');
+    if (err) err.textContent = '';
+    document.getElementById('modal-dept-settings').classList.add('open');
+  }
+
+  function closeDeptSettings() {
+    document.getElementById('modal-dept-settings').classList.remove('open');
+  }
+
+  function normalizeDeptPinValue(value) {
+    return String(value || '').replace(/[\u09e6-\u09ef]/g, ch => String(ch.charCodeAt(0) - 0x09e6)).trim();
+  }
+
+  async function saveDeptPin() {
+    const err = document.getElementById('dept-pin-error');
+    const btn = document.getElementById('dept-pin-submit');
+    const currentPin = normalizeDeptPinValue(document.getElementById('dept-pin-current').value);
+    const newPin = normalizeDeptPinValue(document.getElementById('dept-pin-new').value);
+    const confirmPin = normalizeDeptPinValue(document.getElementById('dept-pin-confirm').value);
+
+    err.textContent = '';
+    if (!/^[0-9]{4}$/.test(currentPin)) { err.textContent = 'বর্তমান PIN ৪ সংখ্যার দিন'; return; }
+    if (!/^[0-9]{4}$/.test(newPin)) { err.textContent = 'নতুন PIN ৪ সংখ্যার দিন'; return; }
+    if (newPin !== confirmPin) { err.textContent = 'নতুন PIN দুইবার একই দিন'; return; }
+    if (newPin === currentPin) { err.textContent = 'নতুন PIN আগের PIN থেকে আলাদা দিন'; return; }
+
+    btn.disabled = true;
+    try {
+      const result = await MMSession.changeStaffPin(currentPin, newPin);
+      if (!result.ok) {
+        err.textContent = (MMSession.pinChangeErrorMessage && MMSession.pinChangeErrorMessage(result.error)) || 'PIN পরিবর্তন হয়নি';
+        return;
+      }
+      staffPin = newPin;
+      closeDeptSettings();
+      showToast('PIN পরিবর্তন হয়েছে');
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   async function initDeptPage() {
