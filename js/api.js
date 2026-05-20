@@ -639,12 +639,23 @@ const API = (() => {
   /* ══════════════════════════════
      KHULUK (হুসনুল খুলুক)
      ══════════════════════════════ */
+  function khulukSortValue(k) {
+    return String((k && (k.at || k.evaluated_at || k.created_at || k.date)) || '');
+  }
+
+  function sortKhulukRows(rows) {
+    return (Array.isArray(rows) ? rows : []).slice().sort((a, b) =>
+      khulukSortValue(b).localeCompare(khulukSortValue(a)) ||
+      String(b && b.id || '').localeCompare(String(a && a.id || ''))
+    );
+  }
+
   const Khuluk = {
-    getByStudent: sid => load(KEYS.khuluk).filter(k => k.student_id === sid).sort((a,b) => b.date.localeCompare(a.date)),
-    getLatest: sid => { const list = load(KEYS.khuluk).filter(k => k.student_id === sid).sort((a,b) => b.date.localeCompare(a.date)); return list[0] || null; },
+    getByStudent: sid => sortKhulukRows(load(KEYS.khuluk).filter(k => k.student_id === sid)),
+    getLatest: sid => { const list = Khuluk.getByStudent(sid); return list[0] || null; },
     add(student_id, score, reason, by) {
       const list = load(KEYS.khuluk);
-      const entry = { id: uid(), student_id, score: parseInt(score), reason, date: today(), by };
+      const entry = { id: uid(), student_id, score: parseInt(score), reason, date: today(), at: now(), by };
       list.push(entry);
       save(KEYS.khuluk, list);
       return entry;
@@ -676,10 +687,7 @@ const API = (() => {
     /** বর্ষের সক্রিয় ছাত্রদের — সর্বশেষ খুলুক এন্ট্রি, তারিখ অনুসারে */
     getRecentByClass(classId, limit = 12) {
       const sids = new Set(Students.getByClass(classId).map((s) => s.id));
-      return load(KEYS.khuluk)
-        .filter((k) => sids.has(k.student_id))
-        .sort((a, b) => b.date.localeCompare(a.date))
-        .slice(0, limit);
+      return sortKhulukRows(load(KEYS.khuluk).filter((k) => sids.has(k.student_id))).slice(0, limit);
     },
   };
 

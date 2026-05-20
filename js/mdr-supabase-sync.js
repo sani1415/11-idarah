@@ -167,6 +167,7 @@
         score: Number(a.score) || 0,
         reason: a.reason || '',
         date: String(a.date || '').slice(0, 10) || API.today(),
+        at: String(a.at || a.evaluated_at || a.created_at || a.date || ''),
         by: a.by || '',
       };
     });
@@ -305,34 +306,42 @@
     var classIds = scopedClassIdsFromRows(res.classes || []);
     var studentIds = scopedStudentIds();
 
-    var akhlaq = (res.akhlaq || []).map(function (a) {
-      return {
-        id: String(a.id || ''),
-        student_id: String(a.student_id || ''),
-        score: Number(a.score) || 0,
-        reason: a.reason || '',
-        date: String(a.date || '').slice(0, 10) || API.today(),
-        by: a.by || '',
-      };
-    }).filter(function (a) { return a.id && a.student_id; });
-    mergeScopedArray('mm_khuluk', function (k) { return studentIds[String(k.student_id)]; }, akhlaq);
+    // Only merge if the response includes akhlaq — old fallback API omits this field
+    // and calling mergeScopedArray with [] would wipe all cached khuluk data.
+    if (res.akhlaq !== undefined) {
+      var akhlaq = (res.akhlaq || []).map(function (a) {
+        return {
+          id: String(a.id || ''),
+          student_id: String(a.student_id || ''),
+          score: Number(a.score) || 0,
+          reason: a.reason || '',
+          date: String(a.date || '').slice(0, 10) || API.today(),
+          at: String(a.at || a.evaluated_at || a.created_at || a.date || ''),
+          by: a.by || '',
+        };
+      }).filter(function (a) { return a.id && a.student_id; });
+      mergeScopedArray('mm_khuluk', function (k) { return studentIds[String(k.student_id)]; }, akhlaq);
+    }
 
-    var logs = (res.logs || []).map(function (l) {
-      var isStudent = l.type === 'student';
-      return {
-        id: String(l.id || ''),
-        type: isStudent ? 'student' : 'class',
-        ref_id: isStudent ? String(l.student_id || '') : (CLASS_CODE_TO_LOCAL_ID[l.class_code] || l.class_code || ''),
-        text: l.content || '',
-        date: String(l.date || '').slice(0, 10) || API.today(),
-        by: l.by || '',
-        tag: 'normal',
-      };
-    }).filter(function (l) { return l.id && l.ref_id; });
-    mergeScopedArray('mm_logs', function (l) {
-      return (l.type === 'class' && classIds[String(l.ref_id || '')]) ||
-        (l.type === 'student' && studentIds[String(l.ref_id || '')]);
-    }, logs);
+    // Same guard for logs — old API does not return this field.
+    if (res.logs !== undefined) {
+      var logs = (res.logs || []).map(function (l) {
+        var isStudent = l.type === 'student';
+        return {
+          id: String(l.id || ''),
+          type: isStudent ? 'student' : 'class',
+          ref_id: isStudent ? String(l.student_id || '') : (CLASS_CODE_TO_LOCAL_ID[l.class_code] || l.class_code || ''),
+          text: l.content || '',
+          date: String(l.date || '').slice(0, 10) || API.today(),
+          by: l.by || '',
+          tag: 'normal',
+        };
+      }).filter(function (l) { return l.id && l.ref_id; });
+      mergeScopedArray('mm_logs', function (l) {
+        return (l.type === 'class' && classIds[String(l.ref_id || '')]) ||
+          (l.type === 'student' && studentIds[String(l.ref_id || '')]);
+      }, logs);
+    }
   }
 
   async function syncAdminStudents() {

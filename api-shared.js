@@ -226,6 +226,13 @@ const MMSharedAPI = (() => {
         p_reason: reason || '',
       });
     },
+    getStudentAkhlaq(actorId, pin, studentId) {
+      return rpc('mdr_rel_get_student_akhlaq', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_student_id: studentId,
+      });
+    },
     saveTeacherLog(actorId, pin, type, studentId, content) {
       return rpc('mdr_rel_save_teacher_log', {
         p_actor_id: actorId,

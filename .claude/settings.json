@@ -4,7 +4,11 @@
       "Bash(python3 -c ' *)",
       "Bash(python3 _fix_dept.py)",
       "Bash(python3 _fix2.py)",
-      "Bash(grep -v \"//\\\\|esc\\\\|DeptAPI\\\\|//.*bootstrap\")"
+      "Bash(grep -v \"//\\\\|esc\\\\|DeptAPI\\\\|//.*bootstrap\")",
+      "Bash(node --check js/mdr-supabase-sync.js)",
+      "Bash(npm run *)",
+      "Bash(node --check js/mm-student-modal.js)",
+      "Bash(node --check api-shared.js)"
     ]
   }
 }

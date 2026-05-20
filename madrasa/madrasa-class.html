@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/style.css?v=20260521-akhlaq-consistency">
 <style>
   .content { max-width:520px; margin:0 auto; padding:12px 16px var(--app-content-pad-bottom); }
   .stat-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-bottom:10px; }
@@ -448,13 +448,13 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../supabase-config.js"></script>
-<script src="../api-shared.js"></script>
-<script src="../js/mm-sample-data.js"></script>
-<script src="../js/api.js"></script>
-<script src="../js/mdr-supabase-sync.js"></script>
-<script src="../js/mm-session.js"></script>
-<script src="../js/mm-student-modal.js"></script>
+<script src="../supabase-config.js?v=20260521-akhlaq-consistency"></script>
+<script src="../api-shared.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/mm-sample-data.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/api.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/mdr-supabase-sync.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/mm-session.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/mm-student-modal.js?v=20260521-akhlaq-consistency"></script>
 <script>
   if (MMSession.getRole() !== 'teacher') location.href = '../index.html';
 
@@ -840,6 +840,7 @@
   /* ── KHULUK: সর্বশেষ সারাংশ + modal tab history ── */
   let khulukTargetId = '';
   let khulukEditId = '';
+  let khulukSaving = false;
   function setKhulukModalTab(which) {
     const form = document.getElementById('kh-panel-form');
     if (form) form.hidden = false;
@@ -898,35 +899,44 @@
     showToast('এন্ট্রি এডিট করুন, তারপর সংরক্ষণ চাপুন');
   }
   async function saveKhuluk() {
+    if (khulukSaving) return;
     const scoreN = parseInt(String(document.getElementById('kh-score').value).trim(), 10);
     const reason = document.getElementById('kh-reason').value.trim();
     if (Number.isNaN(scoreN) || scoreN < 0 || scoreN > 100) { showToast('হুসনুল খুলুক ০–১০০ এর মধ্যে পূর্ণসংখ্যা হিসেবে দিন'); return; }
     if (!reason) { showToast('কারণ / মন্তব্য লিখুন'); return; }
     if (!khulukTargetId) { showToast('ছাত্র নির্বাচিত নেই'); return; }
-    if (khulukEditId) API.Khuluk.update(khulukEditId, { score: scoreN, reason, edited: true });
-    else API.Khuluk.add(khulukTargetId, scoreN, reason, teacher.name);
-    if (window.MMSharedAPI && UUID_RE.test(khulukTargetId)) {
-      try {
-        const actor = teacherActor();
-        const res = khulukEditId && UUID_RE.test(khulukEditId)
-          ? await MMSharedAPI.updateAkhlaq(actor.id, actor.pin, khulukEditId, scoreN, reason)
-          : await MMSharedAPI.saveAkhlaq(actor.id, actor.pin, khulukTargetId, scoreN, reason);
-        if (!res || !res.ok) throw new Error((res && res.error) || 'akhlaq_failed');
-        await refreshTeacherData();
-      } catch (e) {
-        console.warn('Save akhlaq failed', e);
-        showToast('লোকালি সংরক্ষিত, ডাটাবেজে হয়নি');
-        await refreshTeacherData();
+    khulukSaving = true;
+    const saveBtnEl = document.querySelector('#modal-khuluk .submit-btn');
+    if (saveBtnEl) saveBtnEl.disabled = true;
+    try {
+      if (khulukEditId) API.Khuluk.update(khulukEditId, { score: scoreN, reason, edited: true });
+      else API.Khuluk.add(khulukTargetId, scoreN, reason, teacher.name);
+      if (window.MMSharedAPI && UUID_RE.test(khulukTargetId)) {
+        try {
+          const actor = teacherActor();
+          const res = khulukEditId && UUID_RE.test(khulukEditId)
+            ? await MMSharedAPI.updateAkhlaq(actor.id, actor.pin, khulukEditId, scoreN, reason)
+            : await MMSharedAPI.saveAkhlaq(actor.id, actor.pin, khulukTargetId, scoreN, reason);
+          if (!res || !res.ok) throw new Error((res && res.error) || 'akhlaq_failed');
+          await refreshTeacherData();
+        } catch (e) {
+          console.warn('Save akhlaq failed', e);
+          showToast('লোকালি সংরক্ষিত, ডাটাবেজে হয়নি');
+          await refreshTeacherData();
+        }
       }
+      const latest = API.Khuluk.getLatest(khulukTargetId);
+      if (latest) document.getElementById('kh-score').value = latest.score;
+      document.getElementById('kh-reason').value = '';
+      khulukEditId = '';
+      fillKhulukHistory(khulukTargetId);
+      renderStudents();
+      renderStats();
+      showToast('হুসনুল খুলুক সংরক্ষিত');
+    } finally {
+      khulukSaving = false;
+      if (saveBtnEl) saveBtnEl.disabled = false;
     }
-    const latest = API.Khuluk.getLatest(khulukTargetId);
-    if (latest) document.getElementById('kh-score').value = latest.score;
-    document.getElementById('kh-reason').value = '';
-    khulukEditId = '';
-    fillKhulukHistory(khulukTargetId);
-    renderStudents();
-    renderStats();
-    showToast('হুসনুল খুলুক সংরক্ষিত');
   }
 
   /* ── KITAB ── */

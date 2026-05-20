@@ -141,8 +141,9 @@
       var x = byMonth[ym];
       var denom = x.p + x.a + x.m;
       var rate = denom ? Math.round((x.p / denom) * 100) : 0;
+      var holiday = x.h ? '<span>ছুটি ' + toBn(x.h) + '</span>' : '';
       var missing = x.m ? '<span>চিহ্নিত নয় ' + toBn(x.m) + '</span>' : '';
-      return '<div class="st-att-month-row"><strong>' + API.esc(monthLabel(ym)) + '</strong><span>উপস্থিত ' + toBn(x.p) + '</span><span>অনুপস্থিত ' + toBn(x.a) + '</span>' + missing + '<span>' + toBn(rate) + '%</span></div>';
+      return '<div class="st-att-month-row"><strong>' + API.esc(monthLabel(ym)) + '</strong><span>উপস্থিত ' + toBn(x.p) + '</span><span>অনুপস্থিত ' + toBn(x.a) + '</span>' + holiday + missing + '<span>' + toBn(rate) + '%</span></div>';
     }).join('');
 
     var absentRows = allRows.filter(function (r) { return attStatusMeta(API, r).key === 'a'; }).slice(0, 8);
@@ -176,6 +177,7 @@
       '<div class="st-att-card"><span>হাজিরা নেওয়া দিন</span><strong>' + toBn(allRows.length) + '</strong></div>' +
       '<div class="st-att-card st-att-card--p"><span>উপস্থিত</span><strong>' + toBn(counts.p) + '</strong></div>' +
       '<div class="st-att-card st-att-card--a"><span>অনুপস্থিত</span><strong>' + toBn(counts.a) + '</strong></div>' +
+      (counts.h ? '<div class="st-att-card st-att-card--h"><span>ছুটি</span><strong>' + toBn(counts.h) + '</strong></div>' : '') +
       '<div class="st-att-card st-att-card--m"><span>চিহ্নিত নয়</span><strong>' + toBn(counts.m) + '</strong></div>' +
       '<div class="st-att-card"><span>হার</span><strong>' + toBn(pct) + '%</strong></div>' +
       '</div>' +
@@ -625,6 +627,13 @@
     var examMap = new Map(API.Exams.getAll().map(function (e) { return [e.id, e]; }));
     var resList = API.Exams.getStudentResults(sid);
     var logList = API.Logs.getByStudent(sid).slice(0, 12);
+    var fetchingFreshAkhlaq = false;
+    var UUID_RE_MODAL = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (UUID_RE_MODAL.test(sid) && global.MMSharedAPI && global.MMSharedAPI.getStudentAkhlaq && global.MMSession) {
+      var _actorId = global.MMSession.getId && global.MMSession.getId();
+      var _pin = global.MMSession.getPin && global.MMSession.getPin();
+      if (_actorId && _pin) fetchingFreshAkhlaq = true;
+    }
 
     var canAddStudentLog = false;
     try {
@@ -648,6 +657,7 @@
         '<button type="button" class="submit-btn" style="margin-top:10px;padding:11px 16px;font-size:13px;width:100%" onclick="MMStudentModal.submitStudentLog()">লগ সংরক্ষণ</button>' +
         '</div>';
     }
+    more += '<div id="st-khuluk-section">';
     if (khList.length) {
       more +=
         '<h4>হুসনুল খুলুক</h4>' +
@@ -665,7 +675,10 @@
             );
           })
           .join('');
+    } else if (fetchingFreshAkhlaq) {
+      more += '<div class="st-note" style="color:var(--ink3);font-size:12px;padding:4px 0;">হুসনুল খুলুক লোড হচ্ছে…</div>';
     }
+    more += '</div>';
     if (resList.length) {
       more +=
         '<div class="st-block" style="margin-top:0;border-top:none;padding-top:0"><h4>পরীক্ষার ফল</h4>' +
@@ -756,6 +769,54 @@
 
     var modal = document.getElementById(MODAL_ID);
     if (modal) modal.classList.add('open');
+
+    // Fetch fresh akhlaq from DB and update the section — bypasses localStorage cache.
+    if (fetchingFreshAkhlaq) {
+      var _freshActorId = global.MMSession.getId();
+      var _freshPin = global.MMSession.getPin();
+      global.MMSharedAPI.getStudentAkhlaq(_freshActorId, _freshPin, sid).then(function (res) {
+        if (!res || !res.ok) return;
+        var section = document.getElementById('st-khuluk-section');
+        if (!section) return;
+        var list = res.akhlaq || [];
+        if (!list.length) { section.innerHTML = ''; return; }
+        section.innerHTML =
+          '<h4>হুসনুল খুলুক</h4>' +
+          list.map(function (k) {
+            return (
+              '<div class="st-logline"><strong>' +
+              toBn(Number(k.score)) +
+              '</strong> — ' +
+              API.esc(k.reason || '') +
+              '<small>' +
+              API.esc(String(k.date || '')) +
+              (k.by ? ' · ' + API.esc(k.by) : '') +
+              '</small></div>'
+            );
+          }).join('');
+
+        // Also update localStorage cache so the next open is instant.
+        try {
+          if (API.persistSaveArr) {
+            var cached = (API.persistLoadArr ? API.persistLoadArr('mm_khuluk') : []).filter(function (x) {
+              return String(x.student_id) !== String(sid);
+            });
+            var fresh = list.map(function (k) {
+              return {
+                id: String(k.id),
+                student_id: String(sid),
+                score: Number(k.score),
+                reason: k.reason || '',
+                date: String(k.date || ''),
+                at: String(k.at || k.evaluated_at || k.created_at || k.date || ''),
+                by: k.by || ''
+              };
+            });
+            API.persistSaveArr('mm_khuluk', cached.concat(fresh));
+          }
+        } catch (e2) { /* ignore cache update failures */ }
+      }).catch(function () {});
+    }
   }
 
   global.MMStudentModal = { open: open, close: close, switchTab: switchTab, submitStudentLog: submitStudentLog, submitStatusChange: submitStatusChange, openPhotoPreview: openPhotoPreview };
