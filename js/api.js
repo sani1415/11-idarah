@@ -26,6 +26,20 @@ const API = (() => {
 
   /* ── HELPERS ── */
   const volatileStore = {};
+
+  /**
+   * ডেটা keys — localStorage-এ লেখা হবে না।
+   * প্রতিটি page load-এ DB থেকে fresh fetch হবে।
+   * settings/sessions/holidays persist থাকবে (keep keys)।
+   */
+  const DATA_KEYS = new Set([
+    'mm_students', 'mm_classes', 'mm_attendance', 'mm_kitabs', 'mm_kitab_progress',
+    'mm_khuluk', 'mm_exams', 'mm_results', 'mm_logs', 'mm_fees', 'mm_teachers', 'mm_users',
+    'mm_withdrawals', 'mm_alumni', 'mm_alumni_contacts',
+    'mm_lib_books', 'mm_lib_issues',
+    'mm_hifz_groups', 'mm_hifz_progress', 'mm_hifz_members', 'mm_hifz_activity',
+  ]);
+
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   const today = () => new Date().toISOString().split('T')[0];
   const now = () => new Date().toISOString();
@@ -40,15 +54,19 @@ const API = (() => {
 
   function load(key) {
     if (Object.prototype.hasOwnProperty.call(volatileStore, key)) return volatileStore[key];
+    if (DATA_KEYS.has(key)) return [];
     try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
   }
   function loadObj(key, def = {}) {
     if (Object.prototype.hasOwnProperty.call(volatileStore, key)) return volatileStore[key];
+    if (DATA_KEYS.has(key)) return def;
     try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; }
   }
   function save(key, data) {
     volatileStore[key] = data;
-    localStorage.setItem(key, JSON.stringify(data));
+    if (!DATA_KEYS.has(key)) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
     if (key === KEYS.settings && typeof window !== 'undefined' && window.dispatchEvent) {
       window.dispatchEvent(new CustomEvent('mm-settings-updated', { detail: data }));
     }
@@ -259,7 +277,7 @@ const API = (() => {
      */
     bulkYearEnd(changes, newHijriYear) {
       const list = load(KEYS.students);
-      const withdrawals = JSON.parse(localStorage.getItem('mm_withdrawals') || '[]');
+      const withdrawals = persistLoadArr('mm_withdrawals');
       const updated = list.map(s => {
         const c = changes.find(ch => ch.id === s.id);
         if (!c) return s;
@@ -278,7 +296,7 @@ const API = (() => {
         return { ...s, class_id: c.new_class_id, roll: c.new_roll, class_history: history };
       });
       save(KEYS.students, updated);
-      localStorage.setItem('mm_withdrawals', JSON.stringify(withdrawals));
+      persistSaveArr('mm_withdrawals', withdrawals);
     },
     /**
      * স্থায়ী আইডি DB তে কারও আছে কিনা (অবস্থা স্বতন্ত্র)।
@@ -358,8 +376,7 @@ const API = (() => {
      * @param {string|null|undefined} hijriYearFilter — API.Settings-এর hijri_year; null হলে সব
      */
     getWithdrawalsFromClass(classId, hijriYearFilter) {
-      let w;
-      try { w = JSON.parse(localStorage.getItem('mm_withdrawals') || '[]'); } catch { return []; }
+      const w = persistLoadArr('mm_withdrawals');
       let list = w.filter((x) => x.last_class_id === classId);
       if (hijriYearFilter != null && String(hijriYearFilter).trim() !== '' && String(hijriYearFilter) !== '—') {
         const y = String(hijriYearFilter);
@@ -774,9 +791,16 @@ const API = (() => {
 
   /** Raw localStorage array helpers — used by feature pages until moved into domain APIs. */
   function persistLoadArr(storageKey) {
+    if (DATA_KEYS.has(storageKey)) {
+      return Object.prototype.hasOwnProperty.call(volatileStore, storageKey) ? volatileStore[storageKey] : [];
+    }
     try { return JSON.parse(localStorage.getItem(storageKey)) || []; } catch { return []; }
   }
   function persistSaveArr(storageKey, data) {
+    if (DATA_KEYS.has(storageKey)) {
+      volatileStore[storageKey] = data;
+      return;
+    }
     localStorage.setItem(storageKey, JSON.stringify(data));
   }
 
@@ -959,7 +983,7 @@ const API = (() => {
       save(KEYS.kitabs, pack.kitabs.filter((k) => baseClassIds.has(k.class_id)));
       save(KEYS.kitab_prog, Array.isArray(pack.kitab_progress) ? pack.kitab_progress : []);
       [KEYS.attendance, KEYS.khuluk, KEYS.logs, KEYS.fees, KEYS.exams, KEYS.results].forEach((key) => save(key, []));
-      localStorage.removeItem('mm_withdrawals');
+      persistSaveArr('mm_withdrawals', []);
       return this.summarize(pack);
     },
   };

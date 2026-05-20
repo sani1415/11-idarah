@@ -391,9 +391,7 @@
       };
     }).filter(function (u) { return u.id; });
     if (API.Teachers.replaceAll) API.Teachers.replaceAll(users);
-    else {
-      try { localStorage.setItem('mm_teachers', JSON.stringify(users)); } catch (e) {}
-    }
+    else if (API.persistSaveArr) API.persistSaveArr('mm_teachers', users);
     return true;
   }
 

@@ -795,7 +795,7 @@
             );
           }).join('');
 
-        // Also update localStorage cache so the next open is instant.
+        // In-memory cache update — page session-এ পরের open দ্রুত হয়।
         try {
           if (API.persistSaveArr) {
             var cached = (API.persistLoadArr ? API.persistLoadArr('mm_khuluk') : []).filter(function (x) {
