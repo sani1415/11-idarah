@@ -1205,12 +1205,21 @@
   function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
   function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
 
-  function initSettingsPage() {
+  async function bootSettingsPage() {
     applySettingsAccess();
-    switchTab(allowedSettingsTabs()[0] || 'teachers');
+    const tab = allowedSettingsTabs()[0] || 'teachers';
+    ['general','pin','admins','classes','teachers','kitab'].forEach(t=>{
+      document.getElementById('tab-'+t).style.display   = t===tab?'block':'none';
+      document.getElementById('pill-'+t).classList.toggle('active',t===tab);
+    });
+    if (tab==='general')  loadGeneral();
+    if (tab==='admins')   renderAdmins();
+    if (tab==='classes')  renderClasses();
+    if (tab==='teachers') renderTeachers();
+    if (tab==='kitab')    await initKitab();
   }
 
-  initSettingsPage();
+  MMLoading.run(bootSettingsPage);
 </script>
 </body>
 </html>

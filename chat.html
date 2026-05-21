@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
@@ -47,11 +47,6 @@
       onkeydown="onKey(event)" oninput="resize(this)"></textarea>
     <button class="send-btn" onclick="sendMsg()">➤</button>
   </div>
-</div>
-
-<!-- STAFF: goes straight to chat -->
-<div id="view-loading" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--cream);">
-  <div style="color:var(--ink3);font-size:14px;">লোড হচ্ছে...</div>
 </div>
 
 <nav class="main-nav" id="chat-page-hub-nav" role="navigation" aria-label="জিম্মাদার নেভিগেশন">
@@ -173,7 +168,6 @@
     if (isAdmin) {
       await syncChatRemote();
       await syncRemoteStaffUsers();
-      document.getElementById('view-loading').style.display = 'none';
       document.body.classList.add('chat-page', 'chat-has-bottom-nav', 'chat-admin');
       const hubNav = document.getElementById('chat-page-hub-nav');
       if (hubNav) hubNav.style.display = 'flex';
@@ -197,15 +191,14 @@
       document.body.classList.add('chat-page', 'chat-has-bottom-nav', 'chat-staff');
       setupStaffChatNav();
       await syncChatRemote();
-      document.getElementById('view-loading').style.display = 'none';
       const inp0 = document.getElementById('chat-inp');
       if (inp0) inp0.placeholder = 'বার্তা লিখুন…';
       const lbl = ChatAPI.getLabel(myThread);
       openChat(myThread, myName, lbl.icon, lbl.name);
     } else {
-      document.getElementById('view-loading').style.display = 'flex';
-      document.getElementById('view-loading').innerHTML =
-        '<div style="color:rgba(255,255,255,0.4);font-size:14px;text-align:center;padding:20px;">লগইন করুন প্রথমে।</div>';
+      document.body.innerHTML =
+        '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--cream);padding:24px;text-align:center;">' +
+        '<p style="font-family:\'Tiro Bangla\',serif;font-size:15px;color:var(--ink3);line-height:1.6;">লগইন করুন প্রথমে।</p></div>';
       setTimeout(() => location.href='index.html', 2000);
     }
   }
@@ -546,7 +539,7 @@
       return toBn(p[2]+'/'+p[1]+'/'+p[0]);
     } catch { return dateStr; }
   }
-  initChatPage();
+  MMLoading.run(initChatPage);
 </script>
 <script src="js/admin-nav.js"></script>
 </body>

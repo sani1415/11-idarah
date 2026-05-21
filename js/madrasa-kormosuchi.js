@@ -1113,4 +1113,5 @@ window.mmStudentModalExtraInfo = function (sid, student) {
   return html;
 };
 
-initKormosuchiPage();
+if (window.MMLoading && MMLoading.run) MMLoading.run(initKormosuchiPage);
+else initKormosuchiPage();

@@ -116,8 +116,13 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
+<script src="../api-mdr.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mdr-supabase-sync.js"></script>
 <script src="../js/mm-session.js"></script>
 <script>
   if (!MMSession.requireAdminPerm('teachers', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
@@ -136,63 +141,73 @@
     location.href = 'madrasa-teachers.html?dept=' + encodeURIComponent(dept);
   };
 
-  if (!id) {
-    document.getElementById('mtd-root').innerHTML = '<p class="mtd-miss">কোনো শিক্ষক নির্বাচিত হয়নি।</p>';
-  } else {
+  function renderDetail() {
+    if (!id) {
+      document.getElementById('mtd-root').innerHTML = '<p class="mtd-miss">কোনো শিক্ষক নির্বাচিত হয়নি।</p>';
+      return;
+    }
     const t = API.Teachers.getById(id);
     if (!t) {
       document.getElementById('mtd-root').innerHTML = '<p class="mtd-miss">শিক্ষক পাওয়া যায়নি।</p>';
+      return;
+    }
+    document.getElementById('mtd-name').textContent = t.name || '—';
+
+    const cls = t.class_id ? API.Classes.getById(t.class_id) : null;
+    const basic = document.getElementById('mtd-basic');
+    const rows = [
+      ['পিতার নাম', t.father_name || '—'],
+      ['ঠিকানা', t.address || '—'],
+      ['যোগাযোগ', t.phone || '—'],
+      ['নিয়োজিত শ্রেণি', cls ? cls.name : (t.class_id ? '—' : 'ক্লাসবিহীন দায়িত্ব')],
+      ['চলমান হিসাব (মাসিক)', t.salary != null && t.salary !== '' ? fmtAmt(t.salary) : '—'],
+    ];
+    basic.innerHTML = rows.map(([k, v]) => `<div><span>${esc(k)}</span>${esc(v)}</div>`).join('');
+
+    const salBlock = document.getElementById('mtd-salary-block');
+    const hist = Array.isArray(t.salary_history) ? t.salary_history : [];
+    if (!hist.length) {
+      salBlock.innerHTML = '<p class="mtd-miss">হিসাব ইতিহাস এখনো লিপিবদ্ধ নেই।</p>';
     } else {
-      document.getElementById('mtd-name').textContent = t.name || '—';
+      salBlock.innerHTML = hist
+        .slice()
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+        .map(
+          (h) =>
+            `<div class="mtd-salary-row"><span>${esc(h.date || '—')}</span><strong>${fmtAmt(h.amount)}</strong></div>` +
+            (h.note ? `<div style="font-size:11px;color:var(--ink3);padding:0 0 8px;">${esc(h.note)}</div>` : '')
+        )
+        .join('');
+    }
 
-      const cls = t.class_id ? API.Classes.getById(t.class_id) : null;
-      const basic = document.getElementById('mtd-basic');
-      const rows = [
-        ['পিতার নাম', t.father_name || '—'],
-        ['ঠিকানা', t.address || '—'],
-        ['যোগাযোগ', t.phone || '—'],
-        ['নিয়োজিত শ্রেণি', cls ? cls.name : (t.class_id ? '—' : 'ক্লাসবিহীন দায়িত্ব')],
-        ['চলমান হিসাব (মাসিক)', t.salary != null && t.salary !== '' ? fmtAmt(t.salary) : '—'],
-      ];
-      basic.innerHTML = rows.map(([k, v]) => `<div><span>${esc(k)}</span>${esc(v)}</div>`).join('');
+    const noteEl = document.getElementById('mtd-admin-note');
+    const an = t.admin_note && String(t.admin_note).trim();
+    noteEl.textContent = an || 'কোনো বিশেষ নোট নেই।';
 
-      const salBlock = document.getElementById('mtd-salary-block');
-      const hist = Array.isArray(t.salary_history) ? t.salary_history : [];
-      if (!hist.length) {
-        salBlock.innerHTML = '<p class="mtd-miss">হিসাব ইতিহাস এখনো লিপিবদ্ধ নেই।</p>';
-      } else {
-        salBlock.innerHTML = hist
-          .slice()
-          .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-          .map(
-            (h) =>
-              `<div class="mtd-salary-row"><span>${esc(h.date || '—')}</span><strong>${fmtAmt(h.amount)}</strong></div>` +
-              (h.note ? `<div style="font-size:11px;color:var(--ink3);padding:0 0 8px;">${esc(h.note)}</div>` : '')
-          )
-          .join('');
-      }
-
-      const noteEl = document.getElementById('mtd-admin-note');
-      const an = t.admin_note && String(t.admin_note).trim();
-      noteEl.textContent = an || 'কোনো বিশেষ নোট নেই।';
-
-      const logs = API.Logs.getByTeacher(id);
-      const logEl = document.getElementById('mtd-logs');
-      if (!logs.length) {
-        logEl.innerHTML = '<p class="mtd-miss">এখনো কোনো পর্যবেক্ষণ লগ যোগ করা হয়নি।</p>';
-      } else {
-        logEl.innerHTML = logs
-          .map(
-            (l) =>
-              `<div class="mtd-log">
-                <div class="mtd-log-date">${esc(l.date)} · ${esc(l.by || '')}</div>
-                ${esc(l.text)}
-              </div>`
-          )
-          .join('');
-      }
+    const logs = API.Logs.getByTeacher(id);
+    const logEl = document.getElementById('mtd-logs');
+    if (!logs.length) {
+      logEl.innerHTML = '<p class="mtd-miss">এখনো কোনো পর্যবেক্ষণ লগ যোগ করা হয়নি।</p>';
+    } else {
+      logEl.innerHTML = logs
+        .map(
+          (l) =>
+            `<div class="mtd-log">
+              <div class="mtd-log-date">${esc(l.date)} · ${esc(l.by || '')}</div>
+              ${esc(l.text)}
+            </div>`
+        )
+        .join('');
     }
   }
+
+  async function initPage() {
+    if (window.MDRSupabaseSync && window.MMSharedAPI) {
+      try { await MDRSupabaseSync.syncAdminUsers(); } catch (e) { console.warn('teacher sync failed', e); }
+    }
+    renderDetail();
+  }
+  MMLoading.run(initPage);
 </script>
 </body>
 </html>

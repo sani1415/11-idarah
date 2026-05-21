@@ -9,9 +9,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 <style>
-  .abs-page { max-width: 520px; margin: 0 auto; padding: 12px 16px calc(24px + env(safe-area-inset-bottom)); }
-  .abs-head { font-family: 'Tiro Bangla', serif; font-size: 18px; font-weight: 700; color: var(--ink2); margin-bottom: 6px; }
-  .abs-sub { font-size: 12px; color: var(--ink3); line-height: 1.5; margin-bottom: 16px; }
+  .abs-page {
+    max-width: 520px; margin: 0 auto;
+    padding: 12px 16px calc(24px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column;
+    min-height: calc(100vh - 56px); box-sizing: border-box;
+  }
+  .abs-head { font-family: 'Tiro Bangla', serif; font-size: 18px; font-weight: 700; color: var(--ink2); margin-bottom: 6px; flex-shrink: 0; }
+  .abs-sub { font-size: 12px; color: var(--ink3); line-height: 1.5; margin-bottom: 12px; flex-shrink: 0; }
+  .abs-scroll {
+    flex: 1; min-height: 0; overflow-y: auto;
+    -webkit-overflow-scrolling: touch; padding-right: 2px;
+  }
   .abs-row {
     background: #fff;
     border-radius: var(--radius-sm);
@@ -58,12 +67,19 @@
 
 <div class="abs-page">
   <div class="abs-head">অনুপস্থিত রেকর্ডযুক্ত ছাত্র</div>
-  <p class="abs-sub">যাদের কমপক্ষে এক দিন <strong>অনুপস্থিত</strong> রেকর্ড আছে। বেশি অনুপস্থিত দিন থেকে কম — সাজানো।</p>
-  <div id="abs-list"></div>
+  <p class="abs-sub" id="abs-sub">যাদের কমপক্ষে এক দিন <strong>অনুপস্থিত</strong> রেকর্ড আছে। বেশি দিন থেকে কম — সাজানো।</p>
+  <div class="abs-scroll" id="abs-scroll">
+    <div id="abs-list"></div>
+  </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
+<script src="../api-mdr.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/mdr-supabase-sync.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script>
@@ -78,22 +94,32 @@
   if (dept === 'all' && allowed.length <= 1) dept = allowed[0] || 'kitab';
   const deptName = (d) => d === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
   const deptLabel = dept === 'all' ? 'সামগ্রিক' : deptName(dept);
-  const sub = document.querySelector('.abs-sub');
+  const sub = document.getElementById('abs-sub');
   if (sub) sub.textContent = deptLabel + ' — যাদের কমপক্ষে এক দিন অনুপস্থিতের রেকর্ড আছে। বেশি দিন থেকে কম — সাজানো।';
 
+  function scopeDepts() {
+    if (dept === 'all') return allowed.filter((d) => d === 'kitab' || d === 'maktab');
+    return allowed.includes(dept) ? [dept] : [allowed[0] || 'kitab'];
+  }
+
   function render() {
-    const rows = (dept === 'all' ? allowed : [dept])
-      .flatMap(d => API.Attendance.getStudentsWithAbsentSortedByDept(d).map(x => ({ ...x, dept: d })))
+    const depts = scopeDepts();
+    const rows = depts
+      .flatMap((d) => API.Attendance.getStudentsWithAbsentSortedByDept(d).map((x) => ({ ...x, dept: d })))
       .sort((a, b) => (b.absentDays || 0) - (a.absentDays || 0));
     const el = document.getElementById('abs-list');
+    const scroll = document.getElementById('abs-scroll');
+    if (!el) return;
+    if (scroll) scroll.scrollTop = 0;
     if (!rows.length) {
       el.innerHTML = '<div class="abs-empty">কোনো ছাত্রের অনুপস্থিত রেকর্ড নেই। উপস্থিতি স্ক্রিনে অনুপস্থিত চিহ্নিত করলে এখানে দেখা যাবে।</div>';
       return;
     }
+    const showDeptTag = depts.length > 1;
     el.innerHTML = rows
       .map((x, i) => {
         const cls = API.Classes.getById(x.student.class_id);
-        const metaDept = dept === 'all' ? ` · ${deptName(x.dept)}` : '';
+        const metaDept = showDeptTag ? ' · ' + deptName(x.dept) : '';
         return `<div class="abs-row">
           <div class="abs-rank">${toBn(i + 1)}</div>
           <div class="abs-info">
@@ -105,7 +131,16 @@
       })
       .join('');
   }
-  render();
+
+  async function initPage() {
+    if (window.MDRSupabaseSync && window.MMSharedAPI) {
+      try { await MDRSupabaseSync.syncAdminUsers(); } catch (e) { console.warn('teacher sync failed', e); }
+      try { await MDRSupabaseSync.syncAdminStudents(); } catch (e) { console.warn('student sync failed', e); }
+    }
+    render();
+  }
+
+  MMLoading.run(initPage);
 </script>
 </body>
 </html>

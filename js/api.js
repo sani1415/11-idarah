@@ -52,19 +52,123 @@ const API = (() => {
     return esc(toBn(v));
   }
 
+  /** Tab session cache — survives in-app navigation; cleared on logout. */
+  const SESSION_CACHE_VERSION = 1;
+  const SESSION_CACHE_META = 'mm_data_cache_meta';
+  const SESSION_CACHE_PREFIX = 'mm_sc_';
+  let sessionHydrateAttempted = false;
+
+  function sessionActorKey() {
+    if (typeof window === 'undefined' || !window.MMSession) return '';
+    if (MMSession.isAdmin && MMSession.isAdmin()) {
+      return 'admin:' + String(MMSession.getAdminUserId && MMSession.getAdminUserId() || '') + ':' + String(MMSession.getAdminPin && MMSession.getAdminPin() || '');
+    }
+    const role = MMSession.getRole && MMSession.getRole() || 'staff';
+    const uid = MMSession.getStaffUserId && MMSession.getStaffUserId() || '';
+    const tid = MMSession.getTeacherId && MMSession.getTeacherId() || '';
+    const deptId = MMSession.getDeptId && MMSession.getDeptId() || '';
+    return role + ':' + uid + ':' + tid + ':' + deptId;
+  }
+
+  function sessionCacheStorageKey(key) {
+    return SESSION_CACHE_PREFIX + key;
+  }
+
+  function readSessionCacheMeta() {
+    try {
+      const raw = sessionStorage.getItem(SESSION_CACHE_META);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  function touchSessionCacheMeta() {
+    const actor = sessionActorKey();
+    if (!actor) return;
+    try {
+      sessionStorage.setItem(SESSION_CACHE_META, JSON.stringify({
+        v: SESSION_CACHE_VERSION,
+        actor,
+        ts: Date.now(),
+      }));
+    } catch (e) {
+      console.warn('[API] session cache meta write failed', e);
+    }
+  }
+
+  function writeSessionCache(key, data) {
+    if (!DATA_KEYS.has(key)) return;
+    try {
+      sessionStorage.setItem(sessionCacheStorageKey(key), JSON.stringify(data));
+      touchSessionCacheMeta();
+    } catch (e) {
+      console.warn('[API] session cache write failed', key, e);
+    }
+  }
+
+  function hydrateSessionCache() {
+    sessionHydrateAttempted = true;
+    const actor = sessionActorKey();
+    if (!actor) return false;
+    const meta = readSessionCacheMeta();
+    if (!meta || meta.v !== SESSION_CACHE_VERSION || meta.actor !== actor) return false;
+    DATA_KEYS.forEach((key) => {
+      if (Object.prototype.hasOwnProperty.call(volatileStore, key)) return;
+      try {
+        const raw = sessionStorage.getItem(sessionCacheStorageKey(key));
+        if (raw == null) return;
+        volatileStore[key] = JSON.parse(raw);
+      } catch (e) {
+        console.warn('[API] session cache hydrate failed', key, e);
+      }
+    });
+    return true;
+  }
+
+  function ensureSessionCacheHydrated() {
+    if (!sessionHydrateAttempted) hydrateSessionCache();
+  }
+
+  function clearSessionCache() {
+    DATA_KEYS.forEach((key) => {
+      try { sessionStorage.removeItem(sessionCacheStorageKey(key)); } catch (e) {}
+      delete volatileStore[key];
+    });
+    try { sessionStorage.removeItem(SESSION_CACHE_META); } catch (e) {}
+    sessionHydrateAttempted = false;
+  }
+
+  function isSessionCacheWarm() {
+    ensureSessionCacheHydrated();
+    const actor = sessionActorKey();
+    if (!actor) return false;
+    const meta = readSessionCacheMeta();
+    if (!meta || meta.v !== SESSION_CACHE_VERSION || meta.actor !== actor) return false;
+    const students = Object.prototype.hasOwnProperty.call(volatileStore, KEYS.students)
+      ? volatileStore[KEYS.students]
+      : [];
+    const classes = Object.prototype.hasOwnProperty.call(volatileStore, KEYS.classes)
+      ? volatileStore[KEYS.classes]
+      : [];
+    return Array.isArray(students) && students.length > 0 && Array.isArray(classes) && classes.length > 0;
+  }
+
   function load(key) {
+    if (DATA_KEYS.has(key)) ensureSessionCacheHydrated();
     if (Object.prototype.hasOwnProperty.call(volatileStore, key)) return volatileStore[key];
     if (DATA_KEYS.has(key)) return [];
     try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
   }
   function loadObj(key, def = {}) {
+    if (DATA_KEYS.has(key)) ensureSessionCacheHydrated();
     if (Object.prototype.hasOwnProperty.call(volatileStore, key)) return volatileStore[key];
     if (DATA_KEYS.has(key)) return def;
     try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; }
   }
   function save(key, data) {
     volatileStore[key] = data;
-    if (!DATA_KEYS.has(key)) {
+    if (DATA_KEYS.has(key)) {
+      writeSessionCache(key, data);
+    } else {
       localStorage.setItem(key, JSON.stringify(data));
     }
     if (key === KEYS.settings && typeof window !== 'undefined' && window.dispatchEvent) {
@@ -799,6 +903,7 @@ const API = (() => {
   function persistSaveArr(storageKey, data) {
     if (DATA_KEYS.has(storageKey)) {
       volatileStore[storageKey] = data;
+      writeSessionCache(storageKey, data);
       return;
     }
     localStorage.setItem(storageKey, JSON.stringify(data));
@@ -1001,6 +1106,7 @@ const API = (() => {
     Settings, Sessions, Holidays,
     OldMadrasaImport,
     persistLoadArr, persistSaveArr,
+    hydrateSessionCache, clearSessionCache, isSessionCacheWarm,
     uid, today, now, esc, escBn, toBn,
   };
 

@@ -344,7 +344,14 @@
     }
   }
 
-  async function syncAdminStudents() {
+  function isAdminDataWarm() {
+    return !!(global.API && API.isSessionCacheWarm && API.isSessionCacheWarm());
+  }
+
+  async function syncAdminStudents(options) {
+    if (!options || !options.force) {
+      if (isAdminDataWarm()) return true;
+    }
     if (!global.MMSession || !global.API) return false;
     var pin = MMSession.getAdminPin && MMSession.getAdminPin();
     if (!pin) return false;
@@ -371,7 +378,10 @@
     return true;
   }
 
-  async function syncAdminUsers() {
+  async function syncAdminUsers(options) {
+    if (!options || !options.force) {
+      if (isAdminDataWarm()) return true;
+    }
     if (!global.MMSession || !global.MMSharedAPI || !global.API || !API.Teachers) return false;
     var pin = MMSession.getAdminPin && MMSession.getAdminPin();
     if (!pin) return false;
@@ -395,7 +405,10 @@
     return true;
   }
 
-  async function syncAdminDars() {
+  async function syncAdminDars(options) {
+    if (!options || !options.force) {
+      if (isAdminDataWarm()) return true;
+    }
     if (!global.MMSession || !global.MMSharedAPI || !global.API) return false;
     var pin = MMSession.getAdminPin && MMSession.getAdminPin();
     if (!pin || !MMSharedAPI.adminDarsBootstrap) return false;
@@ -492,6 +505,28 @@
     return true;
   }
 
+  async function ensureAdminBootstrap(options) {
+    options = options || {};
+    if (!options.force && isAdminDataWarm()) return true;
+    var ok = false;
+    try {
+      if (await syncAdminUsers()) ok = true;
+    } catch (e) {
+      console.warn('[MDRSupabaseSync] admin users sync failed', e);
+    }
+    try {
+      if (await syncAdminStudents()) ok = true;
+    } catch (e) {
+      console.warn('[MDRSupabaseSync] admin students sync failed', e);
+    }
+    try {
+      if (await syncAdminDars()) ok = true;
+    } catch (e) {
+      console.warn('[MDRSupabaseSync] admin dars sync failed', e);
+    }
+    return ok || isAdminDataWarm();
+  }
+
   global.MDRSupabaseSync = {
     syncAdminStudents: syncAdminStudents,
     syncAdminUsers: syncAdminUsers,
@@ -504,5 +539,7 @@
     ensureTeacherClassFromProfile: ensureTeacherClassFromProfile,
     mergeTeacherClassMeta: mergeTeacherClassMeta,
     toLocalStudent: toLocalStudent,
+    isAdminDataWarm: isAdminDataWarm,
+    ensureAdminBootstrap: ensureAdminBootstrap,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

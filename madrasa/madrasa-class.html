@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
@@ -1264,7 +1264,7 @@
     if(typeof showToast==='function')showToast('PIN সফলভাবে পরিবর্তন হয়েছে');
   }
 
-  initClassPage();
+  MMLoading.run(initClassPage);
 </script>
 
 <div class="modal-bg" id="modal-pin-change" onclick="if(event.target===this)closePinChangeModal()">

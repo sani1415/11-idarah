@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
@@ -614,7 +614,7 @@
     var h = (location.hash || '').replace(/^#/, '');
     if (['ben', 'fin', 'log'].indexOf(h) >= 0) switchPanel(h);
   }
-  initKhedmatPage();
+  MMLoading.run(initKhedmatPage);
 </script>
 
 <div class="modal-bg modal-float" id="modal-pin-change" onclick="if(event.target===this)closePinChangeModal()">

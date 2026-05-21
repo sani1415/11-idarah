@@ -352,7 +352,11 @@
   function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
   function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
 
-  loadHifzData().then(()=>renderHome());
+  async function initHifzPage() {
+    await loadHifzData();
+    renderHome();
+  }
+  MMLoading.run(initHifzPage);
 </script>
 
 <div class="modal-bg" id="modal-pin-change" onclick="if(event.target===this)closePinChangeModal()">

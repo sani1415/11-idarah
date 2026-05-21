@@ -366,6 +366,8 @@
       .abs-rank-home{font-family:'Tiro Bangla',serif;font-size:18px;font-weight:800;color:var(--gold);min-width:34px;text-align:center}
       .abs-info-home{flex:1;min-width:0}.abs-name-home{font-size:14px;font-weight:700;color:var(--ink)}
       .abs-days-home{font-family:'Tiro Bangla',serif;font-size:17px;font-weight:800;color:var(--red);white-space:nowrap}
+      #modal-absent-home .modal-title,#modal-absent-home .kh-meta{flex-shrink:0}
+      #modal-absent-home #abs-home-list{flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch;padding-right:2px}
       @media(max-width:520px){.kh-grid{grid-template-columns:1fr}#kh-list{grid-template-columns:1fr}}
       .kh-list-empty{grid-column:1/-1}
       #modal-khadim-detail.modal-bg{
@@ -698,6 +700,8 @@
     return status === 'away' ? 'ছুটিতে' : status === 'inactive' ? 'নিষ্ক্রিয়' : 'সক্রিয়';
   }
 
+  var _absentDeptScope = null;
+
   function scopeDepts() {
     if (global.MMSession && MMSession.getAllowedMadrasaDepts) {
       const allowed = MMSession.getAllowedMadrasaDepts();
@@ -706,29 +710,49 @@
     return ['kitab', 'maktab'];
   }
 
+  function getAbsentDepts() {
+    if (_absentDeptScope && _absentDeptScope.length) return _absentDeptScope;
+    return scopeDepts();
+  }
+
+  function absentScopeLabel(depts) {
+    const deptName = (d) => (d === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ');
+    if (!depts || !depts.length) return '';
+    if (depts.length > 1) return 'সামগ্রিক';
+    return deptName(depts[0]);
+  }
+
   function absentRows() {
-    const depts = scopeDepts();
+    const depts = getAbsentDepts();
     return depts
       .flatMap((dept) => API.Attendance.getStudentsWithAbsentSortedByDept(dept).map((x) => ({ ...x, dept })))
       .sort((a, b) => (b.absentDays || 0) - (a.absentDays || 0));
   }
 
   function renderAbsent() {
+    const depts = getAbsentDepts();
     const rows = absentRows();
+    const meta = document.querySelector('#modal-absent-home .kh-meta');
+    if (meta) {
+      const label = absentScopeLabel(depts);
+      meta.textContent = (label ? label + ' — ' : '') + 'যাদের কমপক্ষে এক দিন অনুপস্থিত রেকর্ড আছে। বেশি দিন থেকে কম — সাজানো।';
+    }
     const el = document.getElementById('abs-home-list');
     if (!el) return;
     if (!rows.length) {
       el.innerHTML = '<div class="empty-state"><span class="empty-icon">✓</span><div class="empty-text">কোনো ছাত্রের অনুপস্থিত রেকর্ড নেই</div></div>';
       return;
     }
+    const showDeptTag = depts.length > 1;
     el.innerHTML = rows.map((x, i) => {
       const cls = API.Classes.getById(x.student.class_id);
       const deptLabel = x.dept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ';
+      const metaLine = esc(cls ? cls.name : '—') + (showDeptTag ? ' · ' + esc(deptLabel) : '') + ' · রোল ' + helpers.toBn(esc(x.student.roll || '—'));
       return `<div class="abs-row-home">
         <div class="abs-rank-home">${helpers.toBn(i + 1)}</div>
         <div class="abs-info-home">
           <div class="abs-name-home"><button type="button" class="s-name-btn" style="font-size:14px;font-weight:600" onclick="MMStudentModal.open('${x.student.id}')">${esc(x.student.name)}</button></div>
-          <div class="abs-meta-home">${esc(cls ? cls.name : '—')} · ${esc(deptLabel)} · রোল ${helpers.toBn(esc(x.student.roll || '—'))}</div>
+          <div class="abs-meta-home">${metaLine}</div>
         </div>
         <div class="abs-days-home">${helpers.toBn(x.absentDays)} দিন</div>
       </div>`;
@@ -762,14 +786,18 @@
     document.getElementById('modal-khadimin').classList.remove('open');
   }
 
-  function openAbsent() {
+  function openAbsent(opts) {
     injectOnce();
+    _absentDeptScope = (opts && Array.isArray(opts.depts) && opts.depts.length) ? opts.depts.slice() : null;
     renderAbsent();
     document.getElementById('modal-absent-home').classList.add('open');
+    const list = document.getElementById('abs-home-list');
+    if (list) list.scrollTop = 0;
   }
 
   function closeAbsent() {
     document.getElementById('modal-absent-home').classList.remove('open');
+    _absentDeptScope = null;
   }
 
   function init(opts) {

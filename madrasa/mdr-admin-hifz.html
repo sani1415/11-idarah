@@ -261,7 +261,11 @@ function renderGroupActivity() {
 
 function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
 
-loadHifzData().then(()=>renderHome());
+async function initHifzAdminPage() {
+  await loadHifzData();
+  renderHome();
+}
+MMLoading.run(initHifzAdminPage);
 </script>
 </body>
 </html>

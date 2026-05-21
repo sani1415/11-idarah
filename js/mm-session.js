@@ -272,6 +272,7 @@
 
     clearAppSession: function () {
       ALL_APP_KEYS.forEach(function (k) { sessionStorage.removeItem(k); });
+      if (global.API && API.clearSessionCache) API.clearSessionCache();
     },
 
     /** Clear app session then go to role selection (use from madrasa/*, khedmat staff, etc.). */
@@ -464,4 +465,78 @@
     global.addEventListener && global.addEventListener('mm-settings-updated', renderCurrentAcademicYear);
     global.setInterval && global.setInterval(renderCurrentAcademicYear, 3000);
   }
+
+  var LOADING_MSG = 'ধৈর্য ধরুন। নিশ্চয়ই আল্লাহ ধৈর্য ধারণকারীদের পছন্দ করেন।';
+  var LOADING_OVERLAY_ID = 'mm-app-load-screen';
+  var LOADING_STYLE_ID = 'mm-app-load-style';
+  var loadingVisible = false;
+
+  function injectLoadingStyles() {
+    if (typeof document === 'undefined' || document.getElementById(LOADING_STYLE_ID)) return;
+    var style = document.createElement('style');
+    style.id = LOADING_STYLE_ID;
+    style.textContent =
+      '.mm-app-load-screen{position:fixed;inset:0;z-index:500;background:var(--cream,#faf6ef);display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}' +
+      '.mm-app-load-screen.is-hidden{display:none}' +
+      '.mm-app-load-inner{text-align:center;max-width:340px}' +
+      '.mm-app-load-spinner{width:42px;height:42px;margin:0 auto;border:3px solid rgba(201,149,42,.22);border-top-color:var(--gold,#c9952a);border-radius:50%;animation:mmAppLoadSpin .85s linear infinite}' +
+      '@keyframes mmAppLoadSpin{to{transform:rotate(360deg)}}' +
+      '.mm-app-load-text{font-family:"Tiro Bangla",serif;font-size:15px;line-height:1.65;color:var(--ink2);margin:18px 0 0}';
+    document.head.appendChild(style);
+  }
+
+  function ensureLoadingOverlay() {
+    if (typeof document === 'undefined') return null;
+    injectLoadingStyles();
+    var el = document.getElementById(LOADING_OVERLAY_ID);
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = LOADING_OVERLAY_ID;
+    el.className = 'mm-app-load-screen is-hidden';
+    el.setAttribute('aria-live', 'polite');
+    el.setAttribute('aria-busy', 'false');
+    el.innerHTML =
+      '<div class="mm-app-load-inner">' +
+      '<div class="mm-app-load-spinner" aria-hidden="true"></div>' +
+      '<p class="mm-app-load-text"></p>' +
+      '</div>';
+    if (document.body) document.body.insertBefore(el, document.body.firstChild);
+    return el;
+  }
+
+  var MMLoading = {
+    MESSAGE: LOADING_MSG,
+    show: function (message) {
+      var el = ensureLoadingOverlay();
+      if (!el) return;
+      var text = el.querySelector('.mm-app-load-text');
+      if (text) text.textContent = message || LOADING_MSG;
+      el.classList.remove('is-hidden');
+      el.setAttribute('aria-busy', 'true');
+      loadingVisible = true;
+    },
+    hide: function () {
+      if (typeof document === 'undefined') return;
+      var el = document.getElementById(LOADING_OVERLAY_ID);
+      if (!el) return;
+      el.classList.add('is-hidden');
+      el.setAttribute('aria-busy', 'false');
+      loadingVisible = false;
+    },
+    isVisible: function () { return loadingVisible; },
+    run: async function (fn, message, options) {
+      options = options || {};
+      var warm = options.forceLoading !== true &&
+        global.API && API.isSessionCacheWarm && API.isSessionCacheWarm();
+      if (!warm) MMLoading.show(message);
+      try {
+        return await fn();
+      } finally {
+        if (!warm) MMLoading.hide();
+      }
+    },
+  };
+
+  global.MMLoading = MMLoading;
+  if (global.API && API.hydrateSessionCache) API.hydrateSessionCache();
 })(typeof window !== 'undefined' ? window : globalThis);

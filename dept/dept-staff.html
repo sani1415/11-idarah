@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
@@ -1531,7 +1531,7 @@
     if (['txn', 'products', 'inv', 'report'].indexOf(dp) >= 0) switchPanel(dp);
   }
 
-  initDeptPage();
+  MMLoading.run(initDeptPage);
 </script>
 </body>
 </html>
