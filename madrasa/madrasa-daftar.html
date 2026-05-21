@@ -2,6 +2,7 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
+<script src="../js/mm-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>দফতর — মাদরাসাতুল মদীনা</title>
 <script>
@@ -1683,15 +1684,23 @@ body.page-daftar #modal-account-entry .modal {
     history.replaceState(null, '', location.pathname + location.search + (hash || ''));
   }
 
-  function goDaftarAccounts() {
+  async function goDaftarAccounts() {
     setDaftarHash('#accounts');
     switchPanel('fees');
+    if (MMSession.ensureDaftarDataReady) {
+      try {
+        await MMSession.ensureDaftarDataReady({ silent: MMSession.isAppDataWarm() });
+      } catch (e) {
+        showToast('হিসাব ডেটা লোড হয়নি');
+      }
+    }
     renderAccounts();
   }
 
   function goAccProgram() {
     setDaftarHash('#accounts');
-    location.href = 'madrasa-kormosuchi.html';
+    if (window.MMDaftarBottomNav && MMDaftarBottomNav.go) MMDaftarBottomNav.go('madrasa-kormosuchi.html');
+    else location.href = 'madrasa-kormosuchi.html';
   }
 
   /* হিসাব সাব-ট্যাব: নিয়মিত হিসাব বাটন */
@@ -1962,19 +1971,13 @@ body.page-daftar #modal-account-entry .modal {
       MMDaftarBottomNav.mount(navRoot, { active: acc0, spaDaftar: true, pathPrefix: '' });
     }
     if (wantsAccounts) switchPanel('fees');
-    if (window.MDRDaftarSupabase && window.MMSharedAPI) {
+    var wasWarm = MMSession.isAppDataWarm && MMSession.isAppDataWarm();
+    if (MMSession.ensureDaftarDataReady) {
       try {
-        const synced = await MDRDaftarSupabase.sync();
-        if (synced !== true) showToast('দফতর সেশন পুরনো — লগআউট করে আবার লগইন করুন');
+        await MMSession.ensureDaftarDataReady({ silent: wasWarm });
+        if (!MMSession.isAppDataWarm()) showToast('দফতর সেশন পুরনো — লগআউট করে আবার লগইন করুন');
       } catch (e) {
         showToast('Supabase থেকে দফতর ডেটা লোড হয়নি');
-      }
-    }
-    if (window.MdrAccAPI && MdrAccAPI.bootstrapRemote) {
-      try {
-        await MdrAccAPI.bootstrapRemote();
-      } catch (e) {
-        showToast('Supabase থেকে হিসাব ডেটা লোড হয়নি');
       }
     }
     ensureDaftarSampleData();
@@ -2005,7 +2008,7 @@ body.page-daftar #modal-account-entry .modal {
     if(typeof showToast==='function')showToast('PIN সফলভাবে পরিবর্তন হয়েছে');
   }
 
-  MMLoading.run(initDaftarPage);
+  MMLoading.runDaftarPage(initDaftarPage);
 </script>
 
 </body>

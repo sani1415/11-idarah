@@ -135,7 +135,10 @@
     });
   }
 
-  async function sync() {
+  async function sync(options) {
+    if (!options || !options.force) {
+      if (global.API && API.isDaftarSessionCacheWarm && API.isDaftarSessionCacheWarm()) return true;
+    }
     if (!global.MMSharedAPI || !global.API) return false;
     var a = actor();
     if (!a || !a.id || !a.pin) return false;
@@ -148,6 +151,9 @@
     if (API.Attendance && API.Attendance.replaceAll) {
       API.Attendance.replaceAll((res.attendance || []).map(toLocalAttendance));
     }
+    if (API.persistDaftarAttendanceSessionCache) API.persistDaftarAttendanceSessionCache();
+    if (API.rebuildDaftarAbsentSummary) API.rebuildDaftarAbsentSummary();
+    if (API.markDaftarBootstrapComplete) API.markDaftarBootstrapComplete();
     if (Array.isArray(res.class_teachers)) applyClassTeachers(res.class_teachers);
     try {
       await mergePublicMadrasaSettingsFromServer();

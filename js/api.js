@@ -56,6 +56,7 @@ const API = (() => {
   const SESSION_CACHE_VERSION = 1;
   const SESSION_CACHE_META = 'mm_data_cache_meta';
   const SESSION_CACHE_PREFIX = 'mm_sc_';
+  const ABSENT_SUMMARY_KEY = 'mm_absent_summary_v1';
   let sessionHydrateAttempted = false;
 
   function sessionActorKey() {
@@ -81,18 +82,24 @@ const API = (() => {
     } catch { return null; }
   }
 
-  function touchSessionCacheMeta() {
+  function touchSessionCacheMeta(extra) {
     const actor = sessionActorKey();
     if (!actor) return;
     try {
+      const prev = readSessionCacheMeta() || {};
       sessionStorage.setItem(SESSION_CACHE_META, JSON.stringify({
         v: SESSION_CACHE_VERSION,
         actor,
         ts: Date.now(),
+        daftar_boot: !!(extra && extra.daftar_boot) || !!prev.daftar_boot,
       }));
     } catch (e) {
       console.warn('[API] session cache meta write failed', e);
     }
+  }
+
+  function markDaftarBootstrapComplete() {
+    touchSessionCacheMeta({ daftar_boot: true });
   }
 
   function writeSessionCache(key, data) {
@@ -134,7 +141,18 @@ const API = (() => {
       delete volatileStore[key];
     });
     try { sessionStorage.removeItem(SESSION_CACHE_META); } catch (e) {}
+    try { sessionStorage.removeItem(ABSENT_SUMMARY_KEY); } catch (e) {}
     sessionHydrateAttempted = false;
+  }
+
+  function hasSessionCacheEntry(key) {
+    ensureSessionCacheHydrated();
+    if (Object.prototype.hasOwnProperty.call(volatileStore, key)) return true;
+    try {
+      return sessionStorage.getItem(sessionCacheStorageKey(key)) != null;
+    } catch (e) {
+      return false;
+    }
   }
 
   function isSessionCacheWarm() {
@@ -150,6 +168,81 @@ const API = (() => {
       ? volatileStore[KEYS.classes]
       : [];
     return Array.isArray(students) && students.length > 0 && Array.isArray(classes) && classes.length > 0;
+  }
+
+  /** দফতর হোম/হাজিরা — একবার বুটস্ট্র্যাপ সম্পন্ন (হাজিরা বা সারাংশ ক্যাশ) */
+  function isDaftarSessionCacheWarm() {
+    if (!isSessionCacheWarm()) return false;
+    const meta = readSessionCacheMeta();
+    if (meta && meta.daftar_boot) return true;
+    return hasSessionCacheEntry(KEYS.attendance) || !!loadDaftarAbsentSummaryRaw();
+  }
+
+  function loadDaftarAbsentSummaryRaw() {
+    try {
+      const raw = sessionStorage.getItem(ABSENT_SUMMARY_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || parsed.actor !== sessionActorKey()) return null;
+      return parsed;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function studentAbsentDayCount(by, student) {
+    if (!by || !student) return 0;
+    const id = String(student.id || '');
+    const supa = String(student.supabase_id || student.id || '');
+    const perm = String(student.permanent_id || '');
+    return by[id] || by[supa] || by[perm] || 0;
+  }
+
+  function rebuildDaftarAbsentSummary() {
+    const existing = loadDaftarAbsentSummaryRaw();
+    const attList = load(KEYS.attendance);
+    if (!attList.length && existing && Array.isArray(existing.rows) && existing.rows.length) {
+      return existing.rows;
+    }
+    const by = Attendance.getAbsentStatsByStudent();
+    const rows = [];
+    Students.getAll().forEach((s) => {
+      if (!s || !s.active) return;
+      const absentDays = studentAbsentDayCount(by, s);
+      if (absentDays <= 0) return;
+      const cls = Classes.getById(s.class_id);
+      rows.push({
+        student: {
+          id: s.id,
+          name: s.name || '',
+          roll: s.roll || '',
+          class_id: s.class_id || '',
+        },
+        absentDays,
+        dept: cls && cls.dept === 'maktab' ? 'maktab' : 'kitab',
+      });
+    });
+    rows.sort((a, b) => (b.absentDays || 0) - (a.absentDays || 0));
+    if (!rows.length && existing && Array.isArray(existing.rows) && existing.rows.length) {
+      return existing.rows;
+    }
+    try {
+      sessionStorage.setItem(ABSENT_SUMMARY_KEY, JSON.stringify({
+        actor: sessionActorKey(),
+        rows,
+        ts: Date.now(),
+      }));
+    } catch (e) {
+      console.warn('[API] absent summary cache write failed', e);
+    }
+    return rows;
+  }
+
+  function loadDaftarAbsentSummaryRows(depts) {
+    const parsed = loadDaftarAbsentSummaryRaw();
+    if (!parsed || !Array.isArray(parsed.rows)) return null;
+    const allowed = Array.isArray(depts) && depts.length ? depts : ['kitab', 'maktab'];
+    return parsed.rows.filter((x) => allowed.indexOf(x.dept) >= 0);
   }
 
   function load(key) {
@@ -230,10 +323,39 @@ const API = (() => {
       return;
     } catch (e4) {
       if (!isQuotaError(e4)) throw lastErr || e4 || new Error('attendance_cache_save_failed');
-      console.warn('[API.Attendance] local cache unavailable; using memory for this page session');
+      console.warn('[API.Attendance] session cache full; keeping compact attendance in session');
       volatileStore[KEYS.attendance] = list;
+      persistDaftarAttendanceSessionCache();
       return;
     }
+  }
+
+  /** দফতর বুটস্ট্র্যাপ পর হাজিরা sessionStorage-এ লেখা নিশ্চিত */
+  function persistDaftarAttendanceSessionCache() {
+    const list = Object.prototype.hasOwnProperty.call(volatileStore, KEYS.attendance)
+      ? volatileStore[KEYS.attendance]
+      : load(KEYS.attendance);
+    if (!Array.isArray(list)) return false;
+    const windows = [90, 45, 30, 14, 7, 1];
+    for (const days of windows) {
+      try {
+        writeSessionCache(KEYS.attendance, compactAttendanceCache(list, days));
+        volatileStore[KEYS.attendance] = list;
+        return true;
+      } catch (e) {
+        if (!isQuotaError(e)) break;
+      }
+    }
+    if (!list.length) {
+      try {
+        writeSessionCache(KEYS.attendance, []);
+        return true;
+      } catch (e2) {
+        console.warn('[API] persistDaftarAttendanceSessionCache failed', e2);
+      }
+    }
+    rebuildDaftarAbsentSummary();
+    return false;
   }
 
   function purgeKnownSampleData() {
@@ -685,7 +807,9 @@ const API = (() => {
       const byStudent = {};
       load(KEYS.attendance).forEach((a) => {
         if (this.statusOf(a) !== 'absent') return;
-        byStudent[a.student_id] = (byStudent[a.student_id] || 0) + 1;
+        const sid = String(a.student_id || '');
+        if (!sid) return;
+        byStudent[sid] = (byStudent[sid] || 0) + 1;
       });
       return byStudent;
     },
@@ -694,7 +818,7 @@ const API = (() => {
       const by = this.getAbsentStatsByStudent();
       return Students.getAll()
         .filter((s) => s.active)
-        .map((s) => ({ student: s, absentDays: by[s.id] || 0 }))
+        .map((s) => ({ student: s, absentDays: studentAbsentDayCount(by, s) }))
         .filter((x) => x.absentDays > 0)
         .sort((a, b) => b.absentDays - a.absentDays);
     },
@@ -704,7 +828,7 @@ const API = (() => {
       const by = this.getAbsentStatsByStudent();
       return Students.getAll()
         .filter((s) => s.active && cids.has(s.class_id))
-        .map((s) => ({ student: s, absentDays: by[s.id] || 0 }))
+        .map((s) => ({ student: s, absentDays: studentAbsentDayCount(by, s) }))
         .filter((x) => x.absentDays > 0)
         .sort((a, b) => b.absentDays - a.absentDays);
     },
@@ -1106,7 +1230,9 @@ const API = (() => {
     Settings, Sessions, Holidays,
     OldMadrasaImport,
     persistLoadArr, persistSaveArr,
-    hydrateSessionCache, clearSessionCache, isSessionCacheWarm,
+    hydrateSessionCache, clearSessionCache, isSessionCacheWarm, isDaftarSessionCacheWarm, hasSessionCacheEntry,
+    markDaftarBootstrapComplete, persistDaftarAttendanceSessionCache,
+    rebuildDaftarAbsentSummary, loadDaftarAbsentSummaryRows, loadDaftarAbsentSummaryRaw,
     uid, today, now, esc, escBn, toBn,
   };
 

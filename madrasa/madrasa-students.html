@@ -429,7 +429,8 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
 
   /* ── INIT ── */
   async function initStudentsPage() {
-    if (window.MDRDaftarSupabase && window.MMSharedAPI) {
+    var dataWarm = MMSession.isAppDataWarm && MMSession.isAppDataWarm();
+    if (!dataWarm && window.MDRDaftarSupabase && window.MMSharedAPI) {
       try {
         await MDRDaftarSupabase.sync();
       } catch (e) {
@@ -440,7 +441,7 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
     renderList();
     populateAddForm();
   }
-  MMLoading.run(initStudentsPage);
+  MMLoading.runDaftarPage(initStudentsPage);
 </script>
 </body>
 </html>

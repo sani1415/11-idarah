@@ -71,6 +71,18 @@ function injectAppUpdate(html, relativeRoot, version) {
   return `${html}\n${tag}\n`;
 }
 
+function injectBootScript(html, relativeRoot) {
+  if (!/mm-session\.js/i.test(html) || /mm-boot\.js/i.test(html)) return html;
+  const tag = `<script src="${relativeRoot}js/mm-boot.js"></script>`;
+  if (/<meta\s+charset=/i.test(html)) {
+    return html.replace(/(<meta\s+charset=[^>]+>)/i, `$1\n${tag}`);
+  }
+  if (/<head[^>]*>/i.test(html)) {
+    return html.replace(/<head([^>]*)>/i, `<head$1>\n${tag}`);
+  }
+  return html;
+}
+
 function transformHtml(html, relativeRoot, version) {
   let next = html
     .replace(/(<script\b[^>]*\bsrc=["'])([^"']+)(["'][^>]*>)/gi, function (_, before, url, after) {
@@ -80,6 +92,7 @@ function transformHtml(html, relativeRoot, version) {
       if (!/\brel=["'][^"']*stylesheet/i.test(match)) return match;
       return before + versionAssetUrl(url, version) + after;
     });
+  next = injectBootScript(next, relativeRoot);
   return injectAppUpdate(next, relativeRoot, version);
 }
 

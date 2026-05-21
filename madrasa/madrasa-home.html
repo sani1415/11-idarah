@@ -2,6 +2,7 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
+<script src="../js/mm-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>মাদ্রাসা — দফতর</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -229,6 +230,8 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js?v=20260517-attendance-consistency"></script>
 <script src="../js/mdr-daftar-supabase.js"></script>
+<script src="../js/madrasa-accounts-api.js?v=20260503-accounts-topbar"></script>
+<script src="../js/madrasa-kormosuchi.js"></script>
 <script src="../js/mdr-khadimin-supabase.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-student-modal.js?v=20260517-attendance-consistency"></script>
@@ -467,19 +470,23 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
     renderClassSummary();
   }
   async function initMadrasaHome() {
-    if (window.MDRDaftarSupabase && window.MMSharedAPI) {
-      try { await MDRDaftarSupabase.sync(); } catch (e) {}
-    }
-    if (window.MDRKhadiminSupabase && window.MMSharedAPI) {
-      try { await MDRKhadiminSupabase.sync(); } catch (e) {}
-    }
-    if (window.MDRDastarkhan && window.MDRDastarkhan.sync) {
-      try { await MDRDastarkhan.sync(); } catch (e) {}
-    }
-    if (window.MDRDaftarNotes && window.MDRDaftarNotes.sync) {
-      try { await MDRDaftarNotes.sync(); } catch (e) {}
+    var wasWarm = MMSession.isAppDataWarm && MMSession.isAppDataWarm();
+    if (!wasWarm) {
+      if (window.MMKormosuchi && MMKormosuchi.preload) {
+        try { await MMKormosuchi.preload(); } catch (e) {}
+      }
+      if (window.MDRKhadiminSupabase && window.MMSharedAPI) {
+        try { await MDRKhadiminSupabase.sync(); } catch (e) {}
+      }
+      if (window.MDRDastarkhan && window.MDRDastarkhan.sync) {
+        try { await MDRDastarkhan.sync(); } catch (e) {}
+      }
+      if (window.MDRDaftarNotes && window.MDRDaftarNotes.sync) {
+        try { await MDRDaftarNotes.sync(); } catch (e) {}
+      }
     }
     MDRHomePanels.init({ toBn, showToast });
+    if (window.MDRHomePanels && MDRHomePanels.updateCards) MDRHomePanels.updateCards();
     if (window.MDRDastarkhan) MDRDastarkhan.init({ showToast });
     if (window.MDRDaftarNotes) MDRDaftarNotes.init({ showToast });
     populateStudentListFilter();
@@ -491,7 +498,16 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
     renderClassSummary();
     renderStudentList();
   });
-  MMLoading.run(initMadrasaHome);
+  MMLoading.runDaftarPage(async function () {
+    var wasWarm = MMSession.isAppDataWarm && MMSession.isAppDataWarm();
+    if (MMSession.ensureDaftarDataReady) {
+      try { await MMSession.ensureDaftarDataReady({ silent: wasWarm }); } catch (e) {}
+    }
+    await initMadrasaHome();
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && window.MDRHomePanels && MDRHomePanels.updateCards) MDRHomePanels.updateCards();
+  });
 </script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
+<script src="../js/mm-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>বর্ষ উন্নীতকরণ — মাদরাসাতুল মদীনা</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -456,8 +457,12 @@
     document.getElementById('undo-box').style.display = 'none';
   }
 
-  goStep(1);
-  updateYearStartPreview();
+  async function initYearendPage() {
+    goStep(1);
+    updateYearStartPreview();
+  }
+
+  MMLoading.runDaftarPage(initYearendPage);
 </script>
 </body>
 </html>

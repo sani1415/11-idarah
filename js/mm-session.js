@@ -23,6 +23,52 @@
     K.deptRole, K.deptId, K.deptName, K.deptEmoji,
   ];
 
+  var SESSION_CACHE_VERSION = 1;
+  var SESSION_CACHE_META = 'mm_data_cache_meta';
+  var SESSION_CACHE_PREFIX = 'mm_sc_';
+  var PROGRAMS_CACHE_KEY = 'mm_programs_sc_v1';
+
+  function sessionActorKeyForCache() {
+    try {
+      var role = sessionStorage.getItem(K.role) || '';
+      if (role === 'admin') {
+        return 'admin:' + String(sessionStorage.getItem(K.adminUserId) || '') + ':' + String(sessionStorage.getItem(K.adminPin) || '');
+      }
+      return role + ':' + String(sessionStorage.getItem(K.staffUserId) || '') + ':' +
+        String(sessionStorage.getItem(K.teacherId) || '') + ':' + String(sessionStorage.getItem(K.deptId) || '');
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function isAppSessionCacheWarm() {
+    if (global.API) {
+      try {
+        var role = sessionStorage.getItem(K.role) || '';
+        if (role !== 'admin' && API.isDaftarSessionCacheWarm) return API.isDaftarSessionCacheWarm();
+      } catch (e0) {}
+      if (API.isSessionCacheWarm) return API.isSessionCacheWarm();
+    }
+    try {
+      var actor = sessionActorKeyForCache();
+      if (!actor) return false;
+      var meta = JSON.parse(sessionStorage.getItem(SESSION_CACHE_META) || 'null');
+      if (!meta || meta.v !== SESSION_CACHE_VERSION || meta.actor !== actor) return false;
+      var students = JSON.parse(sessionStorage.getItem(SESSION_CACHE_PREFIX + 'mm_students') || '[]');
+      var classes = JSON.parse(sessionStorage.getItem(SESSION_CACHE_PREFIX + 'mm_classes') || '[]');
+      if (!Array.isArray(students) || !students.length || !Array.isArray(classes) || !classes.length) return false;
+      var role = sessionStorage.getItem(K.role) || '';
+      if (role !== 'admin') {
+        if (meta && meta.daftar_boot) return true;
+        if (sessionStorage.getItem(SESSION_CACHE_PREFIX + 'mm_attendance') == null &&
+            sessionStorage.getItem('mm_absent_summary_v1') == null) return false;
+      }
+      return true;
+    } catch (e2) {
+      return false;
+    }
+  }
+
   function readTeacherProfile() {
     try {
       var raw = sessionStorage.getItem(K.teacherProfile);
@@ -195,6 +241,45 @@
     pinChangeErrorMessage: sessionErrorMessage,
 
     isAdmin: function () { return sessionStorage.getItem(K.role) === 'admin'; },
+    /** ছাত্র/শ্রেণি সেশন ক্যাশ — নেভিগেশনে পুনরায় বুটস্ট্র্যাপ এড়াতে */
+    isAppDataWarm: function () { return isAppSessionCacheWarm(); },
+
+    /**
+     * দফতর শেল — প্রথমবার লোডিং সহ, পরে নেভে শান্ত (silent) বুটস্ট্র্যাপ।
+     * @param {{ silent?: boolean, force?: boolean }} opts
+     */
+    ensureDaftarDataReady: async function (opts) {
+      opts = opts || {};
+      var silent = opts.silent === true || (opts.silent !== false && isAppSessionCacheWarm());
+      var wrap = function (fn) {
+        if (!silent && global.MMLoading && MMLoading.runDaftarPage) return MMLoading.runDaftarPage(fn);
+        return fn();
+      };
+      if (global.API && API.hydrateSessionCache) API.hydrateSessionCache();
+      var needDaftar = opts.force || !(global.API && API.isDaftarSessionCacheWarm && API.isDaftarSessionCacheWarm());
+      if (needDaftar && global.MDRDaftarSupabase && MDRDaftarSupabase.sync) {
+        await wrap(async function () {
+          await MDRDaftarSupabase.sync(opts.force ? { force: true } : undefined);
+        });
+      }
+      var needAcc = global.MdrAccAPI && MdrAccAPI.bootstrapRemote &&
+        (!MdrAccAPI.isLocalCacheWarm || !MdrAccAPI.isLocalCacheWarm());
+      if (needAcc) {
+        await wrap(async function () {
+          await MdrAccAPI.bootstrapRemote(opts.force ? { force: true } : undefined);
+        });
+      }
+      if (global.API && API.rebuildDaftarAbsentSummary && API.loadDaftarAbsentSummaryRaw &&
+          !API.loadDaftarAbsentSummaryRaw() && API.hasSessionCacheEntry) {
+        try {
+          if (API.hasSessionCacheEntry('mm_attendance')) {
+            var attN = API.Attendance && API.Attendance.getAll ? API.Attendance.getAll().length : 0;
+            if (attN > 0) API.rebuildDaftarAbsentSummary();
+          }
+        } catch (e) {}
+      }
+      return true;
+    },
     isRestrictedAdmin: function () {
       var p = readPerms();
       return this.isAdmin() && !!p && !isSuperAdminPerms(p);
@@ -280,6 +365,10 @@
     clearAppSession: function () {
       ALL_APP_KEYS.forEach(function (k) { sessionStorage.removeItem(k); });
       if (global.API && API.clearSessionCache) API.clearSessionCache();
+      try { sessionStorage.removeItem(PROGRAMS_CACHE_KEY); } catch (e) {}
+      try { sessionStorage.removeItem('mm_absent_summary_v1'); } catch (e) {}
+      clearNavLoadingFlag();
+      if (global.MdrAccAPI && MdrAccAPI.clearLocalCache) MdrAccAPI.clearLocalCache();
     },
 
     /** Clear app session then go to role selection (use from madrasa/*, khedmat staff, etc.). */
@@ -483,8 +572,11 @@
     var style = document.createElement('style');
     style.id = LOADING_STYLE_ID;
     style.textContent =
-      '.mm-app-load-screen{position:fixed;inset:0;z-index:500;background:var(--cream,#faf6ef);display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}' +
-      '.mm-app-load-screen.is-hidden{display:none}' +
+      'html.mm-app-boot:not(.mm-app-ready){background:var(--cream,#faf6ef)}' +
+      'html.mm-app-boot:not(.mm-app-ready) body{overflow:hidden}' +
+      'html.mm-app-boot:not(.mm-app-ready) body>:not(#mm-app-load-screen){visibility:hidden!important}' +
+      '.mm-app-load-screen{position:fixed;inset:0;z-index:2147483000;background:var(--cream,#faf6ef);display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}' +
+      '.mm-app-load-screen.is-hidden{display:none!important}' +
       '.mm-app-load-inner{text-align:center;max-width:340px}' +
       '.mm-app-load-spinner{width:42px;height:42px;margin:0 auto;border:3px solid rgba(201,149,42,.22);border-top-color:var(--gold,#c9952a);border-radius:50%;animation:mmAppLoadSpin .85s linear infinite}' +
       '@keyframes mmAppLoadSpin{to{transform:rotate(360deg)}}' +
@@ -511,39 +603,107 @@
     return el;
   }
 
+  function setBootCoverActive(active) {
+    if (typeof document === 'undefined') return;
+    var root = document.documentElement;
+    if (!root) return;
+    if (active) {
+      root.classList.add('mm-app-boot');
+      root.classList.remove('mm-app-ready');
+    } else {
+      root.classList.add('mm-app-ready');
+      root.classList.remove('mm-app-boot');
+    }
+  }
+
+  function releaseBootCoverIfWarm() {
+    if (!isAppSessionCacheWarm()) return;
+    setBootCoverActive(false);
+    clearNavLoadingFlag();
+  }
+
+  function primeBootOverlay(message) {
+    var el = ensureLoadingOverlay();
+    if (!el) return;
+    var text = el.querySelector('.mm-app-load-text');
+    if (text) text.textContent = message || LOADING_MSG;
+    el.classList.remove('is-hidden');
+    el.setAttribute('aria-busy', 'true');
+    loadingVisible = true;
+  }
+
   var MMLoading = {
     MESSAGE: LOADING_MSG,
     show: function (message) {
-      var el = ensureLoadingOverlay();
-      if (!el) return;
-      var text = el.querySelector('.mm-app-load-text');
-      if (text) text.textContent = message || LOADING_MSG;
-      el.classList.remove('is-hidden');
-      el.setAttribute('aria-busy', 'true');
-      loadingVisible = true;
+      setBootCoverActive(true);
+      primeBootOverlay(message);
     },
     hide: function () {
       if (typeof document === 'undefined') return;
       var el = document.getElementById(LOADING_OVERLAY_ID);
-      if (!el) return;
-      el.classList.add('is-hidden');
-      el.setAttribute('aria-busy', 'false');
-      loadingVisible = false;
+      var finish = function () {
+        if (el) {
+          el.classList.add('is-hidden');
+          el.setAttribute('aria-busy', 'false');
+        }
+        loadingVisible = false;
+        setBootCoverActive(false);
+      };
+      if (global.requestAnimationFrame) {
+        global.requestAnimationFrame(function () {
+          global.requestAnimationFrame(finish);
+        });
+      } else {
+        setTimeout(finish, 32);
+      }
     },
     isVisible: function () { return loadingVisible; },
     run: async function (fn, message, options) {
       options = options || {};
-      var warm = options.forceLoading !== true &&
-        global.API && API.isSessionCacheWarm && API.isSessionCacheWarm();
+      var warm = options.forceLoading !== true && isAppSessionCacheWarm();
       if (!warm) MMLoading.show(message);
       try {
         return await fn();
       } finally {
         if (!warm) MMLoading.hide();
+        else releaseBootCoverIfWarm();
+        clearNavLoadingFlag();
       }
+    },
+    /** দফতর/স্টাফ — অ্যাডমিনের মতো: ক্যাশ ওয়ার্ম হলে লোডিং ও রিমোট বুটস্ট্র্যাপ স্কিপ */
+    runDaftarPage: function (fn, message) {
+      return MMLoading.run(fn, message);
     },
   };
 
+  function clearNavLoadingFlag() {
+    try { sessionStorage.removeItem('mm_nav_loading'); } catch (e) {}
+  }
+
+  function resumeNavLoadingIfNeeded() {
+    try {
+      if (isAppSessionCacheWarm()) {
+        clearNavLoadingFlag();
+        return;
+      }
+      var navPending = sessionStorage.getItem('mm_nav_loading') === '1';
+      var bootClass = typeof document !== 'undefined' && document.documentElement &&
+        document.documentElement.classList.contains('mm-app-boot');
+      if ((navPending || bootClass) && global.MMLoading && MMLoading.show && !MMLoading.isVisible()) {
+        MMLoading.show();
+      }
+    } catch (e) {}
+  }
+
   global.MMLoading = MMLoading;
+  global.MMIsAppSessionCacheWarm = isAppSessionCacheWarm;
+  global.MMReleaseBootCoverIfWarm = releaseBootCoverIfWarm;
+  if (typeof document !== 'undefined' && document.documentElement &&
+      document.documentElement.classList.contains('mm-app-boot') &&
+      !isAppSessionCacheWarm()) {
+    injectLoadingStyles();
+    primeBootOverlay(LOADING_MSG);
+  }
+  resumeNavLoadingIfNeeded();
   if (global.API && API.hydrateSessionCache) API.hydrateSessionCache();
 })(typeof window !== 'undefined' ? window : globalThis);

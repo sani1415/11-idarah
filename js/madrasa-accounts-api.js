@@ -277,7 +277,20 @@ const MdrAccAPI = (() => {
     localStorage.setItem(SV_KEY, 'accounts-db-' + Date.now());
   }
 
-  async function bootstrapRemote() {
+  function isLocalCacheWarm() {
+    try { return !!localStorage.getItem(SV_KEY); } catch (e) { return false; }
+  }
+
+  function clearLocalCache() {
+    [SV_KEY, INC_KEY, EXP_KEY, DUE_KEY, DUE_PAY_KEY, CAT_KEY].forEach(function (k) {
+      try { localStorage.removeItem(k); } catch (e) {}
+    });
+  }
+
+  async function bootstrapRemote(options) {
+    if (!options || !options.force) {
+      if (isLocalCacheWarm() && remoteReady()) return true;
+    }
     if (!remoteReady()) return false;
     const a = remoteActor();
     const res = await MMSharedAPI.accountsBootstrap(a.id, a.pin);
@@ -473,7 +486,7 @@ const MdrAccAPI = (() => {
     }
   }
 
-  return { ensureSeed, bootstrapRemote, remoteReady, Income, Expense, Dues, Summary, Categories, Settings, MONTHS, HIJRI_MONTHS, ACCOUNT_LABELS, esc, bn, fa, pct, count, clean, monthKey, monthFromNo, monthNo, dateKey, dateLabel, parseDateInput, toDateKey, inRange, num, todayHijri };
+  return { ensureSeed, bootstrapRemote, isLocalCacheWarm, clearLocalCache, remoteReady, Income, Expense, Dues, Summary, Categories, Settings, MONTHS, HIJRI_MONTHS, ACCOUNT_LABELS, esc, bn, fa, pct, count, clean, monthKey, monthFromNo, monthNo, dateKey, dateLabel, parseDateInput, toDateKey, inRange, num, todayHijri };
 })();
 
 if (typeof window !== 'undefined') {

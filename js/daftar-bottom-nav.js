@@ -6,7 +6,7 @@
 
   var ICON = {
     madrasa:
-      '<path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+      '<path d="M3 10.5L12 3l9 7 9 7v11a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
     attendance:
       '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
     accounts:
@@ -31,6 +31,40 @@
     return '<span class="nav-label">' + esc(text) + '</span>';
   }
 
+  function isNavDataWarm() {
+    if (global.MMSession && MMSession.isAppDataWarm) return MMSession.isAppDataWarm();
+    if (global.API && API.isSessionCacheWarm) return API.isSessionCacheWarm();
+    if (global.MMIsAppSessionCacheWarm) return global.MMIsAppSessionCacheWarm();
+    return false;
+  }
+
+  function showNavLoading() {
+    if (isNavDataWarm()) return;
+    try { sessionStorage.setItem('mm_nav_loading', '1'); } catch (e) {}
+    if (global.MMLoading && MMLoading.show) MMLoading.show();
+  }
+
+  function isSpaNavItem(item) {
+    var oc = item.getAttribute('onclick') || '';
+    return /switchMadrasaTab|goDaftarAccounts/.test(oc);
+  }
+
+  function bindNavLoading(navEl) {
+    if (!navEl || navEl.getAttribute('data-mm-nav-load-bound')) return;
+    navEl.setAttribute('data-mm-nav-load-bound', '1');
+    navEl.addEventListener(
+      'click',
+      function (e) {
+        var item = e.target.closest('.nav-item, a.nav-item');
+        if (!item || item.classList.contains('active')) return;
+        if (isSpaNavItem(item)) return;
+        if (isNavDataWarm()) return;
+        showNavLoading();
+      },
+      true
+    );
+  }
+
   function linkRow(href, iconKey, labelText, isActive, useAnchor) {
     var inner = iconSpan(iconKey) + lbl(labelText);
     var cls = 'nav-item' + (isActive ? ' active' : '');
@@ -41,12 +75,18 @@
       cls +
       '"' +
       aria +
-      ' onclick="location.href=\'' +
+      ' onclick="MMDaftarBottomNav.go(\'' +
       esc(href).replace(/\\/g, '\\\\').replace(/'/g, "\\'") +
-      '\'">' +
+      '\')">' +
       inner +
       '</div>'
     );
+  }
+
+  function go(href) {
+    if (!href) return;
+    if (!isNavDataWarm()) showNavLoading();
+    location.href = href;
   }
 
   /**
@@ -107,10 +147,13 @@
   function mount(navEl, options) {
     if (!navEl) return;
     navEl.innerHTML = shellInnerHtml(options || {});
+    bindNavLoading(navEl);
   }
 
   global.MMDaftarBottomNav = {
     shellInnerHtml: shellInnerHtml,
     mount: mount,
+    go: go,
+    showNavLoading: showNavLoading,
   };
 })(typeof window !== 'undefined' ? window : this);

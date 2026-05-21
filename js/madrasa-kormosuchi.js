@@ -152,7 +152,57 @@ function normalizeBucket(bucket) {
   return out;
 }
 
-async function dbLoad() {
+const PROGRAMS_CACHE_KEY = 'mm_programs_sc_v1';
+
+function programsCacheActorKey() {
+  const a = currentActor();
+  return a && a.pin ? String(a.id || '') + ':' + String(a.pin) : '';
+}
+
+function hydrateProgramsCache() {
+  try {
+    const raw = sessionStorage.getItem(PROGRAMS_CACHE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    const key = programsCacheActorKey();
+    if (!parsed || parsed.actor !== key || !Array.isArray(parsed.programs)) return false;
+    db = {
+      programs: parsed.programs.map(p => ensureProgramShape({ ...p })),
+      income: normalizeBucket(parsed.income),
+      expense: normalizeBucket(parsed.expense),
+      attachments: normalizeBucket(parsed.attachments),
+    };
+    readOnly = !!parsed.read_only;
+    active = db.programs.find(p => p.id === active) ? active : (db.programs[0] && db.programs[0].id);
+    dbReady = true;
+    loadError = '';
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function saveProgramsCache() {
+  try {
+    const key = programsCacheActorKey();
+    if (!key || !dbReady) return;
+    sessionStorage.setItem(PROGRAMS_CACHE_KEY, JSON.stringify({
+      actor: key,
+      programs: db.programs,
+      income: db.income,
+      expense: db.expense,
+      attachments: db.attachments,
+      read_only: readOnly,
+    }));
+  } catch (e) {
+    console.warn('[kormosuchi] programs cache write failed', e);
+  }
+}
+
+async function dbLoad(options) {
+  if (!options || !options.force) {
+    if (hydrateProgramsCache()) return;
+  }
   if (!remoteReady()) throw new Error('database_not_configured');
   const a = remoteActor();
   const res = await MMSharedAPI.programsBootstrap(a.id, a.pin);
@@ -172,10 +222,11 @@ async function dbLoad() {
   active = db.programs.find(p => p.id === active) ? active : (db.programs[0] && db.programs[0].id);
   dbReady = true;
   loadError = '';
+  saveProgramsCache();
 }
 
 async function refreshPage() {
-  await dbLoad();
+  await dbLoad({ force: true });
   renderPage();
 }
 
@@ -1088,7 +1139,8 @@ function confirmYes() {
 
 /* ── INIT ── */
 async function initKormosuchiPage() {
-  if (window.MDRDaftarSupabase && MDRDaftarSupabase.sync) {
+  var dataWarm = window.MMSession && MMSession.isAppDataWarm && MMSession.isAppDataWarm();
+  if (!dataWarm && window.MDRDaftarSupabase && MDRDaftarSupabase.sync) {
     try { await MDRDaftarSupabase.sync(); } catch (err) { console.warn('[kormosuchi] student sync failed', err); }
   }
   try {
@@ -1113,14 +1165,29 @@ window.mmStudentModalExtraInfo = function (sid, student) {
   return html;
 };
 
+async function preloadKormosuchiData() {
+  await dbLoad();
+}
+
 window.initKormosuchiPage = initKormosuchiPage;
-window.MMKormosuchi = { init: initKormosuchiPage };
+window.MMKormosuchi = { init: initKormosuchiPage, preload: preloadKormosuchiData };
 
 function kormosuchiHostIsEmbedded() {
   return !!document.getElementById('acc-panel-kormosuchi');
 }
 
-if (!kormosuchiHostIsEmbedded()) {
-  if (window.MMLoading && MMLoading.run) MMLoading.run(initKormosuchiPage);
+function isStandaloneKormosuchiPage() {
+  try {
+    return /(?:^|\/)(?:madrasa-kormosuchi|mdr-admin-kormosuchi)\.html$/i.test(
+      String(window.location.pathname || '').replace(/\\/g, '/')
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
+if (!kormosuchiHostIsEmbedded() && isStandaloneKormosuchiPage()) {
+  if (window.MMLoading && MMLoading.runDaftarPage) MMLoading.runDaftarPage(initKormosuchiPage);
+  else if (window.MMLoading && MMLoading.run) MMLoading.run(initKormosuchiPage);
   else initKormosuchiPage();
 }

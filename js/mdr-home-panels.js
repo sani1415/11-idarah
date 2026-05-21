@@ -724,6 +724,18 @@
 
   function absentRows() {
     const depts = getAbsentDepts();
+    if (global.API && API.loadDaftarAbsentSummaryRaw) {
+      const raw = API.loadDaftarAbsentSummaryRaw();
+      if (raw && Array.isArray(raw.rows)) {
+        const allowed = depts.length ? depts : ['kitab', 'maktab'];
+        return raw.rows.filter((x) => allowed.indexOf(x.dept) >= 0);
+      }
+    }
+    if (global.API && API.loadDaftarAbsentSummaryRows) {
+      const cached = API.loadDaftarAbsentSummaryRows(depts);
+      if (cached) return cached;
+    }
+    if (!global.API || !API.Attendance) return [];
     return depts
       .flatMap((dept) => API.Attendance.getStudentsWithAbsentSortedByDept(dept).map((x) => ({ ...x, dept })))
       .sort((a, b) => (b.absentDays || 0) - (a.absentDays || 0));
@@ -789,10 +801,20 @@
   function openAbsent(opts) {
     injectOnce();
     _absentDeptScope = (opts && Array.isArray(opts.depts) && opts.depts.length) ? opts.depts.slice() : null;
-    renderAbsent();
-    document.getElementById('modal-absent-home').classList.add('open');
-    const list = document.getElementById('abs-home-list');
-    if (list) list.scrollTop = 0;
+    function show() {
+      renderAbsent();
+      document.getElementById('modal-absent-home').classList.add('open');
+      const list = document.getElementById('abs-home-list');
+      if (list) list.scrollTop = 0;
+    }
+    if (useRemote() && global.MMSession && MMSession.ensureDaftarDataReady) {
+      MMSession.ensureDaftarDataReady({ silent: true }).then(show).catch(function () {
+        helpers.showToast('অনুপস্থিত তালিকা লোড হয়নি');
+        show();
+      });
+      return;
+    }
+    show();
   }
 
   function closeAbsent() {
@@ -803,10 +825,15 @@
   function init(opts) {
     helpers = { ...helpers, ...(opts || {}) };
     injectOnce();
-    updateCards();
-    if (useRemote()) {
-      MDRKhadiminSupabase.sync().then(() => updateCards()).catch(() => {});
+    if (global.API && API.hydrateSessionCache) API.hydrateSessionCache();
+    if (global.API && API.rebuildDaftarAbsentSummary && API.loadDaftarAbsentSummaryRaw &&
+        !API.loadDaftarAbsentSummaryRaw()) {
+      try {
+        var attLen = API.Attendance && API.Attendance.getAll ? API.Attendance.getAll().length : 0;
+        if (attLen > 0) API.rebuildDaftarAbsentSummary();
+      } catch (e) {}
     }
+    updateCards();
   }
 
   global.MDRHomePanels = {
