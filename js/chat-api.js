@@ -62,6 +62,14 @@ const ChatAPI = (() => {
     return messages.filter(m => m.thread_id === thread_id).sort((a,b) => a.ts.localeCompare(b.ts));
   }
 
+  function getAllMessages() {
+    return messages.slice().sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
+  }
+
+  function getRecentMessages(limit) {
+    return getAllMessages().slice(0, limit == null ? 25 : limit);
+  }
+
   function send(thread_id, from_role, from_name, text, extra) {
     const m = {
       id: uid(), thread_id, from_role, from_name, text,
@@ -101,23 +109,34 @@ const ChatAPI = (() => {
     return messages.filter(m => m.from_role!=='admin' && !m.read_admin).length;
   }
 
+  function normalizeRemoteMessages(raw) {
+    let rows = raw;
+    if (typeof rows === 'string') {
+      try { rows = JSON.parse(rows); } catch (e) { rows = []; }
+    }
+    if (!Array.isArray(rows)) rows = [];
+    return rows;
+  }
+
   async function syncRemote(actorId, pin, isAdmin) {
-    if (!globalThis.MMSharedAPI || !pin) return false;
+    if (!globalThis.MMSharedAPI || !pin) return { ok: false, error: 'chat_not_configured' };
     const res = await MMSharedAPI.chatBootstrap(actorId || null, pin, !!isAdmin);
-    if (!res || !res.ok) return false;
-    const remoteMsgs = (res.messages || []).map(m => ({
+    if (!res || !res.ok) {
+      return { ok: false, error: (res && res.error) || 'chat_sync_failed', res: res || null };
+    }
+    const remoteMsgs = normalizeRemoteMessages(res.messages).map(m => ({
       id: String(m.id || ''),
       thread_id: m.thread_id || '',
       from_role: m.from_role || '',
       from_name: m.from_name || '',
-      text: m.text || '',
+      text: m.text || m.body || '',
       ts: m.ts || new Date().toISOString(),
       read_admin: !!m.read_admin,
       read_staff: !!m.read_staff,
       request: m.request || null,
     }));
     save(remoteMsgs);
-    return true;
+    return { ok: true, count: remoteMsgs.length };
   }
 
   async function sendRemote(actorId, pin, threadId, text, isAdmin, extra) {
@@ -137,6 +156,15 @@ const ChatAPI = (() => {
   }
 
   seedIfEmpty();
-  return { getThreads, getThread, send, updateMessage, markReadAdmin, markReadStaff, countUnreadStaff, countUnreadAdmin, getLabel, esc, syncRemote, sendRemote, updateRequestRemote, markReadRemote };
+  return {
+    getThreads, getThread, getAllMessages, getRecentMessages,
+    send, updateMessage, markReadAdmin, markReadStaff,
+    countUnreadStaff, countUnreadAdmin, getLabel, esc,
+    syncRemote, sendRemote, updateRequestRemote, markReadRemote,
+  };
 
 })();
+
+if (typeof globalThis !== 'undefined') {
+  globalThis.ChatAPI = ChatAPI;
+}

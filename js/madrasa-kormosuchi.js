@@ -1113,5 +1113,14 @@ window.mmStudentModalExtraInfo = function (sid, student) {
   return html;
 };
 
-if (window.MMLoading && MMLoading.run) MMLoading.run(initKormosuchiPage);
-else initKormosuchiPage();
+window.initKormosuchiPage = initKormosuchiPage;
+window.MMKormosuchi = { init: initKormosuchiPage };
+
+function kormosuchiHostIsEmbedded() {
+  return !!document.getElementById('acc-panel-kormosuchi');
+}
+
+if (!kormosuchiHostIsEmbedded()) {
+  if (window.MMLoading && MMLoading.run) MMLoading.run(initKormosuchiPage);
+  else initKormosuchiPage();
+}

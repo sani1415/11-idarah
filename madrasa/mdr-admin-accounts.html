@@ -37,6 +37,38 @@
     .acc-stat-val { font-size: 18px; }
     .acc-stat-lbl { font-size: 10px; }
   }
+  .acc-hub-tabs{display:flex;gap:4px;margin:0 0 12px;padding:4px;background:rgba(255,255,255,.72);border:1px solid rgba(26,18,8,.07);border-radius:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+  .acc-hub-tab{flex:1;border:none;border-radius:11px;padding:9px 10px;font-family:'Tiro Bangla',serif;font-size:12px;font-weight:700;color:var(--ink3);background:transparent;cursor:pointer;transition:.12s}
+  .acc-hub-tab.active{color:#fff;background:linear-gradient(135deg,var(--gold),#9a6a21);box-shadow:0 6px 14px rgba(154,106,33,.23)}
+  .acc-hub-panel[hidden]{display:none!important}
+  .prog-select-wrap{display:flex;gap:8px;align-items:center}
+  .prog-select{flex:1;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius-sm);background:#fff;font-family:'Tiro Bangla',serif;font-size:14px;color:var(--ink)}
+  .prog-new-btn{flex:0 0 auto;border:1px solid var(--ink);border-radius:var(--radius-sm);background:var(--ink);color:var(--gold2);padding:8px 10px;font-family:'Tiro Bangla',serif;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
+  .prog-new-btn:disabled,.t4-btn:disabled{opacity:.45;cursor:not-allowed}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+  .kpi-card{background:var(--cream);border:1px solid var(--cream2);border-radius:var(--radius-sm);padding:10px 6px;text-align:center}
+  .kpi-card span{display:block;font-size:10px;color:var(--ink3);margin-bottom:3px;font-weight:700}
+  .kpi-card b{font-family:'Tiro Bangla',serif;font-size:16px;font-weight:800;color:var(--ink2)}
+  .kpi-card b.g{color:var(--green)}.kpi-card b.r{color:var(--red)}.kpi-card b.o{color:var(--gold)}
+  .prog-tag{display:inline-block;background:var(--gold-light);color:var(--gold);border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700;margin-top:6px}
+  .toolbar-4{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
+  .t4-btn{border:1px solid var(--cream3);border-radius:var(--radius-sm);background:#fff;padding:10px 6px;font-family:'Tiro Bangla',serif;font-size:12px;font-weight:700;cursor:pointer;text-align:center}
+  .t4-btn.green{background:var(--green-light);color:var(--green);border-color:var(--green2)}
+  .t4-btn.red{background:var(--red-light);color:var(--red);border-color:var(--red)}
+  .k-tabs{display:flex;gap:5px;background:var(--gold-light);border-radius:var(--radius-sm);padding:4px;margin-bottom:10px;overflow-x:auto}
+  .k-tab{border:none;background:transparent;border-radius:var(--radius-sm);padding:8px 11px;font-family:'Tiro Bangla',serif;font-weight:700;font-size:12px;color:var(--ink3);white-space:nowrap;cursor:pointer}
+  .k-tab.active{background:var(--ink);color:var(--gold2)}
+  .tbl-wrap{overflow:auto;border:1px solid var(--cream2);border-radius:var(--radius-sm);max-height:420px}
+  .tbl{border-collapse:collapse;width:100%;min-width:550px;font-size:13px}
+  .tbl th{background:var(--cream);color:var(--ink3);text-align:right;padding:8px;font-size:11px;font-weight:700}
+  .tbl td{padding:8px;border-bottom:1px solid var(--cream2);white-space:nowrap}
+  .student-income-picker{display:none}
+  .check-line{display:flex;align-items:center;gap:8px;border:1px solid var(--cream2);border-radius:var(--radius-sm);background:var(--cream);padding:9px 10px;font-size:12px;font-weight:800;color:var(--ink2);cursor:pointer}
+  .check-line input{width:16px;height:16px;accent-color:var(--gold)}
+  .type-config-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .type-hint{font-size:11px;color:var(--ink3);line-height:1.5;margin-top:-6px;margin-bottom:10px}
+  .receipt-list{display:flex;flex-direction:column;gap:6px;margin-top:7px}
+  @media(max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.type-config-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body class="page-admin-accounts">
@@ -51,22 +83,48 @@
 </div>
 
 <div class="content" style="max-width:640px;margin:0 auto;">
-  <p class="acc-page-lead">মাদ্রাসার আয়-ব্যয়, ব্যালেন্স ও বকেয়ার সামগ্রিক অবস্থা এখানে দেখা যাবে। নিচের বিস্তারিত অংশ থেকে হিসাব বই অনুযায়ী খরচও দেখা যাবে।</p>
+  <nav class="acc-hub-tabs" role="tablist" aria-label="হিসাব বিভাগ">
+    <button type="button" class="acc-hub-tab active" data-acc-hub="madrasa" role="tab" aria-selected="true" aria-controls="acc-panel-madrasa" id="acc-hub-tab-madrasa">মাদ্রাসা হিসাব</button>
+    <button type="button" class="acc-hub-tab" data-acc-hub="prog" role="tab" aria-selected="false" aria-controls="acc-panel-kormosuchi" id="acc-hub-tab-prog">কর্মসূচি</button>
+  </nav>
 
-  <a href="mdr-admin-kormosuchi.html" style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#fff;border:1px solid var(--cream2);border-radius:var(--radius-sm);box-shadow:var(--shadow);margin-bottom:12px;text-decoration:none;">
-    <span style="font-family:'Tiro Bangla',serif;font-size:14px;font-weight:700;color:var(--ink);">&#128203; কর্মসূচি হিসাব</span>
-    <span style="font-size:12px;color:var(--ink3);">বিস্তারিত দেখুন →</span>
-  </a>
-
-  <div class="acc-stat-grid" aria-label="হিসাব সারসংক্ষেপ">
-    <div class="acc-stat-card good"><span class="acc-stat-val" id="admin-acc-income">—</span><span class="acc-stat-lbl">মোট আয়</span></div>
-    <div class="acc-stat-card bad"><span class="acc-stat-val" id="admin-acc-expense">—</span><span class="acc-stat-lbl">মোট ব্যয়</span></div>
-    <div class="acc-stat-card" id="admin-acc-balance-card"><span class="acc-stat-val" id="admin-acc-balance">—</span><span class="acc-stat-lbl">বর্তমান ব্যালেন্স</span></div>
-    <div class="acc-stat-card warn"><span class="acc-stat-val" id="admin-acc-due">—</span><span class="acc-stat-lbl">বাকি / বকেয়া</span></div>
+  <div id="acc-panel-madrasa" class="acc-hub-panel" role="tabpanel" aria-labelledby="acc-hub-tab-madrasa">
+    <p class="acc-page-lead">মাদ্রাসার আয়-ব্যয়, ব্যালেন্স ও বকেয়া — হিসাব বই অনুযায়ী বিস্তারিত নিচে।</p>
+    <div class="acc-stat-grid" aria-label="হিসাব সারসংক্ষেপ">
+      <div class="acc-stat-card good"><span class="acc-stat-val" id="admin-acc-income">—</span><span class="acc-stat-lbl">মোট আয়</span></div>
+      <div class="acc-stat-card bad"><span class="acc-stat-val" id="admin-acc-expense">—</span><span class="acc-stat-lbl">মোট ব্যয়</span></div>
+      <div class="acc-stat-card" id="admin-acc-balance-card"><span class="acc-stat-val" id="admin-acc-balance">—</span><span class="acc-stat-lbl">বর্তমান ব্যালেন্স</span></div>
+      <div class="acc-stat-card warn"><span class="acc-stat-val" id="admin-acc-due">—</span><span class="acc-stat-lbl">বাকি / বকেয়া</span></div>
+    </div>
+    <div class="admin-accounts-shell">
+      <div id="accounts-root"></div>
+    </div>
   </div>
 
-  <div class="admin-accounts-shell">
-    <div id="accounts-root"></div>
+  <div id="acc-panel-kormosuchi" class="acc-hub-panel" role="tabpanel" aria-labelledby="acc-hub-tab-prog" hidden>
+    <p class="acc-page-lead">কোরবানি, মাহফিল, নির্মাণ ইত্যাদি আলাদা কর্মসূচির আয়-ব্যয় এখানে।</p>
+    <div class="card-static" style="margin-bottom:8px">
+      <div class="prog-select-wrap">
+        <select class="prog-select" id="prog-select" onchange="changeProgram(this.value)"></select>
+        <button type="button" class="prog-new-btn" onclick="newProgram()">+ নতুন</button>
+      </div>
+    </div>
+    <div class="card-static" style="margin-bottom:8px">
+      <div style="font-family:'Tiro Bangla',serif;font-size:17px;font-weight:800;color:var(--ink)" id="prog-title"></div>
+      <div style="font-size:12px;color:var(--ink3);margin-top:4px;line-height:1.5" id="prog-note"></div>
+      <span class="prog-tag" id="prog-tag"></span>
+      <div class="kpi-grid" id="kpi-grid"></div>
+    </div>
+    <div class="toolbar-4">
+      <button type="button" class="t4-btn green" onclick="openIncome()">↑ আয়</button>
+      <button type="button" class="t4-btn red" onclick="openExpense()">↓ ব্যয়</button>
+    </div>
+    <div class="k-tabs">
+      <button type="button" class="k-tab active" data-tab="income" onclick="setTab('income')">আয়</button>
+      <button type="button" class="k-tab" data-tab="expense" onclick="setTab('expense')">ব্যয়</button>
+      <button type="button" class="k-tab" data-tab="report" onclick="setTab('report')">রিপোর্ট</button>
+    </div>
+    <div id="root"></div>
   </div>
 </div>
 
@@ -135,11 +193,89 @@
   </div>
 </div>
 
+<!-- কর্মসূচি মডাল (হাব ট্যাব) -->
+<div class="modal-bg" id="modal-program">
+  <div class="modal">
+    <div class="modal-title"><span id="prog-modal-title">কর্মসূচি</span><button type="button" class="modal-close" onclick="closeModal('program')">✕</button></div>
+    <input type="hidden" id="prog-edit-id">
+    <div class="form-row"><div class="form-group" style="flex:1"><label class="form-label">কর্মসূচির নাম <span style="color:var(--red)">*</span></label><input class="form-input" id="prog-name" placeholder="যেমন: কোরবানি ১৪৪৭"></div></div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label class="form-label">অবস্থা</label><select class="form-input form-select" id="prog-status"><option>চলমান</option><option>পরিকল্পনা</option><option>শেষ</option><option>স্থগিত</option></select></div>
+      <div class="form-group" style="flex:1"><label class="form-label">তারিখ</label><input class="form-input" type="date" id="prog-date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">বিবরণ</label><textarea class="form-input form-textarea" id="prog-note-inp" placeholder="কর্মসূচির বিস্তারিত" rows="3"></textarea></div>
+    <label class="check-line" style="margin-bottom:10px"><input type="checkbox" id="prog-share-enabled"><span>হিস্যা হিসাব চালু</span></label>
+    <label class="check-line" style="margin-bottom:10px"><input type="checkbox" id="prog-donor-required" checked><span>আয়ে দাতার নাম বাধ্যতামূলক</span></label>
+    <div class="type-config-grid">
+      <div class="form-group"><label class="form-label">আয়ের ধরন</label><textarea class="form-input form-textarea" id="prog-income-types" rows="5" placeholder="প্রতি লাইনে একটি ধরন"></textarea></div>
+      <div class="form-group"><label class="form-label">ব্যয়ের খাত</label><textarea class="form-input form-textarea" id="prog-expense-types" rows="5" placeholder="প্রতি লাইনে একটি খাত"></textarea></div>
+    </div>
+    <div class="type-hint">প্রতি লাইনে একটি করে ধরন/খাত লিখুন।</div>
+    <button type="button" class="submit-btn gold" onclick="saveProgram()">সংরক্ষণ করুন</button>
+    <button type="button" id="prog-del-btn" onclick="deleteProgram()" style="display:none;width:100%;margin-top:6px;padding:10px;border:none;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);font-family:'Tiro Bangla',serif;font-weight:700;cursor:pointer">এই কর্মসূচি মুছুন</button>
+  </div>
+</div>
+<div class="modal-bg" id="modal-income">
+  <div class="modal">
+    <div class="modal-title"><span id="inc-modal-title">আয় যোগ</span><button type="button" class="modal-close" onclick="closeModal('income')">✕</button></div>
+    <input type="hidden" id="inc-edit-id">
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label class="form-label">তারিখ</label><input class="form-input" type="date" id="inc-date"></div>
+      <div class="form-group" style="flex:1"><label class="form-label">আয়ের ধরন</label><select class="form-input form-select" id="inc-type" onchange="onIncTypeChange()"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label class="form-label">ব্যক্তির ধরন</label><select class="form-input form-select" id="inc-person-type" onchange="syncIncomeStudentField()"><option>ছাত্র</option><option>সাধারণ মানুষ</option><option>প্রতিষ্ঠান</option></select></div>
+      <label class="check-line" style="flex:1" id="inc-share-option"><input type="checkbox" id="inc-is-share" onchange="syncIncShareField()"><span>হিস্যা হিসেবে</span></label>
+    </div>
+    <div class="form-group student-income-picker" id="inc-student-wrap">
+      <label class="form-label">ছাত্র নির্বাচন <span style="color:var(--red)">*</span></label>
+      <input class="form-input" id="inc-student" list="inc-student-list" autocomplete="off" placeholder="নাম বা দাখেলা" oninput="onIncomeStudentChange()" onchange="onIncomeStudentChange()">
+      <input type="hidden" id="inc-student-id"><datalist id="inc-student-list"></datalist>
+    </div>
+    <div class="form-group" id="inc-share-wrap"><label class="form-label">হিস্যা সংখ্যা</label><input class="form-input" type="number" id="inc-share" min="0.01" step="0.01" value="1"></div>
+    <div class="form-group"><label class="form-label">নাম <span id="inc-name-required-mark" style="color:var(--red)">*</span></label><input class="form-input" id="inc-name" placeholder="দাতার নাম"></div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label class="form-label">টাকা <span style="color:var(--red)">*</span></label><input class="form-input" type="number" id="inc-amount" placeholder="০"></div>
+      <div class="form-group" style="flex:1"><label class="form-label">পরিচিতি / মোবাইল</label><input class="form-input" id="inc-ref" placeholder="ঐচ্ছিক"></div>
+    </div>
+    <button type="button" class="submit-btn" style="background:var(--green);color:#fff" onclick="saveIncome()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+<div class="modal-bg" id="modal-expense">
+  <div class="modal">
+    <div class="modal-title"><span id="exp-modal-title">ব্যয় যোগ</span><button type="button" class="modal-close" onclick="closeModal('expense')">✕</button></div>
+    <input type="hidden" id="exp-edit-id">
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label class="form-label">তারিখ</label><input class="form-input" type="date" id="exp-date"></div>
+      <div class="form-group" style="flex:1"><label class="form-label">ব্যয়ের খাত</label><select class="form-input form-select" id="exp-type"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label class="form-label">টাকা <span style="color:var(--red)">*</span></label><input class="form-input" type="number" id="exp-amount" placeholder="০"></div>
+      <div class="form-group" style="flex:1"><label class="form-label">বিবরণ</label><input class="form-input" id="exp-note" placeholder="সংক্ষিপ্ত বিবরণ"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">রশিদ / মেমো</label>
+      <input class="form-input" type="file" id="exp-files" multiple accept="image/jpeg,image/png,image/webp,application/pdf" onchange="onExpenseFilesChange()">
+      <div class="receipt-list" id="exp-file-list"></div>
+    </div>
+    <button type="button" class="submit-btn" style="background:var(--red);color:#fff" onclick="saveExpense()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+<div class="modal-bg" id="modal-confirm">
+  <div class="modal" style="max-width:320px;text-align:center">
+    <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:14px;line-height:1.5" id="confirm-msg">নিশ্চিত করুন</div>
+    <div style="display:flex;gap:8px">
+      <button type="button" onclick="confirmYes()" style="flex:1;padding:10px;border:none;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);font-family:'Tiro Bangla',serif;font-weight:700;cursor:pointer">হ্যাঁ</button>
+      <button type="button" onclick="closeModal('confirm')" style="flex:1;padding:10px;border:1px solid var(--cream3);border-radius:var(--radius-sm);background:var(--cream2);font-family:'Tiro Bangla',serif;font-weight:700;cursor:pointer">বাতিল</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <nav class="main-nav" role="navigation" aria-label="জিম্মাদার নেভিগেশন">
-  <a class="main-nav-btn is-active" href="../main-admin-madrasa.html" aria-label="মাদ্রাসা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span class="main-nav-lbl">মাদ্রাসা</span></a>
-  <a class="main-nav-btn" href="../main-admin-dept.html" aria-label="বিভাগ"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg><span class="main-nav-lbl">বিভাগ</span></a>
+  <a class="main-nav-btn" href="../main-admin-madrasa.html" aria-label="মাদ্রাসা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span class="main-nav-lbl">মাদ্রাসা</span></a>
+  <a class="main-nav-btn is-active" href="mdr-admin-accounts.html" aria-label="হিসাব" data-admin-perm="daftar"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 6h18v12H3z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M7 10h.01M17 14h.01"/><circle stroke-width="1.75" cx="12" cy="12" r="2.5"/></svg><span class="main-nav-lbl">হিসাব</span></a>
   <a class="main-nav-btn" href="../main-admin-khedmat.html" aria-label="খেদমত"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span class="main-nav-lbl">খেদমত</span></a>
   <a class="main-nav-btn" href="../chat.html" aria-label="বার্তা"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg><span class="main-nav-lbl">বার্তা</span></a>
   <a class="main-nav-btn" href="../main-admin-recent.html" aria-label="কার্যক্রম"><svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg><span class="main-nav-lbl">কার্যক্রম</span></a>
@@ -153,8 +289,64 @@
 <script src="../js/madrasa-accounts-api.js?v=20260503-accounts-topbar"></script>
 <script src="../js/madrasa-daftar-accounts.js?v=20260511-income-sort"></script>
 <script src="../js/madrasa-accounts-reports.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/mm-student-modal.js"></script>
+<script src="../js/mdr-daftar-supabase.js"></script>
+<script src="../js/madrasa-kormosuchi.js?v=20260521-acc-hub"></script>
 <script>
   if (!MMSession.requireAdminPerm('daftar', '../main-admin-madrasa.html')) { throw new Error('accounts permission denied'); }
+
+  var ACC_HUB_TAB_KEY = 'acc_hub_tab';
+  var kormosuchiBooted = false;
+
+  function accHubTabFromUrl() {
+    try {
+      var q = new URLSearchParams(location.search || '');
+      if (q.get('view') === 'prog' || q.get('tab') === 'prog') return 'prog';
+      if (location.hash === '#prog' || location.hash === '#kormosuchi') return 'prog';
+    } catch (e) {}
+    try {
+      if (sessionStorage.getItem(ACC_HUB_TAB_KEY) === 'prog') return 'prog';
+    } catch (e2) {}
+    return 'madrasa';
+  }
+
+  function setAccHubTab(tab, opts) {
+    opts = opts || {};
+    var madrasa = document.getElementById('acc-panel-madrasa');
+    var prog = document.getElementById('acc-panel-kormosuchi');
+    var isProg = tab === 'prog';
+    if (madrasa) { madrasa.hidden = isProg; }
+    if (prog) { prog.hidden = !isProg; }
+    document.querySelectorAll('.acc-hub-tab').forEach(function (btn) {
+      var on = btn.getAttribute('data-acc-hub') === tab;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    if (!opts.skipSave) {
+      try { sessionStorage.setItem(ACC_HUB_TAB_KEY, tab); } catch (e) {}
+      var url = new URL(location.href);
+      if (isProg) url.searchParams.set('view', 'prog'); else url.searchParams.delete('view');
+      history.replaceState(null, '', url.pathname + url.search + url.hash);
+    }
+    if (isProg) ensureKormosuchiBoot();
+  }
+
+  async function ensureKormosuchiBoot() {
+    if (kormosuchiBooted) return;
+    kormosuchiBooted = true;
+    var run = window.initKormosuchiPage;
+    if (!run) return;
+    try { await run(); } catch (e) { showToast('কর্মসূচি ডেটা লোড হয়নি'); }
+  }
+
+  function bindAccHubTabs() {
+    document.querySelectorAll('.acc-hub-tab').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setAccHubTab(btn.getAttribute('data-acc-hub') || 'madrasa');
+      });
+    });
+  }
 
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -191,12 +383,16 @@
   };
 
   async function initAdminAccounts() {
+    bindAccHubTabs();
+    var initialTab = accHubTabFromUrl();
+    setAccHubTab(initialTab, { skipSave: true });
     try {
       if (window.MdrAccAPI && MdrAccAPI.bootstrapRemote) await MdrAccAPI.bootstrapRemote();
     } catch (e) {
       showToast('Supabase থেকে হিসাব ডেটা লোড হয়নি');
     }
     renderAccounts();
+    if (initialTab === 'prog') await ensureKormosuchiBoot();
   }
 
   MMLoading.run(initAdminAccounts);

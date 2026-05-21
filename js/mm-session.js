@@ -252,8 +252,15 @@
         var href = a.getAttribute('href') || '';
         a.setAttribute('href', href.split('?')[0] + deptQuery);
       });
-      document.querySelectorAll('a[href*="main-admin-dept.html"], a[href*="main-admin-khedmat.html"]').forEach(function (a) {
-        a.style.display = 'none';
+      document.querySelectorAll(
+        'a[href*="main-admin-dept.html"], a[href*="main-admin-khedmat.html"], [data-admin-hub="dept"]'
+      ).forEach(function (el) {
+        el.style.display = 'none';
+      });
+      document.querySelectorAll('[data-admin-perm]').forEach(function (el) {
+        var key = el.getAttribute('data-admin-perm');
+        if (!key || MMSession.canAdmin(key)) return;
+        el.style.display = 'none';
       });
       if (!this.canAdmin('messages')) {
         document.querySelectorAll('a[href*="chat.html"]').forEach(function (a) { a.style.display = 'none'; });

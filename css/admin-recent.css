@@ -1,0 +1,221 @@
+/* সাম্প্রতিক কার্যক্রম — জিম্মাদার হাব */
+.recent-wrap {
+  padding: 14px;
+  padding-bottom: var(--app-content-pad-bottom);
+}
+
+.recent-head {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+}
+
+.recent-head-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.recent-title {
+  font-family: 'Tiro Bangla', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink2);
+}
+
+.recent-sub {
+  font-size: 12px;
+  color: var(--ink3);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.recent-refresh {
+  flex-shrink: 0;
+  border: 1px solid rgba(26, 18, 8, 0.12);
+  background: var(--cream2);
+  color: var(--ink2);
+  border-radius: var(--radius-xs);
+  padding: 8px 12px;
+  font-family: 'Tiro Bangla', serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recent-refresh:active {
+  transform: scale(0.98);
+}
+
+.recent-refresh:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.recent-status {
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  padding: 8px 10px;
+  border-radius: var(--radius-xs);
+  background: var(--cream2);
+  color: var(--ink3);
+}
+
+.recent-status.is-ok {
+  background: var(--green-light);
+  color: var(--green);
+}
+
+.recent-status.is-warn {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.recent-filters {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.recent-filter {
+  flex-shrink: 0;
+  border: 1px solid var(--cream3);
+  background: #fff;
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-family: 'Tiro Bangla', serif;
+  font-size: 12px;
+  color: var(--ink3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.recent-filter.is-active {
+  background: var(--ink);
+  color: var(--gold2);
+  border-color: var(--ink);
+}
+
+.recent-day {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink3);
+  margin: 14px 0 8px;
+  padding-left: 2px;
+}
+
+.recent-day:first-child {
+  margin-top: 0;
+}
+
+.recent-item {
+  display: block;
+  background: #fff;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+  margin-bottom: 8px;
+  border: 1px solid rgba(26, 18, 8, 0.05);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: box-shadow 0.12s;
+}
+
+.recent-item:not([href]) {
+  cursor: default;
+}
+
+.recent-item[href]:active {
+  transform: scale(0.995);
+}
+
+.recent-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.recent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(26, 18, 8, 0.06);
+  color: var(--ink2);
+}
+
+.recent-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.recent-date {
+  font-size: 10px;
+  color: var(--ink3);
+  flex-shrink: 0;
+}
+
+.recent-text {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.recent-meta {
+  font-size: 11px;
+  color: var(--ink3);
+  margin-top: 6px;
+  line-height: 1.35;
+}
+
+.recent-empty {
+  text-align: center;
+  color: var(--ink3);
+  padding: 28px 16px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--cream3);
+}
+
+.recent-count {
+  font-size: 11px;
+  color: var(--ink3);
+  margin-bottom: 8px;
+  text-align: right;
+}
+
+@media (min-width: 960px) {
+  .recent-wrap {
+    padding: 24px 32px;
+    padding-bottom: var(--app-content-pad-bottom);
+  }
+
+  .recent-head {
+    padding: 20px;
+  }
+
+  .recent-title {
+    font-size: 20px;
+  }
+
+  .recent-text {
+    font-size: 14px;
+  }
+}
