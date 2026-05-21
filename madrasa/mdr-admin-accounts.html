@@ -59,9 +59,27 @@
   .k-tab{border:none;background:transparent;border-radius:var(--radius-sm);padding:8px 11px;font-family:'Tiro Bangla',serif;font-weight:700;font-size:12px;color:var(--ink3);white-space:nowrap;cursor:pointer}
   .k-tab.active{background:var(--ink);color:var(--gold2)}
   .tbl-wrap{overflow:auto;border:1px solid var(--cream2);border-radius:var(--radius-sm);max-height:420px}
-  .tbl{border-collapse:collapse;width:100%;min-width:550px;font-size:13px}
-  .tbl th{background:var(--cream);color:var(--ink3);text-align:right;padding:8px;font-size:11px;font-weight:700}
-  .tbl td{padding:8px;border-bottom:1px solid var(--cream2);white-space:nowrap}
+  .tbl{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed;font-size:13px}
+  .tbl th,.tbl td{text-align:left;padding:8px;border-bottom:1px solid var(--cream2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
+  .tbl th{position:sticky;top:0;z-index:1;background:var(--cream);color:var(--ink3);font-size:11px;font-weight:700}
+  .tbl td{background:#fff}
+  .tbl tr:nth-child(even) td{background:#fffaf2}
+  .tbl-inc{min-width:720px}
+  .tbl-inc th:nth-child(1),.tbl-inc td:nth-child(1){width:72px}
+  .tbl-inc th:nth-child(2),.tbl-inc td:nth-child(2){width:64px}
+  .tbl-inc th:nth-child(3),.tbl-inc td:nth-child(3){width:56px}
+  .tbl-inc th:nth-child(4),.tbl-inc td:nth-child(4){width:120px}
+  .tbl-inc th:nth-child(5),.tbl-inc td:nth-child(5){width:52px;text-align:center}
+  .tbl-inc th:nth-child(6),.tbl-inc td:nth-child(6){width:72px;text-align:right}
+  .tbl-inc th:nth-child(7),.tbl-inc td:nth-child(7){width:88px}
+  .tbl-inc th:nth-child(8),.tbl-inc td:nth-child(8){width:88px;overflow:visible;text-overflow:clip}
+  .tbl-exp{min-width:560px}
+  .tbl-exp th:nth-child(1),.tbl-exp td:nth-child(1){width:72px}
+  .tbl-exp th:nth-child(2),.tbl-exp td:nth-child(2){width:72px}
+  .tbl-exp th:nth-child(3),.tbl-exp td:nth-child(3){width:140px}
+  .tbl-exp th:nth-child(4),.tbl-exp td:nth-child(4){width:80px}
+  .tbl-exp th:nth-child(5),.tbl-exp td:nth-child(5){width:72px;text-align:right}
+  .tbl-exp th:nth-child(6),.tbl-exp td:nth-child(6){width:88px;overflow:visible;text-overflow:clip}
   .student-income-picker{display:none}
   .check-line{display:flex;align-items:center;gap:8px;border:1px solid var(--cream2);border-radius:var(--radius-sm);background:var(--cream);padding:9px 10px;font-size:12px;font-weight:800;color:var(--ink2);cursor:pointer}
   .check-line input{width:16px;height:16px;accent-color:var(--gold)}
@@ -287,12 +305,12 @@
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/madrasa-accounts-api.js?v=20260503-accounts-topbar"></script>
-<script src="../js/madrasa-daftar-accounts.js?v=20260511-income-sort"></script>
+<script src="../js/madrasa-daftar-accounts.js?v=20260521-expense-cols"></script>
 <script src="../js/madrasa-accounts-reports.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mdr-daftar-supabase.js"></script>
-<script src="../js/madrasa-kormosuchi.js?v=20260521-acc-hub"></script>
+<script src="../js/madrasa-kormosuchi.js?v=20260521-tbl-cols"></script>
 <script>
   if (!MMSession.requireAdminPerm('daftar', '../main-admin-madrasa.html')) { throw new Error('accounts permission denied'); }
 

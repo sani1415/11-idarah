@@ -235,12 +235,23 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
 .acc-table-wrap--qard .acc-detail-table th:nth-child(7),.acc-table-wrap--qard .acc-detail-table td:nth-child(7){min-width:56px}
 .acc-table-wrap--qard.acc-table-wrap--qard-ro .acc-detail-table th:nth-child(6),.acc-table-wrap--qard.acc-table-wrap--qard-ro .acc-detail-table td:nth-child(6){min-width:74px}
 .acc-expense-wrap{overflow:auto;border:1px solid rgba(26,18,8,.07);border-radius:17px;background:#fff;max-height:60vh;box-shadow:0 10px 24px rgba(26,18,8,.055)}
-.acc-expense-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
-.acc-expense-table th{position:sticky;top:0;background:#faf3e8;color:var(--ink3);font-size:10px;font-weight:900;text-align:left;padding:7px 5px;border-bottom:1px solid rgba(26,18,8,.08);z-index:1;white-space:nowrap}
-.acc-expense-table td{padding:7px 5px;border-bottom:1px solid rgba(26,18,8,.06);white-space:nowrap;text-align:left;background:#fff}
+.acc-expense-table{width:100%;min-width:720px;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:12px}
+.acc-expense-table th{position:sticky;top:0;background:#faf3e8;color:var(--ink3);font-size:10px;font-weight:900;text-align:left;padding:7px 5px;border-bottom:1px solid rgba(26,18,8,.08);z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-expense-table td{padding:7px 5px;border-bottom:1px solid rgba(26,18,8,.06);white-space:nowrap;text-align:left;background:#fff;overflow:hidden;text-overflow:ellipsis}
 .acc-expense-table tbody tr:nth-child(even) td{background:#fffaf2}
-.acc-expense-table .acc-desc-cell{white-space:normal;min-width:92px;max-width:140px;color:var(--ink2);font-weight:800}
-.acc-expense-table .acc-ledger-amt{font-size:13px}
+.acc-expense-table th:nth-child(1),.acc-expense-table td:nth-child(1){width:74px;min-width:74px}
+.acc-expense-table th:nth-child(2),.acc-expense-table td:nth-child(2){width:72px;min-width:72px}
+.acc-expense-table th:nth-child(3),.acc-expense-table td:nth-child(3){width:66px;min-width:66px}
+.acc-expense-table th:nth-child(4),.acc-expense-table td:nth-child(4){width:104px;min-width:104px}
+.acc-expense-table th:nth-child(5),.acc-expense-table td:nth-child(5){width:74px;min-width:74px}
+.acc-expense-table th:nth-child(6),.acc-expense-table td:nth-child(6){width:78px;min-width:78px}
+.acc-expense-table th:nth-child(7),.acc-expense-table td:nth-child(7){width:58px;min-width:58px}
+.acc-expense-table th:nth-child(8),.acc-expense-table td:nth-child(8){width:64px;min-width:64px}
+.acc-expense-table th:nth-child(9),.acc-expense-table td:nth-child(9){width:58px;min-width:58px}
+.acc-expense-table .acc-desc-cell{color:var(--ink2);font-weight:800}
+.acc-expense-table .acc-ledger-amt{font-size:13px;font-weight:800}
+.acc-expense-table td:nth-child(9){overflow:visible;text-overflow:clip}
+.acc-expense-table .acc-row-actions{flex-wrap:nowrap}
 .acc-filter-bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .acc-sel{font-size:12px;border:1px solid var(--cream2);border-radius:8px;padding:6px 10px;background:#fff;color:var(--ink1);flex:1;min-width:90px;font-family:inherit}
 .acc-list-item{background:#fff;border-radius:8px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:6px}
@@ -1127,7 +1138,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       qardMetric +
       '<button type="button" class="acc-metric acc-metric-click warn" onclick="openAccMetricModal(\'dues\')"><div class="acc-metric-lbl">বর্তমান বকেয়া</div><div class="acc-metric-val">৳' + fa(s.td) + '</div></button>' +
       '</div>';
-    var thead = '<tr><th>খাত</th><th>ব্যয়</th><th>শতকরা</th><th>বর্তমান বকেয়া</th></tr>';
+    var thead = '<tr><th>হিসাব বই</th><th>ব্যয়</th><th>শতকরা</th><th>বর্তমান বকেয়া</th></tr>';
     var tfoot = '<tr><td><strong>সর্বমোট</strong></td>' +
       '<td style="color:var(--red);font-weight:700">৳' + fa(s.te) + '</td>' +
       '<td>' + pct(100) + '</td><td style="color:var(--red);font-weight:700">৳' + fa(s.td) + '</td></tr>';

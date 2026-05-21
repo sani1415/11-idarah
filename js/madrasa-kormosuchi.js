@@ -481,7 +481,7 @@ function renderRoot() {
 function renderIncomeTab() {
   const rows = newestFirstRows(incomes());
   if (!rows.length) return '<div class="empty-state"><span class="empty-icon">💰</span><div class="empty-text">এখনো কোনো আয় নেই</div></div>';
-  return `<div class="tbl-wrap"><table class="tbl">
+  return `<div class="tbl-wrap"><table class="tbl tbl-inc">
     <thead><tr>
       <th>তারিখ</th><th>ধরন</th><th>ব্যক্তি</th><th>নাম</th><th>হিস্যা</th><th>টাকা</th><th>পরিচিতি</th><th></th>
     </tr></thead>
@@ -505,7 +505,7 @@ function renderIncomeTab() {
 function renderExpenseTab() {
   const rows = newestFirstRows(expenses());
   if (!rows.length) return '<div class="empty-state"><span class="empty-icon">💸</span><div class="empty-text">এখনো কোনো ব্যয় নেই</div></div>';
-  return `<div class="tbl-wrap"><table class="tbl">
+  return `<div class="tbl-wrap"><table class="tbl tbl-exp">
     <thead><tr>
       <th>তারিখ</th><th>খাত</th><th>বিবরণ</th><th>রশিদ</th><th>টাকা</th><th></th>
     </tr></thead>
