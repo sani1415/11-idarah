@@ -384,6 +384,7 @@
     };
     if (existing) API.Teachers.update(user.id, row);
     else API.Teachers.add(row);
+    MMSession.setTeacherProfile(row);
   }
 
   async function trySupabaseStaffLogin(role, loginId) {
@@ -500,6 +501,7 @@
         redirect = 'khedmat/khedmat-staff.html';
       }
     } else if (currentRole === 'teacher') {
+      const supaOn = !!(window.MMSharedAPI && MMSharedAPI.supabaseClient);
       const loginId = normalizeLoginId(document.getElementById('teacher-login-id').value);
       const su = await trySupabaseStaffLogin('teacher', loginId);
       if (su) {
@@ -515,11 +517,12 @@
         normalizeLoginId(t.login_id) === loginId &&
         String(t.pin || '') === pinVal
       );
-      if (!ok && !window.MMSharedAPI && teacher) {
+      if (!ok && !supaOn && teacher) {
         ok = true;
-        MMSession.setRole('teacher');
+        const profile = { ...teacher, pin: pinVal };
+        MMSession.setStaffSession('teacher', teacher.name, teacher.id, pinVal);
         MMSession.setTeacherId(teacher.id);
-        MMSession.setName(teacher.name);
+        MMSession.setTeacherProfile(profile);
         redirect = 'madrasa/madrasa-class.html';
       }
     }

@@ -23,8 +23,10 @@
 
   function teacherRecord() {
     var S = session();
+    if (!S || !S.getTeacherId) return null;
+    if (S.hydrateTeacherRecord) return S.hydrateTeacherRecord();
     var A = getApi();
-    if (!S || !S.getTeacherId || !A || !A.Teachers) return null;
+    if (!A || !A.Teachers) return null;
     var tid = S.getTeacherId();
     return tid ? A.Teachers.getById(tid) : null;
   }

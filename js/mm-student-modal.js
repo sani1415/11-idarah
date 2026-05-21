@@ -348,8 +348,10 @@
   function logAuthorName() {
     if (typeof global.MMSession === 'undefined' || !global.MMSession) return '—';
     var APIg = getApi();
-    if (global.MMSession.getRole() === 'teacher' && APIg && APIg.Teachers) {
-      var t = APIg.Teachers.getById(global.MMSession.getTeacherId());
+    if (global.MMSession.getRole() === 'teacher') {
+      var t = global.MMSession.hydrateTeacherRecord
+        ? global.MMSession.hydrateTeacherRecord()
+        : (APIg && APIg.Teachers ? APIg.Teachers.getById(global.MMSession.getTeacherId()) : null);
       if (t && t.name) return t.name;
     }
     var n = global.MMSession.getName && global.MMSession.getName();
@@ -641,7 +643,9 @@
         var role = global.MMSession.getRole();
         if (role === 'admin') canAddStudentLog = true;
         else if (role === 'teacher') {
-          var mteach = API.Teachers.getById(global.MMSession.getTeacherId());
+          var mteach = global.MMSession.hydrateTeacherRecord
+            ? global.MMSession.hydrateTeacherRecord()
+            : API.Teachers.getById(global.MMSession.getTeacherId());
           canAddStudentLog = !!(mteach && mteach.class_id === s.class_id);
         }
       }

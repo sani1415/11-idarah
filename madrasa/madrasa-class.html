@@ -458,8 +458,7 @@
 <script>
   if (MMSession.getRole() !== 'teacher') location.href = '../index.html';
 
-  const tid = MMSession.getTeacherId();
-  const teacher = API.Teachers.getById(tid);
+  const teacher = MMSession.hydrateTeacherRecord();
   if (!teacher) { location.href = '../index.html'; }
 
   const myClass = API.Classes.getById(teacher.class_id);

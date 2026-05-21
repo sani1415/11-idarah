@@ -217,8 +217,7 @@
 <script src="../js/mdr-exams-supabase.js"></script>
 <script>
   if (MMSession.getRole() !== 'teacher') { location.href = '../index.html'; }
-  const tid = MMSession.getTeacherId();
-  const teacher = API.Teachers.getById(tid);
+  const teacher = MMSession.hydrateTeacherRecord();
   if (!teacher || !teacher.class_id) { location.href = '../index.html'; }
   const classId = teacher.class_id;
   const myClass = API.Classes.getById(classId);

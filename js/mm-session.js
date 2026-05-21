@@ -8,6 +8,7 @@
     staffUserId: 'mm_staff_user_id',
     staffPin: 'mm_staff_pin',
     teacherId: 'mm_teacher_id',
+    teacherProfile: 'mm_teacher_profile',
     adminUserId: 'mm_admin_user_id',
     adminPin: 'mm_admin_pin',
     adminPerms: 'mm_admin_perms',
@@ -18,9 +19,18 @@
   };
 
   var ALL_APP_KEYS = [
-    K.role, K.name, K.staffUserId, K.staffPin, K.teacherId, K.adminUserId, K.adminPin, K.adminPerms,
+    K.role, K.name, K.staffUserId, K.staffPin, K.teacherId, K.teacherProfile, K.adminUserId, K.adminPin, K.adminPerms,
     K.deptRole, K.deptId, K.deptName, K.deptEmoji,
   ];
+
+  function readTeacherProfile() {
+    try {
+      var raw = sessionStorage.getItem(K.teacherProfile);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
 
   function readPerms() {
     try {
@@ -59,6 +69,29 @@
     getStaffUserId: function () { return sessionStorage.getItem(K.staffUserId); },
     getStaffPin: function () { return sessionStorage.getItem(K.staffPin); },
     getTeacherId: function () { return sessionStorage.getItem(K.teacherId); },
+    getTeacherProfile: readTeacherProfile,
+    setTeacherProfile: function (profile) {
+      if (!profile || !profile.id) {
+        sessionStorage.removeItem(K.teacherProfile);
+        return;
+      }
+      sessionStorage.setItem(K.teacherProfile, JSON.stringify(profile));
+    },
+    clearTeacherProfile: function () { sessionStorage.removeItem(K.teacherProfile); },
+    /** Volatile API cache reset হলে login session থেকে teacher row পুনরায় লোড */
+    hydrateTeacherRecord: function () {
+      var tid = this.getTeacherId();
+      if (!tid) return null;
+      var api = global.API;
+      if (!api || !api.Teachers) return null;
+      var teacher = api.Teachers.getById(tid);
+      if (teacher) return teacher;
+      var profile = readTeacherProfile();
+      if (!profile || String(profile.id) !== String(tid)) return null;
+      if (api.Teachers.getById(tid)) api.Teachers.update(tid, profile);
+      else api.Teachers.add(profile);
+      return api.Teachers.getById(tid);
+    },
     getAdminUserId: function () { return sessionStorage.getItem(K.adminUserId); },
     getAdminPin: function () { return sessionStorage.getItem(K.adminPin); },
     getAdminPerms: readPerms,
@@ -95,7 +128,10 @@
       else sessionStorage.removeItem(K.staffUserId);
       if (pin) sessionStorage.setItem(K.staffPin, pin);
       else sessionStorage.removeItem(K.staffPin);
-      if (role !== 'teacher') sessionStorage.removeItem(K.teacherId);
+      if (role !== 'teacher') {
+        sessionStorage.removeItem(K.teacherId);
+        sessionStorage.removeItem(K.teacherProfile);
+      }
       sessionStorage.removeItem(K.adminUserId);
       sessionStorage.removeItem(K.adminPin);
       sessionStorage.removeItem(K.adminPerms);
@@ -107,6 +143,7 @@
       sessionStorage.removeItem(K.staffUserId);
       sessionStorage.removeItem(K.staffPin);
       sessionStorage.removeItem(K.teacherId);
+      sessionStorage.removeItem(K.teacherProfile);
       if (userId) sessionStorage.setItem(K.adminUserId, userId);
       else sessionStorage.removeItem(K.adminUserId);
       if (pin) sessionStorage.setItem(K.adminPin, pin);
@@ -129,6 +166,8 @@
       sessionStorage.removeItem(K.adminUserId);
       sessionStorage.removeItem(K.adminPin);
       sessionStorage.removeItem(K.adminPerms);
+      sessionStorage.removeItem(K.teacherId);
+      sessionStorage.removeItem(K.teacherProfile);
     },
     changeStaffPin: async function (currentPin, newPin, localChangeFn) {
       var uid = this.getStaffUserId();
