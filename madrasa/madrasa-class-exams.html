@@ -210,6 +210,7 @@
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mdr-supabase-sync.js"></script>
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mam-overlay.js"></script>
@@ -218,9 +219,12 @@
 <script>
   if (MMSession.getRole() !== 'teacher') { location.href = '../index.html'; }
   const teacher = MMSession.hydrateTeacherRecord();
-  if (!teacher || !teacher.class_id) { location.href = '../index.html'; }
-  const classId = teacher.class_id;
-  const myClass = API.Classes.getById(classId);
+  if (!teacher) { location.href = '../index.html'; }
+  const myClass = (window.MDRSupabaseSync && MDRSupabaseSync.ensureTeacherClassFromProfile)
+    ? MDRSupabaseSync.ensureTeacherClassFromProfile(teacher)
+    : (teacher.class_id ? API.Classes.getById(teacher.class_id) : null);
+  if (!myClass || !myClass.id) { location.href = '../index.html'; }
+  const classId = myClass.id;
   document.getElementById('top-class-name').textContent = myClass ? myClass.name : 'বর্ষ';
 
   function toBn(n) { return String(n).replace(/[0-9]/g, d=>'০১২৩৪৫৬৭৮৯'[d]); }

@@ -452,20 +452,36 @@
 <script src="../api-shared.js?v=20260521-akhlaq-consistency"></script>
 <script src="../js/mm-sample-data.js?v=20260521-akhlaq-consistency"></script>
 <script src="../js/api.js?v=20260521-akhlaq-consistency"></script>
-<script src="../js/mdr-supabase-sync.js?v=20260521-akhlaq-consistency"></script>
-<script src="../js/mm-session.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/mdr-supabase-sync.js?v=20260521-teacher-class"></script>
+<script src="../js/mm-session.js?v=20260521-teacher-class"></script>
 <script src="../js/mm-student-modal.js?v=20260521-akhlaq-consistency"></script>
 <script>
   if (MMSession.getRole() !== 'teacher') location.href = '../index.html';
 
-  const teacher = MMSession.hydrateTeacherRecord();
+  let teacher = MMSession.hydrateTeacherRecord();
   if (!teacher) { location.href = '../index.html'; }
 
-  const myClass = API.Classes.getById(teacher.class_id);
-  const classId = myClass ? myClass.id : null;
+  function resolvePageClass() {
+    teacher = MMSession.hydrateTeacherRecord();
+    if (!teacher) return null;
+    if (window.MDRSupabaseSync && MDRSupabaseSync.ensureTeacherClassFromProfile) {
+      return MDRSupabaseSync.ensureTeacherClassFromProfile(teacher);
+    }
+    return teacher.class_id ? API.Classes.getById(teacher.class_id) : null;
+  }
+
+  let myClass = resolvePageClass();
+  let classId = myClass ? myClass.id : null;
 
   document.getElementById('top-teacher').textContent = teacher.name;
-  document.getElementById('top-class').textContent = myClass ? myClass.name : 'বর্ষ নির্ধারিত নেই';
+
+  function refreshTopbarClass() {
+    myClass = resolvePageClass();
+    classId = myClass ? myClass.id : null;
+    document.getElementById('top-class').textContent = myClass ? myClass.name : 'বর্ষ নির্ধারিত নেই';
+  }
+
+  refreshTopbarClass();
 
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   function teacherActor() {
@@ -1222,6 +1238,7 @@
 
   async function initClassPage() {
     await refreshTeacherData();
+    refreshTopbarClass();
     renderStats();
     initTabFromUrl();
   }

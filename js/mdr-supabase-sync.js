@@ -419,6 +419,36 @@
     return true;
   }
 
+  function ensureTeacherClassFromProfile(teacher) {
+    if (!teacher || !global.API || !API.Classes) return null;
+    var code = String(teacher.class_code || '').trim();
+    var classId = String(teacher.class_id || '').trim();
+    if (!classId && code) classId = CLASS_CODE_TO_LOCAL_ID[code] || code;
+    if (!classId) return null;
+    var existing = API.Classes.getById(classId);
+    if (existing) return existing;
+    var name = String(teacher.class_name || '').trim();
+    if (!name) return null;
+    var division = code.indexOf('maktab') === 0 ? 'maktab' : 'kitab';
+    var stub = toLocalClass({ code: code || classId, name: name, division_code: division });
+    if (String(stub.id) !== String(classId)) stub.id = classId;
+    if (API.Classes.getById(classId)) API.Classes.update(classId, stub);
+    else API.Classes.add(stub);
+    return API.Classes.getById(classId);
+  }
+
+  function mergeTeacherClassMeta(teacher, meta) {
+    if (!teacher || !meta) return teacher;
+    var code = String(meta.class_code || teacher.class_code || '').trim();
+    var classId = String(teacher.class_id || '').trim();
+    if (!classId && code) classId = CLASS_CODE_TO_LOCAL_ID[code] || code;
+    return Object.assign({}, teacher, {
+      class_id: classId,
+      class_code: code,
+      class_name: String(meta.class_name || teacher.class_name || '').trim(),
+    });
+  }
+
   async function syncTeacherClass() {
     if (!global.MMSession || !global.MMSharedAPI || !global.API) return false;
     var actorId = MMSession.getStaffUserId && MMSession.getStaffUserId();
@@ -426,7 +456,25 @@
     if (!actorId || !pin) return false;
     var res = await MMSharedAPI.teacherClassBootstrap(actorId, pin);
     if (!res || !res.ok) return false;
-    var incoming = (res.students || []).map(toLocalStudent);
+    var rows = res.students || [];
+    if (rows.length) {
+      upsertLocalClasses([{
+        code: rows[0].class_code,
+        name: rows[0].class_name,
+        division_code: rows[0].division_code,
+      }]);
+      if (global.MMSession && MMSession.hydrateTeacherRecord) {
+        var teacher = MMSession.hydrateTeacherRecord();
+        if (teacher) {
+          var next = mergeTeacherClassMeta(teacher, rows[0]);
+          if (next.class_id && (next.class_id !== teacher.class_id || next.class_name !== teacher.class_name)) {
+            MMSession.setTeacherProfile(next);
+            if (API.Teachers.getById(teacher.id)) API.Teachers.update(teacher.id, next);
+          }
+        }
+      }
+    }
+    var incoming = rows.map(toLocalStudent);
     var incomingIds = {};
     incoming.forEach(function (s) { incomingIds[s.id] = true; });
     var keep = API.Students.getAll().filter(function (s) { return !incomingIds[s.id]; });
@@ -453,6 +501,8 @@
     syncAlumni: syncAlumni,
     syncAdminTeacherRows: syncAdminTeacherRows,
     syncTeacherExtras: syncTeacherExtras,
+    ensureTeacherClassFromProfile: ensureTeacherClassFromProfile,
+    mergeTeacherClassMeta: mergeTeacherClassMeta,
     toLocalStudent: toLocalStudent,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
