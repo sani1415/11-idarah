@@ -75,6 +75,55 @@
 
   /** বর্ষ id (prototype) → শিক্ষকের নাম; Supabase বুটস্ট্র্যাপ থেকে পূরণ */
   var _classTeacherByLocalId = {};
+  var CLASS_TEACHERS_CACHE_KEY = 'mm_class_teachers_sc_v1';
+
+  function cacheActorKey() {
+    var a = actor();
+    if (!a || !a.id) {
+      try {
+        var role = sessionStorage.getItem('mm_role') || '';
+        if (role === 'admin') {
+          return 'admin:' + String(sessionStorage.getItem('mm_admin_user_id') || '') + ':' +
+            String(sessionStorage.getItem('mm_admin_pin') || '');
+        }
+        return role + ':' + String(sessionStorage.getItem('mm_staff_user_id') || '') + ':' +
+          String(sessionStorage.getItem('mm_teacher_id') || '') + ':' + String(sessionStorage.getItem('mm_dept_id') || '');
+      } catch (e) {
+        return '';
+      }
+    }
+    if (global.MMSession && MMSession.isAdmin && MMSession.isAdmin()) {
+      return 'admin:' + String(a.id) + ':' + String(a.pin || '');
+    }
+    var role = (MMSession.getRole && MMSession.getRole()) || 'staff';
+    return role + ':' + String(a.id) + ':' + String((MMSession.getTeacherId && MMSession.getTeacherId()) || '') + ':' +
+      String((MMSession.getDeptId && MMSession.getDeptId()) || '');
+  }
+
+  function saveClassTeachersCache() {
+    try {
+      sessionStorage.setItem(CLASS_TEACHERS_CACHE_KEY, JSON.stringify({
+        actor: cacheActorKey(),
+        map: _classTeacherByLocalId,
+        ts: Date.now(),
+      }));
+    } catch (e) {
+      console.warn('MDRDaftarSupabase: class teachers cache write failed', e);
+    }
+  }
+
+  function hydrateClassTeachersCache() {
+    try {
+      var raw = sessionStorage.getItem(CLASS_TEACHERS_CACHE_KEY);
+      if (!raw) return;
+      var parsed = JSON.parse(raw);
+      var key = cacheActorKey();
+      if (!parsed || !key || parsed.actor !== key || !parsed.map) return;
+      _classTeacherByLocalId = parsed.map;
+    } catch (e) {
+      console.warn('MDRDaftarSupabase: class teachers cache hydrate failed', e);
+    }
+  }
 
   function applyClassTeachers(rows) {
     _classTeacherByLocalId = {};
@@ -83,10 +132,12 @@
       var nm = row.name != null ? String(row.name) : '';
       if (lid && nm) _classTeacherByLocalId[lid] = nm;
     });
+    saveClassTeachersCache();
   }
 
-  /** প্রোটোটাইপ localStorage + সর্বশেষ সফল সিঙ্কের শিক্ষক (DB প্রাধান্য) */
+  /** প্রোটোটাইপ mm_teachers + সেশন ক্যাশ (নেভিগেশনে সিঙ্ক স্কিপ হলেও নাম থাকে) */
   function classTeachersMergedMap() {
+    hydrateClassTeachersCache();
     var map = {};
     if (global.API && API.Teachers && API.Teachers.getAll) {
       API.Teachers.getAll().forEach(function (t) {
@@ -137,7 +188,10 @@
 
   async function sync(options) {
     if (!options || !options.force) {
-      if (global.API && API.isDaftarSessionCacheWarm && API.isDaftarSessionCacheWarm()) return true;
+      if (global.API && API.isDaftarSessionCacheWarm && API.isDaftarSessionCacheWarm()) {
+        hydrateClassTeachersCache();
+        return true;
+      }
     }
     if (!global.MMSharedAPI || !global.API) return false;
     var a = actor();
@@ -193,9 +247,12 @@
     return true;
   }
 
+  hydrateClassTeachersCache();
+
   global.MDRDaftarSupabase = {
     sync: sync,
     saveDay: saveDay,
     classTeachersMergedMap: classTeachersMergedMap,
+    hydrateClassTeachersCache: hydrateClassTeachersCache,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

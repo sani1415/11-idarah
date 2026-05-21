@@ -256,6 +256,9 @@
         return fn();
       };
       if (global.API && API.hydrateSessionCache) API.hydrateSessionCache();
+      if (global.MDRDaftarSupabase && MDRDaftarSupabase.hydrateClassTeachersCache) {
+        MDRDaftarSupabase.hydrateClassTeachersCache();
+      }
       var needDaftar = opts.force || !(global.API && API.isDaftarSessionCacheWarm && API.isDaftarSessionCacheWarm());
       if (needDaftar && global.MDRDaftarSupabase && MDRDaftarSupabase.sync) {
         await wrap(async function () {
@@ -367,6 +370,7 @@
       if (global.API && API.clearSessionCache) API.clearSessionCache();
       try { sessionStorage.removeItem(PROGRAMS_CACHE_KEY); } catch (e) {}
       try { sessionStorage.removeItem('mm_absent_summary_v1'); } catch (e) {}
+      try { sessionStorage.removeItem('mm_class_teachers_sc_v1'); } catch (e) {}
       clearNavLoadingFlag();
       if (global.MdrAccAPI && MdrAccAPI.clearLocalCache) MdrAccAPI.clearLocalCache();
     },
