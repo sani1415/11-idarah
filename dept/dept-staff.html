@@ -20,10 +20,19 @@
   .txn-line-main { display:flex; align-items:center; gap:8px; min-width:0; }
   .txn-line-date { font-size:11px; color:var(--ink3); white-space:nowrap; }
   .pending-pill { display:inline-block; background:#fff4d9; color:#9a6a21; border-radius:999px; padding:1px 7px; font-size:10px; font-weight:800; margin-top:3px; }
+  .catalog-off-pill { display:inline-block; background:var(--cream2); color:var(--ink3); border-radius:999px; padding:1px 7px; font-size:10px; font-weight:800; margin-top:3px; }
+  .prd-remove-note { font-size:13px; line-height:1.6; color:var(--ink2); margin:0 0 14px; }
+  .prd-remove-actions { display:grid; gap:8px; }
+  .prd-remove-actions .submit-btn { margin:0; }
+  .prd-remove-actions .btn-ghost { width:100%; padding:10px; border:1px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; color:var(--ink2); font-family:'Tiro Bangla',serif; font-weight:800; cursor:pointer; }
+  .prd-remove-actions .btn-warn { background:var(--red-light); color:var(--red); border:0; }
   .txn-amt { font-family:'Tiro Bangla',serif; font-size:15px; font-weight:700; flex-shrink:0; }
   .txn-amt.income { color:var(--green); }
   .txn-amt.expense { color:var(--red); }
   .inv-item { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+  .inv-actions { display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+  .inv-action-btn { background:var(--cream2); border:1px solid var(--cream3); border-radius:6px; color:var(--ink2); font-family:'Tiro Bangla',serif; font-size:11px; font-weight:800; cursor:pointer; padding:5px 9px; }
+  .inv-action-btn.delete { background:var(--red-light); border-color:transparent; color:var(--red); }
   .prd-item { background:#fff; border-radius:var(--radius-sm); padding:11px 13px; box-shadow:var(--shadow); margin-bottom:7px; display:flex; align-items:center; gap:10px; }
   .month-nav { display:flex; align-items:center; justify-content:space-between; background:#fff; border-radius:var(--radius-sm); padding:10px 14px; box-shadow:var(--shadow); margin-bottom:12px; }
   .month-nav-btn { background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3); padding:4px; }
@@ -52,7 +61,8 @@
   .sale-row { display:grid; grid-template-columns:minmax(190px,2fr) 86px 112px 104px 100px 42px; gap:8px; align-items:end; min-width:650px; }
   .sale-row .form-group { margin-bottom:0; }
   .sale-row .form-input { height:42px; }
-  .sale-total { height:42px; display:flex; align-items:center; justify-content:flex-end; padding:0 10px; background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Tiro Bangla',serif; font-weight:700; color:var(--ink2); white-space:nowrap; }
+  .sale-total { height:42px; display:flex; align-items:center; justify-content:flex-end; padding:0 10px; background:var(--cream2); border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Tiro Bangla',serif; font-weight:700; color:var(--ink2); white-space:nowrap; }
+  .sale-total-input { height:42px; text-align:right; font-weight:700; }
   .sale-action-btn { width:42px; height:42px; border:0; border-radius:var(--radius-sm); background:var(--ink); color:var(--gold2); font-size:18px; cursor:pointer; }
   .sale-action-btn.remove { background:#fff; color:var(--red); border:1px solid var(--cream3); }
   .sale-hint { font-size:11px; color:var(--ink3); margin:0 0 8px; }
@@ -271,11 +281,32 @@
     <input type="hidden" id="prd-edit-id">
     <div class="form-group"><label class="form-label">পণ্যের নাম</label><input class="form-input" id="prd-name" placeholder="যেমন: মধু, রুটি, ধান"></div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">একক</label><select class="form-input" id="prd-unit"></select></div>
+      <div class="form-group"><label class="form-label">বিক্রয় একক</label><select class="form-input" id="prd-unit" onchange="onProductUnitFieldsChange()"></select></div>
       <div class="form-group"><label class="form-label">বিক্রয় মূল্য</label><input class="form-input" type="number" id="prd-price" placeholder="০"></div>
     </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">মজুদ একক</label><select class="form-input" id="prd-stock-unit" onchange="onProductUnitFieldsChange()"></select></div>
+      <div class="form-group" id="prd-pack-wrap">
+        <label class="form-label">প্যাক সাইজ <span style="font-weight:400;color:var(--ink3)">(প্রতি বিক্রয় এককে)</span></label>
+        <input class="form-input" type="number" step="any" id="prd-pack-size" placeholder="যেমন: ০.২৫">
+      </div>
+    </div>
+    <p class="sale-hint" id="prd-unit-hint" style="margin-top:0;"></p>
     <button class="submit-btn" onclick="saveProduct()">সংরক্ষণ করুন</button>
-    <button id="prd-delete-btn" onclick="deleteProductFromModal()" style="display:none;margin-top:8px;width:100%;padding:10px;border:0;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);font-family:'Tiro Bangla',serif;font-weight:800;cursor:pointer;">পণ্য বাদ দিন</button>
+    <button id="prd-delete-btn" onclick="deleteProductFromModal()" style="display:none;margin-top:8px;width:100%;padding:10px;border:0;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);font-family:'Tiro Bangla',serif;font-weight:800;cursor:pointer;">তালিকা থেকে বাদ দিন</button>
+    <p id="prd-delete-hint" style="display:none;margin:8px 0 0;font-size:11px;color:var(--ink3);text-align:center;">মজুদ তালিকায় থাকতে পারে</p>
+  </div>
+</div>
+
+<div class="modal-bg modal-float" id="modal-prd-remove">
+  <div class="modal">
+    <div class="modal-title">তালিকা থেকে বাদ <button class="modal-close" onclick="closeModal('modal-prd-remove')">✕</button></div>
+    <p class="prd-remove-note" id="prd-remove-msg"></p>
+    <div class="prd-remove-actions">
+      <button type="button" class="submit-btn" onclick="confirmRemoveProduct('keep_stock')">মজুদ রেখে তালিকা থেকে বাদ</button>
+      <button type="button" class="submit-btn btn-warn" onclick="confirmRemoveProduct('zero_stock')">মজুদ শূন্য করে বাদ</button>
+      <button type="button" class="btn-ghost" onclick="closeModal('modal-prd-remove')">বাতিল</button>
+    </div>
   </div>
 </div>
 
@@ -298,6 +329,27 @@
     </div>
     <div class="form-group"><label class="form-label">নোট <span style="font-weight:400;color:var(--ink3)">(ঐচ্ছিক)</span></label><input class="form-input" id="inv-notes" placeholder="কারণ / মন্তব্য"></div>
     <button class="submit-btn" onclick="saveInv()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<div class="modal-bg modal-float" id="modal-inv-edit">
+  <div class="modal">
+    <div class="modal-title">মজুদ সংশোধন <button class="modal-close" onclick="closeModal('modal-inv-edit')">✕</button></div>
+    <input type="hidden" id="inv-edit-id">
+    <input type="hidden" id="inv-edit-product-id">
+    <div class="form-group"><label class="form-label">পণ্যের নাম</label><input class="form-input" id="inv-edit-name" placeholder="যেমন: ধান, মধু"></div>
+    <div class="form-group"><label class="form-label">মজুদ একক</label><select class="form-input" id="inv-edit-stock-unit" onchange="onInvEditUnitChange()"></select></div>
+    <div class="form-group">
+      <label class="form-label">বর্তমান পরিমাণ</label>
+      <div id="inv-edit-current" style="font-family:'Tiro Bangla',serif;font-size:15px;font-weight:700;padding:8px 0;"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">নতুন পরিমাণ (মজুদ এককে)</label>
+      <input class="form-input" type="number" step="any" id="inv-edit-qty" placeholder="০">
+    </div>
+    <div class="form-group"><label class="form-label">নোট <span style="font-weight:400;color:var(--ink3)">(ঐচ্ছিক)</span></label><input class="form-input" id="inv-edit-notes" placeholder="সংশোধনের কারণ"></div>
+    <button class="submit-btn" onclick="saveInvEdit()">সংরক্ষণ করুন</button>
+    <button type="button" id="inv-edit-delete-btn" onclick="deleteInvFromModal()" style="margin-top:8px;width:100%;padding:10px;border:0;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);font-family:'Tiro Bangla',serif;font-weight:800;cursor:pointer;">মজুদ মুছে ফেলুন</button>
   </div>
 </div>
 
@@ -344,6 +396,7 @@
 <script src="../js/monitor-mode.js"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/dept-api.js"></script>
+<script src="../js/dept-units.js"></script>
 <script src="../js/chat-api.js"></script>
 <script src="../js/dept-supabase-sync.js"></script>
 <script>
@@ -372,6 +425,23 @@
   const fmtAmt = n => '৳' + toBn(Number(n||0).toLocaleString('en'));
   const fmtDate= d => { if (!d) return ''; const p=d.split('-'); return toBn(p[2]+'/'+p[1]); };
   const monthLabel = m => { const p=m.split('-'); return toBn(p[1])+' — '+toBn(p[0]); };
+
+  function saleItemUnit(item) {
+    const unit = String(item && (item.unit || item.sale_unit) || '').trim();
+    if (unit) return unit;
+    const prd = item && item.product_id ? DeptAPI.Products.getById(item.product_id) : null;
+    return (prd && prd.unit) ? prd.unit : 'পিস';
+  }
+
+  function saleQtyLabel(item) {
+    const qty = Number(item && (item.qty != null ? item.qty : item.quantity) || 0);
+    const qtyStr = window.DeptUnits ? DeptUnits.formatQty(qty) : qty;
+    return toBn(qtyStr) + ' ' + saleItemUnit(item);
+  }
+
+  function saleLineTitle(item) {
+    return DeptAPI.esc(item.product_name || item.name || '') + ' ' + saleQtyLabel(item);
+  }
 
   const CAT_LABEL = { production:'উৎপাদন উপকরণ', operational:'পরিচালন খরচ', other:'অন্যান্য' };
   const UNIT_OPTIONS = ['কেজি','গ্রাম','মন','লিটার','মিলি','পিস','জোড়া','ডজন','প্যাকেট','বস্তা','গজ','রিল','প্লেট','কপি'];
@@ -442,24 +512,19 @@
           if (t.description) {
             mainTitle = DeptAPI.esc(t.description);
           } else if (t.type === 'income' && saleItems.length) {
-            mainTitle = saleItems.map(i => DeptAPI.esc(i.product_name||i.name||'') + ' ' + toBn(i.qty||i.quantity||0) + 'টা').join(' · ');
+            mainTitle = saleItems.map(i => saleLineTitle(i)).join(' · ');
           } else if (t.type === 'income' && t.metadata && t.metadata.product_name) {
-            mainTitle = DeptAPI.esc(t.metadata.product_name) + ' ' + toBn(t.metadata.qty||0) + 'টা';
+            mainTitle = DeptAPI.esc(t.metadata.product_name) + ' ' + saleQtyLabel({
+              qty: t.metadata.qty,
+              unit: t.metadata.unit,
+              product_id: t.metadata.product_id
+            });
           } else {
             mainTitle = t.type === 'income' ? 'আয়' : 'ব্যয়';
           }
 
           const subParts = [];
           if (t.type === 'expense' && cat) subParts.push(cat);
-          if (t.type === 'income' && !t.description) {
-            if (saleItems.length === 1 && saleItems[0].rate) {
-              subParts.push(`<span style="font-size:11px;color:var(--ink3);">${DeptAPI.esc(saleItems[0].product_name||saleItems[0].name||'')} ${fmtAmt(saleItems[0].rate)}/${DeptAPI.esc(saleItems[0].unit||'পিস')}</span>`);
-            } else if (!saleItems.length && t.metadata && t.metadata.rate) {
-              subParts.push(`<span style="font-size:11px;color:var(--ink3);">${DeptAPI.esc(t.metadata.product_name||'')} ${fmtAmt(t.metadata.rate)}/${DeptAPI.esc(t.metadata.unit||'পিস')}</span>`);
-            }
-          } else if (t.description && t.type === 'income' && saleItems.length) {
-            subParts.push(`<span style="font-size:11px;color:var(--teal);">${saleItems.map(i=>DeptAPI.esc(i.product_name||i.name)+' '+toBn(i.qty||i.quantity||0)+'টা').join(' · ')}</span>`);
-          }
           if (dateStr) subParts.push(`<span class="txn-line-date">${dateStr}</span>`);
           const subHtml = subParts.length ? `<div class="txn-sub">${subParts.join(' ')}</div>` : '';
 
@@ -539,6 +604,10 @@
       prds.map(p=>`<option value="${p.id}" data-unit="${DeptAPI.esc(p.unit)}" data-price="${p.price}"${p.id === selected ? ' selected' : ''}>${DeptAPI.esc(p.name)}</option>`).join('');
   }
 
+  function saleHasAutoTotal(row) {
+    return String(row && row.rate != null ? row.rate : '').trim() !== '';
+  }
+
   function onProductChange(idx) {
     const row = lineItems[idx];
     const sel = document.getElementById('sale-product-' + idx);
@@ -555,19 +624,41 @@
 
   function updateSaleField(idx, field, value) {
     if (!lineItems[idx]) return;
+    const wasAuto = saleHasAutoTotal(lineItems[idx]);
     lineItems[idx][field] = value;
+    if (field === 'rate' && wasAuto !== saleHasAutoTotal(lineItems[idx])) {
+      calcTotal(idx);
+      renderSaleItems();
+      return;
+    }
     calcTotal(idx);
+  }
+
+  function updateSaleAmount(idx, value) {
+    if (!lineItems[idx] || saleHasAutoTotal(lineItems[idx])) return;
+    lineItems[idx].amount = parseFloat(value) || 0;
+    updateTxnAmount();
   }
 
   function calcTotal(idx) {
     const row = lineItems[idx];
     if (!row) return;
-    const qty = parseFloat(row.qty) || 0;
-    const rate = parseFloat(row.rate) || 0;
-    row.amount = qty * rate;
+    if (saleHasAutoTotal(row)) {
+      const qty = parseFloat(row.qty) || 0;
+      const rate = parseFloat(row.rate) || 0;
+      row.amount = qty * rate;
+    }
     const el = document.getElementById('sale-total-' + idx);
-    if (el) el.textContent = fmtAmt(row.amount);
+    if (el) el.textContent = fmtAmt(row.amount || 0);
     updateTxnAmount();
+  }
+
+  function saleTotalCellHtml(i, idx) {
+    if (saleHasAutoTotal(i)) {
+      return `<div class="sale-total" id="sale-total-${idx}">${fmtAmt(i.amount || 0)}</div>`;
+    }
+    const amtVal = i.amount ? String(i.amount) : '';
+    return `<input class="form-input sale-total-input" type="number" step="any" id="sale-total-input-${idx}" value="${DeptAPI.esc(amtVal)}" placeholder="মোট" oninput="updateSaleAmount(${idx}, this.value)">`;
   }
 
   function saleBaseTotal() {
@@ -606,11 +697,11 @@
       </div>
       <div class="form-group">
         <label class="form-label">${idx === 0 ? 'দর' : '&nbsp;'}</label>
-        <input class="form-input" type="number" value="${DeptAPI.esc(i.rate)}" placeholder="০" oninput="updateSaleField(${idx},'rate',this.value)">
+        <input class="form-input" type="number" step="any" value="${DeptAPI.esc(i.rate)}" placeholder="ঐচ্ছিক" oninput="updateSaleField(${idx},'rate',this.value)">
       </div>
       <div class="form-group">
         <label class="form-label">${idx === 0 ? 'মোট' : '&nbsp;'}</label>
-        <div class="sale-total" id="sale-total-${idx}">${fmtAmt(i.amount || 0)}</div>
+        ${saleTotalCellHtml(i, idx)}
       </div>
       <button type="button" class="sale-action-btn ${idx === lineItems.length - 1 ? '' : 'remove'}" onclick="${idx === lineItems.length - 1 ? 'addSaleItem()' : `removeSaleItem(${idx})`}" title="${idx === lineItems.length - 1 ? 'নতুন লাইন' : 'বাদ দিন'}">${idx === lineItems.length - 1 ? '+' : '×'}</button>
     </div>`).join('');
@@ -758,11 +849,13 @@
   function collectSaleItems(showErrors) {
     const items = [];
     for (const row of lineItems) {
-      const hasAny = row.product_id || row.qty || row.rate;
+      const hasAny = row.product_id || row.qty || row.rate || Number(row.amount || 0) > 0;
       if (!hasAny) continue;
       const prd = DeptAPI.Products.getById(row.product_id);
       const qty = parseFloat(row.qty) || 0;
-      const rate = parseFloat(row.rate) || 0;
+      const hasRate = saleHasAutoTotal(row);
+      const rate = hasRate ? (parseFloat(row.rate) || 0) : 0;
+      const amount = hasRate ? (qty * rate) : (parseFloat(row.amount) || 0);
       if (!prd) {
         if (showErrors) showToast('সব লাইনে পণ্য নির্বাচন করুন');
         if (showErrors) return null;
@@ -773,8 +866,13 @@
         if (showErrors) return null;
         continue;
       }
-      if (rate <= 0) {
-        if (showErrors) showToast('সব লাইনে দর দিন');
+      if (hasRate && rate <= 0) {
+        if (showErrors) showToast('দর সঠিক দিন');
+        if (showErrors) return null;
+        continue;
+      }
+      if (!hasRate && amount <= 0) {
+        if (showErrors) showToast('দর খালি থাকলে মোট দিন');
         if (showErrors) return null;
         continue;
       }
@@ -784,22 +882,31 @@
         name: prd.name,
         unit: row.unit || prd.unit || 'পিস',
         qty,
-        rate,
-        amount: qty * rate
+        rate: hasRate ? rate : (qty > 0 ? amount / qty : 0),
+        amount
       });
     }
     return items;
   }
 
   function stockKey(item) {
-    return String(item.product_id || '') || (String(item.product_name || item.name || '').trim().toLowerCase() + '|' + String(item.unit || 'পিস').trim().toLowerCase());
+    if (item.product_id) return String(item.product_id);
+    return String(item.product_name || item.name || '').trim().toLowerCase() + '|' + String(item.unit || 'পিস').trim().toLowerCase();
+  }
+
+  function saleQtyInStockUnit(item) {
+    const qty = Number(item.qty || item.quantity || 0);
+    if (!qty) return 0;
+    const product = item.product_id ? DeptAPI.Products.getById(item.product_id) : null;
+    if (product && window.DeptUnits) return DeptUnits.toStockUnit(qty, item.unit, product);
+    return qty;
   }
 
   function saleQtyMap(items) {
     const map = {};
     (items || []).forEach(item => {
       const key = stockKey(item);
-      const qty = Number(item.qty || item.quantity || 0);
+      const qty = saleQtyInStockUnit(item);
       if (key && qty > 0) map[key] = (map[key] || 0) + qty;
     });
     return map;
@@ -831,7 +938,9 @@
       const have = stock[key] || 0;
       if (need > have) {
         const name = item.product_name || item.name || 'পণ্য';
-        showToast(name + ' মজুদ আছে ' + toBn(have) + ', বিক্রি ' + toBn(need) + ' নেওয়া যাবে না');
+        const product = item.product_id ? DeptAPI.Products.getById(item.product_id) : null;
+        const unitLabel = product && window.DeptUnits ? DeptUnits.stockUnit(product) : (item.unit || 'পিস');
+        showToast(name + ' মজুদ আছে ' + toBn(DeptUnits ? DeptUnits.formatQty(have) : have) + ' ' + unitLabel + ', বিক্রি ' + toBn(DeptUnits ? DeptUnits.formatQty(need) : need) + ' ' + unitLabel + ' নেওয়া যাবে না');
         return false;
       }
     }
@@ -1219,7 +1328,7 @@
     if (Array.isArray(meta.line_items) && meta.line_items.length) {
       return meta.line_items.map(i => ({
         name: i.product_name || i.name || 'পণ্য',
-        unit: i.unit || '',
+        unit: saleItemUnit(i),
         qty: Number(i.qty || i.quantity || 0),
         amount: Number(i.amount || 0)
       }));
@@ -1227,7 +1336,7 @@
     if (meta.product_name) {
       return [{
         name: meta.product_name,
-        unit: meta.unit || '',
+        unit: saleItemUnit({ unit: meta.unit, product_id: meta.product_id }),
         qty: Number(meta.qty || 0),
         amount: Number(t.base_amount || t.amount || 0)
       }];
@@ -1318,7 +1427,7 @@
       ? prds.map(p=>`<div class="prd-item">
           <div style="flex:1;">
             <div style="font-size:13px;font-weight:600;">${DeptAPI.esc(p.name)}</div>
-            <div style="font-size:11px;color:var(--ink3);">একক: ${DeptAPI.esc(p.unit)} · মূল্য: ${fmtAmt(p.price)}/একক</div>
+            <div style="font-size:11px;color:var(--ink3);">বিক্রয়: ${DeptAPI.esc(p.unit)} · মজুদ: ${DeptAPI.esc(p.stock_unit || p.unit)}${Number(p.pack_size) > 0 ? ' · প্যাক ' + DeptAPI.esc(String(p.pack_size)) : ''} · ${fmtAmt(p.price)}/একক</div>
           </div>
           <button onclick="openEditProduct('${DeptAPI.esc(p.id)}')"
             style="background:var(--cream2);border:1px solid var(--cream3);border-radius:6px;color:var(--ink2);font-family:'Tiro Bangla',serif;font-size:11px;font-weight:800;cursor:pointer;padding:5px 9px;">এডিট</button>
@@ -1326,12 +1435,31 @@
       : '<div style="text-align:center;color:var(--ink3);padding:32px 0;font-size:13px;">কোনো পণ্য নেই — উপরের বোতাম থেকে যোগ করুন</div>';
   }
 
+  function onProductUnitFieldsChange() {
+    const unit = document.getElementById('prd-unit').value.trim() || 'পিস';
+    const stockUnit = document.getElementById('prd-stock-unit').value.trim() || unit;
+    const needsPack = window.DeptUnits && DeptUnits.needsPackSize(unit, stockUnit);
+    document.getElementById('prd-pack-wrap').style.display = needsPack ? '' : 'none';
+    const hint = document.getElementById('prd-unit-hint');
+    if (!hint) return;
+    if (needsPack) {
+      hint.textContent = 'উদাহরণ: মজুদ কেজি, বিক্রয় পিস, প্যাক ০.২৫ = প্রতি বোতল ২৫০ গ্রাম।';
+    } else if (unit !== stockUnit && window.DeptUnits && DeptUnits.hasStandardConversion(unit, stockUnit)) {
+      hint.textContent = 'কেজি↔গ্রাম বা লিটার↔মিলি স্বয়ংক্রিয় রূপান্তর হবে।';
+    } else {
+      hint.textContent = '';
+    }
+  }
+
   function openAddProduct() {
     document.getElementById('product-modal-title').textContent = 'পণ্য যোগ';
     document.getElementById('prd-edit-id').value = '';
     document.getElementById('prd-delete-btn').style.display = 'none';
-    ['prd-name','prd-price'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('prd-delete-hint').style.display = 'none';
+    ['prd-name','prd-price','prd-pack-size'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('prd-unit').innerHTML = unitOptionsHtml('পিস');
+    document.getElementById('prd-stock-unit').innerHTML = unitOptionsHtml('পিস');
+    onProductUnitFieldsChange();
     openModal('modal-product');
   }
 
@@ -1342,19 +1470,44 @@
     document.getElementById('prd-edit-id').value = p.id;
     document.getElementById('prd-name').value = p.name || '';
     document.getElementById('prd-unit').innerHTML = unitOptionsHtml(p.unit || 'পিস');
+    document.getElementById('prd-stock-unit').innerHTML = unitOptionsHtml(p.stock_unit || p.unit || 'পিস');
+    document.getElementById('prd-pack-size').value = p.pack_size || '';
     document.getElementById('prd-price').value = p.price || '';
     document.getElementById('prd-delete-btn').style.display = '';
+    document.getElementById('prd-delete-hint').style.display = '';
+    onProductUnitFieldsChange();
     openModal('modal-product');
+  }
+
+  let pendingRemoveProductId = null;
+
+  function inventoryForProduct(productId) {
+    return DeptAPI.Inventory.getByDept(deptId).find(i => String(i.product_id) === String(productId));
+  }
+
+  function isCatalogOrphanInv(item) {
+    if (!item) return false;
+    if (!item.product_id) return true;
+    return !DeptAPI.Products.getById(item.product_id);
   }
 
   async function saveProduct() {
     const editId = document.getElementById('prd-edit-id').value;
     const name  = document.getElementById('prd-name').value.trim();
     const unit  = document.getElementById('prd-unit').value.trim() || 'পিস';
+    const stockUnit = document.getElementById('prd-stock-unit').value.trim() || unit;
+    const packRaw = document.getElementById('prd-pack-size').value.trim();
+    const packSize = packRaw === '' ? null : parseFloat(packRaw);
     const price = parseFloat(document.getElementById('prd-price').value)||0;
     if (!name) { showToast('পণ্যের নাম দিন'); return; }
+    if (window.DeptUnits && DeptUnits.needsPackSize(unit, stockUnit) && !(packSize > 0)) {
+      showToast('বিক্রয় ও মজুদ একক আলাদা হলে প্যাক সাইজ দিন');
+      return;
+    }
     try {
-      await DeptSync.saveProduct(staffUserId, staffPin, deptId, { id: editId, name, unit, price, is_active:true });
+      await DeptSync.saveProduct(staffUserId, staffPin, deptId, {
+        id: editId, name, unit, stock_unit: stockUnit, pack_size: packSize, price, is_active:true
+      });
     } catch (e) {
       console.warn('[Dept] product save failed:', e);
       showToast('ডাটাবেজে পণ্য সংরক্ষণ হয়নি');
@@ -1368,26 +1521,62 @@
   async function deleteProductFromModal() {
     const id = document.getElementById('prd-edit-id').value;
     if (!id) return;
-    if (!confirm('এই পণ্য তালিকা থেকে বাদ দেবেন?')) return;
-    await removeProduct(id);
-    closeModal('modal-product');
-  }
-
-  async function removeProduct(id) {
     const product = DeptAPI.Products.getById(id);
     if (!product) return;
-    try {
-      await DeptSync.saveProduct(staffUserId, staffPin, deptId, { ...product, is_active:false });
-    } catch (e) {
-      console.warn('[Dept] product remove failed:', e);
-      showToast('ডাটাবেজ থেকে পণ্য বাদ যায়নি');
+    const inv = inventoryForProduct(id);
+    const qty = inv ? Number(inv.quantity || 0) : 0;
+    if (qty <= 0.000001) {
+      if (!confirm('এই পণ্য তালিকা থেকে বাদ দেবেন?')) return;
+      const ok = await removeProduct(id, 'keep_stock');
+      if (ok) closeModal('modal-product');
       return;
     }
+    const unitLabel = inv.unit || product.stock_unit || product.unit || 'পিস';
+    const qtyLabel = window.DeptUnits ? DeptUnits.formatQty(qty) : qty;
+    document.getElementById('prd-remove-msg').textContent =
+      '「' + product.name + '」-এর মজুদ আছে ' + toBn(qtyLabel) + ' ' + unitLabel + '। কী করবেন?';
+    pendingRemoveProductId = id;
+    openModal('modal-prd-remove');
+  }
+
+  async function confirmRemoveProduct(mode) {
+    const id = pendingRemoveProductId;
+    if (!id) return;
+    closeModal('modal-prd-remove');
+    pendingRemoveProductId = null;
+    const ok = await removeProduct(id, mode);
+    if (ok) closeModal('modal-product');
+  }
+
+  async function removeProduct(id, mode) {
+    const product = DeptAPI.Products.getById(id);
+    if (!product) return false;
+    try {
+      await DeptSync.removeProduct(staffUserId, staffPin, deptId, id, mode || 'keep_stock');
+    } catch (e) {
+      console.warn('[Dept] product remove failed:', e);
+      const err = String((e && e.message) || e || '');
+      if (/duplicate/i.test(err)) {
+        showToast('একই নাম ও এককে তালিকার বাইরে মজুদ আছে — আগে সেটি মিলিয়ে নিন');
+        return false;
+      }
+      showToast('ডাটাবেজ থেকে পণ্য বাদ যায়নি');
+      return false;
+    }
     renderProducts();
-    showToast('পণ্য বাদ দেওয়া হয়েছে');
+    renderInv();
+    showToast(mode === 'zero_stock' ? 'মজুদ শূন্য করে তালিকা থেকে বাদ দেওয়া হয়েছে' : 'তালিকা থেকে বাদ দেওয়া হয়েছে — মজুদ তালিকায় আছে');
+    return true;
   }
 
   /* ── INVENTORY ── */
+  function invDisplayLine(item) {
+    const product = item.product_id ? DeptAPI.Products.getById(item.product_id) : null;
+    if (product && window.DeptUnits) return DeptUnits.inventoryLine(item.quantity, product);
+    const qty = window.DeptUnits ? DeptUnits.formatQty(item.quantity) : item.quantity;
+    return qty + ' ' + (item.unit || 'পিস');
+  }
+
   function renderInv() {
     const items = DeptAPI.Inventory.getByDept(deptId);
     document.getElementById('inv-list').innerHTML = items.length
@@ -1395,10 +1584,12 @@
           <div class="list-avatar">📦</div>
           <div style="flex:1;">
             <div style="font-size:13px;font-weight:600;">${DeptAPI.esc(i.item_name)}</div>
-            <div style="font-size:11px;color:var(--ink3);">${DeptAPI.esc(i.unit)}</div>
+            ${isCatalogOrphanInv(i) ? '<span class="catalog-off-pill">তালিকায় নেই</span>' : ''}
+            <p style="font-size:11px;color:var(--ink3);margin:0;">${DeptAPI.esc(invDisplayLine(i))}</p>
           </div>
-          <div style="text-align:right;">
-            <div style="font-family:'Tiro Bangla',serif;font-size:15px;font-weight:700;">${toBn(i.quantity)}</div>
+          <div class="inv-actions">
+            <button type="button" class="inv-action-btn" onclick="openEditInv('${DeptAPI.esc(i.id)}')">এডিট</button>
+            <button type="button" class="inv-action-btn delete" onclick="deleteInv('${DeptAPI.esc(i.id)}')">মুছুন</button>
           </div>
         </div>`).join('')
       : '<div style="text-align:center;color:var(--ink3);padding:32px 0;font-size:13px;">কোনো মজুদ নেই</div>';
@@ -1421,7 +1612,7 @@
     const sel = document.getElementById('inv-product');
     const prds = DeptAPI.Products.getByDept(deptId);
     sel.innerHTML = '<option value="">— তালিকার বাইরে / নিজে লিখুন —</option>' +
-      prds.map(p=>`<option value="${p.id}" data-name="${DeptAPI.esc(p.name)}" data-unit="${DeptAPI.esc(p.unit)}">${DeptAPI.esc(p.name)}</option>`).join('');
+      prds.map(p=>`<option value="${p.id}" data-name="${DeptAPI.esc(p.name)}" data-unit="${DeptAPI.esc(p.unit)}" data-stock-unit="${DeptAPI.esc(p.stock_unit || p.unit)}">${DeptAPI.esc(p.name)}</option>`).join('');
     document.getElementById('inv-unit').innerHTML = unitOptionsHtml('পিস');
   }
 
@@ -1430,7 +1621,121 @@
     if (!sel.value) return;
     const opt = sel.options[sel.selectedIndex];
     document.getElementById('inv-name').value = opt.dataset.name || '';
-    document.getElementById('inv-unit').innerHTML = unitOptionsHtml(opt.dataset.unit || 'পিস');
+    const stockUnit = opt.dataset.stockUnit || opt.dataset.unit || 'পিস';
+    document.getElementById('inv-unit').innerHTML = unitOptionsHtml(stockUnit);
+  }
+
+  let invEditBaseUnit = 'পিস';
+
+  function openEditInv(id) {
+    const item = DeptAPI.Inventory.getByDept(deptId).find(i => String(i.id) === String(id));
+    if (!item) return;
+    const product = item.product_id ? DeptAPI.Products.getById(item.product_id) : null;
+    const stockUnitName = product && window.DeptUnits ? DeptUnits.stockUnit(product) : (item.unit || 'পিস');
+    invEditBaseUnit = stockUnitName;
+    document.getElementById('inv-edit-id').value = item.id;
+    document.getElementById('inv-edit-product-id').value = item.product_id || '';
+    document.getElementById('inv-edit-name').value = item.item_name || '';
+    document.getElementById('inv-edit-stock-unit').innerHTML = unitOptionsHtml(stockUnitName);
+    document.getElementById('inv-edit-current').textContent = invDisplayLine(item);
+    document.getElementById('inv-edit-qty').value = window.DeptUnits ? DeptUnits.formatQty(item.quantity) : item.quantity;
+    document.getElementById('inv-edit-notes').value = '';
+    openModal('modal-inv-edit');
+  }
+
+  function onInvEditUnitChange() {
+    const qtyInput = document.getElementById('inv-edit-qty');
+    const newUnit = document.getElementById('inv-edit-stock-unit').value.trim() || 'পিস';
+    const currentVal = parseFloat(qtyInput.value);
+    if (!window.DeptUnits || isNaN(currentVal) || newUnit === invEditBaseUnit) return;
+    const product = document.getElementById('inv-edit-product-id').value
+      ? DeptAPI.Products.getById(document.getElementById('inv-edit-product-id').value)
+      : null;
+    const faux = {
+      unit: invEditBaseUnit,
+      stock_unit: newUnit,
+      pack_size: product && product.pack_size
+    };
+    qtyInput.value = DeptUnits.formatQty(DeptUnits.toStockUnit(currentVal, invEditBaseUnit, faux));
+    invEditBaseUnit = newUnit;
+  }
+
+  function invDeleteConfirmMessage(item) {
+    const qty = Number(item.quantity || 0);
+    const unit = item.unit || 'পিস';
+    const name = item.item_name || 'পণ্য';
+    if (qty > 0.000001) {
+      const qtyLabel = window.DeptUnits ? DeptUnits.formatQty(qty) : qty;
+      return '「' + name + '」 (' + toBn(qtyLabel) + ' ' + unit + ') মজুদ তালিকা থেকে মুছে ফেলবেন? বাকি পরিমাণ নষ্ট/সরানো হিসেবে লগ হবে।';
+    }
+    return '「' + name + '」 মজুদ তালিকা থেকে মুছে ফেলবেন?';
+  }
+
+  async function deleteInv(id) {
+    const item = DeptAPI.Inventory.getByDept(deptId).find(i => String(i.id) === String(id));
+    if (!item) { showToast('মজুদ পাওয়া যায়নি'); return; }
+    if (!confirm(invDeleteConfirmMessage(item))) return;
+    try {
+      await DeptSync.deleteInventoryItem(staffUserId, staffPin, deptId, item.id, 'মজুদ তালিকা থেকে মুছে ফেলা');
+    } catch (e) {
+      console.warn('[Dept] inventory delete failed:', e);
+      showToast('মজুদ মুছে ফেলা যায়নি');
+      return;
+    }
+    closeModal('modal-inv-edit');
+    renderInv();
+    showToast('মজুদ মুছে ফেলা হয়েছে');
+  }
+
+  async function deleteInvFromModal() {
+    const id = document.getElementById('inv-edit-id').value;
+    if (!id) return;
+    await deleteInv(id);
+  }
+
+  async function saveInvEdit() {
+    const item = DeptAPI.Inventory.getByDept(deptId).find(i => String(i.id) === String(document.getElementById('inv-edit-id').value));
+    if (!item) { showToast('মজুদ পাওয়া যায়নি'); return; }
+    const name = document.getElementById('inv-edit-name').value.trim();
+    const stockUnitName = document.getElementById('inv-edit-stock-unit').value.trim() || item.unit || 'পিস';
+    const target = parseFloat(document.getElementById('inv-edit-qty').value);
+    const notes = document.getElementById('inv-edit-notes').value.trim();
+    if (!name) { showToast('পণ্যের নাম দিন'); return; }
+    if (isNaN(target) || target < 0) { showToast('সঠিক পরিমাণ দিন'); return; }
+    const prevUnit = item.unit || 'পিস';
+    const nameChanged = name.toLowerCase() !== String(item.item_name || '').toLowerCase();
+    const unitChanged = stockUnitName.toLowerCase() !== String(prevUnit).toLowerCase();
+    const qtyChanged = Math.abs(target - Number(item.quantity || 0)) >= 0.000001;
+    if (!nameChanged && !unitChanged && !qtyChanged) {
+      closeModal('modal-inv-edit');
+      showToast('কোনো পরিবর্তন নেই');
+      return;
+    }
+    try {
+      await DeptSync.updateInventoryItem(staffUserId, staffPin, deptId, {
+        inventory_id: item.id,
+        item_name: name,
+        unit: stockUnitName,
+        quantity: (qtyChanged || !unitChanged) ? target : null,
+        notes: notes || 'মজুদ সংশোধন'
+      });
+    } catch (e) {
+      console.warn('[Dept] inventory edit failed:', e);
+      const err = String((e && e.message) || e || '');
+      if (/duplicate/i.test(err)) {
+        showToast('একই নাম ও এককে আরেকটি মজুদ আছে');
+        return;
+      }
+      if (/stock|মজুদ|insufficient/i.test(err)) {
+        showToast('মজুদ যথেষ্ট নেই — আপডেট হয়নি');
+        return;
+      }
+      showToast('ডাটাবেজে মজুদ আপডেট হয়নি');
+      return;
+    }
+    closeModal('modal-inv-edit');
+    renderInv();
+    showToast('মজুদ সংশোধন হয়েছে');
   }
 
   async function saveInv() {

@@ -536,6 +536,9 @@ const MMSharedAPI = (() => {
       });
     },
     saveDeptProduct(actorId, pin, deptCode, product) {
+      const packSize = product.pack_size === '' || product.pack_size == null
+        ? null
+        : Number(product.pack_size);
       return rpc('dept_rel_save_product', {
         p_actor_id: actorId || null,
         p_pin: pin,
@@ -545,6 +548,17 @@ const MMSharedAPI = (() => {
         p_unit: product.unit || 'পিস',
         p_price: Number(product.price || 0),
         p_is_active: product.is_active !== false,
+        p_stock_unit: product.stock_unit || product.unit || 'পিস',
+        p_pack_size: packSize > 0 ? packSize : null,
+      });
+    },
+    removeDeptProduct(actorId, pin, deptCode, productId, mode) {
+      return rpc('dept_rel_remove_product', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_product_id: productId,
+        p_mode: mode === 'zero_stock' ? 'zero_stock' : 'keep_stock',
       });
     },
     saveDeptTransaction(actorId, pin, deptCode, txn) {
@@ -735,6 +749,28 @@ const MMSharedAPI = (() => {
         p_quantity_delta: Number(item.quantity_delta || item.quantity || 0),
         p_reason: item.reason || 'stock_in',
         p_notes: item.notes || null,
+      });
+    },
+    updateDeptInventoryItem(actorId, pin, deptCode, item) {
+      const qty = item.quantity;
+      return rpc('dept_rel_update_inventory_item', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_inventory_id: item.inventory_id,
+        p_item_name: item.item_name || '',
+        p_unit: item.unit || null,
+        p_quantity: qty === '' || qty == null ? null : Number(qty),
+        p_notes: item.notes || null,
+      });
+    },
+    deleteDeptInventoryItem(actorId, pin, deptCode, inventoryId, notes) {
+      return rpc('dept_rel_delete_inventory_item', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_inventory_id: inventoryId,
+        p_notes: notes || null,
       });
     },
   };

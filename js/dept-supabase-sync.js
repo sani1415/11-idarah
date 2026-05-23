@@ -189,6 +189,14 @@
     return res.id;
   }
 
+  async function removeProduct(actorId, pin, deptCode, productId, mode) {
+    var api = requireShared();
+    var res = await api.removeDeptProduct(actorId, pin, deptCode, productId, mode || 'keep_stock');
+    if (!res || !res.ok) throw new Error((res && res.error) || 'remove_product_failed');
+    await bootstrapData(actorId, pin, deptCode);
+    return true;
+  }
+
   async function saveTransaction(actorId, pin, deptCode, txn) {
     var api = requireShared();
     var res = await api.saveDeptTransaction(actorId, pin, deptCode, txn || {});
@@ -217,6 +225,22 @@
     var api = requireShared();
     var res = await api.adjustDeptInventory(actorId, pin, deptCode, item || {});
     if (!res || !res.ok) throw new Error((res && res.error) || 'adjust_inventory_failed');
+    await bootstrapData(actorId, pin, deptCode);
+    return true;
+  }
+
+  async function updateInventoryItem(actorId, pin, deptCode, item) {
+    var api = requireShared();
+    var res = await api.updateDeptInventoryItem(actorId, pin, deptCode, item || {});
+    if (!res || !res.ok) throw new Error((res && res.error) || 'update_inventory_item_failed');
+    await bootstrapData(actorId, pin, deptCode);
+    return true;
+  }
+
+  async function deleteInventoryItem(actorId, pin, deptCode, inventoryId, notes) {
+    var api = requireShared();
+    var res = await api.deleteDeptInventoryItem(actorId, pin, deptCode, inventoryId, notes);
+    if (!res || !res.ok) throw new Error((res && res.error) || 'delete_inventory_item_failed');
     await bootstrapData(actorId, pin, deptCode);
     return true;
   }
@@ -260,10 +284,13 @@
     saveDepartment: saveDepartment,
     toggleDepartment: toggleDepartment,
     saveProduct: saveProduct,
+    removeProduct: removeProduct,
     saveTransaction: saveTransaction,
     updateTransaction: updateTransaction,
     deleteTransaction: deleteTransaction,
     adjustInventory: adjustInventory,
+    updateInventoryItem: updateInventoryItem,
+    deleteInventoryItem: deleteInventoryItem,
     saveExtraField: saveExtraField,
     deleteExtraField: deleteExtraField,
     saveEditRequest: saveEditRequest,

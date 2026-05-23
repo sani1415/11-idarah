@@ -204,6 +204,7 @@
 <script src="js/mm-session.js"></script>
 <script src="js/monitor-mode.js"></script>
 <script src="js/dept-api.js"></script>
+<script src="js/dept-units.js"></script>
 <script src="js/dept-supabase-sync.js"></script>
 <script>
   if (!MMSession.isAdmin() || MMSession.isRestrictedAdmin()) { location.href = 'main-admin-madrasa.html'; }
@@ -368,11 +369,15 @@
     if (name==='inv') {
       const items = DeptAPI.Inventory.getByDept(activeDeptId);
       document.getElementById('dd-inv-list').innerHTML = items.length
-        ? items.map(i => `<div style="background:#fff;border-radius:var(--radius-sm);padding:12px;box-shadow:var(--shadow);margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+        ? items.map(i => {
+            const product = i.product_id ? DeptAPI.Products.getById(i.product_id) : null;
+            const line = product && window.DeptUnits ? DeptUnits.inventoryLine(i.quantity, product) : ((window.DeptUnits ? DeptUnits.formatQty(i.quantity) : i.quantity) + ' ' + (i.unit || 'পিস'));
+            return `<div style="background:#fff;border-radius:var(--radius-sm);padding:12px;box-shadow:var(--shadow);margin-bottom:8px;display:flex;align-items:center;gap:10px;">
             <span style="font-size:20px;">📦</span>
             <div style="flex:1;font-size:13px;font-weight:600;">${DeptAPI.esc(i.item_name)}</div>
-            <div style="text-align:right;"><div style="font-family:'Tiro Bangla',serif;font-size:15px;font-weight:700;">${toBn(i.quantity)}</div><div style="font-size:11px;color:var(--ink3);">${DeptAPI.esc(i.unit)}</div></div>
-          </div>`).join('')
+            <div style="text-align:right;font-family:'Tiro Bangla',serif;font-size:14px;font-weight:700;">${DeptAPI.esc(line)}</div>
+          </div>`;
+          }).join('')
         : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো মজুদ নেই</div>';
     }
   }
