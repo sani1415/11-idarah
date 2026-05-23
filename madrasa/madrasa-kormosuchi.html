@@ -14,10 +14,10 @@
 .prog-select { flex:1; padding:10px 12px; border:1px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; font-family:'Tiro Bangla',serif; font-size:14px; color:var(--ink); }
 .prog-new-btn { flex:0 0 auto; border:1px solid var(--ink); border-radius:var(--radius-sm); background:var(--ink); color:var(--gold2); padding:8px 10px; font-family:'Tiro Bangla',serif; font-size:12px; font-weight:800; line-height:1; white-space:nowrap; cursor:pointer; }
 .prog-new-btn:disabled,.t4-btn:disabled,.submit-btn:disabled,.settings-danger-btn:disabled { opacity:.45; cursor:not-allowed; }
-.kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px; }
-.kpi-card { background:var(--cream); border:1px solid var(--cream2); border-radius:var(--radius-sm); padding:10px 6px; text-align:center; }
+.kpi-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin-top:10px; }
+.kpi-card { background:var(--cream); border:1px solid var(--cream2); border-radius:var(--radius-sm); padding:8px 4px; text-align:center; min-width:0; }
 .kpi-card span { display:block; font-size:10px; color:var(--ink3); margin-bottom:3px; font-weight:700; }
-.kpi-card b { font-family:'Tiro Bangla',serif; font-size:16px; font-weight:800; color:var(--ink2); }
+.kpi-card b { display:block; font-family:'Tiro Bangla',serif; font-size:15px; line-height:1.15; font-weight:800; color:var(--ink2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .kpi-card b.g { color:var(--green); }
 .kpi-card b.r { color:var(--red); }
 .kpi-card b.o { color:var(--gold); }
@@ -43,15 +43,14 @@
 .tbl th { position:sticky; top:0; z-index:1; background:var(--cream); color:var(--ink3); font-size:11px; font-weight:700; }
 .tbl td { background:#fff; }
 .tbl tr:nth-child(even) td { background:#fffaf2; }
-.tbl-inc { min-width:720px; }
+.tbl-inc { min-width:632px; }
 .tbl-inc th:nth-child(1), .tbl-inc td:nth-child(1) { width:72px; }
 .tbl-inc th:nth-child(2), .tbl-inc td:nth-child(2) { width:64px; }
 .tbl-inc th:nth-child(3), .tbl-inc td:nth-child(3) { width:56px; }
 .tbl-inc th:nth-child(4), .tbl-inc td:nth-child(4) { width:120px; }
 .tbl-inc th:nth-child(5), .tbl-inc td:nth-child(5) { width:52px; text-align:center; }
 .tbl-inc th:nth-child(6), .tbl-inc td:nth-child(6) { width:72px; text-align:right; }
-.tbl-inc th:nth-child(7), .tbl-inc td:nth-child(7) { width:88px; }
-.tbl-inc th:nth-child(8), .tbl-inc td:nth-child(8) { width:88px; overflow:visible; text-overflow:clip; }
+.tbl-inc th:nth-child(7), .tbl-inc td:nth-child(7) { width:88px; overflow:visible; text-overflow:clip; }
 .tbl-exp { min-width:560px; }
 .tbl-exp th:nth-child(1), .tbl-exp td:nth-child(1) { width:72px; }
 .tbl-exp th:nth-child(2), .tbl-exp td:nth-child(2) { width:72px; }
@@ -87,7 +86,7 @@
 .add-row { display:flex; gap:8px; margin-top:6px; }
 .add-row .form-input { flex:1; }
 .student-income-picker { display:none; }
-@media(max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.type-config-grid{grid-template-columns:1fr}}</style>
+@media(max-width:640px){.kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.kpi-card{padding:7px 3px}.kpi-card span{font-size:9px}.kpi-card b{font-size:13px}.type-config-grid{grid-template-columns:1fr}}</style>
 </head>
 <body>
 
@@ -118,12 +117,7 @@
     </div>
   </div>
 
-  <div class="card-static" style="margin-bottom:8px">
-    <div style="font-family:'Tiro Bangla',serif;font-size:17px;font-weight:800;color:var(--ink)" id="prog-title"></div>
-    <div style="font-size:12px;color:var(--ink3);margin-top:4px;line-height:1.5" id="prog-note"></div>
-    <span class="prog-tag" id="prog-tag"></span>
-    <div class="kpi-grid" id="kpi-grid"></div>
-  </div>
+  <div class="kpi-grid" id="kpi-grid" style="margin-bottom:10px"></div>
 
   <div class="toolbar-4">
     <button class="t4-btn green" onclick="openIncome()">↑ আয়</button>
@@ -364,7 +358,7 @@
 <script src="../js/mdr-daftar-supabase.js"></script>
 <script src="../js/daftar-bottom-nav.js"></script>
 <script src="../js/mm-hijri.js"></script>
-<script src="../js/madrasa-kormosuchi.js?v=20260521-tbl-cols"></script>
+<script src="../js/madrasa-kormosuchi.js?v=20260523-income-cols"></script>
 <script>
   (function () {
     var dn = document.getElementById('daftar-nav-root');

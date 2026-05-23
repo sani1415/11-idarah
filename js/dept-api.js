@@ -11,6 +11,7 @@ const DeptAPI = (() => {
     inventory:     'mm_dept_inventory',
     edit_requests: 'mm_dept_edit_requests',
     extra_fields:  'mm_dept_extra_fields',
+    settings:      'mm_dept_settings',
     products:      'mm_dept_products',
   };
 
@@ -99,6 +100,18 @@ const DeptAPI = (() => {
   };
 
   function getSubdeptFields(dept_id) { return ExtraFields.get(dept_id); }
+
+  const Settings = {
+    get(dept_id) {
+      const all = loadObj(KEYS.settings);
+      return all[dept_id] && typeof all[dept_id] === 'object' ? all[dept_id] : {};
+    },
+    set(dept_id, settings) {
+      const all = loadObj(KEYS.settings);
+      all[dept_id] = settings && typeof settings === 'object' ? settings : {};
+      saveObj(KEYS.settings, all);
+    },
+  };
 
   /* ── TRANSACTIONS ── */
   const Transactions = {
@@ -206,7 +219,7 @@ const DeptAPI = (() => {
     getById: id => load(KEYS.products).find(p => p.id === id),
     add(data) {
       const list = load(KEYS.products);
-      const p = { id: 'prd_' + uid(), is_active: true, unit: 'পিস', price: 0, ...data };
+      const p = { id: 'prd_' + uid(), is_active: true, is_stock_item: true, is_sellable: true, unit: 'পিস', price: 0, ...data };
       list.push(p);
       save(KEYS.products, list);
       return p;
@@ -225,6 +238,7 @@ const DeptAPI = (() => {
     Inventory,
     EditRequests,
     ExtraFields,
+    Settings,
     Products,
     getSubdeptFields,
     uid,

@@ -21,7 +21,10 @@ const money = x => '৳' + bn(Number(x || 0).toLocaleString('en-US'));
 const jsq = x => String(x ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 const fmtDate = d => {
   if (!d) return '';
-  if (window.MMHijri && MMHijri.hijriOrFallback) return MMHijri.hijriOrFallback(d);
+  if (window.MMHijri && MMHijri.shortHijriBn) {
+    const h = MMHijri.shortHijriBn(d);
+    if (h) return h;
+  }
   const [y, m, dd] = d.split('-');
   return bn(dd) + '/' + bn(m) + '/' + bn(y.slice(2));
 };
@@ -428,9 +431,10 @@ function renderPage() {
   });
 
   if (!p) {
-    document.getElementById('prog-title').textContent = dbReady ? 'কোনো কর্মসূচি নেই' : 'ডাটাবেজ সংযোগ নেই';
-    document.getElementById('prog-note').textContent  = dbReady ? 'নতুন কর্মসূচি তৈরি করলে এখানে হিসাব দেখা যাবে।' : (loadError || 'Supabase সংযোগ বা সেশন পাওয়া যায়নি।');
-    document.getElementById('prog-tag').textContent   = dbReady ? (readOnly ? 'শুধু দেখা যাবে' : 'প্রস্তুত') : 'অফলাইন নয়';
+    const setTxt = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+    setTxt('prog-title', dbReady ? 'কোনো কর্মসূচি নেই' : 'ডাটাবেজ সংযোগ নেই');
+    setTxt('prog-note', dbReady ? 'নতুন কর্মসূচি তৈরি করলে এখানে হিসাব দেখা যাবে।' : (loadError || 'Supabase সংযোগ বা সেশন পাওয়া যায়নি।'));
+    setTxt('prog-tag', dbReady ? (readOnly ? 'শুধু দেখা যাবে' : 'প্রস্তুত') : 'অফলাইন নয়');
     document.getElementById('kpi-grid').innerHTML = [
       ['মোট আয়', money(0), 'g'],
       ['মোট ব্যয়', money(0), 'r'],
@@ -443,9 +447,10 @@ function renderPage() {
     return;
   }
 
-  document.getElementById('prog-title').textContent = p.name;
-  document.getElementById('prog-note').textContent  = p.note || '';
-  document.getElementById('prog-tag').textContent   = p.status + (p.date ? ' · ' + p.date : '');
+  const setTxt2 = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  setTxt2('prog-title', p.name);
+  setTxt2('prog-note', p.note || '');
+  setTxt2('prog-tag', p.status + (p.date ? ' · ' + p.date : ''));
 
   const hasShares = programHasShares(p);
   document.getElementById('kpi-grid').innerHTML = [
@@ -483,7 +488,7 @@ function renderIncomeTab() {
   if (!rows.length) return '<div class="empty-state"><span class="empty-icon">💰</span><div class="empty-text">এখনো কোনো আয় নেই</div></div>';
   return `<div class="tbl-wrap"><table class="tbl tbl-inc">
     <thead><tr>
-      <th>তারিখ</th><th>ধরন</th><th>ব্যক্তি</th><th>নাম</th><th>হিস্যা</th><th>টাকা</th><th>পরিচিতি</th><th></th>
+      <th>তারিখ</th><th>ধরন</th><th>ব্যক্তি</th><th>নাম</th><th>হিস্যা</th><th>টাকা</th><th></th>
     </tr></thead>
     <tbody>${rows.map(x => `<tr>
       <td style="color:var(--ink3)">${fmtDate(x.date)}</td>
@@ -492,7 +497,6 @@ function renderIncomeTab() {
       <td>${renderIncomeName(x)}</td>
       <td style="text-align:center">${x.share ? bn(x.share) : '—'}</td>
       <td style="color:var(--green);font-weight:700">${money(x.amount)}</td>
-      <td style="color:var(--ink3)">${API.esc(x.ref || '')}</td>
       <td>${readOnly ? '' : `<div class="act-btns">
         <button class="tbl-act" onclick="openIncome('${x.id}')">এডিট</button>
         <button class="tbl-del" onclick="askDel('income','${x.id}')">✕</button>

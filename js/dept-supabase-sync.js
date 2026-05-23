@@ -8,6 +8,7 @@
   var INV_LS_KEY = 'mm_dept_inventory';
   var PRODUCT_LS_KEY = 'mm_dept_products';
   var EXTRA_LS_KEY = 'mm_dept_extra_fields';
+  var SETTINGS_LS_KEY = 'mm_dept_settings';
   var EDIT_REQ_LS_KEY = 'mm_dept_edit_requests';
 
   function requireShared() {
@@ -88,11 +89,18 @@
     }));
   }
 
+  function replaceSettings(deptCode, settings) {
+    var all = readJson(SETTINGS_LS_KEY, {});
+    all[deptCode] = settings && typeof settings === 'object' ? settings : {};
+    writeJson(SETTINGS_LS_KEY, all);
+  }
+
   function applyDeptBootstrap(deptCode, res) {
     replaceDeptRows(PRODUCT_LS_KEY, deptCode, res.products || []);
     replaceDeptRows(INV_LS_KEY, deptCode, res.inventory || []);
     replaceDeptRows(TXN_LS_KEY, deptCode, res.transactions || []);
     replaceExtraFields(deptCode, res.extra_fields || []);
+    replaceSettings(deptCode, res.settings || {});
     replaceEditRequests(deptCode, res.edit_requests || []);
   }
 
@@ -129,11 +137,13 @@
     var transactions = [];
     var editRequests = [];
     var extraFields = {};
+    var settings = {};
 
     for (var i = 0; i < depts.length; i += 1) {
       var d = depts[i];
       if (d.is_active === false) {
         extraFields[d.id] = [];
+        settings[d.id] = {};
         continue;
       }
       var data = await api.deptBootstrap(actorId || null, pin, d.id);
@@ -154,6 +164,7 @@
           sort_order: Number(f.sort_order || 0),
         };
       }).filter(function (f) { return f.key && f.label; });
+      settings[d.id] = data.settings && typeof data.settings === 'object' ? data.settings : {};
     }
 
     writeJson(PRODUCT_LS_KEY, products);
@@ -161,6 +172,7 @@
     writeJson(TXN_LS_KEY, transactions);
     writeJson(EDIT_REQ_LS_KEY, editRequests);
     writeJson(EXTRA_LS_KEY, extraFields);
+    writeJson(SETTINGS_LS_KEY, settings);
     return true;
   }
 
@@ -245,6 +257,14 @@
     return true;
   }
 
+  async function saveSettings(actorId, pin, deptCode, settings) {
+    var api = requireShared();
+    var res = await api.saveDeptSettings(actorId, pin, deptCode, settings || {});
+    if (!res || !res.ok) throw new Error((res && res.error) || 'save_settings_failed');
+    await bootstrapData(actorId, pin, deptCode);
+    return true;
+  }
+
   async function saveExtraField(pin, deptCode, field) {
     var api = requireShared();
     var res = await api.saveDeptExtraField(pin, deptCode, field || {});
@@ -291,6 +311,7 @@
     adjustInventory: adjustInventory,
     updateInventoryItem: updateInventoryItem,
     deleteInventoryItem: deleteInventoryItem,
+    saveSettings: saveSettings,
     saveExtraField: saveExtraField,
     deleteExtraField: deleteExtraField,
     saveEditRequest: saveEditRequest,

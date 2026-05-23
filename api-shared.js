@@ -535,6 +535,14 @@ const MMSharedAPI = (() => {
         p_dept_code: deptCode || null,
       });
     },
+    saveDeptSettings(actorId, pin, deptCode, settings) {
+      return rpc('dept_rel_save_settings', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_dept_code: deptCode,
+        p_settings: settings || {},
+      });
+    },
     saveDeptProduct(actorId, pin, deptCode, product) {
       const packSize = product.pack_size === '' || product.pack_size == null
         ? null
@@ -550,6 +558,9 @@ const MMSharedAPI = (() => {
         p_is_active: product.is_active !== false,
         p_stock_unit: product.stock_unit || product.unit || 'পিস',
         p_pack_size: packSize > 0 ? packSize : null,
+        p_stock_product_id: product.stock_product_id && /^[0-9a-f-]{36}$/i.test(String(product.stock_product_id)) ? product.stock_product_id : null,
+        p_is_stock_item: product.is_stock_item !== false,
+        p_is_sellable: product.is_sellable !== false,
       });
     },
     removeDeptProduct(actorId, pin, deptCode, productId, mode) {

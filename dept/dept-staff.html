@@ -11,6 +11,23 @@
 <style>
   .txn-item { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
   .txn-item { cursor:pointer; }
+  .txn-income-head,
+  .txn-item.income-row { box-sizing:border-box; display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,2fr) minmax(0,1.15fr) minmax(0,.85fr) minmax(0,1.1fr); column-gap:2px; row-gap:3px; align-items:center; min-width:0; width:100%; }
+  .txn-income-head { background:#fff; border-radius:var(--radius-sm); box-shadow:var(--shadow); padding:6px; margin-bottom:8px; }
+  .txn-income-head > * { min-width:0; }
+  .txn-head-filter { box-sizing:border-box; display:block; width:100%; max-width:100%; min-width:0; height:30px; border:1px solid var(--cream3); border-radius:6px; background:#fff; color:var(--ink2); font-family:'Tiro Bangla',serif; font-size:11px; font-weight:700; padding:0 4px; }
+  .txn-head-filter::placeholder { color:var(--ink3); opacity:.62; font-weight:700; }
+  .txn-head-filter:focus { outline:0; border-color:var(--gold); background:var(--cream2); }
+  .txn-head-filter[type="number"] { text-align:left; }
+  .txn-head-clear { border:1px solid var(--cream3); background:var(--cream2); color:var(--ink2); border-radius:6px; height:30px; width:100%; font-family:'Tiro Bangla',serif; font-size:11px; font-weight:800; cursor:pointer; }
+  .txn-item.income-row { padding:8px 6px; }
+  #txn-income-area { overflow-x:visible; padding-bottom:4px; }
+  #txn-list { overflow:visible; }
+  .txn-cell { min-width:0; font-size:12px; color:var(--ink2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .txn-cell.product { font-weight:700; color:var(--ink); }
+  .txn-cell.qty { color:var(--green); font-weight:700; }
+  .txn-cell.rate { text-align:left; color:var(--ink3); }
+  .txn-cell.total { text-align:left; font-family:'Tiro Bangla',serif; font-size:14px; font-weight:800; color:var(--green); }
   .txn-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
   .txn-icon.income { background:var(--green-light); color:var(--green); }
   .txn-icon.expense { background:var(--red-light); color:var(--red); }
@@ -21,6 +38,7 @@
   .txn-line-date { font-size:11px; color:var(--ink3); white-space:nowrap; }
   .pending-pill { display:inline-block; background:#fff4d9; color:#9a6a21; border-radius:999px; padding:1px 7px; font-size:10px; font-weight:800; margin-top:3px; }
   .catalog-off-pill { display:inline-block; background:var(--cream2); color:var(--ink3); border-radius:999px; padding:1px 7px; font-size:10px; font-weight:800; margin-top:3px; }
+  .low-stock-pill { display:inline-block; background:var(--red-light); color:var(--red); border-radius:999px; padding:1px 7px; font-size:10px; font-weight:800; margin-top:3px; }
   .prd-remove-note { font-size:13px; line-height:1.6; color:var(--ink2); margin:0 0 14px; }
   .prd-remove-actions { display:grid; gap:8px; }
   .prd-remove-actions .submit-btn { margin:0; }
@@ -30,6 +48,7 @@
   .txn-amt.income { color:var(--green); }
   .txn-amt.expense { color:var(--red); }
   .inv-item { background:#fff; border-radius:var(--radius-sm); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+  .inv-item.low-stock { border-right:3px solid var(--red); }
   .inv-actions { display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
   .inv-action-btn { background:var(--cream2); border:1px solid var(--cream3); border-radius:6px; color:var(--ink2); font-family:'Tiro Bangla',serif; font-size:11px; font-weight:800; cursor:pointer; padding:5px 9px; }
   .inv-action-btn.delete { background:var(--red-light); border-color:transparent; color:var(--red); }
@@ -105,6 +124,19 @@
   .txn-action-row .delete { background:var(--red-light); color:var(--red); }
   .dept-settings-note { font-size:12px; line-height:1.6; color:var(--ink3); margin:0 0 12px; }
   .dept-settings-error { min-height:18px; color:var(--red); font-size:12px; margin-top:8px; }
+  #modal-dept-settings .modal { width:min(720px, calc(100vw - 24px)); max-width:720px; min-height:min(680px, calc(100vh - 32px)); max-height:calc(100vh - 32px); display:flex; flex-direction:column; }
+  .dept-settings-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:10px; }
+  .dept-settings-tab { flex:0 0 auto; border:1px solid var(--cream3); background:#fff; color:var(--ink3); border-radius:999px; padding:7px 10px; font-family:'Tiro Bangla',serif; font-size:12px; cursor:pointer; }
+  .dept-settings-tab.active { background:var(--ink); color:var(--gold2); border-color:var(--ink); font-weight:800; }
+  .dept-settings-body { flex:1; min-height:360px; overflow-y:auto; padding-right:2px; }
+  .dept-settings-panel { display:none; }
+  .dept-settings-panel.active { display:block; }
+  .dept-settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .settings-check { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--cream2); font-family:'Tiro Bangla',serif; font-size:13px; color:var(--ink2); }
+  .settings-check input { width:18px; height:18px; flex-shrink:0; }
+  .settings-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+  .settings-actions .submit-btn { margin:0; }
+  .settings-actions .btn-ghost { width:100%; padding:10px; border:1px solid var(--cream3); border-radius:var(--radius-sm); background:#fff; color:var(--ink2); font-family:'Tiro Bangla',serif; font-weight:800; cursor:pointer; }
   .txn-item--pending { background:#fffbf0; border-right:3px solid #f59e0b; cursor:default; opacity:.92; }
   .pending-tag { display:inline-flex; align-items:center; gap:3px; background:#fef3c7; color:#92400e; border-radius:999px; padding:2px 8px; font-size:10px; font-weight:800; margin-top:3px; }
   @media (max-width:640px) {
@@ -114,7 +146,7 @@
 
   /* ══ Desktop (≥ 960px) ══ */
   @media (min-width: 960px) {
-    .txn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .txn-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
     .txn-grid .txn-item { margin-bottom: 0; }
     .inv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .inv-grid .inv-item { margin-bottom: 0; }
@@ -139,15 +171,21 @@
 
 <!-- PANELS -->
 <div class="content" id="panel-txn" style="padding-bottom:var(--app-content-pad-bottom);">
-  <div class="month-nav">
-    <span class="month-label" id="month-label">শুরু থেকে সব হিসাব</span>
-  </div>
   <div class="stat-row-2" id="txn-summary"></div>
   <div class="add-btn-row">
     <button class="add-btn-half" onclick="openAddTxn('income')">↑ আয় যোগ</button>
     <button class="add-btn-half" onclick="openAddTxn('expense')">↓ ব্যয় যোগ</button>
   </div>
-  <div id="txn-list" class="txn-grid"></div>
+  <div id="txn-income-area">
+    <div class="txn-income-head">
+      <input class="txn-head-filter" type="date" id="txn-filter-date" title="তারিখ" onchange="renderTxn()">
+      <select class="txn-head-filter" id="txn-filter-product" title="পণ্য/ধরন" onchange="renderTxn()"></select>
+      <input class="txn-head-filter" id="txn-filter-qty" placeholder="বিক্রয় পরিমাণ" title="বিক্রয় পরিমাণ" oninput="renderTxn()">
+      <input class="txn-head-filter" type="number" id="txn-filter-rate" placeholder="দর" title="দর" oninput="renderTxn()">
+      <input class="txn-head-filter" type="number" id="txn-filter-total" placeholder="মোট টাকা" title="মোট টাকা" oninput="renderTxn()">
+    </div>
+    <div id="txn-list" class="txn-grid"></div>
+  </div>
 </div>
 
 <div class="content" id="panel-products" style="display:none;padding-bottom:var(--app-content-pad-bottom);">
@@ -169,6 +207,7 @@
     <button type="button" data-range="month" onclick="setReportRange('month')">এই মাস</button>
     <button type="button" data-range="last_month" onclick="setReportRange('last_month')">গত মাস</button>
     <button type="button" data-range="year" onclick="setReportRange('year')">এই বছর</button>
+    <button type="button" data-range="all" onclick="setReportRange('all')">শুরু থেকে</button>
     <button type="button" data-range="custom" onclick="setReportRange('custom')">কাস্টম</button>
   </div>
   <div class="report-custom" id="report-custom">
@@ -280,6 +319,10 @@
     <div class="modal-title"><span id="product-modal-title">পণ্য যোগ</span> <button class="modal-close" onclick="closeModal('modal-product')">✕</button></div>
     <input type="hidden" id="prd-edit-id">
     <div class="form-group"><label class="form-label">পণ্যের নাম</label><input class="form-input" id="prd-name" placeholder="যেমন: মধু, রুটি, ধান"></div>
+    <div class="form-group">
+      <label class="form-label">মজুদ পণ্য <span style="font-weight:400;color:var(--ink3)">(ঐচ্ছিক)</span></label>
+      <select class="form-input" id="prd-stock-product" onchange="onProductStockProductChange()"></select>
+    </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">বিক্রয় একক</label><select class="form-input" id="prd-unit" onchange="onProductUnitFieldsChange()"></select></div>
       <div class="form-group"><label class="form-label">বিক্রয় মূল্য</label><input class="form-input" type="number" id="prd-price" placeholder="০"></div>
@@ -291,6 +334,10 @@
         <input class="form-input" type="number" step="any" id="prd-pack-size" placeholder="যেমন: ০.২৫">
       </div>
     </div>
+    <label style="display:flex;align-items:center;gap:8px;font-family:'Tiro Bangla',serif;font-size:12px;color:var(--ink2);margin:2px 0 10px;">
+      <input type="checkbox" id="prd-sellable" checked>
+      বিক্রির তালিকায় দেখাবে
+    </label>
     <p class="sale-hint" id="prd-unit-hint" style="margin-top:0;"></p>
     <button class="submit-btn" onclick="saveProduct()">সংরক্ষণ করুন</button>
     <button id="prd-delete-btn" onclick="deleteProductFromModal()" style="display:none;margin-top:8px;width:100%;padding:10px;border:0;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);font-family:'Tiro Bangla',serif;font-weight:800;cursor:pointer;">তালিকা থেকে বাদ দিন</button>
@@ -367,23 +414,89 @@
 <div class="modal-bg modal-float" id="modal-dept-settings">
   <div class="modal">
     <div class="modal-title">সেটিং <button class="modal-close" onclick="closeDeptSettings()">✕</button></div>
-    <p class="dept-settings-note">নিজের বিভাগের লগইন PIN পরিবর্তন করুন। পরিবর্তন ডাটাবেজে সেভ হবে, তাই জিম্মাদারের বিভাগ সেটিংয়েও সর্বশেষ PIN দেখা যাবে।</p>
-    <div class="form-group">
-      <label class="form-label">বর্তমান PIN</label>
-      <input class="form-input" id="dept-pin-current" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password" placeholder="বর্তমান PIN">
+    <div class="dept-settings-tabs">
+      <button type="button" class="dept-settings-tab active" data-tab="general" onclick="switchDeptSettingsTab('general')">সাধারণ</button>
+      <button type="button" class="dept-settings-tab" data-tab="accounting" onclick="switchDeptSettingsTab('accounting')">হিসাব</button>
+      <button type="button" class="dept-settings-tab" data-tab="inventory" onclick="switchDeptSettingsTab('inventory')">পণ্য-মজুদ</button>
+      <button type="button" class="dept-settings-tab" data-tab="report" onclick="switchDeptSettingsTab('report')">রিপোর্ট</button>
+      <button type="button" class="dept-settings-tab" data-tab="security" onclick="switchDeptSettingsTab('security')">নিরাপত্তা</button>
     </div>
-    <div class="form-row">
+    <div class="dept-settings-body">
+    <div class="dept-settings-panel active" data-panel="general">
       <div class="form-group">
-        <label class="form-label">নতুন PIN</label>
-        <input class="form-input" id="dept-pin-new" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" placeholder="৪ সংখ্যা">
+        <label class="form-label">দেখানোর নাম</label>
+        <input class="form-input" id="set-display-name" placeholder="যেমন: মধু বিভাগ">
       </div>
       <div class="form-group">
-        <label class="form-label">আবার দিন</label>
-        <input class="form-input" id="dept-pin-confirm" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" placeholder="৪ সংখ্যা">
+        <label class="form-label">ছোট নোট</label>
+        <input class="form-input" id="set-note" placeholder="ঐচ্ছিক">
       </div>
     </div>
-    <button class="submit-btn" id="dept-pin-submit" onclick="saveDeptPin()">PIN পরিবর্তন করুন</button>
-    <div class="dept-settings-error" id="dept-pin-error"></div>
+    <div class="dept-settings-panel" data-panel="accounting">
+      <label class="settings-check"><span>মর্যাদা মূল্য দেখাবে</span><input type="checkbox" id="set-show-honor"></label>
+      <label class="settings-check"><span>বিবরণ বাধ্যতামূলক</span><input type="checkbox" id="set-require-desc"></label>
+      <label class="settings-check"><span>ব্যয়ে রশিদ বাধ্যতামূলক</span><input type="checkbox" id="set-require-receipt"></label>
+      <div class="form-group">
+        <label class="form-label">এডিট/ডিলিট অনুমতি লাগবে কত ঘণ্টা পর</label>
+        <input class="form-input" id="set-edit-hours" type="number" min="0" placeholder="২৪">
+      </div>
+    </div>
+    <div class="dept-settings-panel" data-panel="inventory">
+      <label class="settings-check"><span>পণ্য variant / pack size চালু</span><input type="checkbox" id="set-enable-variants"></label>
+      <label class="settings-check"><span>নষ্ট/বাতিল নোট বাধ্যতামূলক</span><input type="checkbox" id="set-require-waste-note"></label>
+      <div class="dept-settings-grid">
+        <div class="form-group">
+          <label class="form-label">ডিফল্ট মজুদ একক</label>
+          <select class="form-input" id="set-default-unit"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">কম মজুদ সতর্কতা</label>
+          <input class="form-input" id="set-low-stock" type="number" min="0" step="any" placeholder="০">
+        </div>
+      </div>
+    </div>
+    <div class="dept-settings-panel" data-panel="report">
+      <div class="dept-settings-grid">
+        <div class="form-group">
+          <label class="form-label">ডিফল্ট রিপোর্ট</label>
+          <select class="form-input" id="set-report-range">
+            <option value="month">এই মাস</option>
+            <option value="year">এই বছর</option>
+            <option value="all">শুরু থেকে</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Top products সংখ্যা</label>
+          <input class="form-input" id="set-top-count" type="number" min="3" max="20" placeholder="৫">
+        </div>
+      </div>
+      <label class="settings-check"><span>হিসাব summary card দেখাবে</span><input type="checkbox" id="set-show-summary"></label>
+    </div>
+    <div class="dept-settings-panel" data-panel="security">
+      <p class="dept-settings-note">নিজের বিভাগের লগইন PIN পরিবর্তন করুন। পরিবর্তন ডাটাবেজে সেভ হবে।</p>
+      <div class="form-group">
+        <label class="form-label">বর্তমান PIN</label>
+        <input class="form-input" id="dept-pin-current" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password" placeholder="বর্তমান PIN">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">নতুন PIN</label>
+          <input class="form-input" id="dept-pin-new" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" placeholder="৪ সংখ্যা">
+        </div>
+        <div class="form-group">
+          <label class="form-label">আবার দিন</label>
+          <input class="form-input" id="dept-pin-confirm" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" placeholder="৪ সংখ্যা">
+        </div>
+      </div>
+      <button class="submit-btn" id="dept-pin-submit" onclick="saveDeptPin()">PIN পরিবর্তন করুন</button>
+      <div class="dept-settings-error" id="dept-pin-error"></div>
+    </div>
+    </div>
+    <div class="settings-actions">
+      <button type="button" class="btn-ghost" onclick="closeDeptSettings()">বন্ধ করুন</button>
+      <button type="button" class="submit-btn" id="dept-settings-submit" onclick="saveDeptSettings()">সেটিং সেভ করুন</button>
+    </div>
+    <div class="dept-settings-error" id="dept-settings-error"></div>
   </div>
 </div>
 
@@ -421,6 +534,41 @@
   let editingTxnId = null;
   let activeTxnId = null;
 
+  const DEFAULT_DEPT_SETTINGS = {
+    profile: { display_name:'', note:'' },
+    accounting: { show_honor:true, require_description:false, require_expense_receipt:false, edit_approval_hours:24 },
+    inventory: { enable_variants:true, default_stock_unit:'পিস', low_stock_qty:0, require_waste_note:false },
+    report: { default_range:'month', top_products_count:5 },
+    ui: { show_summary:true }
+  };
+
+  function deepMergeSettings(base, override) {
+    const out = JSON.parse(JSON.stringify(base));
+    Object.keys(override || {}).forEach(group => {
+      if (out[group] && typeof out[group] === 'object' && typeof override[group] === 'object') {
+        out[group] = { ...out[group], ...override[group] };
+      } else {
+        out[group] = override[group];
+      }
+    });
+    return out;
+  }
+
+  function deptSettings() {
+    return deepMergeSettings(DEFAULT_DEPT_SETTINGS, DeptAPI.Settings ? DeptAPI.Settings.get(deptId) : {});
+  }
+
+  function setDeptSettings(settings) {
+    if (DeptAPI.Settings) DeptAPI.Settings.set(deptId, settings);
+  }
+
+  function applyDeptSettings() {
+    const s = deptSettings();
+    document.getElementById('dept-name').textContent = (deptEmoji||'') + ' ' + (s.profile.display_name || deptName || 'বিভাগ');
+    document.getElementById('txn-summary').style.display = s.ui.show_summary === false ? 'none' : '';
+    reportRange = s.report.default_range || reportRange || 'month';
+  }
+
   const toBn   = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const fmtAmt = n => '৳' + toBn(Number(n||0).toLocaleString('en'));
   const fmtDate= d => { if (!d) return ''; const p=d.split('-'); return toBn(p[2]+'/'+p[1]); };
@@ -444,11 +592,39 @@
   }
 
   const CAT_LABEL = { production:'উৎপাদন উপকরণ', operational:'পরিচালন খরচ', other:'অন্যান্য' };
-  const UNIT_OPTIONS = ['কেজি','গ্রাম','মন','লিটার','মিলি','পিস','জোড়া','ডজন','প্যাকেট','বস্তা','গজ','রিল','প্লেট','কপি'];
-  const TXN_EDIT_WINDOW_MS = 24 * 60 * 60 * 1000;
+  const UNIT_OPTIONS = ['কেজি','গ্রাম','মন','লিটার','মিলি','পিস','বোতল','জোড়া','ডজন','প্যাকেট','বস্তা','গজ','রিল','প্লেট','কপি'];
   const DEPT_RECEIPT_BUCKET = 'dept-expense-receipts';
   const RECEIPT_MAX_BYTES = 10 * 1024 * 1024;
   const RECEIPT_ALLOWED_TYPES = new Set(['image/jpeg','image/png','image/webp','application/pdf']);
+
+  function isSellableProduct(product) {
+    return product && product.is_active !== false && product.is_sellable !== false;
+  }
+
+  function isStockProduct(product) {
+    return product && product.is_active !== false && product.is_stock_item !== false;
+  }
+
+  function stockProductFor(product) {
+    if (!product) return null;
+    if (product.stock_product_id) return DeptAPI.Products.getById(String(product.stock_product_id)) || product;
+    return product;
+  }
+
+  function stockProductIdFor(product) {
+    const stockProduct = stockProductFor(product);
+    return stockProduct && stockProduct.id ? String(stockProduct.id) : (product && product.id ? String(product.id) : '');
+  }
+
+  function stockUnitFor(product) {
+    const stockProduct = stockProductFor(product);
+    return (stockProduct && (stockProduct.stock_unit || stockProduct.unit)) || (product && (product.stock_unit || product.unit)) || 'পিস';
+  }
+
+  function stockNameFor(product) {
+    const stockProduct = stockProductFor(product);
+    return (stockProduct && stockProduct.name) || (product && product.name) || '';
+  }
 
   function showToast(msg) {
     const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
@@ -474,8 +650,10 @@
   }
 
   function canDirectModify(txn) {
+    const hours = Number(deptSettings().accounting.edit_approval_hours);
+    if (hours <= 0) return false;
     const created = new Date(txn.created_at || txn.created || txn.date || txn.txn_date || Date.now()).getTime();
-    return Date.now() - created <= TXN_EDIT_WINDOW_MS;
+    return Date.now() - created <= hours * 60 * 60 * 1000;
   }
 
   function switchPanel(name) {
@@ -494,10 +672,86 @@
     curMonth=d.toISOString().slice(0,7); renderTxn();
   }
 
+  function incomeItemsFromTxn(t) {
+    const meta = t && t.metadata || {};
+    if (Array.isArray(meta.line_items) && meta.line_items.length) return meta.line_items;
+    if (meta.product_name) {
+      return [{
+        product_id: meta.product_id,
+        product_name: meta.product_name,
+        name: meta.product_name,
+        unit: meta.unit,
+        qty: meta.qty,
+        rate: meta.rate || meta.unit_price,
+        amount: t.base_amount || t.amount
+      }];
+    }
+    return [];
+  }
+
+  function incomeCellProduct(t) {
+    const items = incomeItemsFromTxn(t);
+    if (items.length) return items.map(i => i.product_name || i.name || 'পণ্য').join(' · ');
+    return t.description || 'আয়';
+  }
+
+  function incomeCellQty(t) {
+    const items = incomeItemsFromTxn(t);
+    if (!items.length) return '';
+    return items.map(i => saleQtyLabel(i)).join(' · ');
+  }
+
+  function incomeCellRate(t) {
+    const items = incomeItemsFromTxn(t);
+    if (!items.length) return '';
+    return items.map(i => {
+      const rate = Number(i.rate || i.unit_price || 0);
+      return rate > 0 ? fmtAmt(rate) : '';
+    }).filter(Boolean).join(' · ');
+  }
+
+  function populateTxnProductFilter() {
+    const sel = document.getElementById('txn-filter-product');
+    if (!sel) return;
+    const selected = sel.value || '';
+    const prds = DeptAPI.Products.getByDept(deptId).filter(isSellableProduct);
+    sel.innerHTML = '<option value="">পণ্য/ধরন</option>' +
+      prds.map(p => `<option value="${p.id}"${String(p.id) === String(selected) ? ' selected' : ''}>${DeptAPI.esc(p.name)}</option>`).join('');
+  }
+
+  function incomeFilterState() {
+    return {
+      date: (document.getElementById('txn-filter-date') || {}).value || '',
+      product: (document.getElementById('txn-filter-product') || {}).value || '',
+      qty: String((document.getElementById('txn-filter-qty') || {}).value || '').trim().toLowerCase(),
+      rate: Number((document.getElementById('txn-filter-rate') || {}).value || 0),
+      total: Number((document.getElementById('txn-filter-total') || {}).value || 0)
+    };
+  }
+
+  function hasIncomeFilters(f) {
+    return !!(f.date || f.product || f.qty || f.rate > 0 || f.total > 0);
+  }
+
+  function incomeMatchesFilters(t, f) {
+    const items = incomeItemsFromTxn(t);
+    if (t.type !== 'income') return false;
+    if (f.date && String(t.date || t.txn_date || '').slice(0,10) !== f.date) return false;
+    if (f.product && !items.some(i => String(i.product_id || '') === String(f.product))) return false;
+    if (f.qty && !incomeCellQty(t).toLowerCase().includes(f.qty)) return false;
+    if (f.rate > 0 && !items.some(i => Number(i.rate || i.unit_price || 0) >= f.rate)) return false;
+    if (f.total > 0 && Number(t.amount || 0) < f.total) return false;
+    return true;
+  }
+
   /* ── RENDER TXN ── */
   function renderTxn() {
-    document.getElementById('month-label').textContent = 'শুরু থেকে সব হিসাব';
-    const txns = DeptAPI.Transactions.getByDept(deptId);
+    const settings = deptSettings();
+    document.getElementById('txn-summary').style.display = settings.ui.show_summary === false ? 'none' : '';
+    populateTxnProductFilter();
+    const filters = incomeFilterState();
+    const allTxns = DeptAPI.Transactions.getByDept(deptId);
+    const txns = hasIncomeFilters(filters) ? allTxns.filter(t => incomeMatchesFilters(t, filters)) : allTxns;
     const sum  = DeptAPI.Transactions.getSummary(deptId);
     document.getElementById('txn-summary').innerHTML =
       `<div class="stat-card"><span class="stat-num" style="color:var(--green)">${fmtAmt(sum.income)}</span><span class="stat-label">আয়</span></div>
@@ -536,6 +790,15 @@
           const pendingTag = isPending ? '<div class="pending-tag">⏳ অনুমতির অপেক্ষায়</div>' : '';
           const clickAttr = isPending ? '' : `onclick="openTxnDetail('${DeptAPI.esc(t.id)}')"`;
           const pendingClass = isPending ? ' txn-item--pending' : '';
+          if (t.type === 'income') {
+            return `<div class="txn-item income-row${pendingClass}" ${clickAttr}>
+              <div class="txn-cell date">${dateStr}</div>
+              <div class="txn-cell product">${DeptAPI.esc(incomeCellProduct(t))}</div>
+              <div class="txn-cell qty">${DeptAPI.esc(incomeCellQty(t))}</div>
+              <div class="txn-cell rate">${DeptAPI.esc(incomeCellRate(t))}</div>
+              <div class="txn-cell total">${fmtAmt(t.amount)}</div>
+            </div>`;
+          }
           return `<div class="txn-item${pendingClass}" ${clickAttr}>
             <div class="txn-icon ${t.type}">${t.type==='income'?'↑':'↓'}</div>
             <div class="txn-info">
@@ -566,20 +829,30 @@
     else renderExpenseItems();
     renderTxnExtraFields();
     selType(nextType);
+    applyTxnSettingsToForm();
     document.getElementById('modal-txn-title').innerHTML = (addType === 'income' ? 'আয় যোগ' : 'ব্যয় যোগ') + " <button class=\"modal-close\" onclick=\"closeModal('modal-txn')\">✕</button>";
     openModal('modal-txn');
   }
 
   function selType(t) {
     addType = t;
+    const settings = deptSettings();
     document.getElementById('area-income').style.display  = t==='income'  ? '' : 'none';
     document.getElementById('area-expense').style.display = t==='expense' ? '' : 'none';
-    document.getElementById('honor-wrap').style.display = t==='income' ? '' : 'none';
+    document.getElementById('honor-wrap').style.display = t==='income' && settings.accounting.show_honor !== false ? '' : 'none';
     document.getElementById('buyer-name-wrap').style.display = t==='income' ? '' : 'none';
     document.getElementById('seller-name-wrap').style.display = t==='expense' ? '' : 'none';
     if (t==='income') populateProductDropdown();
     if (t==='expense') renderExpenseItems();
     updateTxnAmount();
+  }
+
+  function applyTxnSettingsToForm() {
+    const settings = deptSettings();
+    const desc = document.getElementById('txn-desc');
+    if (desc) desc.placeholder = settings.accounting.require_description ? 'বিবরণ বাধ্যতামূলক' : 'সংক্ষিপ্ত বিবরণ';
+    const honorWrap = document.getElementById('honor-wrap');
+    if (honorWrap) honorWrap.style.display = addType === 'income' && settings.accounting.show_honor !== false ? '' : 'none';
   }
 
   function unitOptionsHtml(selected) {
@@ -599,9 +872,9 @@
   }
 
   function productOptionsHtml(selected) {
-    const prds = DeptAPI.Products.getByDept(deptId);
+    const prds = DeptAPI.Products.getByDept(deptId).filter(isSellableProduct);
     return '<option value="">— পণ্য নির্বাচন —</option>' +
-      prds.map(p=>`<option value="${p.id}" data-unit="${DeptAPI.esc(p.unit)}" data-price="${p.price}"${p.id === selected ? ' selected' : ''}>${DeptAPI.esc(p.name)}</option>`).join('');
+      prds.map(p=>`<option value="${p.id}" data-unit="${DeptAPI.esc(p.unit)}" data-price="${p.price}"${String(p.id) === String(selected) ? ' selected' : ''}>${DeptAPI.esc(p.name)}</option>`).join('');
   }
 
   function saleHasAutoTotal(row) {
@@ -668,7 +941,7 @@
   function updateTxnAmount() {
     if (addType === 'income') {
       const base = saleBaseTotal();
-      const honor = parseFloat(document.getElementById('txn-honor').value) || 0;
+      const honor = deptSettings().accounting.show_honor === false ? 0 : (parseFloat(document.getElementById('txn-honor').value) || 0);
       if (base > 0 || honor > 0) document.getElementById('txn-amount').value = base + honor;
       return;
     }
@@ -878,6 +1151,7 @@
       }
       items.push({
         product_id: prd.id,
+        stock_product_id: stockProductIdFor(prd),
         product_name: prd.name,
         name: prd.name,
         unit: row.unit || prd.unit || 'পিস',
@@ -890,7 +1164,11 @@
   }
 
   function stockKey(item) {
-    if (item.product_id) return String(item.product_id);
+    if (item.product_id) {
+      const product = DeptAPI.Products.getById(item.product_id);
+      return stockProductIdFor(product) || String(item.stock_product_id || item.product_id);
+    }
+    if (item.stock_product_id) return String(item.stock_product_id);
     return String(item.product_name || item.name || '').trim().toLowerCase() + '|' + String(item.unit || 'পিস').trim().toLowerCase();
   }
 
@@ -898,7 +1176,7 @@
     const qty = Number(item.qty || item.quantity || 0);
     if (!qty) return 0;
     const product = item.product_id ? DeptAPI.Products.getById(item.product_id) : null;
-    if (product && window.DeptUnits) return DeptUnits.toStockUnit(qty, item.unit, product);
+    if (product && window.DeptUnits) return DeptUnits.toStockUnit(qty, item.unit, { ...product, stock_unit: stockUnitFor(product) });
     return qty;
   }
 
@@ -939,7 +1217,7 @@
       if (need > have) {
         const name = item.product_name || item.name || 'পণ্য';
         const product = item.product_id ? DeptAPI.Products.getById(item.product_id) : null;
-        const unitLabel = product && window.DeptUnits ? DeptUnits.stockUnit(product) : (item.unit || 'পিস');
+        const unitLabel = product ? stockUnitFor(product) : (item.unit || 'পিস');
         showToast(name + ' মজুদ আছে ' + toBn(DeptUnits ? DeptUnits.formatQty(have) : have) + ' ' + unitLabel + ', বিক্রি ' + toBn(DeptUnits ? DeptUnits.formatQty(need) : need) + ' ' + unitLabel + ' নেওয়া যাবে না');
         return false;
       }
@@ -1178,6 +1456,8 @@
     let desc     = document.getElementById('txn-desc').value.trim();
     const date   = document.getElementById('txn-date').value;
     if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
+    const settings = deptSettings();
+    if (settings.accounting.require_description && !desc) { showToast('বিবরণ দিন'); return; }
     const ext = collectExtra();
     if (ext.err) { showToast(ext.err); return; }
 
@@ -1189,7 +1469,7 @@
       if (!saleItems) return;
       const originalForStock = editingTxnId ? txnById(editingTxnId) : null;
       if (!validateSaleStock(saleItems, originalForStock)) return;
-      const honor = parseFloat(document.getElementById('txn-honor').value) || 0;
+      const honor = settings.accounting.show_honor === false ? 0 : (parseFloat(document.getElementById('txn-honor').value) || 0);
       meta.honor_amount = honor;
       meta.buyer_name = document.getElementById('txn-buyer-name').value.trim();
       meta.buyer_phone = '';
@@ -1208,6 +1488,10 @@
       meta.seller_name = document.getElementById('txn-seller-name').value.trim();
       const expenseItems = collectExpenseItems(true);
       if (!expenseItems) return;
+      if (settings.accounting.require_expense_receipt && expenseItems.some(i => !i.receipt && !i.receiptName && !expenseReceiptFiles[i.lineId])) {
+        showToast('সব ব্যয়ের লাইনে রশিদ দিন');
+        return;
+      }
       if (expenseItems.length) {
         meta.line_items = expenseItems;
         lineItems = expenseItems;
@@ -1299,6 +1583,9 @@
     if (reportRange === 'year') {
       return { from: now.getFullYear() + '-01-01', to: now.getFullYear() + '-12-31', label:'এই বছর' };
     }
+    if (reportRange === 'all') {
+      return { from: '0001-01-01', to: '9999-12-31', label:'শুরু থেকে' };
+    }
     if (reportRange === 'custom') {
       return {
         from: document.getElementById('report-from').value || now.getFullYear() + '-01-01',
@@ -1327,18 +1614,27 @@
     const meta = t.metadata || {};
     if (Array.isArray(meta.line_items) && meta.line_items.length) {
       return meta.line_items.map(i => ({
+        product_id: i.product_id || '',
+        stock_product_id: i.stock_product_id || '',
         name: i.product_name || i.name || 'পণ্য',
         unit: saleItemUnit(i),
         qty: Number(i.qty || i.quantity || 0),
-        amount: Number(i.amount || 0)
+        amount: Number(i.amount || 0),
+        stock_qty: saleQtyInStockUnit(i),
+        stock_unit: i.product_id ? stockUnitFor(DeptAPI.Products.getById(i.product_id)) : (i.unit || 'পিস')
       }));
     }
     if (meta.product_name) {
+      const product = meta.product_id ? DeptAPI.Products.getById(meta.product_id) : null;
       return [{
+        product_id: meta.product_id || '',
+        stock_product_id: product ? stockProductIdFor(product) : '',
         name: meta.product_name,
         unit: saleItemUnit({ unit: meta.unit, product_id: meta.product_id }),
         qty: Number(meta.qty || 0),
-        amount: Number(t.base_amount || t.amount || 0)
+        amount: Number(t.base_amount || t.amount || 0),
+        stock_qty: saleQtyInStockUnit({ product_id: meta.product_id, unit: meta.unit, qty: meta.qty }),
+        stock_unit: product ? stockUnitFor(product) : (meta.unit || 'পিস')
       }];
     }
     return [];
@@ -1354,12 +1650,13 @@
     const income = txns.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount||0),0);
     const expense = txns.filter(t=>t.type==='expense').reduce((s,t)=>s+Number(t.amount||0),0);
     const honor = txns.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.honor_amount || (t.metadata && t.metadata.honor_amount) || 0),0);
-    document.getElementById('report-summary').innerHTML = [
+    const cards = [
       ['আয়', income, 'var(--green)'],
       ['ব্যয়', expense, 'var(--red)'],
-      ['লাভ / ঘাটতি', income-expense, income-expense >= 0 ? 'var(--green)' : 'var(--red)'],
-      ['মর্যাদা মূল্য', honor, 'var(--gold)']
-    ].map(c => `<div class="report-card"><div class="label">${c[0]}</div><div class="value" style="color:${c[2]}">${fmtAmt(c[1])}</div></div>`).join('');
+      ['লাভ / ঘাটতি', income-expense, income-expense >= 0 ? 'var(--green)' : 'var(--red)']
+    ];
+    if (deptSettings().accounting.show_honor !== false) cards.push(['মর্যাদা মূল্য', honor, 'var(--gold)']);
+    document.getElementById('report-summary').innerHTML = cards.map(c => `<div class="report-card"><div class="label">${c[0]}</div><div class="value" style="color:${c[2]}">${fmtAmt(c[1])}</div></div>`).join('');
 
     renderTopProducts(txns);
     renderMonthlyChart();
@@ -1370,16 +1667,18 @@
     const map = {};
     txns.filter(t=>t.type==='income').forEach(t => {
       reportSaleItems(t).forEach(i => {
-        const key = i.name + '|' + i.unit;
-        if (!map[key]) map[key] = { name:i.name, unit:i.unit, qty:0, amount:0 };
+        const key = (i.product_id || '') + '|' + i.name + '|' + i.unit;
+        if (!map[key]) map[key] = { name:i.name, unit:i.unit, qty:0, amount:0, stock_qty:0, stock_unit:i.stock_unit || '' };
         map[key].qty += Number(i.qty || 0);
         map[key].amount += Number(i.amount || 0);
+        map[key].stock_qty += Number(i.stock_qty || 0);
       });
     });
-    const rows = Object.values(map).sort((a,b)=>b.amount-a.amount).slice(0,5);
+    const topCount = Math.max(3, Math.min(20, Number(deptSettings().report.top_products_count || 5)));
+    const rows = Object.values(map).sort((a,b)=>b.amount-a.amount).slice(0, topCount);
     document.getElementById('report-top-products').innerHTML = rows.length ? rows.map(r => `
       <div class="rank-row">
-        <div><div class="rank-name">${DeptAPI.esc(r.name)}</div><div class="rank-sub">${toBn(r.qty)} ${DeptAPI.esc(r.unit || '')} বিক্রি</div></div>
+        <div><div class="rank-name">${DeptAPI.esc(r.name)}</div><div class="rank-sub">${toBn(r.qty)} ${DeptAPI.esc(r.unit || '')} বিক্রি${r.stock_unit && r.stock_unit !== r.unit ? ' · ' + toBn(DeptUnits ? DeptUnits.formatQty(r.stock_qty) : r.stock_qty) + ' ' + DeptAPI.esc(r.stock_unit) + ' মজুদ' : ''}</div></div>
         <div class="rank-value">${fmtAmt(r.amount)}</div>
       </div>`).join('') : '<div class="empty-report">এই সময়ে কোনো পণ্য বিক্রি নেই</div>';
   }
@@ -1421,13 +1720,21 @@
   }
 
   /* ── PRODUCTS ── */
+  function productStockText(product) {
+    if (product.stock_product_id) {
+      return 'বিক্রয় ধরন · মজুদ: ' + (product.stock_product_name || stockNameFor(product) || 'মজুদ পণ্য');
+    }
+    if (product.is_sellable === false) return 'মজুদ পণ্য · বিক্রিতে নেই';
+    return 'মজুদ পণ্য';
+  }
+
   function renderProducts() {
-    const prds = DeptAPI.Products.getByDept(deptId);
+    const prds = DeptAPI.Products.getByDept(deptId).filter(isSellableProduct);
     document.getElementById('product-list').innerHTML = prds.length
       ? prds.map(p=>`<div class="prd-item">
           <div style="flex:1;">
             <div style="font-size:13px;font-weight:600;">${DeptAPI.esc(p.name)}</div>
-            <div style="font-size:11px;color:var(--ink3);">বিক্রয়: ${DeptAPI.esc(p.unit)} · মজুদ: ${DeptAPI.esc(p.stock_unit || p.unit)}${Number(p.pack_size) > 0 ? ' · প্যাক ' + DeptAPI.esc(String(p.pack_size)) : ''} · ${fmtAmt(p.price)}/একক</div>
+            <div style="font-size:11px;color:var(--ink3);">${DeptAPI.esc(productStockText(p))} · বিক্রয়: ${DeptAPI.esc(p.unit)} · মজুদ: ${DeptAPI.esc(stockUnitFor(p))}${Number(p.pack_size) > 0 ? ' · প্যাক ' + DeptAPI.esc(String(p.pack_size)) : ''} · ${fmtAmt(p.price)}/একক</div>
           </div>
           <button onclick="openEditProduct('${DeptAPI.esc(p.id)}')"
             style="background:var(--cream2);border:1px solid var(--cream3);border-radius:6px;color:var(--ink2);font-family:'Tiro Bangla',serif;font-size:11px;font-weight:800;cursor:pointer;padding:5px 9px;">এডিট</button>
@@ -1435,7 +1742,68 @@
       : '<div style="text-align:center;color:var(--ink3);padding:32px 0;font-size:13px;">কোনো পণ্য নেই — উপরের বোতাম থেকে যোগ করুন</div>';
   }
 
+  function populateProductStockDropdown(selected, currentId) {
+    const sel = document.getElementById('prd-stock-product');
+    const stockProducts = DeptAPI.Products.getByDept(deptId)
+      .filter(p => isStockProduct(p) && String(p.id) !== String(currentId || ''));
+    const productOptions = stockProducts.map(p => `<option value="${p.id}" data-kind="product" data-stock-unit="${DeptAPI.esc(stockUnitFor(p))}"${String(p.id) === String(selected || '') ? ' selected' : ''}>${DeptAPI.esc(p.name)}</option>`);
+    const orphanOptions = DeptAPI.Inventory.getByDept(deptId)
+      .filter(isCatalogOrphanInv)
+      .map(i => `<option value="inv:${DeptAPI.esc(i.id)}" data-kind="inventory" data-name="${DeptAPI.esc(i.item_name || '')}" data-stock-unit="${DeptAPI.esc(i.unit || 'পিস')}">${DeptAPI.esc(i.item_name || 'মজুদ পণ্য')} — মজুদ তালিকা</option>`);
+    sel.innerHTML = '<option value="">— নিজেই মজুদ পণ্য —</option>' +
+      productOptions.concat(orphanOptions).join('');
+  }
+
+  function onProductStockProductChange() {
+    const sel = document.getElementById('prd-stock-product');
+    const selectedOpt = sel && sel.options[sel.selectedIndex];
+    const isInventorySource = selectedOpt && selectedOpt.dataset.kind === 'inventory';
+    const stockProduct = sel && sel.value && !isInventorySource ? DeptAPI.Products.getById(sel.value) : null;
+    const stockUnitEl = document.getElementById('prd-stock-unit');
+    const sellableEl = document.getElementById('prd-sellable');
+    if (stockProduct || isInventorySource) {
+      const stockUnitName = isInventorySource ? (selectedOpt.dataset.stockUnit || 'পিস') : stockUnitFor(stockProduct);
+      stockUnitEl.innerHTML = unitOptionsHtml(stockUnitName);
+      stockUnitEl.disabled = true;
+      sellableEl.checked = true;
+      sellableEl.disabled = true;
+    } else {
+      stockUnitEl.disabled = false;
+      sellableEl.disabled = false;
+      if (!stockUnitEl.value) stockUnitEl.innerHTML = unitOptionsHtml(document.getElementById('prd-unit').value || 'পিস');
+    }
+    onProductUnitFieldsChange();
+  }
+
+  async function ensureStockProductFromInventory(selectValue) {
+    if (!String(selectValue || '').startsWith('inv:')) return selectValue || '';
+    const invId = String(selectValue).slice(4);
+    const inv = DeptAPI.Inventory.getByDept(deptId).find(i => String(i.id) === invId);
+    if (!inv) throw new Error('inventory_stock_not_found');
+    const name = String(inv.item_name || '').trim();
+    const unit = String(inv.unit || 'পিস').trim() || 'পিস';
+    if (!name) throw new Error('inventory_stock_name_required');
+    return await DeptSync.saveProduct(staffUserId, staffPin, deptId, {
+      id: null,
+      name,
+      unit,
+      stock_unit: unit,
+      pack_size: null,
+      price: 0,
+      is_active: true,
+      stock_product_id: null,
+      is_stock_item: true,
+      is_sellable: false
+    });
+  }
+
   function onProductUnitFieldsChange() {
+    if (deptSettings().inventory.enable_variants === false) {
+      document.getElementById('prd-pack-wrap').style.display = 'none';
+      const hintOff = document.getElementById('prd-unit-hint');
+      if (hintOff) hintOff.textContent = '';
+      return;
+    }
     const unit = document.getElementById('prd-unit').value.trim() || 'পিস';
     const stockUnit = document.getElementById('prd-stock-unit').value.trim() || unit;
     const needsPack = window.DeptUnits && DeptUnits.needsPackSize(unit, stockUnit);
@@ -1452,30 +1820,43 @@
   }
 
   function openAddProduct() {
+    const settings = deptSettings();
     document.getElementById('product-modal-title').textContent = 'পণ্য যোগ';
     document.getElementById('prd-edit-id').value = '';
     document.getElementById('prd-delete-btn').style.display = 'none';
     document.getElementById('prd-delete-hint').style.display = 'none';
     ['prd-name','prd-price','prd-pack-size'].forEach(id=>document.getElementById(id).value='');
+    populateProductStockDropdown('', '');
+    document.getElementById('prd-sellable').checked = true;
+    document.getElementById('prd-sellable').disabled = false;
     document.getElementById('prd-unit').innerHTML = unitOptionsHtml('পিস');
-    document.getElementById('prd-stock-unit').innerHTML = unitOptionsHtml('পিস');
-    onProductUnitFieldsChange();
+    document.getElementById('prd-stock-unit').innerHTML = unitOptionsHtml(settings.inventory.default_stock_unit || 'পিস');
+    document.getElementById('prd-stock-unit').disabled = false;
+    document.getElementById('prd-stock-product').closest('.form-group').style.display = settings.inventory.enable_variants === false ? 'none' : '';
+    document.getElementById('prd-pack-wrap').style.display = settings.inventory.enable_variants === false ? 'none' : document.getElementById('prd-pack-wrap').style.display;
+    onProductStockProductChange();
     openModal('modal-product');
   }
 
   function openEditProduct(id) {
     const p = DeptAPI.Products.getById(id);
     if (!p) return;
+    const settings = deptSettings();
     document.getElementById('product-modal-title').textContent = 'পণ্য এডিট';
     document.getElementById('prd-edit-id').value = p.id;
     document.getElementById('prd-name').value = p.name || '';
+    populateProductStockDropdown(p.stock_product_id || '', p.id);
     document.getElementById('prd-unit').innerHTML = unitOptionsHtml(p.unit || 'পিস');
-    document.getElementById('prd-stock-unit').innerHTML = unitOptionsHtml(p.stock_unit || p.unit || 'পিস');
+    document.getElementById('prd-stock-unit').innerHTML = unitOptionsHtml(stockUnitFor(p));
     document.getElementById('prd-pack-size').value = p.pack_size || '';
     document.getElementById('prd-price').value = p.price || '';
+    document.getElementById('prd-sellable').checked = p.is_sellable !== false;
+    document.getElementById('prd-sellable').disabled = !!p.stock_product_id;
     document.getElementById('prd-delete-btn').style.display = '';
     document.getElementById('prd-delete-hint').style.display = '';
-    onProductUnitFieldsChange();
+    document.getElementById('prd-stock-unit').disabled = !!p.stock_product_id;
+    document.getElementById('prd-stock-product').closest('.form-group').style.display = settings.inventory.enable_variants === false ? 'none' : '';
+    onProductStockProductChange();
     openModal('modal-product');
   }
 
@@ -1495,18 +1876,31 @@
     const editId = document.getElementById('prd-edit-id').value;
     const name  = document.getElementById('prd-name').value.trim();
     const unit  = document.getElementById('prd-unit').value.trim() || 'পিস';
-    const stockUnit = document.getElementById('prd-stock-unit').value.trim() || unit;
+    const stockSourceValue = deptSettings().inventory.enable_variants === false ? '' : (document.getElementById('prd-stock-product').value || '');
+    const stockProduct = stockSourceValue && !String(stockSourceValue).startsWith('inv:') ? DeptAPI.Products.getById(stockSourceValue) : null;
+    const stockUnit = stockProduct ? stockUnitFor(stockProduct) : (document.getElementById('prd-stock-unit').value.trim() || unit);
     const packRaw = document.getElementById('prd-pack-size').value.trim();
     const packSize = packRaw === '' ? null : parseFloat(packRaw);
     const price = parseFloat(document.getElementById('prd-price').value)||0;
+    const isSellable = stockSourceValue ? true : document.getElementById('prd-sellable').checked;
     if (!name) { showToast('পণ্যের নাম দিন'); return; }
     if (window.DeptUnits && DeptUnits.needsPackSize(unit, stockUnit) && !(packSize > 0)) {
       showToast('বিক্রয় ও মজুদ একক আলাদা হলে প্যাক সাইজ দিন');
       return;
     }
     try {
+      const stockProductId = await ensureStockProductFromInventory(stockSourceValue);
       await DeptSync.saveProduct(staffUserId, staffPin, deptId, {
-        id: editId, name, unit, stock_unit: stockUnit, pack_size: packSize, price, is_active:true
+        id: editId,
+        name,
+        unit,
+        stock_unit: stockUnit,
+        pack_size: packSize,
+        price,
+        is_active:true,
+        stock_product_id: stockProductId || null,
+        is_stock_item: !stockProductId,
+        is_sellable: isSellable
       });
     } catch (e) {
       console.warn('[Dept] product save failed:', e);
@@ -1515,6 +1909,7 @@
     }
     closeModal('modal-product');
     renderProducts();
+    renderInv();
     showToast(editId ? 'পণ্য আপডেট হয়েছে' : 'পণ্য যোগ হয়েছে');
   }
 
@@ -1560,6 +1955,10 @@
         showToast('একই নাম ও এককে তালিকার বাইরে মজুদ আছে — আগে সেটি মিলিয়ে নিন');
         return false;
       }
+      if (/stock_product_in_use/i.test(err)) {
+        showToast('এই মজুদ পণ্যের অধীনে বিক্রয় ধরন আছে — আগে সেগুলো বাদ দিন');
+        return false;
+      }
       showToast('ডাটাবেজ থেকে পণ্য বাদ যায়নি');
       return false;
     }
@@ -1579,19 +1978,24 @@
 
   function renderInv() {
     const items = DeptAPI.Inventory.getByDept(deptId);
+    const lowAt = Number(deptSettings().inventory.low_stock_qty || 0);
     document.getElementById('inv-list').innerHTML = items.length
-      ? items.map(i=>`<div class="inv-item">
+      ? items.map(i=>{
+        const isLow = lowAt > 0 && Number(i.quantity || 0) <= lowAt;
+        return `<div class="inv-item${isLow ? ' low-stock' : ''}">
           <div class="list-avatar">📦</div>
           <div style="flex:1;">
             <div style="font-size:13px;font-weight:600;">${DeptAPI.esc(i.item_name)}</div>
             ${isCatalogOrphanInv(i) ? '<span class="catalog-off-pill">তালিকায় নেই</span>' : ''}
+            ${isLow ? '<span class="low-stock-pill">কম মজুদ</span>' : ''}
             <p style="font-size:11px;color:var(--ink3);margin:0;">${DeptAPI.esc(invDisplayLine(i))}</p>
           </div>
           <div class="inv-actions">
             <button type="button" class="inv-action-btn" onclick="openEditInv('${DeptAPI.esc(i.id)}')">এডিট</button>
             <button type="button" class="inv-action-btn delete" onclick="deleteInv('${DeptAPI.esc(i.id)}')">মুছুন</button>
           </div>
-        </div>`).join('')
+        </div>`;
+      }).join('')
       : '<div style="text-align:center;color:var(--ink3);padding:32px 0;font-size:13px;">কোনো মজুদ নেই</div>';
   }
 
@@ -1599,6 +2003,7 @@
     ['inv-name','inv-qty','inv-unit','inv-notes'].forEach(id=>document.getElementById(id).value='');
     setInvMode('stock_in');
     populateInvProductDropdown();
+    document.getElementById('inv-unit').innerHTML = unitOptionsHtml(deptSettings().inventory.default_stock_unit || 'পিস');
     openModal('modal-inv');
   }
 
@@ -1610,9 +2015,9 @@
 
   function populateInvProductDropdown() {
     const sel = document.getElementById('inv-product');
-    const prds = DeptAPI.Products.getByDept(deptId);
+    const prds = DeptAPI.Products.getByDept(deptId).filter(isStockProduct);
     sel.innerHTML = '<option value="">— তালিকার বাইরে / নিজে লিখুন —</option>' +
-      prds.map(p=>`<option value="${p.id}" data-name="${DeptAPI.esc(p.name)}" data-unit="${DeptAPI.esc(p.unit)}" data-stock-unit="${DeptAPI.esc(p.stock_unit || p.unit)}">${DeptAPI.esc(p.name)}</option>`).join('');
+      prds.map(p=>`<option value="${p.id}" data-name="${DeptAPI.esc(p.name)}" data-unit="${DeptAPI.esc(p.unit)}" data-stock-unit="${DeptAPI.esc(stockUnitFor(p))}">${DeptAPI.esc(p.name)}</option>`).join('');
     document.getElementById('inv-unit').innerHTML = unitOptionsHtml('পিস');
   }
 
@@ -1631,7 +2036,7 @@
     const item = DeptAPI.Inventory.getByDept(deptId).find(i => String(i.id) === String(id));
     if (!item) return;
     const product = item.product_id ? DeptAPI.Products.getById(item.product_id) : null;
-    const stockUnitName = product && window.DeptUnits ? DeptUnits.stockUnit(product) : (item.unit || 'পিস');
+    const stockUnitName = product ? stockUnitFor(product) : (item.unit || 'পিস');
     invEditBaseUnit = stockUnitName;
     document.getElementById('inv-edit-id').value = item.id;
     document.getElementById('inv-edit-product-id').value = item.product_id || '';
@@ -1748,6 +2153,7 @@
     if (!unit) { showToast('একক দিন'); return; }
     if (isNaN(qty) || qty <= 0) { showToast('পরিমাণ দিন'); return; }
     const delta = invMode === 'waste' ? -Math.abs(qty) : Math.abs(qty);
+    if (invMode === 'waste' && deptSettings().inventory.require_waste_note && !notes) { showToast('নষ্ট/বাতিলের নোট দিন'); return; }
     if (delta < 0 && !validateSaleStock([{ product_id: productId || '', product_name:name, name, unit, qty:Math.abs(qty) }], null)) return;
     try {
       await DeptSync.adjustInventory(staffUserId, staffPin, deptId, {
@@ -1772,7 +2178,61 @@
     showToast('মজুদ আপডেট হয়েছে');
   }
 
+  function switchDeptSettingsTab(tab) {
+    document.querySelectorAll('.dept-settings-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+    document.querySelectorAll('.dept-settings-panel').forEach(panel => panel.classList.toggle('active', panel.dataset.panel === tab));
+  }
+
+  function fillDeptSettingsForm() {
+    const s = deptSettings();
+    document.getElementById('set-display-name').value = s.profile.display_name || '';
+    document.getElementById('set-note').value = s.profile.note || '';
+    document.getElementById('set-show-honor').checked = s.accounting.show_honor !== false;
+    document.getElementById('set-require-desc').checked = !!s.accounting.require_description;
+    document.getElementById('set-require-receipt').checked = !!s.accounting.require_expense_receipt;
+    document.getElementById('set-edit-hours').value = Number(s.accounting.edit_approval_hours || 24);
+    document.getElementById('set-enable-variants').checked = s.inventory.enable_variants !== false;
+    document.getElementById('set-require-waste-note').checked = !!s.inventory.require_waste_note;
+    document.getElementById('set-default-unit').innerHTML = unitOptionsHtml(s.inventory.default_stock_unit || 'পিস');
+    document.getElementById('set-low-stock').value = Number(s.inventory.low_stock_qty || 0) || '';
+    document.getElementById('set-report-range').value = s.report.default_range || 'month';
+    document.getElementById('set-top-count').value = Number(s.report.top_products_count || 5);
+    document.getElementById('set-show-summary').checked = s.ui.show_summary !== false;
+  }
+
+  function readDeptSettingsForm() {
+    const editHours = Number(document.getElementById('set-edit-hours').value || 24);
+    const topCount = Number(document.getElementById('set-top-count').value || 5);
+    return {
+      profile: {
+        display_name: document.getElementById('set-display-name').value.trim(),
+        note: document.getElementById('set-note').value.trim()
+      },
+      accounting: {
+        show_honor: document.getElementById('set-show-honor').checked,
+        require_description: document.getElementById('set-require-desc').checked,
+        require_expense_receipt: document.getElementById('set-require-receipt').checked,
+        edit_approval_hours: Math.max(0, editHours || 0)
+      },
+      inventory: {
+        enable_variants: document.getElementById('set-enable-variants').checked,
+        default_stock_unit: document.getElementById('set-default-unit').value || 'পিস',
+        low_stock_qty: Math.max(0, Number(document.getElementById('set-low-stock').value || 0)),
+        require_waste_note: document.getElementById('set-require-waste-note').checked
+      },
+      report: {
+        default_range: document.getElementById('set-report-range').value || 'month',
+        top_products_count: Math.max(3, Math.min(20, topCount || 5))
+      },
+      ui: {
+        show_summary: document.getElementById('set-show-summary').checked
+      }
+    };
+  }
+
   function openDeptSettings() {
+    fillDeptSettingsForm();
+    switchDeptSettingsTab('general');
     ['dept-pin-current', 'dept-pin-new', 'dept-pin-confirm'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
@@ -1818,6 +2278,29 @@
     }
   }
 
+  async function saveDeptSettings() {
+    const err = document.getElementById('dept-settings-error');
+    const btn = document.getElementById('dept-settings-submit');
+    err.textContent = '';
+    const next = readDeptSettingsForm();
+    btn.disabled = true;
+    try {
+      await DeptSync.saveSettings(staffUserId, staffPin, deptId, next);
+      setDeptSettings(next);
+      applyDeptSettings();
+      renderTxn();
+      renderProducts();
+      renderInv();
+      renderReport();
+      showToast('সেটিং সেভ হয়েছে');
+    } catch (e) {
+      console.warn('[Dept] settings save failed:', e);
+      err.textContent = 'সেটিং ডাটাবেজে সেভ হয়নি';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
   async function initDeptPage() {
     if (!(window.DeptSync && staffUserId && staffPin && deptId)) {
       showToast('ডাটাবেজ সেশন পাওয়া যায়নি');
@@ -1831,6 +2314,7 @@
       return;
     }
     await syncChatForPending();
+    applyDeptSettings();
     renderTxn();
     var dp = (location.hash || '').replace(/^#/, '');
     if (['txn', 'products', 'inv', 'report'].indexOf(dp) >= 0) switchPanel(dp);
