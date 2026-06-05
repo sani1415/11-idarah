@@ -1,0 +1,13 @@
+{
+  "appId": "com.madrasatulmadina.idarah",
+  "appName": "Idarah",
+  "webDir": "public",
+  "server": {
+    "url": "https://www.idarah786.com",
+    "cleartext": false,
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

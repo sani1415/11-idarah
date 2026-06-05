@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Idarah</string>
+    <string name="title_activity_main">Idarah</string>
+    <string name="package_name">com.madrasatulmadina.idarah</string>
+    <string name="custom_url_scheme">com.madrasatulmadina.idarah</string>
+</resources>

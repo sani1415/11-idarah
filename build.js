@@ -71,6 +71,20 @@ function injectAppUpdate(html, relativeRoot, version) {
   return `${html}\n${tag}\n`;
 }
 
+function injectCapacitorNative(html, relativeRoot, version) {
+  if (html.includes('capacitor-native.js')) return html;
+  const v = encodeURIComponent(version);
+  const vendor = `${relativeRoot}js/vendor/`;
+  const tags = [
+    `<script src="${vendor}capacitor.js?v=${v}"></script>`,
+    `<script src="${vendor}capacitor-app.js?v=${v}"></script>`,
+    `<script src="${vendor}capacitor-status-bar.js?v=${v}"></script>`,
+    `<script src="${relativeRoot}js/capacitor-native.js?v=${v}" defer></script>`,
+  ].join('\n');
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${tags}\n</body>`);
+  return `${html}\n${tags}\n`;
+}
+
 function injectBootScript(html, relativeRoot) {
   if (!/mm-session\.js/i.test(html) || /mm-boot\.js/i.test(html)) return html;
   const tag = `<script src="${relativeRoot}js/mm-boot.js"></script>`;
@@ -93,7 +107,8 @@ function transformHtml(html, relativeRoot, version) {
       return before + versionAssetUrl(url, version) + after;
     });
   next = injectBootScript(next, relativeRoot);
-  return injectAppUpdate(next, relativeRoot, version);
+  next = injectAppUpdate(next, relativeRoot, version);
+  return injectCapacitorNative(next, relativeRoot, version);
 }
 
 function transformHtmlFile(file, relativeRoot, version) {
@@ -121,6 +136,21 @@ fs.mkdirSync(OUT, { recursive: true });
 const dirs = ['css', 'js', 'madrasa', 'dept', 'khedmat'];
 for (const d of dirs) {
   copyDir(path.join(ROOT, d), path.join(OUT, d));
+}
+
+const vendorDir = path.join(OUT, 'js', 'vendor');
+fs.mkdirSync(vendorDir, { recursive: true });
+const vendorFiles = [
+  ['node_modules/@capacitor/core/dist/capacitor.js', 'capacitor.js'],
+  ['node_modules/@capacitor/app/dist/plugin.js', 'capacitor-app.js'],
+  ['node_modules/@capacitor/status-bar/dist/plugin.js', 'capacitor-status-bar.js'],
+];
+for (const [srcRel, name] of vendorFiles) {
+  const src = path.join(ROOT, srcRel);
+  if (!fs.existsSync(src)) {
+    throw new Error('Missing Capacitor vendor file: ' + srcRel);
+  }
+  fs.copyFileSync(src, path.join(vendorDir, name));
 }
 
 try {
