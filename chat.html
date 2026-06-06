@@ -104,6 +104,13 @@
   const myThread = getMyThread();
   let activeThread = null, activePeerName = '', activePeerIcon = '👤';
   let remoteStaffUsers = [];
+  const CHAT_REALTIME_CHANNEL = 'mm-chat-broadcast';
+  const CHAT_FALLBACK_SYNC_MS = 5000;
+  let chatSyncTimer = 0;
+  let chatSyncPromise = null;
+  let chatReadPromise = null;
+  let chatRealtimeChannel = null;
+  let chatRealtimeReady = false;
 
   function setupStaffChatNav() {
     const nav = document.getElementById('chat-page-staff-nav');
@@ -138,16 +145,134 @@
   function chatPin() {
     return MMSession.getChatPin ? MMSession.getChatPin() : (isAdmin ? (MMSession.getAdminPin && MMSession.getAdminPin()) : (MMSession.getStaffPin && MMSession.getStaffPin()));
   }
-  async function syncChatRemote() {
-    if (!window.MMSharedAPI || !ChatAPI.syncRemote) return false;
+  function hasUnreadIncoming(threadId) {
+    if (!threadId) return false;
+    return ChatAPI.getThread(threadId).some((m) => (
+      isAdmin
+        ? (m.from_role !== 'admin' && !m.read_admin)
+        : (m.from_role === 'admin' && !m.read_staff)
+    ));
+  }
+  function refreshChatUi() {
+    if (isAdmin && document.getElementById('view-inbox').style.display !== 'none') renderInbox();
+    if (activeThread && document.getElementById('view-chat').style.display !== 'none') renderMsgs();
+  }
+  function shouldHandleRealtimeHint(threadId) {
+    if (!threadId) return true;
+    if (isAdmin) return true;
+    return threadId === myThread;
+  }
+  async function announceChatRealtime(kind, threadId, extra) {
+    if (!chatRealtimeChannel || !chatRealtimeReady) return false;
     try {
-      await ChatAPI.syncRemote(chatActorId(), chatPin(), isAdmin);
+      await chatRealtimeChannel.send({
+        type: 'broadcast',
+        event: 'chat_changed',
+        payload: {
+          kind: kind || 'changed',
+          thread_id: threadId || '',
+          actor_role: isAdmin ? 'admin' : (myRole || myDeptRole || 'staff'),
+          at: new Date().toISOString(),
+          ...(extra || {}),
+        },
+      });
       return true;
     } catch (e) {
-      console.warn('Chat Supabase sync failed', e);
+      console.warn('Chat realtime broadcast failed', e);
       return false;
     }
   }
+  async function markActiveThreadRead() {
+    if (chatReadPromise) return chatReadPromise;
+    if (!activeThread || document.visibilityState !== 'visible' || !hasUnreadIncoming(activeThread)) return false;
+    const threadId = activeThread;
+    chatReadPromise = (async () => {
+      try {
+        if (isAdmin) ChatAPI.markReadAdmin(threadId);
+        else ChatAPI.markReadStaff(threadId);
+        refreshChatUi();
+        if (!ChatAPI.markReadRemote) return true;
+        await ChatAPI.markReadRemote(chatActorId(), chatPin(), threadId, isAdmin);
+        await announceChatRealtime('read', threadId);
+        return true;
+      } catch (e) {
+        console.warn('Chat mark read failed', e);
+        return false;
+      } finally {
+        chatReadPromise = null;
+      }
+    })();
+    return chatReadPromise;
+  }
+  async function syncChatRemote(opts) {
+    if (!window.MMSharedAPI || !ChatAPI.syncRemote) return false;
+    if (chatSyncPromise) return chatSyncPromise;
+    const options = opts || {};
+    chatSyncPromise = (async () => {
+      try {
+        await ChatAPI.syncRemote(chatActorId(), chatPin(), isAdmin);
+        if (options.refreshUi !== false) refreshChatUi();
+        if (options.autoMark !== false && await markActiveThreadRead()) {
+          await ChatAPI.syncRemote(chatActorId(), chatPin(), isAdmin);
+          if (options.refreshUi !== false) refreshChatUi();
+        }
+        return true;
+      } catch (e) {
+        console.warn('Chat Supabase sync failed', e);
+        return false;
+      } finally {
+        chatSyncPromise = null;
+      }
+    })();
+    return chatSyncPromise;
+  }
+  function startChatFallbackSync() {
+    if (chatSyncTimer) clearInterval(chatSyncTimer);
+    chatSyncTimer = window.setInterval(function () {
+      if (document.visibilityState !== 'visible') return;
+      syncChatRemote({ refreshUi: true, autoMark: true });
+    }, CHAT_FALLBACK_SYNC_MS);
+  }
+  function stopChatFallbackSync() {
+    if (!chatSyncTimer) return;
+    clearInterval(chatSyncTimer);
+    chatSyncTimer = 0;
+  }
+  function setupChatRealtime() {
+    const client = window.MMSharedAPI && MMSharedAPI.supabaseClient;
+    if (!client || typeof client.channel !== 'function') {
+      startChatFallbackSync();
+      return;
+    }
+    if (chatRealtimeChannel && typeof client.removeChannel === 'function') {
+      client.removeChannel(chatRealtimeChannel);
+    }
+    chatRealtimeReady = false;
+    chatRealtimeChannel = client.channel(CHAT_REALTIME_CHANNEL, {
+      config: { broadcast: { ack: true } },
+    });
+    chatRealtimeChannel
+      .on('broadcast', { event: 'chat_changed' }, async function (event) {
+        const payload = event && event.payload ? event.payload : {};
+        if (!shouldHandleRealtimeHint(payload.thread_id)) return;
+        await syncChatRemote({ refreshUi: true, autoMark: true });
+      })
+      .subscribe(function (status) {
+        chatRealtimeReady = status === 'SUBSCRIBED';
+        if (chatRealtimeReady) stopChatFallbackSync();
+        else startChatFallbackSync();
+      });
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') syncChatRemote({ refreshUi: true, autoMark: true });
+  });
+  window.addEventListener('focus', function () {
+    syncChatRemote({ refreshUi: true, autoMark: true });
+  });
+  window.addEventListener('beforeunload', function () {
+    const client = window.MMSharedAPI && MMSharedAPI.supabaseClient;
+    if (client && chatRealtimeChannel && typeof client.removeChannel === 'function') client.removeChannel(chatRealtimeChannel);
+  });
   async function syncRemoteStaffUsers() {
     if (!isAdmin || !window.MMSharedAPI || !MMSession.getAdminPin) return;
     try {
@@ -165,6 +290,7 @@
 
   async function initChatPage() {
     initVisualViewportKeyboard();
+    setupChatRealtime();
 
     if (isAdmin) {
       await syncChatRemote();
@@ -259,17 +385,10 @@
 
     if (isAdmin) ChatAPI.markReadAdmin(thread_id);
     else         ChatAPI.markReadStaff(thread_id);
-    if (ChatAPI.markReadRemote) {
-      try {
-        await ChatAPI.markReadRemote(chatActorId(), chatPin(), thread_id, isAdmin);
-        await syncChatRemote();
-      } catch (e) {
-        console.warn('Chat mark read failed', e);
-      }
-    }
-
     renderMsgs();
     setTimeout(scrollEnd, 60);
+    await markActiveThreadRead();
+    syncChatRemote({ refreshUi: true, autoMark: true });
   }
 
   function chatBack() {
@@ -384,6 +503,7 @@
     if (ChatAPI.updateRequestRemote) {
       try {
         await ChatAPI.updateRequestRemote(chatActorId(), chatPin(), messageId, decision);
+        await announceChatRealtime('request', activeThread, { message_id: messageId, status: decision });
       } catch (e) {
         console.warn('Chat request remote update failed', e);
       }
@@ -409,6 +529,7 @@
       }
     }
     ChatAPI.send(activeThread, 'admin', 'জিম্মাদার', reply, remoteId ? { id: remoteId } : null);
+    await announceChatRealtime('message', activeThread, { message_id: remoteId || messageId });
     renderMsgs();
     scrollEnd();
   }
@@ -436,7 +557,7 @@
       return;
     }
     ChatAPI.send(activeThread, fromRole, fromName, text, remoteId ? { id: remoteId } : null);
-    await syncChatRemote();
+    await announceChatRealtime('message', activeThread, { message_id: remoteId });
     inp.value = '';
     resize(inp);
     renderMsgs();
