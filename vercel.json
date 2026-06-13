@@ -9,6 +9,12 @@
       "has": [{ "type": "host", "value": "admin.idarah786.com" }],
       "destination": "/admin/",
       "permanent": false
+    },
+    {
+      "source": "/index.html",
+      "has": [{ "type": "host", "value": "admin.idarah786.com" }],
+      "destination": "/admin/",
+      "permanent": false
     }
   ],
   "headers": [
