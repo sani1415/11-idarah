@@ -373,6 +373,7 @@
       try { sessionStorage.removeItem('mm_class_teachers_sc_v1'); } catch (e) {}
       clearNavLoadingFlag();
       if (global.MdrAccAPI && MdrAccAPI.clearLocalCache) MdrAccAPI.clearLocalCache();
+      updateOsBadge(0);
     },
 
     /** Clear app session then go to role selection (use from madrasa/*, khedmat staff, etc.). */
@@ -422,7 +423,20 @@
   function bnNum(n) {
     return String(n || 0).replace(/[0-9]/g, function (d) { return '০১২৩৪৫৬৭৮৯'[d]; });
   }
+  function updateOsBadge(count) {
+    // Installed-PWA app-icon badge (Badging API): reflects unread chat count
+    // and clears on read. Silent no-op where the API is unsupported.
+    try {
+      if (typeof navigator === 'undefined') return;
+      if (count > 0) {
+        if (navigator.setAppBadge) navigator.setAppBadge(count);
+      } else if (navigator.clearAppBadge) {
+        navigator.clearAppBadge();
+      }
+    } catch (e) {}
+  }
   function applyChatBadges() {
+    updateOsBadge(readChatUnreadCount());
     if (typeof document === 'undefined') return;
     var count = readChatUnreadCount();
     var nodes = document.querySelectorAll('a[href$="chat.html"], a[href*="/chat.html"], [onclick*="chat.html"]');
