@@ -176,7 +176,7 @@ for (const d of dirs) {
   }
 }
 
-for (const f of ['api-shared.js', 'api-mdr.js', 'supabase-config.example.js', 'manifest.webmanifest']) {
+for (const f of ['api-shared.js', 'api-mdr.js', 'supabase-config.example.js', 'manifest.webmanifest', 'sw.js']) {
   const src = path.join(ROOT, f);
   if (fs.existsSync(src)) fs.copyFileSync(src, path.join(OUT, f));
 }

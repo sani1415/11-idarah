@@ -21,7 +21,10 @@
       <div class="inbox-title">💬 বার্তা</div>
       <div class="inbox-sub" id="inbox-sub">স্টাফ থেকে — শুধু আপনার কাছে (স্টাফ ↔ জিম্মাদার)</div>
     </div>
-    <button type="button" class="topbar-btn" id="inbox-back-btn">← এডমিন</button>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button type="button" class="topbar-btn" id="notif-enable-btn" style="display:none;" onclick="onEnableNotif()">🔔 নোটিফিকেশন চালু</button>
+      <button type="button" class="topbar-btn" id="inbox-back-btn">← এডমিন</button>
+    </div>
   </div>
   <div class="content" style="padding-top:14px; padding-bottom: var(--app-content-pad-bottom);">
     <div id="thread-list"></div>
@@ -78,6 +81,7 @@
 <script src="js/mm-sample-data.js"></script>
 <script src="js/api.js"></script>
 <script src="js/mm-session.js"></script>
+<script src="js/mm-push.js"></script>
 <script src="js/dept-api.js"></script>
 <script src="js/madrasa-accounts-api.js?v=20260503-mojibake2"></script>
 <script src="js/chat-api.js"></script>
@@ -300,6 +304,7 @@
       if (hubNav) hubNav.style.display = 'flex';
       const inboxBack = document.getElementById('inbox-back-btn');
       if (inboxBack) inboxBack.onclick = () => { location.href = 'chat.html'; };
+      setupNotifButton();
 
       if (urlParams.get('compose') === '1') {
         document.getElementById('view-inbox').style.display = 'none';
@@ -661,6 +666,54 @@
       return toBn(p[2]+'/'+p[1]+'/'+p[0]);
     } catch { return dateStr; }
   }
+  /* ── নোটিফিকেশন (Web Push) — শুধু জিম্মাদার inbox ── */
+  function notifToast(msg) {
+    let t = document.getElementById('mm-notif-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'mm-notif-toast';
+      t.style.cssText = 'position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:9999;'
+        + 'background:#1a1208;color:#f3d785;padding:10px 16px;border-radius:12px;font-size:13px;'
+        + "font-family:'Tiro Bangla',serif;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:80vw;text-align:center;";
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(t._h);
+    t._h = setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; }, 2600);
+  }
+
+  async function setupNotifButton() {
+    const btn = document.getElementById('notif-enable-btn');
+    if (!btn || !window.MMPush || !MMPush.supported()) return;
+    const perm = MMPush.permission();
+    if (perm === 'granted') {
+      btn.style.display = 'none';
+      MMPush.refreshSub();
+    } else if (perm === 'denied') {
+      btn.style.display = 'none';
+    } else {
+      btn.style.display = '';
+    }
+  }
+
+  async function onEnableNotif() {
+    const btn = document.getElementById('notif-enable-btn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ চালু হচ্ছে…'; }
+    const res = await MMPush.enablePush();
+    if (res && res.ok) {
+      notifToast('🔔 নোটিফিকেশন চালু হয়েছে');
+      if (btn) btn.style.display = 'none';
+    } else {
+      const msg = res && res.error === 'denied' ? 'অনুমতি দেওয়া হয়নি'
+        : res && res.error === 'unsupported' ? 'এই ব্রাউজারে সমর্থিত নয়'
+        : 'চালু করা যায়নি, আবার চেষ্টা করুন';
+      notifToast(msg);
+      if (btn) { btn.disabled = false; btn.textContent = '🔔 নোটিফিকেশন চালু'; }
+    }
+  }
+  window.onEnableNotif = onEnableNotif;
+
   MMLoading.run(initChatPage);
 </script>
 <script src="js/admin-nav.js"></script>

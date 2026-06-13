@@ -293,6 +293,20 @@ const MMSharedAPI = (() => {
         p_is_admin: !!isAdmin,
       });
     },
+    pushSubscribe(actorId, pin, endpoint, p256dh, auth, isAdmin, userAgent) {
+      return rpc('mdr_rel_push_subscribe', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_endpoint: endpoint,
+        p_p256dh: p256dh,
+        p_auth: auth,
+        p_is_admin: !!isAdmin,
+        p_user_agent: userAgent || null,
+      });
+    },
+    pushUnsubscribe(endpoint) {
+      return rpc('mdr_rel_push_unsubscribe', { p_endpoint: endpoint });
+    },
     examBootstrap(actorId, pin) {
       return rpc('mdr_rel_exam_bootstrap', { p_actor_id: actorId, p_pin: pin });
     },
