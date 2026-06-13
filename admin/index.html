@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Idarah Admin — জিম্মাদার প্যানেল</title>
+<script>
+  // Persistent admin login: আগের session থাকলে login না দেখিয়ে সরাসরি ড্যাশবোর্ডে।
+  try {
+    if (/^admin\./i.test(location.hostname) && localStorage.getItem('mm_admin_persist_v1')) {
+      location.replace('../main-admin-madrasa.html');
+    }
+  } catch (e) {}
+</script>
 <link rel="manifest" href="/admin/manifest.webmanifest">
 <meta name="theme-color" content="#1a1208">
 <link rel="apple-touch-icon" href="/admin/icons/icon.svg">

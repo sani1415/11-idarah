@@ -23,6 +23,39 @@
     K.deptRole, K.deptId, K.deptName, K.deptEmoji,
   ];
 
+  // ── Persistent admin login (admin subdomain only) ──
+  // sessionStorage অ্যাপ বন্ধ হলে মুছে যায়; admin PWA-তে যাতে বারবার লগইন না
+  // লাগে, admin session localStorage-এ রাখি ও fresh entry-র পর restore করি।
+  // শুধু explicit logout-এ মুছি — auto stale-clear-এ নয়।
+  var ADMIN_PERSIST_KEY = 'mm_admin_persist_v1';
+
+  function isAdminHost() {
+    try { return typeof location !== 'undefined' && /^admin\./i.test(location.hostname); }
+    catch (e) { return false; }
+  }
+  function persistAdminSession(blob) {
+    if (!isAdminHost()) return;
+    try { localStorage.setItem(ADMIN_PERSIST_KEY, JSON.stringify(blob)); } catch (e) {}
+  }
+  function clearPersistedAdminSession() {
+    try { localStorage.removeItem(ADMIN_PERSIST_KEY); } catch (e) {}
+  }
+  function restorePersistedAdminSession() {
+    if (!isAdminHost()) return;
+    try {
+      if (sessionStorage.getItem(K.role)) return;
+      var raw = localStorage.getItem(ADMIN_PERSIST_KEY);
+      if (!raw) return;
+      var p = JSON.parse(raw);
+      if (!p || !p.adminPin) return;
+      sessionStorage.setItem(K.role, 'admin');
+      sessionStorage.setItem(K.name, p.name || 'জিম্মাদার');
+      if (p.adminUserId) sessionStorage.setItem(K.adminUserId, p.adminUserId);
+      sessionStorage.setItem(K.adminPin, p.adminPin);
+      if (p.adminPerms) sessionStorage.setItem(K.adminPerms, p.adminPerms);
+    } catch (e) {}
+  }
+
   var SESSION_CACHE_VERSION = 1;
   var SESSION_CACHE_META = 'mm_data_cache_meta';
   var SESSION_CACHE_PREFIX = 'mm_sc_';
@@ -196,6 +229,14 @@
       else sessionStorage.removeItem(K.adminPin);
       if (perms) sessionStorage.setItem(K.adminPerms, JSON.stringify(perms));
       else sessionStorage.removeItem(K.adminPerms);
+      if (pin) {
+        persistAdminSession({
+          name: name || 'জিম্মাদার',
+          adminUserId: userId || '',
+          adminPin: pin,
+          adminPerms: perms ? JSON.stringify(perms) : '',
+        });
+      }
     },
 
     setDeptSession: function (id, name, emoji, userId, pin) {
@@ -379,6 +420,7 @@
     /** Clear app session then go to role selection (use from madrasa/*, khedmat staff, etc.). */
     logoutToIndex: function (href) {
       this.clearAppSession();
+      clearPersistedAdminSession();
       // Admin app runs on its own subdomain with a dedicated login entry,
       // so logout there must return to /admin/ — not the shared staff login.
       try {
@@ -426,6 +468,8 @@
     } catch (e2) {}
     if (!sameOriginReferrer) MMSession.clearAppSession();
   })();
+  // Fresh-entry stale-clear-এর পর persisted admin login ফিরিয়ে আনি (admin host)।
+  restorePersistedAdminSession();
   var chatUnreadCount = 0;
   function readChatUnreadCount() { return chatUnreadCount; }
   function bnNum(n) {
