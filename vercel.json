@@ -3,11 +3,12 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "public",
-  "rewrites": [
+  "redirects": [
     {
       "source": "/",
       "has": [{ "type": "host", "value": "admin.idarah786.com" }],
-      "destination": "/admin/index.html"
+      "destination": "/admin/",
+      "permanent": false
     }
   ],
   "headers": [

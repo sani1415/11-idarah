@@ -4,7 +4,7 @@
   "description": "মাদরাসাতুল মদীনা — জিম্মাদার প্যানেল",
   "lang": "bn",
   "dir": "rtl",
-  "start_url": "/",
+  "start_url": "/admin/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
