@@ -4,20 +4,6 @@
 
 /* Tiro Bangla: প্রতিটি HTML-এ <head>-এ preconnect + fonts.googleapis link দিন (বিলম্ব/ফ্ল্যাশ কমাতে)। */
 
-/* ── পেজ-থেকে-পেজ মসৃণ ট্রানজিশন (Chromium MPA View Transitions) ──
-   এক পেজ→আরেক পেজে নেভিগেশনে নরম crossfade — native অ্যাপের অনুভূতি।
-   যেসব ব্রাউজারে নেই সেখানে নিঃশব্দে উপেক্ষিত হয়। */
-@view-transition { navigation: auto; }
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 200ms;
-  animation-timing-function: ease;
-}
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) { animation: none; }
-}
-
 :root {
   --ink: #1a1208;
   --ink2: #3d2e14;

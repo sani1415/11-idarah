@@ -35,9 +35,22 @@
         if (prev) prev.classList.remove('is-active');
         btn.classList.add('is-active');
         place(pill, btn);
-        setTimeout(function () { location.href = href; }, 210);
+        /* পুরনো content যেন ঝুলে না থাকে: ওয়ার্ম না হলে সাথে সাথে লোডিং কভার
+           দেখাই, তারপর সরাসরি navigate (কৃত্রিম বিলম্ব ছাড়া)। */
+        showNavCover();
+        location.href = href;
       });
     });
+  }
+
+  function isWarm() {
+    return !!(window.MMSession && MMSession.isAppDataWarm && MMSession.isAppDataWarm());
+  }
+
+  function showNavCover() {
+    if (isWarm()) return;
+    try { sessionStorage.setItem('mm_nav_loading', '1'); } catch (e) {}
+    if (window.MMLoading && MMLoading.show) MMLoading.show();
   }
 
   function place(pill, btn) {

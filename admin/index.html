@@ -169,6 +169,10 @@
     }
 
     if (ok) {
+      // dashboard ফ্ল্যাশ এড়াতে: redirect-এর আগেই লোডিং কভার দেখাই, আর nav flag
+      // সেট করি যাতে dashboard প্রথম পেইন্ট থেকেই কভার করা থাকে।
+      try { sessionStorage.setItem('mm_nav_loading', '1'); } catch (e) {}
+      if (window.MMLoading && MMLoading.show) MMLoading.show();
       window.location.href = redirect;
     } else {
       showError('পিন ভুল হয়েছে।');

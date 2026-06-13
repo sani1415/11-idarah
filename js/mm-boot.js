@@ -70,10 +70,10 @@
   var chatFromNav = /(?:^|\/)chat\.html$/i.test(path) && navPending;
   var warm = isSessionDataWarm();
 
-  if (daftarShell || adminShell || chatFromNav) {
-    if (!warm) armBootCover();
-    try { g.sessionStorage.removeItem('mm_nav_loading'); } catch (e3) {}
-  } else if (!navPending) {
-    try { g.sessionStorage.removeItem('mm_nav_loading'); } catch (e4) {}
+  // cold (ওয়ার্ম নয়) লোডে cover: শেল পেজ, অথবা nav থেকে এলে (navPending) —
+  // যাতে নতুন পেজ প্রথম পেইন্ট থেকেই লোডিং দেখায়, পুরনো content ফ্ল্যাশ না করে।
+  if (!warm && (daftarShell || adminShell || chatFromNav || navPending)) {
+    armBootCover();
   }
+  try { g.sessionStorage.removeItem('mm_nav_loading'); } catch (e3) {}
 })(typeof window !== 'undefined' ? window : this);
