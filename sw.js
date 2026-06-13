@@ -10,6 +10,10 @@ self.addEventListener('activate', function (event) {
   event.waitUntil(self.clients.claim());
 });
 
+// Installability heuristic — একটি (no-op) fetch handler। respondWith নেই,
+// তাই সব request স্বাভাবিকভাবে network থেকে আসে (কোনো caching নেই)।
+self.addEventListener('fetch', function () {});
+
 self.addEventListener('push', function (event) {
   var data = {};
   try { data = event.data ? event.data.json() : {}; } catch (e) { data = {}; }

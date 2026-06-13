@@ -71,6 +71,14 @@ function injectAppUpdate(html, relativeRoot, version) {
   return `${html}\n${tag}\n`;
 }
 
+function injectInstallPrompt(html, relativeRoot, version) {
+  if (html.includes('js/mm-install.js')) return html;
+  const src = `${relativeRoot}js/mm-install.js?v=${encodeURIComponent(version)}`;
+  const tag = `<script src="${src}" defer></script>`;
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${tag}\n</body>`);
+  return `${html}\n${tag}\n`;
+}
+
 function injectCapacitorNative(html, relativeRoot, version) {
   if (html.includes('capacitor-native.js')) return html;
   const v = encodeURIComponent(version);
@@ -108,6 +116,7 @@ function transformHtml(html, relativeRoot, version) {
     });
   next = injectBootScript(next, relativeRoot);
   next = injectAppUpdate(next, relativeRoot, version);
+  next = injectInstallPrompt(next, relativeRoot, version);
   return injectCapacitorNative(next, relativeRoot, version);
 }
 
