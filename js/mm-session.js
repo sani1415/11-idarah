@@ -379,6 +379,14 @@
     /** Clear app session then go to role selection (use from madrasa/*, khedmat staff, etc.). */
     logoutToIndex: function (href) {
       this.clearAppSession();
+      // Admin app runs on its own subdomain with a dedicated login entry,
+      // so logout there must return to /admin/ — not the shared staff login.
+      try {
+        if (typeof location !== 'undefined' && /^admin\./i.test(location.hostname)) {
+          location.href = '/admin/';
+          return;
+        }
+      } catch (e) {}
       location.href = href;
     },
 

@@ -37,16 +37,21 @@ self.addEventListener('push', function (event) {
 
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
-  var url = (event.notification.data && event.notification.data.url) || '/chat.html';
+  var target = (event.notification.data && event.notification.data.url) || '/chat.html';
+  var absolute = new URL(target, self.location.origin).href;
   event.waitUntil((async function () {
     var all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    // বিদ্যমান কোনো window থাকলে সেটাকেই সামনে আনি (focus সবচেয়ে গুরুত্বপূর্ণ)।
     for (var i = 0; i < all.length; i++) {
       var c = all[i];
       if ('focus' in c) {
-        try { await c.navigate(url); } catch (e) {}
-        return c.focus();
+        try { if ('navigate' in c && c.url !== absolute) await c.navigate(absolute); } catch (e) {}
+        try { return await c.focus(); } catch (e) {}
       }
     }
-    if (self.clients.openWindow) return self.clients.openWindow(url);
+    // কোনো window খোলা না থাকলে নতুন করে অ্যাপ খুলি (absolute URL দিয়ে)।
+    if (self.clients.openWindow) {
+      try { return await self.clients.openWindow(absolute); } catch (e) {}
+    }
   })());
 });
