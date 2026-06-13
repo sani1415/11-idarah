@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Idarah Admin">
+  <defs>
+    <linearGradient id="bgm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#241910"/>
+      <stop offset="1" stop-color="#15100a"/>
+    </linearGradient>
+    <linearGradient id="goldm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e7c25a"/>
+      <stop offset="1" stop-color="#c9952a"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bgm)"/>
+  <g transform="translate(256 262) scale(8.4) translate(-12 -12)" fill="none" stroke="url(#goldm)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3l7 3v5c0 4.5-2.9 8.6-7 10-4.1-1.4-7-5.5-7-10V6l7-3z"/>
+    <path d="M9.5 12l1.7 1.7 3.6-4"/>
+  </g>
+</svg>

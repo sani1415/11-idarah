@@ -397,13 +397,12 @@
     bindAccHubTabs();
     var initialTab = accHubTabFromUrl();
     setAccHubTab(initialTab, { skipSave: true });
-    var warm = MMSession.isAppDataWarm && MMSession.isAppDataWarm();
-    if (!warm) {
-      try {
-        if (window.MdrAccAPI && MdrAccAPI.bootstrapRemote) await MdrAccAPI.bootstrapRemote();
-      } catch (e) {
-        showToast('Supabase থেকে হিসাব ডেটা লোড হয়নি');
-      }
+    // হিসাব ডেটা localStorage-এ থাকে, students/classes warm-flag আলাদা storage —
+    // তাই warm হলেও সবসময় bootstrapRemote ডাকি; এটি নিজেই local cache warm হলে network এড়ায়।
+    try {
+      if (window.MdrAccAPI && MdrAccAPI.bootstrapRemote) await MdrAccAPI.bootstrapRemote();
+    } catch (e) {
+      showToast('Supabase থেকে হিসাব ডেটা লোড হয়নি');
     }
     renderAccounts();
     if (initialTab === 'prog') await ensureKormosuchiBoot();

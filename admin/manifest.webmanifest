@@ -1,0 +1,27 @@
+{
+  "name": "Idarah Admin",
+  "short_name": "Idarah Admin",
+  "description": "মাদরাসাতুল মদীনা — জিম্মাদার প্যানেল",
+  "lang": "bn",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1208",
+  "theme_color": "#1a1208",
+  "icons": [
+    {
+      "src": "/admin/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/admin/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

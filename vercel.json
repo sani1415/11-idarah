@@ -3,6 +3,13 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "public",
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "admin.idarah786.com" }],
+      "destination": "/admin/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*).html",

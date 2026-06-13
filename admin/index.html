@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Idarah Admin — জিম্মাদার প্যানেল</title>
+<link rel="manifest" href="/admin/manifest.webmanifest">
+<meta name="theme-color" content="#1a1208">
+<link rel="apple-touch-icon" href="/admin/icons/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  /* অ্যাডমিন-নিবেদিত প্রবেশদ্বার: role-select নেই, সরাসরি জিম্মাদার/সহকারী লগইন */
+  #admin-login.login-screen {
+    justify-content: flex-start;
+    padding: 18px 16px 16px;
+    padding-top: max(18px, env(safe-area-inset-top));
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  #admin-login .login-logo {
+    font-size: 24px;
+    line-height: 1.18;
+    margin-bottom: 2px;
+  }
+  #admin-login .login-inst-bn {
+    font-family: 'Tiro Bangla', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold2);
+    text-align: center;
+    margin-bottom: 18px;
+    line-height: 1.22;
+  }
+  .pin-role-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold2);
+    background: linear-gradient(145deg, var(--ink), var(--ink2));
+    border: 1px solid rgba(201,149,42,.42);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 6px 18px rgba(26,18,8,.18);
+  }
+  .pin-role-icon svg { width: 27px; height: 27px; stroke: currentColor; }
+</style>
+</head>
+<body>
+
+<!-- ADMIN LOGIN -->
+<div class="login-screen" id="admin-login">
+  <div class="login-logo">مدرسة المدينة</div>
+  <div class="login-inst-bn">ইদারাহ — জিম্মাদার প্যানেল</div>
+
+  <div style="text-align:center;margin-bottom:18px;">
+    <div class="pin-role-icon" id="pin-icon">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+        <path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 3v5c0 4.5-2.9 8.6-7 10-4.1-1.4-7-5.5-7-10V6l7-3z"/>
+        <path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M9.5 12l1.7 1.7 3.6-4"/>
+      </svg>
+    </div>
+    <div style="font-family:'Tiro Bangla',serif;font-size:19px;font-weight:700;color:var(--ink2);">জিম্মাদার লগইন</div>
+    <div style="font-size:12px;color:var(--ink3);margin-top:4px;">অ্যাডমিন পিন দিন</div>
+  </div>
+
+  <div class="login-box">
+    <span class="login-label">পিন দিন</span>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="numpad">
+      <button class="num-btn" onclick="pressPin('১')">১</button>
+      <button class="num-btn" onclick="pressPin('২')">২</button>
+      <button class="num-btn" onclick="pressPin('৩')">৩</button>
+      <button class="num-btn" onclick="pressPin('৪')">৪</button>
+      <button class="num-btn" onclick="pressPin('৫')">৫</button>
+      <button class="num-btn" onclick="pressPin('৬')">৬</button>
+      <button class="num-btn" onclick="pressPin('৭')">৭</button>
+      <button class="num-btn" onclick="pressPin('৮')">৮</button>
+      <button class="num-btn" onclick="pressPin('৯')">৯</button>
+      <button class="num-btn empty"></button>
+      <button class="num-btn" onclick="pressPin('০')">০</button>
+      <button class="num-btn del" onclick="delPin()">⌫</button>
+    </div>
+    <div class="login-error" id="pin-error"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
+<script src="../js/mm-sample-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/mm-session.js"></script>
+<script>
+  let pinVal = '';
+
+  const BN_MAP = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
+
+  function pressPin(n) {
+    if (pinVal.length >= 4) return;
+    pinVal += BN_MAP[n];
+    updateDots();
+    if (pinVal.length === 4) setTimeout(checkPin, 200);
+  }
+
+  function delPin() {
+    pinVal = pinVal.slice(0, -1);
+    updateDots();
+    document.getElementById('pin-error').textContent = '';
+  }
+
+  function updateDots() {
+    for (let i = 0; i < 4; i++)
+      document.getElementById('pd' + i).classList.toggle('filled', i < pinVal.length);
+  }
+
+  function resetPin() {
+    pinVal = '';
+    updateDots();
+    document.getElementById('pin-error').textContent = '';
+  }
+
+  function showError(msg) {
+    document.getElementById('pin-error').textContent = msg;
+  }
+
+  async function checkPin() {
+    document.getElementById('pin-error').textContent = '';
+    const settings = (window.API && API.Settings) ? API.Settings.get() : {};
+    let ok = false;
+    let redirect = '';
+
+    const supaOn = !!(window.MMSharedAPI && MMSharedAPI.supabaseClient);
+    try {
+      const res = window.MMSharedAPI ? await MMSharedAPI.loginAdmin(pinVal) : null;
+      if (res && res.ok && res.user) {
+        ok = true;
+        MMSession.setAdminSession(res.user.name || 'জিম্মাদার', res.user.admin_perms, res.user.id, pinVal);
+        redirect = '../main-admin-madrasa.html';
+        if (settings && settings.admin_pin !== pinVal && window.API && API.Settings) {
+          settings.admin_pin = pinVal;
+          API.Settings.save(settings);
+        }
+      }
+    } catch (e) {}
+    if (!ok && !supaOn && settings && pinVal === settings.admin_pin) {
+      ok = true;
+      MMSession.setAdminSession('জিম্মাদার', null, null, pinVal);
+      redirect = '../main-admin-madrasa.html';
+    }
+
+    if (ok) {
+      window.location.href = redirect;
+    } else {
+      showError('পিন ভুল হয়েছে।');
+      pinVal = '';
+      updateDots();
+    }
+  }
+</script>
+</body>
+</html>

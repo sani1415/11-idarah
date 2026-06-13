@@ -133,7 +133,7 @@ const configJs = `window.MM_SUPABASE_CONFIG = ${JSON.stringify({ url, publishabl
 rmrf(OUT);
 fs.mkdirSync(OUT, { recursive: true });
 
-const dirs = ['css', 'js', 'madrasa', 'dept', 'khedmat'];
+const dirs = ['css', 'js', 'madrasa', 'dept', 'khedmat', 'admin'];
 for (const d of dirs) {
   copyDir(path.join(ROOT, d), path.join(OUT, d));
 }
