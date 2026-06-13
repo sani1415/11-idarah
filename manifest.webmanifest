@@ -1,0 +1,27 @@
+{
+  "name": "মাদরাসাতুল মদীনা",
+  "short_name": "মাদরাসা",
+  "description": "মাদরাসাতুল মদীনা — পরিচালনা অ্যাপ",
+  "lang": "bn",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbf6ea",
+  "theme_color": "#1a1208",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

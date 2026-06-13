@@ -133,7 +133,7 @@ const configJs = `window.MM_SUPABASE_CONFIG = ${JSON.stringify({ url, publishabl
 rmrf(OUT);
 fs.mkdirSync(OUT, { recursive: true });
 
-const dirs = ['css', 'js', 'madrasa', 'dept', 'khedmat', 'admin'];
+const dirs = ['css', 'js', 'madrasa', 'dept', 'khedmat', 'admin', 'icons'];
 for (const d of dirs) {
   copyDir(path.join(ROOT, d), path.join(OUT, d));
 }
@@ -176,7 +176,7 @@ for (const d of dirs) {
   }
 }
 
-for (const f of ['api-shared.js', 'api-mdr.js', 'supabase-config.example.js']) {
+for (const f of ['api-shared.js', 'api-mdr.js', 'supabase-config.example.js', 'manifest.webmanifest']) {
   const src = path.join(ROOT, f);
   if (fs.existsSync(src)) fs.copyFileSync(src, path.join(OUT, f));
 }
