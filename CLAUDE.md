@@ -5,8 +5,8 @@
 ## Critical Boundaries
 
 - Existing Waqf app/repo/data স্পর্শ করা যাবে না।
-- Supabase project একই হলেও পুরনো Waqf tables স্পর্শ করা যাবে না: `students`, `messages`, `tasks`, `task_assignments`, `goals`, `quizzes`, `quiz_questions`, `quiz_assignees`, `quiz_submissions`, `documents`, `academic_history`, `teacher_notes`, `pwa_subscriptions`, `madrasa_config`, `app_kv`.
-- এই app-এর নতুন/নিজস্ব tables prefix ব্যবহার করবে: `shared_*`, `mdr_*`, `dept_*`, `kh_*`.
+- Supabase project একই হলেও পুরনো Waqf tables স্পর্শ করা যাবে না: `waqf_students`, `waqf_messages`, `waqf_tasks`, `waqf_task_assignments`, `waqf_goals`, `waqf_quizzes`, `waqf_quiz_questions`, `waqf_quiz_assignees`, `waqf_quiz_submissions`, `waqf_documents`, `waqf_academic_history`, `waqf_teacher_notes`, `waqf_pwa_subscriptions`, `waqf_madrasa_config`, `waqf_app_kv`, `waqf_diary`, `waqf_student_groups`, `waqf_daily_schedule_rows`, `waqf_daily_schedule_proposals`, `waqf_task_completions`, `waqf_device_push_tokens`.
+- এই app-এর Idarah tables সব `mdr_*` দিয়ে শুরু হবে: `mdr_*` (মাদরাসা), `mdr_dept_*`, `mdr_khedmat_*`, `mdr_shared_*`.
 - Frontend-এ service-role key, secret, private token বা admin credential রাখা যাবে না।
 
 ## Source Of Truth

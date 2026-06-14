@@ -527,13 +527,13 @@ const MMSharedAPI = (() => {
       });
     },
     listDepartments() {
-      return rpc('dept_rel_list_departments', {});
+      return rpc('mdr_dept_rel_list_departments', {});
     },
     adminDepartments(pin) {
-      return rpc('dept_rel_admin_departments', { p_pin: pin });
+      return rpc('mdr_dept_rel_admin_departments', { p_pin: pin });
     },
     saveDepartment(pin, id, name, emoji, code, isActive) {
-      return rpc('dept_rel_save_department', {
+      return rpc('mdr_dept_rel_save_department', {
         p_pin: pin,
         p_id: id || null,
         p_name: name,
@@ -543,14 +543,14 @@ const MMSharedAPI = (() => {
       });
     },
     deptBootstrap(actorId, pin, deptCode) {
-      return rpc('dept_rel_bootstrap', {
+      return rpc('mdr_dept_rel_bootstrap', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_dept_code: deptCode || null,
       });
     },
     saveDeptSettings(actorId, pin, deptCode, settings) {
-      return rpc('dept_rel_save_settings', {
+      return rpc('mdr_dept_rel_save_settings', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_dept_code: deptCode,
@@ -561,7 +561,7 @@ const MMSharedAPI = (() => {
       const packSize = product.pack_size === '' || product.pack_size == null
         ? null
         : Number(product.pack_size);
-      return rpc('dept_rel_save_product', {
+      return rpc('mdr_dept_rel_save_product', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_dept_code: deptCode,
@@ -578,7 +578,7 @@ const MMSharedAPI = (() => {
       });
     },
     removeDeptProduct(actorId, pin, deptCode, productId, mode) {
-      return rpc('dept_rel_remove_product', {
+      return rpc('mdr_dept_rel_remove_product', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_dept_code: deptCode,
@@ -595,7 +595,7 @@ const MMSharedAPI = (() => {
       const rpcAmount = txn.type === 'income' && !hasItems
         ? Math.max(Number(txn.amount || 0) - honorAmount, 0)
         : Number(txn.amount || 0);
-      return rpc('dept_rel_save_transaction', {
+      return rpc('mdr_dept_rel_save_transaction', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_dept_code: deptCode,
@@ -620,7 +620,7 @@ const MMSharedAPI = (() => {
       const rpcAmount = txn.type === 'income' && !hasItems
         ? Math.max(Number(txn.amount || 0) - honorAmount, 0)
         : Number(txn.amount || 0);
-      return rpc('dept_rel_update_transaction', {
+      return rpc('mdr_dept_rel_update_transaction', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_dept_code: deptCode,
@@ -637,7 +637,7 @@ const MMSharedAPI = (() => {
       });
     },
     deleteDeptTransaction(actorId, pin, deptCode, txnId) {
-      return rpc('dept_rel_delete_transaction', {
+      return rpc('mdr_dept_rel_delete_transaction', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_dept_code: deptCode,
@@ -645,21 +645,21 @@ const MMSharedAPI = (() => {
       });
     },
     saveDeptExtraField(pin, deptCode, field) {
-      return rpc('dept_rel_save_extra_field', {
+      return rpc('mdr_dept_rel_save_extra_field', {
         p_pin: pin,
         p_dept_code: deptCode,
         p_field: field || {},
       });
     },
     deleteDeptExtraField(pin, deptCode, key) {
-      return rpc('dept_rel_delete_extra_field', {
+      return rpc('mdr_dept_rel_delete_extra_field', {
         p_pin: pin,
         p_dept_code: deptCode,
         p_key: key,
       });
     },
     saveDeptEditRequest(actorId, pin, deptCode, req) {
-      return rpc('dept_rel_save_edit_request', {
+      return rpc('mdr_dept_rel_save_edit_request', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_dept_code: deptCode,
@@ -671,41 +671,41 @@ const MMSharedAPI = (() => {
       });
     },
     resolveDeptEditRequest(pin, requestId, status) {
-      return rpc('dept_rel_resolve_edit_request', {
+      return rpc('mdr_dept_rel_resolve_edit_request', {
         p_pin: pin,
         p_request_id: requestId,
         p_status: status,
       });
     },
     khedmatBootstrap(actorId, pin) {
-      return rpc('khedmat_rel_bootstrap', {
+      return rpc('mdr_khedmat_rel_bootstrap', {
         p_actor_id: actorId || null,
         p_pin: pin,
       });
     },
     khedmatUpsertBeneficiary(actorId, pin, payload) {
-      return rpc('khedmat_rel_upsert_beneficiary', {
+      return rpc('mdr_khedmat_rel_upsert_beneficiary', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_payload: payload || {},
       });
     },
     khedmatUpsertActivityType(actorId, pin, payload) {
-      return rpc('khedmat_rel_upsert_activity_type', {
+      return rpc('mdr_khedmat_rel_upsert_activity_type', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_payload: payload || {},
       });
     },
     khedmatInsertActivity(actorId, pin, payload) {
-      return rpc('khedmat_rel_insert_activity', {
+      return rpc('mdr_khedmat_rel_insert_activity', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_payload: payload || {},
       });
     },
     khedmatAddActivityImages(actorId, pin, activityId, images) {
-      return rpc('khedmat_rel_add_activity_images', {
+      return rpc('mdr_khedmat_rel_add_activity_images', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_activity_id: activityId,
@@ -713,7 +713,7 @@ const MMSharedAPI = (() => {
       });
     },
     khedmatInsertDailyLog(actorId, pin, content, byName) {
-      return rpc('khedmat_rel_insert_daily_log', {
+      return rpc('mdr_khedmat_rel_insert_daily_log', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_content: content || '',
@@ -721,7 +721,7 @@ const MMSharedAPI = (() => {
       });
     },
     khedmatInsertFinance(actorId, pin, payload) {
-      return rpc('khedmat_rel_insert_finance', {
+      return rpc('mdr_khedmat_rel_insert_finance', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_payload: payload || {},
@@ -764,7 +764,7 @@ const MMSharedAPI = (() => {
       });
     },
     adjustDeptInventory(actorId, pin, deptCode, item) {
-      return rpc('dept_rel_adjust_inventory', {
+      return rpc('mdr_dept_rel_adjust_inventory', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_dept_code: deptCode,
@@ -778,7 +778,7 @@ const MMSharedAPI = (() => {
     },
     updateDeptInventoryItem(actorId, pin, deptCode, item) {
       const qty = item.quantity;
-      return rpc('dept_rel_update_inventory_item', {
+      return rpc('mdr_dept_rel_update_inventory_item', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_dept_code: deptCode,
@@ -790,7 +790,7 @@ const MMSharedAPI = (() => {
       });
     },
     deleteDeptInventoryItem(actorId, pin, deptCode, inventoryId, notes) {
-      return rpc('dept_rel_delete_inventory_item', {
+      return rpc('mdr_dept_rel_delete_inventory_item', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_dept_code: deptCode,
