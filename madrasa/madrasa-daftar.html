@@ -976,10 +976,10 @@ body.page-daftar #modal-account-entry .modal {
 <script src="../js/api.js?v=20260517-attendance-consistency"></script>
 <script src="../js/mdr-daftar-supabase.js?v=20260516-attendance-persist"></script>
 <script src="../js/mm-hijri.js"></script>
-<script src="../js/madrasa-accounts-api.js?v=20260503-accounts-topbar"></script>
+<script src="../js/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
 <script src="../js/chat-api.js"></script>
-<script src="../js/madrasa-daftar-accounts.js?v=20260521-expense-cols"></script>
-<script src="../js/madrasa-accounts-reports.js"></script>
+<script src="../js/madrasa-daftar-accounts.js?v=20260614-live-import-refresh"></script>
+<script src="../js/madrasa-accounts-reports.js?v=20260614-live-import-refresh"></script>
 <script src="../js/mm-student-modal.js?v=20260517-attendance-consistency"></script>
 <script src="../js/mm-session.js?v=20260516-attendance-persist"></script>
 <script src="../js/daftar-bottom-nav.js"></script>
@@ -1694,6 +1694,13 @@ body.page-daftar #modal-account-entry .modal {
         showToast('হিসাব ডেটা লোড হয়নি');
       }
     }
+    try {
+      if (window.MdrAccAPI && MdrAccAPI.bootstrapRemote) {
+        await MdrAccAPI.bootstrapRemote({ force: true });
+      }
+    } catch (e) {
+      showToast('সর্বশেষ হিসাব ডেটা লোড হয়নি');
+    }
     renderAccounts();
   }
 
@@ -1978,6 +1985,15 @@ body.page-daftar #modal-account-entry .modal {
         if (!MMSession.isAppDataWarm()) showToast('দফতর সেশন পুরনো — লগআউট করে আবার লগইন করুন');
       } catch (e) {
         showToast('Supabase থেকে দফতর ডেটা লোড হয়নি');
+      }
+    }
+    if (wantsAccounts) {
+      try {
+        if (window.MdrAccAPI && MdrAccAPI.bootstrapRemote) {
+          await MdrAccAPI.bootstrapRemote({ force: true });
+        }
+      } catch (e) {
+        showToast('সর্বশেষ হিসাব ডেটা লোড হয়নি');
       }
     }
     ensureDaftarSampleData();

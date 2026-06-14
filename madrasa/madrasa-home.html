@@ -230,7 +230,7 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js?v=20260517-attendance-consistency"></script>
 <script src="../js/mdr-daftar-supabase.js"></script>
-<script src="../js/madrasa-accounts-api.js?v=20260503-accounts-topbar"></script>
+<script src="../js/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
 <script src="../js/madrasa-kormosuchi.js"></script>
 <script src="../js/mdr-khadimin-supabase.js"></script>
 <script src="../js/mm-session.js"></script>
@@ -503,6 +503,11 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
     if (MMSession.ensureDaftarDataReady) {
       try { await MMSession.ensureDaftarDataReady({ silent: wasWarm }); } catch (e) {}
     }
+    try {
+      if (window.MdrAccAPI && MdrAccAPI.bootstrapRemote) {
+        await MdrAccAPI.bootstrapRemote({ force: true });
+      }
+    } catch (e) {}
     await initMadrasaHome();
   });
   document.addEventListener('visibilitychange', function () {

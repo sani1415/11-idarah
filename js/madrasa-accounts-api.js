@@ -8,6 +8,7 @@ const MdrAccAPI = (() => {
   const DUE_KEY = 'mdr_acc_due';
   const DUE_PAY_KEY = 'mdr_acc_due_pay';
   const CAT_KEY = 'mdr_acc_cats';
+  const CACHE_VERSION = 'accounts-db-v2-20260614';
 
   /* MONTHS in academic-year order (Ramadan = start) */
   const MONTHS = ['রমজান','শাওয়াল','জিলকদ','জিলহজ','মুহাররম','সফর',
@@ -274,11 +275,15 @@ const MdrAccAPI = (() => {
       supplier: typeof p.supplier === 'string' ? normText(p.supplier) : p.supplier,
     })) : []);
     store(CAT_KEY, Array.isArray(res.categories) ? res.categories.map((c) => normText(String(c))) : []);
-    localStorage.setItem(SV_KEY, 'accounts-db-' + Date.now());
+    localStorage.setItem(SV_KEY, CACHE_VERSION + '-' + Date.now());
   }
 
   function isLocalCacheWarm() {
-    try { return !!localStorage.getItem(SV_KEY); } catch (e) { return false; }
+    try {
+      return String(localStorage.getItem(SV_KEY) || '').indexOf(CACHE_VERSION + '-') === 0;
+    } catch (e) {
+      return false;
+    }
   }
 
   function clearLocalCache() {
@@ -301,7 +306,7 @@ const MdrAccAPI = (() => {
 
   async function remoteRefreshAfter(res) {
     if (!res || !res.ok) throw new Error((res && res.error) || 'accounts_save_failed');
-    await bootstrapRemote();
+    await bootstrapRemote({ force: true });
     return res;
   }
 
@@ -437,22 +442,55 @@ const MdrAccAPI = (() => {
 
   /* ── Summary ── */
   const Summary = {
-    get(filterMonth) {
-      const accs = Object.keys(ACCOUNT_LABELS);
-      const allInc = filterMonth ? Income.getByMonth(filterMonth) : Income.getAll();
-      const allExp = filterMonth ? Expense.getByMonth(filterMonth) : Expense.getAll();
+    fromRows(incomes, expenses, dues) {
+      const allInc = Array.isArray(incomes) ? incomes : [];
+      const allExp = Array.isArray(expenses) ? expenses : [];
+      const allDues = Array.isArray(dues) ? dues : [];
+      const regularIncomeRows = allInc.filter(x => x.account !== 'qard_return');
+      const regularExpenseRows = allExp.filter(x => x.account !== 'qard');
+      const regularIncome = regularIncomeRows.reduce((s, x) => s + num(x.amount), 0);
+      const regularExpense = regularExpenseRows.reduce((s, x) => s + num(x.amount), 0);
+      const qardGiven = allExp.filter(x => x.account === 'qard').reduce((s, x) => s + num(x.amount), 0);
+      const qardReturned = allInc.filter(x => x.account === 'qard_return').reduce((s, x) => s + num(x.amount), 0);
+      const supplierDue = allDues.reduce((s, x) => s + Math.max(0, num(x.due)), 0);
+      const operatingBalance = regularIncome - regularExpense;
+      const qardRemaining = Math.max(0, qardGiven - qardReturned);
+      const qardOverpaid = Math.max(0, qardReturned - qardGiven);
+      const cashIn = regularIncome + qardReturned;
+      const cashOut = regularExpense + qardGiven;
+      const cashFlow = cashIn - cashOut;
       const byAcc = {};
-      accs.forEach(a => {
-        const incs = allInc.filter(x=>x.account===a);
-        const exps = allExp.filter(x=>x.account===a);
-        const inc = incs.reduce((s,x)=>s+num(x.amount),0);
-        const exp = exps.reduce((s,x)=>s+num(x.amount),0);
+
+      Object.keys(ACCOUNT_LABELS).forEach(a => {
+        const inc = regularIncomeRows.filter(x => x.account === a).reduce((s, x) => s + num(x.amount), 0);
+        const exp = regularExpenseRows.filter(x => x.account === a).reduce((s, x) => s + num(x.amount), 0);
         byAcc[a] = { inc, exp, bal: inc - exp };
       });
-      const ti = allInc.reduce((s,x)=>s+num(x.amount),0);
-      const te = allExp.reduce((s,x)=>s+num(x.amount),0);
-      const td = Dues.totalDue();
-      return { ti, te, bal: ti - te, td, byAcc };
+
+      return {
+        regularIncome,
+        regularExpense,
+        operatingBalance,
+        supplierDue,
+        qardGiven,
+        qardReturned,
+        qardRemaining,
+        qardOverpaid,
+        cashIn,
+        cashOut,
+        cashFlow,
+        byAcc,
+        /* Backward-compatible names now always mean regular operations. */
+        ti: regularIncome,
+        te: regularExpense,
+        bal: operatingBalance,
+        td: supplierDue,
+      };
+    },
+    get(filterMonth) {
+      const allInc = filterMonth ? Income.getByMonth(filterMonth) : Income.getAll();
+      const allExp = filterMonth ? Expense.getByMonth(filterMonth) : Expense.getAll();
+      return Summary.fromRows(allInc, allExp, Dues.getAll());
     },
   };
 

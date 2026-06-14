@@ -13,30 +13,15 @@
 <style>
   .content { padding-bottom:var(--app-content-pad-bottom); }
   .acc-page-lead { font-size:12px; color:var(--ink3); line-height:1.55; margin:0 0 12px; }
-  .acc-stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
-  .acc-stat-card { background:#fff; border-radius:var(--radius-sm); padding:10px 8px; box-shadow:var(--shadow); border:1px solid rgba(26,18,8,.06); text-align:center; }
-  .acc-stat-val { display:block; font-family:'Tiro Bangla',serif; font-size:15px; line-height:1.18; font-weight:800; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .acc-stat-lbl { display:block; margin-top:4px; font-size:9px; color:var(--ink3); font-weight:700; }
-  .acc-stat-card.good .acc-stat-val { color:var(--green); }
-  .acc-stat-card.bad .acc-stat-val { color:var(--red); }
-  .acc-stat-card.warn .acc-stat-val { color:var(--gold); }
   .admin-accounts-shell { background:rgba(255,255,255,.55); border:1px solid rgba(26,18,8,.06); border-radius:22px; padding:10px 0 0; box-shadow:0 10px 28px rgba(26,18,8,.06); overflow:hidden; }
   body.page-admin-accounts .modal-bg { align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px); }
   body.page-admin-accounts .modal { width:min(520px, calc(100vw - 32px)); height:min(680px, calc(100vh - 32px)); max-height:calc(100vh - 32px); border-radius:22px; padding:20px 18px 24px; box-sizing:border-box; overflow-y:auto; }
   body.page-admin-accounts .modal.modal-wide { width:min(760px, calc(100vw - 32px)); }
   body.page-admin-accounts #modal-account-details .modal { display:flex; flex-direction:column; height:min(760px, calc(100vh - 32px)); padding-bottom:14px; }
   body.page-admin-accounts #account-details-root { display:flex; flex-direction:column; flex:1; min-height:0; }
-  @media (max-width:420px) {
-    .acc-stat-grid { grid-template-columns:repeat(2,1fr); }
-  }
-
   /* ══ Desktop (≥ 960px) ══ */
   @media (min-width: 960px) {
     html body .content { max-width: 1100px !important; }
-    .acc-stat-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .acc-stat-card { padding: 14px 12px; }
-    .acc-stat-val { font-size: 18px; }
-    .acc-stat-lbl { font-size: 10px; }
   }
   .acc-hub-tabs{display:flex;gap:4px;margin:0 0 12px;padding:4px;background:rgba(255,255,255,.72);border:1px solid rgba(26,18,8,.07);border-radius:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
   .acc-hub-tab{flex:1;border:none;border-radius:11px;padding:9px 10px;font-family:'Tiro Bangla',serif;font-size:12px;font-weight:700;color:var(--ink3);background:transparent;cursor:pointer;transition:.12s}
@@ -107,13 +92,7 @@
   </nav>
 
   <div id="acc-panel-madrasa" class="acc-hub-panel" role="tabpanel" aria-labelledby="acc-hub-tab-madrasa">
-    <p class="acc-page-lead">মাদ্রাসার আয়-ব্যয়, ব্যালেন্স ও বকেয়া — হিসাব বই অনুযায়ী বিস্তারিত নিচে।</p>
-    <div class="acc-stat-grid" aria-label="হিসাব সারসংক্ষেপ">
-      <div class="acc-stat-card good"><span class="acc-stat-val" id="admin-acc-income">—</span><span class="acc-stat-lbl">মোট আয়</span></div>
-      <div class="acc-stat-card bad"><span class="acc-stat-val" id="admin-acc-expense">—</span><span class="acc-stat-lbl">মোট ব্যয়</span></div>
-      <div class="acc-stat-card" id="admin-acc-balance-card"><span class="acc-stat-val" id="admin-acc-balance">—</span><span class="acc-stat-lbl">বর্তমান ব্যালেন্স</span></div>
-      <div class="acc-stat-card warn"><span class="acc-stat-val" id="admin-acc-due">—</span><span class="acc-stat-lbl">বাকি / বকেয়া</span></div>
-    </div>
+    <p class="acc-page-lead">নিয়মিত আয়-ব্যয়, করজ, নগদ প্রবাহ ও বকেয়া একই হিসাব সংজ্ঞায় নিচে দেখানো হয়েছে।</p>
     <div class="admin-accounts-shell">
       <div id="accounts-root"></div>
     </div>
@@ -298,9 +277,9 @@
 <script src="../api-shared.js"></script>
 <script src="../js/mm-session.js"></script>
 <script src="../js/mm-hijri.js"></script>
-<script src="../js/madrasa-accounts-api.js?v=20260503-accounts-topbar"></script>
-<script src="../js/madrasa-daftar-accounts.js?v=20260521-expense-cols"></script>
-<script src="../js/madrasa-accounts-reports.js"></script>
+<script src="../js/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
+<script src="../js/madrasa-daftar-accounts.js?v=20260614-live-import-refresh"></script>
+<script src="../js/madrasa-accounts-reports.js?v=20260614-live-import-refresh"></script>
 <script src="../js/api.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mdr-daftar-supabase.js"></script>
@@ -376,32 +355,16 @@
     if (modal) modal.classList.remove('open', 'show');
   }
 
-  function renderAccountStats() {
-    const s = MdrAccAPI.Summary.get();
-    const money = n => '৳' + MdrAccAPI.fa(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
-    document.getElementById('admin-acc-income').textContent = money(s.ti);
-    document.getElementById('admin-acc-expense').textContent = money(s.te);
-    document.getElementById('admin-acc-balance').textContent = (s.bal < 0 ? '−' : '') + money(Math.abs(s.bal));
-    document.getElementById('admin-acc-due').textContent = money(s.td);
-    const balCard = document.getElementById('admin-acc-balance-card');
-    balCard.classList.toggle('good', s.bal >= 0);
-    balCard.classList.toggle('bad', s.bal < 0);
-  }
-
-  const baseRenderAccounts = window.renderAccounts;
-  window.renderAccounts = function () {
-    baseRenderAccounts();
-    renderAccountStats();
-  };
-
   async function initAdminAccounts() {
     bindAccHubTabs();
     var initialTab = accHubTabFromUrl();
     setAccHubTab(initialTab, { skipSave: true });
-    // হিসাব ডেটা localStorage-এ থাকে, students/classes warm-flag আলাদা storage —
-    // তাই warm হলেও সবসময় bootstrapRemote ডাকি; এটি নিজেই local cache warm হলে network এড়ায়।
+    // SQL/import বা অন্য ডিভাইসের পরিবর্তন localStorage warm flag জানে না।
+    // হিসাব পেজ খোলার সময় তাই সর্বশেষ database snapshot নেওয়া হয়।
     try {
-      if (window.MdrAccAPI && MdrAccAPI.bootstrapRemote) await MdrAccAPI.bootstrapRemote();
+      if (window.MdrAccAPI && MdrAccAPI.bootstrapRemote) {
+        await MdrAccAPI.bootstrapRemote({ force: true });
+      }
     } catch (e) {
       showToast('Supabase থেকে হিসাব ডেটা লোড হয়নি');
     }

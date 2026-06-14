@@ -138,6 +138,12 @@ body.page-daftar #panel-fees{margin-left:-12px;margin-right:-12px}
 .acc-metric-lbl{font-size:9px;color:var(--ink3);margin-bottom:3px}
 .acc-metric-val{font-family:'Tiro Bangla',serif;font-size:13px;font-weight:800;color:var(--ink2);white-space:nowrap}
 .acc-metric.good .acc-metric-val{color:var(--green)}.acc-metric.bad .acc-metric-val{color:var(--red)}.acc-metric.warn .acc-metric-val{color:var(--gold)}
+.acc-summary-section{margin-bottom:10px}
+.acc-summary-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 2px 6px}
+.acc-summary-title{font-family:'Tiro Bangla',serif;font-size:13px;font-weight:900;color:var(--ink2)}
+.acc-summary-note{font-size:9px;color:var(--ink3);text-align:right}
+.acc-summary-section.secondary .acc-metric{background:rgba(255,250,242,.88)}
+.acc-cash-formula{margin:-3px 2px 10px;padding:7px 9px;border-radius:10px;background:rgba(154,106,33,.08);color:var(--ink3);font-size:9px;line-height:1.45;text-align:center}
 .acc-ledger-card{background:#fff;border:1px solid rgba(26,18,8,.07);border-radius:16px;overflow:hidden;position:relative;box-shadow:0 5px 13px rgba(26,18,8,.055);margin-top:2px}
 .acc-ledger-title{display:flex;align-items:center;justify-content:space-between;padding:10px 11px;border-bottom:1px solid var(--cream2);font-size:12px;font-weight:800;color:var(--ink2)}
 .acc-ledger-title--center{justify-content:center;text-align:center}
@@ -1101,15 +1107,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
              (!_yearFs.length || _yearFs.indexOf(String(r.hijriYear)) >= 0);
     });
     var allDues = A.Dues.getAll();
-    /* করজে হাসানা (qard) আলাদা হিসাব — সাধারণ ব্যয়ে গণনা হবে না */
-    var tq  = allExp.filter(function (r) { return r.account === 'qard'; }).reduce(function (sum, r) { return sum + A.num(r.amount); }, 0);
-    var tqr = allInc.filter(function (r) { return r.account === 'qard_return'; }).reduce(function (sum, r) { return sum + A.num(r.amount); }, 0);
-    var tqRemaining = Math.max(0, tq - tqr);
-    var s = {
-      ti: allInc.filter(function (r) { return r.account !== 'qard_return'; }).reduce(function (sum, r) { return sum + A.num(r.amount); }, 0),
-      te: allExp.filter(function (r) { return r.account !== 'qard'; }).reduce(function (sum, r) { return sum + A.num(r.amount); }, 0),
-      td: allDues.reduce(function (sum, d) { return sum + Math.max(0, A.num(d.due)); }, 0),
-    };
+    var s = A.Summary.fromRows(allInc, allExp, allDues);
     var rows = accs.filter(function (acc) { return acc !== 'qard'; }).map(function (acc) {
       var accRows = allExp.filter(function (r) { return r.account === acc; });
       var exp = accRows.reduce(function (sum, r) { return sum + A.num(r.amount); }, 0);
@@ -1127,24 +1125,31 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
           : '<td style="color:var(--green)">—</td>') +
         '</tr>';
     }).join('');
-    var tb = s.ti - s.te;
-    var balCls = tb >= 0 ? 'good' : 'bad';
-    var qardMetric = tqRemaining > 0
-      ? '<button type="button" class="acc-metric acc-metric-click warn" onclick="openAccAccountDetails(\'qard\')"><div class="acc-metric-lbl">করজে হাসানা বাকি</div><div class="acc-metric-val">৳' + fa(tqRemaining) + '</div></button>'
-      : '<div class="acc-metric good"><div class="acc-metric-lbl">করজে হাসানা বাকি</div><div class="acc-metric-val">—</div></div>';
-    var metrics = '<div class="acc-metrics">' +
-      '<button type="button" class="acc-metric acc-metric-click good" onclick="openAccMetricModal(\'income\')"><div class="acc-metric-lbl">আয়</div><div class="acc-metric-val">৳' + fa(s.ti) + '</div></button>' +
-      '<button type="button" class="acc-metric acc-metric-click bad" onclick="openAccMetricModal(\'expense\')"><div class="acc-metric-lbl">ব্যয়</div><div class="acc-metric-val">৳' + fa(s.te) + '</div></button>' +
-      qardMetric +
-      '<button type="button" class="acc-metric acc-metric-click warn" onclick="openAccMetricModal(\'dues\')"><div class="acc-metric-lbl">বর্তমান বকেয়া</div><div class="acc-metric-val">৳' + fa(s.td) + '</div></button>' +
-      '</div>';
+    var balCls = s.operatingBalance >= 0 ? 'good' : 'bad';
+    var cashCls = s.cashFlow >= 0 ? 'good' : 'bad';
+    var regularMetrics = '<div class="acc-summary-section">' +
+      '<div class="acc-summary-head"><div class="acc-summary-title">নিয়মিত হিসাব</div><div class="acc-summary-note">করজ দেওয়া ও আদায় বাদে</div></div>' +
+      '<div class="acc-metrics">' +
+      '<button type="button" class="acc-metric acc-metric-click good" onclick="openAccMetricModal(\'income\')"><div class="acc-metric-lbl">নিয়মিত আয়</div><div class="acc-metric-val">৳' + fa(s.regularIncome) + '</div></button>' +
+      '<button type="button" class="acc-metric acc-metric-click bad" onclick="openAccMetricModal(\'expense\')"><div class="acc-metric-lbl">নিয়মিত ব্যয়</div><div class="acc-metric-val">৳' + fa(s.regularExpense) + '</div></button>' +
+      '<div class="acc-metric ' + balCls + '"><div class="acc-metric-lbl">আয়-ব্যয় ব্যালেন্স</div><div class="acc-metric-val">' + (s.operatingBalance < 0 ? '−' : '+') + '৳' + fa(Math.abs(s.operatingBalance)) + '</div></div>' +
+      '<button type="button" class="acc-metric acc-metric-click warn" onclick="openAccMetricModal(\'dues\')"><div class="acc-metric-lbl">বর্তমান বকেয়া</div><div class="acc-metric-val">৳' + fa(s.supplierDue) + '</div></button>' +
+      '</div></div>';
+    var cashMetrics = '<div class="acc-summary-section secondary">' +
+      '<div class="acc-summary-head"><div class="acc-summary-title">করজ ও নগদ চলাচল</div><div class="acc-summary-note">নিয়মিত হিসাব থেকে আলাদা</div></div>' +
+      '<div class="acc-metrics">' +
+      '<button type="button" class="acc-metric acc-metric-click warn" onclick="openAccAccountDetails(\'qard\')"><div class="acc-metric-lbl">করজ দেওয়া</div><div class="acc-metric-val">৳' + fa(s.qardGiven) + '</div></button>' +
+      '<button type="button" class="acc-metric acc-metric-click good" onclick="openAccAccountDetails(\'qard\')"><div class="acc-metric-lbl">করজ আদায়</div><div class="acc-metric-val">৳' + fa(s.qardReturned) + '</div></button>' +
+      '<button type="button" class="acc-metric acc-metric-click warn" onclick="openAccAccountDetails(\'qard\')"><div class="acc-metric-lbl">করজ বাকি</div><div class="acc-metric-val">৳' + fa(s.qardRemaining) + '</div></button>' +
+      '<div class="acc-metric ' + cashCls + '"><div class="acc-metric-lbl">নেট নগদ প্রবাহ</div><div class="acc-metric-val">' + (s.cashFlow < 0 ? '−' : '+') + '৳' + fa(Math.abs(s.cashFlow)) + '</div></div>' +
+      '</div></div>';
     var thead = '<tr><th>হিসাব বই</th><th>ব্যয়</th><th>শতকরা</th><th>বর্তমান বকেয়া</th></tr>';
     var tfoot = '<tr><td><strong>সর্বমোট</strong></td>' +
       '<td style="color:var(--red);font-weight:700">৳' + fa(s.te) + '</td>' +
       '<td>' + pct(100) + '</td><td style="color:var(--red);font-weight:700">৳' + fa(s.td) + '</td></tr>';
     return '<div class="acc-dashboard">' +
-      '<div class="acc-money-hero"><div class="acc-money-label">বর্তমান অবস্থা</div><div class="acc-money-main ' + balCls + '">' + (tb < 0 ? '−' : '+') + '৳' + fa(Math.abs(tb)) + '</div></div>' +
-      metrics +
+      regularMetrics + cashMetrics +
+      '<div class="acc-cash-formula">নেট নগদ প্রবাহ = নিয়মিত আয় + করজ আদায় − নিয়মিত ব্যয় − করজ দেওয়া</div>' +
       '<div class="acc-ledger-card"><div class="acc-ledger-title acc-ledger-title--center"><span>খাতওয়ারী হিসাব</span></div>' +
       '<div style="overflow-x:auto"><table class="acc-sum-tbl"><thead>' + thead + '</thead>' +
       '<tbody>' + (tblRows || '<tr><td colspan="4" style="text-align:center;color:var(--ink3)">তথ্য নেই</td></tr>') + '</tbody>' +
@@ -1794,7 +1799,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   /* ══════════════ EXPENSE LIST ══════════════ */
   function buildExpenseList() {
     normalizeMonthFilters();
-    var rows = A.Expense.getAll();
+    var rows = A.Expense.getAll().filter(function (r) { return r.account !== 'qard'; });
     if (_yearFs.length) rows = rows.filter(function (r) { return _yearFs.indexOf(String(r.hijriYear)) >= 0; });
     if (_monFs.length) rows = rows.filter(function (r) { return _monFs.indexOf(A.monthKey(r.month)) >= 0; });
     if (_accFs.length) rows = rows.filter(function (r) { return _accFs.indexOf(r.account) >= 0; });
@@ -1811,11 +1816,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       if (_sortF === 'oldest') return (a._at || 0) - (b._at || 0);
       return _sortF === 'date_desc' ? String(b.dateKey).localeCompare(String(a.dateKey)) : String(a.dateKey).localeCompare(String(b.dateKey));
     });
-    /* করজে হাসানা (qard) আলাদা — মোট ব্যয়ে গণনা হবে না */
-    var qardRows = rows.filter(function (r) { return r.account === 'qard'; });
-    var nonQardRows = rows.filter(function (r) { return r.account !== 'qard'; });
-    var total = nonQardRows.reduce(function (s, r) { return s + A.num(r.amount); }, 0);
-    var qardTotal = qardRows.reduce(function (s, r) { return s + A.num(r.amount); }, 0);
+    var total = rows.reduce(function (s, r) { return s + A.num(r.amount); }, 0);
     var readOnly = isAccountsReadOnly();
     function rowHtml(r) {
       var category  = A.clean(r.category, '');
@@ -1823,11 +1824,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       var receiptNo = A.clean(r.receiptNo, '');
       var desc = A.clean(r.description, '') || category || 'ব্যয়';
       var qInfo = r.quantity ? bn(A.num(r.quantity)) + (r.unit ? ' ' + esc(r.unit) : '') + (r.unitPrice ? ' × ৳' + fa(r.unitPrice) : '') : 'উল্লেখ নেই';
-      var isQardRow = r.account === 'qard';
-      /* qard-এ আদায় করজে হাসানা modal-এর খাত-ভিত্তিক সারি থেকে; এখানে শুধু del */
-      var actionBtns = isQardRow
-        ? '<button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button>'
-        : '<button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'expense\',\'' + esc(r.id) + '\')">✎</button><button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button>';
+      var actionBtns = '<button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'expense\',\'' + esc(r.id) + '\')">✎</button><button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button>';
       return '<tr>' +
         '<td>' + esc(A.dateLabel(r)) + '</td>' +
         '<td>' + esc(A.ACCOUNT_LABELS[r.account] || r.account || '') + '</td>' +
@@ -1851,8 +1848,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       sortNames[_sortF] || 'সাজানো',
     ].map(function (x) { return '<span class="acc-chip">' + esc(x) + '</span>'; }).join('');
     var clearBtn = anyFilterOn ? '<button type="button" class="acc-tool-btn" style="color:var(--red);margin-left:auto" onclick="resetAccFilters()">✕ সাফ</button>' : '';
-    var qardNote = qardTotal ? ('<div class="sub" style="color:var(--gold)">করজে হাসানা ৳' + fa(qardTotal) + ' (আলাদা)</div>') : '';
-    return '<div class="acc-money-hero" style="margin-bottom:8px"><div class="acc-money-label">ব্যয়</div><div class="acc-money-main" style="color:var(--red)">৳' + fa(total) + '</div><div class="sub" style="position:relative">মোট সংখ্যা: ' + count(rows.length, 'টি') + '</div>' + qardNote + '</div>' +
+    return '<div class="acc-money-hero" style="margin-bottom:8px"><div class="acc-money-label">নিয়মিত ব্যয়</div><div class="acc-money-main" style="color:var(--red)">৳' + fa(total) + '</div><div class="sub" style="position:relative">মোট সংখ্যা: ' + count(rows.length, 'টি') + '</div></div>' +
       '<div class="acc-toolbar">' +
       filterIconBtn(anyFilterOn, activeCount) +
       '<button type="button" class="acc-tool-btn acc-sort-btn" onclick="openAccSortSheet()" title="সাজান">⇅</button>' +

@@ -50,10 +50,27 @@ var _rptSearch = '';
   function rerenderReports() { window.renderAccountsReports(activeContainer()); }
   function money(v) { return '৳' + fa(Math.abs(num(v))); }
   function sumRows(rows) { return rows.reduce(function (s, r) { return s + num(r.amount); }, 0); }
+  function regularExpenses() { return A.Expense.getAll().filter(function (r) { return r.account !== 'qard'; }); }
+  function regularItemNames() {
+    var names = {};
+    regularExpenses().forEach(function (r) {
+      var item = A.clean(r.description, '');
+      if (item && num(r.quantity) > 0) names[item] = true;
+    });
+    return Object.keys(names).sort(function (a, b) { return a.localeCompare(b, 'bn'); });
+  }
   function nonZeroMonths() {
     return A.MONTHS.map(function (m) {
-      return { m: m, inc: sumRows(A.Income.getByMonth(m)), exp: sumRows(A.Expense.getByMonth(m)) };
-    }).filter(function (x) { return x.inc || x.exp; });
+      var s = A.Summary.get(m);
+      return {
+        m: m,
+        inc: s.regularIncome,
+        exp: s.regularExpense,
+        qardGiven: s.qardGiven,
+        qardReturned: s.qardReturned,
+        cashFlow: s.cashFlow,
+      };
+    }).filter(function (x) { return x.inc || x.exp || x.qardGiven || x.qardReturned; });
   }
   function topEntry(obj, key) {
     var rows = Object.keys(obj).map(function (k) { return { name: k, value: obj[k][key] || obj[k] }; }).sort(function (a, b) { return b.value - a.value; });
@@ -61,7 +78,7 @@ var _rptSearch = '';
   }
   function groupedExpense(field) {
     var out = {};
-    A.Expense.getAll().forEach(function (r) {
+    regularExpenses().forEach(function (r) {
       var k = A.clean(r[field], '') || (field === 'supplier' ? 'সরবরাহকারী নেই' : 'খাত নেই');
       if (!out[k]) out[k] = { amount: 0, count: 0 };
       out[k].amount += num(r.amount);
@@ -72,10 +89,10 @@ var _rptSearch = '';
   function groupedAccount() {
     var out = {};
     Object.keys(A.ACCOUNT_LABELS).forEach(function (k) {
-      if (k === 'qard_return') return; /* আয়ের ধরন — ব্যয় হিসাব বই নয় */
+      if (k === 'qard' || k === 'qard_return') return;
       out[k] = { amount: 0, count: 0 };
     });
-    A.Expense.getAll().forEach(function (r) {
+    regularExpenses().forEach(function (r) {
       var k = r.account || 'general';
       if (!out[k]) out[k] = { amount: 0, count: 0 };
       out[k].amount += num(r.amount);
@@ -84,8 +101,8 @@ var _rptSearch = '';
     return out;
   }
   function itemPriceSignals() {
-    return A.Expense.itemNames().map(function (item) {
-      var rows = A.Expense.getByItem(item).filter(function (r) { return num(r.unitPrice) > 0; });
+    return regularItemNames().map(function (item) {
+      var rows = A.Expense.getByItem(item).filter(function (r) { return r.account !== 'qard' && num(r.unitPrice) > 0; });
       var prices = rows.map(function (r) { return num(r.unitPrice); });
       var min = prices.length ? Math.min.apply(null, prices) : 0;
       var max = prices.length ? Math.max.apply(null, prices) : 0;
@@ -94,8 +111,10 @@ var _rptSearch = '';
   }
   function reportMeta(kind) {
     var map = {
-      health: ['আর্থিক স্বাস্থ্য', 'আয়, ব্যয়, বকেয়া ও ঝুঁকির একসাথে বিশ্লেষণ'],
-      monthly: ['মাসভিত্তিক তুলনা', 'কোন মাসে চাপ বেশি এবং কোন মাসে উদ্বৃত্ত আছে'],
+      health: ['নিয়মিত হিসাব', 'করজ বাদে আয়, ব্যয়, ব্যালেন্স ও বকেয়ার বিশ্লেষণ'],
+      cash: ['নগদ প্রবাহ', 'নিয়মিত লেনদেন ও করজ মিলিয়ে প্রকৃত নগদ চলাচল'],
+      qard: ['করজে হাসানা', 'করজ দেওয়া, আদায় এবং বর্তমান বাকি'],
+      monthly: ['মাসভিত্তিক তুলনা', 'নিয়মিত আয়-ব্যয় ও নগদ প্রবাহের মাসিক চিত্র'],
       account: ['হিসাব বই বিশ্লেষণ', 'মাতবাখ, মাদ্রাসা, তামিরাত ও জেনারেলের ব্যয়ভাগ'],
       item: ['পণ্য/দর বিশ্লেষণ', 'একই পণ্যের দামের ওঠানামা ও অস্বাভাবিকতা'],
       supplier: ['সরবরাহকারী রিপোর্ট', 'কার কাছে কত কেনা, কত বকেয়া ও কী বেশি নেওয়া হয়েছে'],
@@ -110,21 +129,25 @@ var _rptSearch = '';
   }
   function buildOverview() {
     var s = A.Summary.get(null);
-    var bal = num(s.ti) - num(s.te);
-    var due = num(s.td);
+    var bal = num(s.operatingBalance);
+    var due = num(s.supplierDue);
     var months = nonZeroMonths();
     var worstMonth = months.slice().sort(function (a, b) { return (b.exp - b.inc) - (a.exp - a.inc); })[0] || { m:'তথ্য নেই', inc:0, exp:0 };
     var topCat = topEntry(groupedExpense('category'), 'amount');
     var topSup = topEntry(groupedExpense('supplier'), 'amount');
     var priceSignal = itemPriceSignals()[0];
     var alerts = [
-      '<div class="rpt-alert ' + (bal >= 0 ? 'good' : 'bad') + '"><strong>বর্তমান স্বাস্থ্য</strong>' + (bal >= 0 ? 'উদ্বৃত্ত ' : 'ঘাটতি ') + money(bal) + '. মোট বকেয়া ' + money(due) + '।</div>',
-      '<div class="rpt-alert warn"><strong>চাপ বেশি</strong>' + esc(worstMonth.m) + ' মাসে ব্যয়-আয় পার্থক্য ' + money(worstMonth.exp - worstMonth.inc) + '।</div>',
+      '<div class="rpt-alert ' + (bal >= 0 ? 'good' : 'bad') + '"><strong>নিয়মিত হিসাব</strong>' + (bal >= 0 ? 'উদ্বৃত্ত ' : 'ঘাটতি ') + money(bal) + '। মোট বকেয়া ' + money(due) + '।</div>',
+      '<div class="rpt-alert ' + (s.cashFlow >= 0 ? 'good' : 'bad') + '"><strong>নেট নগদ প্রবাহ</strong>' + (s.cashFlow >= 0 ? 'নগদ বৃদ্ধি ' : 'নগদ হ্রাস ') + money(s.cashFlow) + '।</div>',
+      '<div class="rpt-alert warn"><strong>করজে হাসানা</strong>দেওয়া ' + money(s.qardGiven) + ', আদায় ' + money(s.qardReturned) + ', বাকি ' + money(s.qardRemaining) + '।</div>',
+      '<div class="rpt-alert warn"><strong>চাপ বেশি</strong>' + esc(worstMonth.m) + ' মাসে নিয়মিত ব্যয়-আয় পার্থক্য ' + money(worstMonth.exp - worstMonth.inc) + '।</div>',
       '<div class="rpt-alert"><strong>খরচের কেন্দ্র</strong>' + esc(topCat.name) + ' খাতে ' + money(topCat.value) + ', সরবরাহকারীর মধ্যে ' + esc(topSup.name) + ' এগিয়ে।</div>',
     ];
     if (priceSignal) alerts.push('<div class="rpt-alert warn"><strong>দর ওঠানামা</strong>' + esc(priceSignal.item) + ' পণ্যে সর্বোচ্চ-সর্বনিম্ন ফারাক ' + money(priceSignal.spread) + '।</div>');
     var cards = [
-      ['health', money(bal), 'আর্থিক স্বাস্থ্য', 'ঝুঁকি, বকেয়া ও নগদ চাপ'],
+      ['health', money(bal), 'নিয়মিত হিসাব', 'আয়, ব্যয়, ব্যালেন্স ও বকেয়া'],
+      ['cash', money(s.cashFlow), 'নগদ প্রবাহ', 'সব নগদ আসা ও যাওয়া'],
+      ['qard', money(s.qardRemaining), 'করজে হাসানা', 'দেওয়া, আদায় ও বাকি'],
       ['monthly', count(months.length, 'মাস'), 'মাসিক তুলনা', 'আয়-ব্যয়ের প্রবণতা'],
       ['account', money(topEntry(groupedAccount(), 'amount').value), 'হিসাব বই', 'কোন বইতে ব্যয় বেশি'],
       ['item', priceSignal ? money(priceSignal.spread) : '—', 'পণ্য/দর', 'দর পরিবর্তন ও অস্বাভাবিকতা'],
@@ -137,11 +160,27 @@ var _rptSearch = '';
   }
   function buildHealthReport() {
     var s = A.Summary.get(null);
-    var bal = num(s.ti) - num(s.te);
-    var dueRate = num(s.te) ? Math.round(num(s.td) / num(s.te) * 100) : 0;
-    return '<div class="rpt-stat-row"><div class="rpt-stat"><div class="rpt-stat-lbl">নেট অবস্থা</div><div class="rpt-stat-val ' + (bal >= 0 ? 'rpt-dn' : 'rpt-up') + '">' + (bal < 0 ? '−' : '+') + money(bal) + '</div></div>' +
-      '<div class="rpt-stat"><div class="rpt-stat-lbl">বকেয়া হার</div><div class="rpt-stat-val">' + pct(dueRate) + '</div></div><div class="rpt-stat"><div class="rpt-stat-lbl">এন্ট্রি</div><div class="rpt-stat-val">' + count(A.Expense.getAll().length + A.Income.getAll().length, '') + '</div></div></div>' +
-      '<div class="rpt-card"><div class="rpt-card-title">ব্যাখ্যা</div><div class="rpt-card-row"><span>আয়</span><span class="rpt-dn">' + money(s.ti) + '</span></div><div class="rpt-card-row"><span>ব্যয়</span><span class="rpt-up">' + money(s.te) + '</span></div><div class="rpt-card-row"><span>বকেয়া</span><span class="rpt-up">' + money(s.td) + '</span></div></div>';
+    var dueRate = num(s.regularExpense) ? Math.round(num(s.supplierDue) / num(s.regularExpense) * 100) : 0;
+    var entryCount = regularExpenses().length + A.Income.getAll().filter(function (r) { return r.account !== 'qard_return'; }).length;
+    return '<div class="rpt-stat-row"><div class="rpt-stat"><div class="rpt-stat-lbl">আয়-ব্যয় ব্যালেন্স</div><div class="rpt-stat-val ' + (s.operatingBalance >= 0 ? 'rpt-dn' : 'rpt-up') + '">' + (s.operatingBalance < 0 ? '−' : '+') + money(s.operatingBalance) + '</div></div>' +
+      '<div class="rpt-stat"><div class="rpt-stat-lbl">বকেয়া হার</div><div class="rpt-stat-val">' + pct(dueRate) + '</div></div><div class="rpt-stat"><div class="rpt-stat-lbl">নিয়মিত এন্ট্রি</div><div class="rpt-stat-val">' + count(entryCount, '') + '</div></div></div>' +
+      '<div class="rpt-card"><div class="rpt-card-title">নিয়মিত হিসাব</div><div class="rpt-card-row"><span>নিয়মিত আয়</span><span class="rpt-dn">' + money(s.regularIncome) + '</span></div><div class="rpt-card-row"><span>নিয়মিত ব্যয়</span><span class="rpt-up">' + money(s.regularExpense) + '</span></div><div class="rpt-card-row"><span>সরবরাহকারী বকেয়া</span><span class="rpt-up">' + money(s.supplierDue) + '</span></div></div>';
+  }
+  function buildCashReport() {
+    var s = A.Summary.get(null);
+    return '<div class="rpt-stat-row"><div class="rpt-stat"><div class="rpt-stat-lbl">মোট নগদ আসা</div><div class="rpt-stat-val rpt-dn">' + money(s.cashIn) + '</div></div>' +
+      '<div class="rpt-stat"><div class="rpt-stat-lbl">মোট নগদ যাওয়া</div><div class="rpt-stat-val rpt-up">' + money(s.cashOut) + '</div></div>' +
+      '<div class="rpt-stat"><div class="rpt-stat-lbl">নেট নগদ প্রবাহ</div><div class="rpt-stat-val ' + (s.cashFlow >= 0 ? 'rpt-dn' : 'rpt-up') + '">' + (s.cashFlow < 0 ? '−' : '+') + money(s.cashFlow) + '</div></div></div>' +
+      '<div class="rpt-card"><div class="rpt-card-title">নগদ আসার উৎস</div><div class="rpt-card-row"><span>নিয়মিত আয়</span><span>' + money(s.regularIncome) + '</span></div><div class="rpt-card-row"><span>করজ আদায়</span><span>' + money(s.qardReturned) + '</span></div></div>' +
+      '<div class="rpt-card"><div class="rpt-card-title">নগদ যাওয়ার উৎস</div><div class="rpt-card-row"><span>নিয়মিত ব্যয়</span><span>' + money(s.regularExpense) + '</span></div><div class="rpt-card-row"><span>করজ দেওয়া</span><span>' + money(s.qardGiven) + '</span></div></div>';
+  }
+  function buildQardReport() {
+    var s = A.Summary.get(null);
+    return '<div class="rpt-stat-row"><div class="rpt-stat"><div class="rpt-stat-lbl">করজ দেওয়া</div><div class="rpt-stat-val rpt-up">' + money(s.qardGiven) + '</div></div>' +
+      '<div class="rpt-stat"><div class="rpt-stat-lbl">করজ আদায়</div><div class="rpt-stat-val rpt-dn">' + money(s.qardReturned) + '</div></div>' +
+      '<div class="rpt-stat"><div class="rpt-stat-lbl">করজ বাকি</div><div class="rpt-stat-val">' + money(s.qardRemaining) + '</div></div></div>' +
+      (s.qardOverpaid ? '<div class="rpt-alert warn"><strong>অতিরিক্ত আদায় শনাক্ত</strong>দেওয়া করজের তুলনায় ' + money(s.qardOverpaid) + ' বেশি আদায় নথিভুক্ত আছে। এন্ট্রি যাচাই করুন।</div>' : '') +
+      '<div class="rpt-card"><div class="rpt-card-title">হিসাবের নিয়ম</div><div class="rpt-card-row"><span>করজ বাকি</span><span>করজ দেওয়া − করজ আদায়</span></div><div class="rpt-card-row"><span>নিয়মিত আয়/ব্যয়ে প্রভাব</span><span>নেই</span></div><div class="rpt-card-row"><span>নগদ প্রবাহে প্রভাব</span><span>আছে</span></div></div>';
   }
   function buildMonthlyReport() {
     var rows = nonZeroMonths();
@@ -152,7 +191,9 @@ var _rptSearch = '';
       return '<div class="rpt-card"><div class="rpt-card-title">' + esc(d.m) + '</div>' +
         '<div class="rpt-bar-row"><div class="rpt-bar-lbl">আয়</div><div class="rpt-bar-wrap"><div class="rpt-bar-fill" style="width:' + Math.round(d.inc / maxVal * 100) + '%;background:var(--green)"></div></div><div class="rpt-bar-val">' + money(d.inc) + '</div></div>' +
         '<div class="rpt-bar-row"><div class="rpt-bar-lbl">ব্যয়</div><div class="rpt-bar-wrap"><div class="rpt-bar-fill" style="width:' + Math.round(d.exp / maxVal * 100) + '%;background:var(--red)"></div></div><div class="rpt-bar-val">' + money(d.exp) + '</div></div>' +
-        '<div class="rpt-card-row" style="font-weight:900"><span>উদ্বৃত্ত/ঘাটতি</span><span class="' + (bal >= 0 ? 'rpt-dn' : 'rpt-up') + '">' + (bal < 0 ? '−' : '+') + money(bal) + '</span></div></div>';
+        '<div class="rpt-card-row"><span>করজ দেওয়া / আদায়</span><span>' + money(d.qardGiven) + ' / ' + money(d.qardReturned) + '</span></div>' +
+        '<div class="rpt-card-row"><span>নেট নগদ প্রবাহ</span><span class="' + (d.cashFlow >= 0 ? 'rpt-dn' : 'rpt-up') + '">' + (d.cashFlow < 0 ? '−' : '+') + money(d.cashFlow) + '</span></div>' +
+        '<div class="rpt-card-row" style="font-weight:900"><span>নিয়মিত উদ্বৃত্ত/ঘাটতি</span><span class="' + (bal >= 0 ? 'rpt-dn' : 'rpt-up') + '">' + (bal < 0 ? '−' : '+') + money(bal) + '</span></div></div>';
     }).join('');
   }
   function buildAccountReport() {
@@ -160,22 +201,23 @@ var _rptSearch = '';
     var total = Object.keys(data).reduce(function (s, k) { return s + num(data[k].amount); }, 0);
     if (!total) return '<div class="rpt-empty">হিসাব বইয়ের ব্যয় নেই</div>';
     var max = Math.max.apply(null, Object.keys(data).map(function (k) { return data[k].amount; }).concat([1]));
-    return Object.keys(A.ACCOUNT_LABELS).filter(function (k) { return k !== 'qard_return'; }).map(function (k) {
+    return Object.keys(A.ACCOUNT_LABELS).filter(function (k) { return k !== 'qard' && k !== 'qard_return'; }).map(function (k) {
       var v = data[k] || { amount: 0, count: 0 };
       return '<div class="rpt-bar-row"><div class="rpt-bar-lbl">' + esc(A.ACCOUNT_LABELS[k]) + '</div><div class="rpt-bar-wrap"><div class="rpt-bar-fill" style="width:' + Math.round(num(v.amount) / max * 100) + '%;background:var(--gold)"></div></div><div class="rpt-bar-val">' + money(v.amount) + ' <span style="color:var(--ink3)">(' + pct(Math.round(num(v.amount) / total * 100)) + ')</span></div></div>';
     }).join('');
   }
   function buildItemReport() {
-    var allItems = A.Expense.itemNames();
+    var allItems = regularItemNames();
     if (!allItems.length) return '<div class="rpt-empty">পরিমাণসহ কোনো ব্যয় রেকর্ড নেই</div>';
     var items = _rptSearch ? allItems.filter(function(i){ return i.toLowerCase().indexOf(_rptSearch.toLowerCase()) >= 0 || i.indexOf(_rptSearch) >= 0; }) : allItems;
     if (!_rptItem || items.indexOf(_rptItem) < 0) _rptItem = items[0] || '';
     var selHTML = '<input class="rpt-sel" id="rpt-item-search" placeholder="পণ্য খুঁজুন..." value="' + esc(_rptSearch) + '" oninput="updateRptSearch(this.value)">' +
       (items.length ? '<select class="rpt-sel" onchange="_rptItem=this.value;activeRptContainer() && renderAccountsReports(activeRptContainer())">' + items.map(function (i) { return '<option value="' + esc(i) + '"' + (i === _rptItem ? ' selected' : '') + '>' + esc(i) + '</option>'; }).join('') + '</select>' : '<div class="rpt-empty">কোনো পণ্য পাওয়া যায়নি</div>');
-    var records = _rptItem ? A.Expense.getByItem(_rptItem).filter(function (r) { return num(r.quantity) > 0; }) : [];
+    var records = _rptItem ? A.Expense.getByItem(_rptItem).filter(function (r) { return r.account !== 'qard' && num(r.quantity) > 0; }) : [];
     if (!records.length) return selHTML + '<div class="rpt-empty">পরিমাণসহ কোনো রেকর্ড নেই</div>';
     var prices = records.map(function (r) { return num(r.unitPrice); }).filter(function (p) { return p > 0; });
-    var minP = Math.min.apply(null, prices.concat([0])); var maxP = Math.max.apply(null, prices.concat([0]));
+    var minP = prices.length ? Math.min.apply(null, prices) : 0;
+    var maxP = prices.length ? Math.max.apply(null, prices) : 0;
     var totalQty = records.reduce(function (s, r) { return s + num(r.quantity); }, 0);
     var totalAmt = sumRows(records);
     var rows = records.map(function (r) {
@@ -207,6 +249,8 @@ var _rptSearch = '';
   }
   function buildDetail() {
     if (_rptView === 'health') return buildHealthReport();
+    if (_rptView === 'cash') return buildCashReport();
+    if (_rptView === 'qard') return buildQardReport();
     if (_rptView === 'monthly') return buildMonthlyReport();
     if (_rptView === 'account') return buildAccountReport();
     if (_rptView === 'item') return buildItemReport();
