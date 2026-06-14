@@ -93,9 +93,9 @@ function injectCapacitorNative(html, relativeRoot, version) {
   return `${html}\n${tags}\n`;
 }
 
-function injectBootScript(html, relativeRoot) {
+function injectBootScript(html, relativeRoot, version) {
   if (!/mm-session\.js/i.test(html) || /mm-boot\.js/i.test(html)) return html;
-  const tag = `<script src="${relativeRoot}js/mm-boot.js"></script>`;
+  const tag = `<script src="${relativeRoot}js/mm-boot.js?v=${encodeURIComponent(version)}"></script>`;
   if (/<meta\s+charset=/i.test(html)) {
     return html.replace(/(<meta\s+charset=[^>]+>)/i, `$1\n${tag}`);
   }
@@ -114,7 +114,7 @@ function transformHtml(html, relativeRoot, version) {
       if (!/\brel=["'][^"']*stylesheet/i.test(match)) return match;
       return before + versionAssetUrl(url, version) + after;
     });
-  next = injectBootScript(next, relativeRoot);
+  next = injectBootScript(next, relativeRoot, version);
   next = injectAppUpdate(next, relativeRoot, version);
   next = injectInstallPrompt(next, relativeRoot, version);
   return injectCapacitorNative(next, relativeRoot, version);

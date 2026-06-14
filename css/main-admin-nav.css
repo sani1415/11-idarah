@@ -23,9 +23,18 @@
   transform: translateZ(0);
 }
 
+.main-nav {
+  view-transition-name: mm-admin-nav;
+}
+
+.topbar {
+  view-transition-name: mm-admin-topbar;
+}
+
 .main-nav-btn,
 .hub-bottom-nav .hub-nav-btn {
   position: relative;
+  z-index: 1;
   flex: 1 1 0;
   min-width: 0;
   display: flex;
@@ -45,7 +54,8 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   text-decoration: none;
-  transition: background 0.2s ease, color 0.2s ease;
+  touch-action: manipulation;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.12s ease;
 }
 
 .main-nav-ico,
@@ -55,6 +65,7 @@
   flex-shrink: 0;
   opacity: 0.88;
   color: inherit;
+  transition: color 0.18s ease, opacity 0.18s ease, transform 0.2s cubic-bezier(.2, .8, .2, 1);
 }
 
 .main-nav-ico path,
@@ -69,12 +80,15 @@
 .main-nav-btn.is-active,
 .hub-bottom-nav .hub-nav-btn.is-active {
   background: rgba(232, 184, 75, 0.22);
-  color: var(--ink2);
+  color: var(--ink);
+  font-weight: 700;
 }
 
 .main-nav-btn.is-active .main-nav-ico,
 .hub-bottom-nav .hub-nav-btn.is-active .hub-nav-ico {
   opacity: 1;
+  color: var(--gold);
+  transform: translateY(-1px) scale(1.06);
 }
 
 .main-nav-btn:hover,
@@ -84,6 +98,11 @@
   background: rgba(255, 255, 255, 0.7);
   color: var(--ink2);
   outline: none;
+}
+
+.main-nav-btn:active,
+.hub-bottom-nav .hub-nav-btn:active {
+  transform: scale(0.96);
 }
 
 .main-nav-lbl,
@@ -103,21 +122,107 @@
 /* ── স্লাইডিং পিল ইন্ডিকেটর ── */
 .main-nav-pill {
   position: absolute;
+  left: 0;
+  top: 0;
   border-radius: 14px;
   background: rgba(232, 184, 75, 0.22);
   pointer-events: none;
   z-index: 0;
+  will-change: transform, width, height;
+  transform: translate3d(0, 0, 0);
 }
 .main-nav.pill-active .main-nav-pill {
   transition:
-    left   0.22s cubic-bezier(.4, 0, .2, 1),
-    width  0.22s cubic-bezier(.4, 0, .2, 1),
-    top    0.22s cubic-bezier(.4, 0, .2, 1),
-    height 0.22s cubic-bezier(.4, 0, .2, 1);
+    transform 0.26s cubic-bezier(.2, .8, .2, 1),
+    width 0.22s cubic-bezier(.2, .8, .2, 1),
+    height 0.22s cubic-bezier(.2, .8, .2, 1);
 }
 /* pill চালু হলে is-active-এর static background সরাও */
 .main-nav.pill-active .main-nav-btn.is-active {
   background: transparent;
+}
+
+.main-nav.is-navigating {
+  pointer-events: none;
+}
+
+html.mm-admin-nav-committing .content,
+html.mm-admin-nav-committing .topbar,
+html.mm-admin-nav-committing #view-inbox,
+html.mm-admin-nav-committing #view-thread,
+html.mm-admin-nav-committing #view-new {
+  opacity: 0.94;
+  transform: translateY(2px);
+  transition: opacity 90ms ease-out, transform 90ms ease-out;
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(root) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+
+::view-transition-old(root) {
+  animation: mm-admin-page-out 120ms ease-out both;
+}
+
+::view-transition-new(root) {
+  animation: mm-admin-page-in 220ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+::view-transition-group(mm-admin-nav) {
+  z-index: 100;
+  animation-duration: 260ms;
+  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+
+::view-transition-group(mm-admin-topbar) {
+  animation-duration: 200ms;
+  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+
+@keyframes mm-admin-page-out {
+  to {
+    opacity: 0.84;
+    transform: translateY(-2px) scale(0.998);
+  }
+}
+
+@keyframes mm-admin-page-in {
+  from {
+    opacity: 0.72;
+    transform: translateY(7px) scale(0.998);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-nav-btn,
+  .hub-bottom-nav .hub-nav-btn,
+  .main-nav-ico,
+  .hub-bottom-nav .hub-nav-ico,
+  .main-nav.pill-active .main-nav-pill,
+  html.mm-admin-nav-committing .content,
+  html.mm-admin-nav-committing .topbar,
+  html.mm-admin-nav-committing #view-inbox,
+  html.mm-admin-nav-committing #view-thread,
+  html.mm-admin-nav-committing #view-new {
+    transition: none;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-group(root),
+  ::view-transition-group(mm-admin-nav),
+  ::view-transition-group(mm-admin-topbar) {
+    animation-duration: 1ms;
+  }
 }
 
 /* ══ Desktop (≥ 960px) — wider admin nav pill ══ */

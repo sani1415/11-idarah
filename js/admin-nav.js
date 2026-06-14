@@ -5,9 +5,12 @@
 (function () {
   'use strict';
 
+  var NAVIGATION_COMMIT_DELAY = 90;
+
   function init() {
     var nav = document.querySelector('.main-nav');
     if (!nav || nav.querySelector('.main-nav-pill')) return;
+    var navigating = false;
 
     var pill = document.createElement('span');
     pill.className = 'main-nav-pill';
@@ -16,8 +19,8 @@
 
     var active = nav.querySelector('.main-nav-btn.is-active');
     if (active) {
+      active.setAttribute('aria-current', 'page');
       place(pill, active);
-      /* দুই ফ্রেম পরে transition চালু — প্রথম placement অ্যানিমেশন ছাড়া */
       requestAnimationFrame(function () {
         requestAnimationFrame(function () {
           nav.classList.add('pill-active');
@@ -28,37 +31,77 @@
     nav.querySelectorAll('.main-nav-btn').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         var href = btn.getAttribute('href');
-        if (!href || btn.classList.contains('is-active')) return;
+        var target = btn.getAttribute('target');
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey ||
+            target === '_blank' || btn.hasAttribute('download')) return;
+        if (!href || btn.classList.contains('is-active') || navigating) return;
         e.preventDefault();
-        /* active সরিয়ে নতুন আইটেমে দাও যাতে রঙও সাথে যায় */
+        giveNativeTapFeedback();
+        navigating = true;
+        nav.classList.add('is-navigating');
         var prev = nav.querySelector('.is-active');
-        if (prev) prev.classList.remove('is-active');
+        if (prev) {
+          prev.classList.remove('is-active');
+          prev.removeAttribute('aria-current');
+        }
         btn.classList.add('is-active');
+        btn.setAttribute('aria-current', 'page');
         place(pill, btn);
-        /* পুরনো content যেন ঝুলে না থাকে: ওয়ার্ম না হলে সাথে সাথে লোডিং কভার
-           দেখাই, তারপর সরাসরি navigate (কৃত্রিম বিলম্ব ছাড়া)। */
-        showNavCover();
-        location.href = href;
+        document.documentElement.classList.add('mm-admin-nav-committing');
+        requestAnimationFrame(function () {
+          prepareNavCover();
+          setTimeout(function () {
+            location.href = href;
+          }, prefersReducedMotion() ? 0 : NAVIGATION_COMMIT_DELAY);
+        });
       });
     });
+
+    var reposition = function () {
+      var current = nav.querySelector('.main-nav-btn.is-active');
+      if (current) place(pill, current);
+    };
+    window.addEventListener('resize', reposition, { passive: true });
+    window.addEventListener('pageshow', function () {
+      navigating = false;
+      nav.classList.remove('is-navigating');
+      document.documentElement.classList.remove('mm-admin-nav-committing');
+      reposition();
+    });
+    if (window.ResizeObserver) {
+      new ResizeObserver(reposition).observe(nav);
+    }
   }
 
   function isWarm() {
     return !!(window.MMSession && MMSession.isAppDataWarm && MMSession.isAppDataWarm());
   }
 
-  function showNavCover() {
+  function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  function giveNativeTapFeedback() {
+    try {
+      var cap = window.Capacitor;
+      if (cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform() &&
+          navigator.vibrate) {
+        navigator.vibrate(8);
+      }
+    } catch (e) {}
+  }
+
+  function prepareNavCover() {
     if (isWarm()) return;
     try { sessionStorage.setItem('mm_nav_loading', '1'); } catch (e) {}
-    if (window.MMLoading && MMLoading.show) MMLoading.show();
   }
 
   function place(pill, btn) {
+    if (!pill || !btn || !btn.getClientRects().length) return;
     var nr = pill.parentElement.getBoundingClientRect();
     var br = btn.getBoundingClientRect();
-    pill.style.left   = (br.left   - nr.left) + 'px';
+    pill.style.transform = 'translate3d(' + (br.left - nr.left) + 'px,' + (br.top - nr.top) + 'px,0)';
     pill.style.width  = br.width             + 'px';
-    pill.style.top    = (br.top    - nr.top)  + 'px';
     pill.style.height = br.height            + 'px';
   }
 
