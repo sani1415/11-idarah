@@ -47,9 +47,10 @@ var _qardGiveInlineOpen = false; /* করজ বিস্তারিত মড
     return Object.entries(A.ACCOUNT_LABELS).filter(function (e) { return e[0] !== 'qard_return'; });
   }
 
-  function filterIconBtn(active, count) {
+  function filterIconBtn(active, count, mode) {
     var svg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>';
-    return '<button type="button" class="acc-filter-icon-btn' + (active ? ' is-on' : '') + '" onclick="openAccFilterSheet(this)">' + svg + 'ফিল্টার' + (active && count ? '<span class="acc-filter-badge">' + bn(count) + '</span>' : '') + '</button>';
+    var modeArg = mode ? ",'" + mode + "'" : '';
+    return '<button type="button" class="acc-filter-icon-btn' + (active ? ' is-on' : '') + '" onclick="openAccFilterSheet(this' + modeArg + ')">' + svg + 'ফিল্টার' + (active && count ? '<span class="acc-filter-badge">' + bn(count) + '</span>' : '') + '</button>';
   }
 
   function monthOptions(selected) {
@@ -346,7 +347,125 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
 .acc-dd-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:6px 12px 0;border-bottom:1px solid rgba(26,18,8,.06)}
 .acc-dd-tab{border:none;background:none;color:var(--ink3);font-size:10px;font-weight:700;cursor:pointer;padding:5px 10px;border-radius:7px 7px 0 0;font-family:inherit;white-space:nowrap}
 .acc-dd-tab:hover,.acc-dd-tab:focus-visible{background:rgba(26,18,8,.04);color:var(--ink2)}
-.acc-dd-tab.acc-dd-tab-on{background:var(--ink);color:var(--gold2)}`;
+.acc-dd-tab.acc-dd-tab-on{background:var(--ink);color:var(--gold2)}
+.acc-income-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+.acc-income-table th{position:sticky;top:0;z-index:2;text-align:left;padding:8px 6px;font-size:10px;font-weight:800;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid var(--cream2);background:#faf3e8;white-space:nowrap;user-select:none}
+.acc-income-table th.acc-sort-th{cursor:pointer}
+.acc-income-table th.acc-sort-th:hover{color:var(--ink)}
+.acc-income-table td{padding:7px 6px;border-bottom:1px solid var(--cream2);vertical-align:middle}
+.acc-income-table tr:last-child td{border-bottom:none}
+.acc-income-table .acc-list-amt{font-weight:800;text-align:right;white-space:nowrap}
+.acc-income-table .acc-list-amt.inc{color:var(--green)}
+.acc-col-head{display:flex;align-items:center;gap:3px;min-width:0}
+.acc-col-head-label{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.acc-col-search{display:block;width:100%;min-width:58px;height:26px;margin-top:5px;padding:3px 7px;border:1px solid rgba(26,18,8,.1);border-radius:7px;background:rgba(255,255,255,.7);color:var(--ink);font:600 10px/1.2 inherit;letter-spacing:0;text-transform:none;outline:none;box-sizing:border-box}
+.acc-col-search::placeholder{color:var(--ink3);font-weight:500;opacity:.7}
+.acc-col-search:focus{border-color:var(--gold);background:#fff;box-shadow:0 0 0 2px rgba(154,106,33,.1)}
+.acc-col-search.is-on{border-color:rgba(154,106,33,.45);background:#fff8e8;color:var(--ink)}
+.col-flt-icon{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;width:20px;height:20px;border:0;border-radius:5px;background:transparent;cursor:pointer;font:800 11px/1 inherit;color:var(--ink3);user-select:none;flex:0 0 auto}
+.col-flt-icon:hover,.col-flt-icon:focus-visible{background:rgba(26,18,8,.08);color:var(--ink);outline:none}
+.col-flt-icon.is-on{background:rgba(154,106,33,.12);color:var(--gold)}
+.col-flt-panel{background:#fffaf1;border:1px solid rgba(154,106,33,.22);border-radius:14px;box-shadow:0 12px 40px rgba(26,18,8,.2);padding:10px;width:min(260px,calc(100vw - 16px));max-height:min(360px,calc(100vh - 20px));display:flex;flex-direction:column;box-sizing:border-box}
+.col-flt-search{width:100%;height:32px;border:1px solid rgba(26,18,8,.12);border-radius:9px;background:#fff;color:var(--ink);font:600 11px/1 inherit;padding:6px 9px;outline:none;box-sizing:border-box}
+.col-flt-search:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,106,33,.1)}
+.col-flt-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:7px 0 5px}
+.col-flt-link{border:0;background:none;color:var(--gold);font:700 10px/1 inherit;cursor:pointer;padding:3px 0}
+.col-flt-options{display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:0}
+.col-flt-empty{padding:14px 6px;text-align:center;color:var(--ink3);font-size:11px}
+/* Modern income detail workspace */
+body #modal-account-details.acc-income-detail-open{padding:16px;backdrop-filter:blur(5px);background:rgba(26,18,8,.52)}
+body #modal-account-details.acc-income-detail-open .modal{width:min(1180px,calc(100vw - 32px));height:min(820px,calc(100vh - 32px));max-width:none;max-height:calc(100vh - 32px);padding:0;overflow:hidden;border:1px solid rgba(26,18,8,.08);border-radius:22px;background:#fff;box-shadow:0 28px 80px rgba(26,18,8,.24);display:flex;flex-direction:column}
+body #modal-account-details.acc-income-detail-open .modal-title{flex:0 0 auto;align-items:center;margin:0;padding:23px 30px 19px;border-bottom:1px solid rgba(26,18,8,.08);font-family:'Tiro Bangla',serif;font-size:28px;font-weight:900;line-height:1.2;color:var(--ink);background:#fff}
+body #modal-account-details.acc-income-detail-open .modal-close{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0;border:1px solid rgba(26,18,8,.12);border-radius:10px;background:#fff;color:var(--ink2);transition:background .16s,border-color .16s,transform .16s}
+body #modal-account-details.acc-income-detail-open .modal-close:hover{background:#faf7f2;border-color:rgba(26,18,8,.2);transform:translateY(-1px)}
+body #modal-account-details.acc-income-detail-open .modal-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
+body #modal-account-details.acc-income-detail-open #account-details-root{padding:21px 30px 27px;box-sizing:border-box;background:#fff}
+.acc-income-shell{display:flex;flex-direction:column;gap:14px;flex:1;min-height:0}
+.acc-income-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));min-height:116px;border:1px solid rgba(13,116,80,.2);border-radius:16px;background:#fbfdfc;overflow:hidden}
+.acc-income-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:14px 20px;text-align:center;min-width:0;position:relative}
+.acc-income-stat+.acc-income-stat:before{content:'';position:absolute;left:0;top:22%;bottom:22%;width:1px;background:rgba(26,18,8,.12)}
+.acc-income-stat-label{font-size:12px;font-weight:800;color:var(--ink3);line-height:1.2}
+.acc-income-stat-value{font-family:'Tiro Bangla',serif;font-size:25px;font-weight:900;line-height:1.1;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.acc-income-stat-value.is-income{color:#087a50;font-size:32px}
+.acc-income-stat-value.is-expense{color:var(--red);font-size:32px}
+.acc-income-stat-value.is-status{font-size:19px;color:#087a50}
+.acc-income-toolbar{display:grid;grid-template-columns:minmax(190px,1fr) minmax(170px,.85fr) auto;gap:10px;align-items:center}
+.acc-income-tool{min-height:46px;display:flex;align-items:center;gap:9px;padding:9px 13px;border:1px solid rgba(26,18,8,.13);border-radius:11px;background:#fff;color:var(--ink2);font:800 13px/1.2 inherit;cursor:pointer;text-align:left;transition:border-color .15s,background .15s,box-shadow .15s}
+.acc-income-tool:hover,.acc-income-tool:focus-visible{border-color:rgba(154,106,33,.45);background:#fffaf2;box-shadow:0 0 0 3px rgba(154,106,33,.08);outline:none}
+.acc-income-tool svg{width:18px;height:18px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.acc-income-tool-copy{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.acc-income-tool-copy small{font-size:9px;font-weight:700;color:var(--ink3)}
+.acc-income-tool-copy strong{font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-income-tool-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#087a50;color:#fff;font-size:9px;box-sizing:border-box}
+.acc-income-tool.clear{width:auto;color:#9a6a21;border-color:rgba(154,106,33,.45);justify-content:center;padding-inline:16px}
+.acc-income-tool.clear:hover{background:#fff8e8}
+.acc-income-tool.clear[hidden]{display:none}
+#modal-account-details.acc-income-detail-open .acc-table-wrap{border-color:rgba(26,18,8,.11);border-radius:16px;box-shadow:0 8px 24px rgba(26,18,8,.05);scrollbar-color:rgba(26,18,8,.2) transparent}
+#modal-account-details.acc-income-detail-open .acc-income-table{min-width:700px;margin:0;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:14px}
+#modal-account-details.acc-income-detail-open .acc-income-table th{padding:13px 12px 10px;background:#faf8f4;border-bottom:1px solid rgba(26,18,8,.1);color:var(--ink2);font-size:12px;text-transform:none;letter-spacing:0;z-index:3}
+#modal-account-details.acc-income-detail-open .acc-income-table th:nth-child(1){width:21%}
+#modal-account-details.acc-income-detail-open .acc-income-table th:nth-child(2){width:auto}
+#modal-account-details.acc-income-detail-open .acc-income-table th:nth-child(3){width:21%}
+#modal-account-details.acc-income-detail-open .acc-income-table:not(.is-readonly) th:last-child{width:84px}
+#modal-account-details.acc-income-detail-open .acc-expense-detail-table{min-width:1120px}
+#modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(1){width:130px}
+#modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(2){width:130px}
+#modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(3){width:140px}
+#modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(4){width:210px}
+#modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(5){width:155px}
+#modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(6){width:155px}
+#modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(7){width:110px}
+#modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(8){width:145px}
+#modal-account-details.acc-income-detail-open .acc-expense-detail-table .acc-list-amt.expense{color:var(--red)}
+#modal-account-details.acc-income-detail-open .acc-col-head{gap:7px;margin-bottom:8px}
+#modal-account-details.acc-income-detail-open .acc-col-head-label{font-size:13px;font-weight:900;color:var(--ink2)}
+#modal-account-details.acc-income-detail-open .col-flt-icon{width:26px;height:26px;border:1px solid rgba(26,18,8,.1);background:#fff;border-radius:7px}
+#modal-account-details.acc-income-detail-open .col-flt-icon:hover,#modal-account-details.acc-income-detail-open .col-flt-icon.is-on{border-color:rgba(154,106,33,.38);background:#fff8e8;color:#9a6a21}
+#modal-account-details.acc-income-detail-open .acc-col-search{height:34px;margin:0;padding:7px 10px;border-color:rgba(26,18,8,.12);border-radius:9px;background:#fff;font-size:11px;font-weight:700}
+#modal-account-details.acc-income-detail-open .acc-income-table td{height:58px;padding:11px 12px;border-bottom:1px solid rgba(26,18,8,.07);background:#fff;color:var(--ink2);box-sizing:border-box}
+#modal-account-details.acc-income-detail-open .acc-income-table tbody tr:nth-child(even) td{background:#fcfaf7}
+#modal-account-details.acc-income-detail-open .acc-income-table tbody tr:hover td{background:#fff8e8}
+#modal-account-details.acc-income-detail-open .acc-income-table td:first-child{font-size:12px!important;font-weight:700;color:var(--ink3)!important;white-space:nowrap}
+#modal-account-details.acc-income-detail-open .acc-income-table td:nth-child(2){font-size:14px;font-weight:800;line-height:1.35;white-space:normal;overflow-wrap:anywhere}
+#modal-account-details.acc-income-detail-open .acc-income-table .acc-list-amt{font-family:'Tiro Bangla',serif;font-size:17px;font-weight:900;color:#087a50;text-align:right}
+.acc-income-actions{display:flex;justify-content:flex-end;gap:6px}
+.acc-income-action{display:inline-flex;align-items:center;justify-content:center;width:31px;height:31px;padding:0;border-radius:8px;background:#fff;cursor:pointer;transition:background .15s,transform .15s}
+.acc-income-action svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.acc-income-action.edit{border:1px solid rgba(8,122,80,.4);color:#087a50}
+.acc-income-action.delete{border:1px solid rgba(193,68,14,.32);color:var(--red)}
+.acc-income-action:hover{transform:translateY(-1px)}
+.acc-income-action.edit:hover{background:#effaf5}.acc-income-action.delete:hover{background:#fff3ef}
+@media (max-width:700px){
+ body #modal-account-details.acc-income-detail-open{padding:12px 0 0;align-items:flex-end}
+ body #modal-account-details.acc-income-detail-open .modal{width:100vw;height:calc(100dvh - 12px);max-height:calc(100dvh - 12px);border-radius:24px 24px 0 0;border-bottom:0}
+ body #modal-account-details.acc-income-detail-open .modal:before{content:'';position:absolute;top:9px;left:50%;width:44px;height:4px;transform:translateX(-50%);border-radius:999px;background:rgba(26,18,8,.2);z-index:4}
+ body #modal-account-details.acc-income-detail-open .modal-title{padding:25px 18px 15px;font-size:21px}
+ body #modal-account-details.acc-income-detail-open .modal-close{width:36px;height:36px}
+ body #modal-account-details.acc-income-detail-open #account-details-root{padding:14px 14px 16px}
+ .acc-income-shell{gap:11px}
+ .acc-income-summary{min-height:98px;border-radius:14px}
+ .acc-income-stat{gap:5px;padding:10px 3px}
+ .acc-income-stat-label{font-size:9px}
+ .acc-income-stat-value{font-size:17px}
+ .acc-income-stat-value.is-income{font-size:16px;overflow:visible;text-overflow:clip}
+ .acc-income-stat-value.is-expense{font-size:16px;overflow:visible;text-overflow:clip}
+ .acc-income-stat-value.is-status{font-size:12px}
+ .acc-income-toolbar{grid-template-columns:minmax(120px,1fr) minmax(105px,.85fr) auto;gap:7px}
+ .acc-income-tool{min-height:40px;padding:7px 9px;border-radius:10px}
+ .acc-income-tool svg{width:16px;height:16px}
+ .acc-income-tool-copy small{display:none}
+ .acc-income-tool-copy strong{font-size:11px}
+ .acc-income-tool.clear{padding-inline:10px}
+ .acc-income-tool.clear .acc-income-tool-copy{display:none}
+ #modal-account-details.acc-income-detail-open .acc-table-wrap{border-radius:14px}
+ #modal-account-details.acc-income-detail-open .acc-income-table{min-width:580px;font-size:13px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table{min-width:1120px}
+ #modal-account-details.acc-income-detail-open .acc-income-table th{padding:11px 9px 9px}
+ #modal-account-details.acc-income-detail-open .acc-income-table td{height:54px;padding:9px}
+ #modal-account-details.acc-income-detail-open .acc-col-search{height:32px;padding:6px 8px}
+ .col-flt-panel{max-height:min(330px,calc(100vh - 16px))}
+}
+@media (prefers-reduced-motion:reduce){.acc-income-tool,.acc-income-action,body #modal-account-details.acc-income-detail-open .modal-close{transition:none}}`;
     document.head.appendChild(cs);
   }
 
@@ -524,6 +643,9 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   };
   window.resetAccFilters = function () {
     _monFs = []; _accFs = []; _catFs = []; _yearFs = []; _dayF = 'all'; _fromKey = 'all'; _toKey = 'all';
+    clearTimeout(_colSearchTimer);
+    _colFilters = {}; _colSearch = {}; _colFltOpen = null;
+    window.closeColFilter();
     window.closeMainFilterDropdown();
     rerenderAccountsView();
   };
@@ -576,8 +698,10 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
 
   /* ── Global main filter dropdown ── */
   var _mainFilterDropdownTrigger = null;
+  var _mainFilterMode = 'full';
   function _rebuildMainFilterDropdown() {
     var trigger = _mainFilterDropdownTrigger;
+    var mode = _mainFilterMode;
     var scrollTop = 0;
     var existing = document.getElementById('acc-main-filter-dropdown');
     if (existing) {
@@ -586,7 +710,7 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     }
     window.closeMainFilterDropdown();
     window.closeAccFilterDropdown();
-    if (trigger) { openAccFilterSheet(trigger); var p = document.querySelector('.acc-dd-panel'); if (p) p.scrollTop = scrollTop; }
+    if (trigger) { openAccFilterSheet(trigger, mode); var p = document.querySelector('.acc-dd-panel'); if (p) p.scrollTop = scrollTop; }
   }
   window._rebuildMainFilterDropdown = _rebuildMainFilterDropdown;
   window.closeMainFilterDropdown = function () {
@@ -594,19 +718,21 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     if (el) el.remove();
     _mainFilterDropdownTrigger = null;
   };
-  window.openAccFilterSheet = function (triggerEl) {
+  window.openAccFilterSheet = function (triggerEl, mode) {
     var existing = document.getElementById('acc-main-filter-dropdown');
     if (existing) { existing.remove(); _mainFilterDropdownTrigger = null; return; }
     window.closeAccFilterDropdown();
-    if (!triggerEl) { normalizeMonthFilters(); _sheetBuildMainFilter(); return; }
+    _mainFilterMode = mode || 'full';
+    if (!triggerEl) { normalizeMonthFilters(); _sheetBuildMainFilter(_mainFilterMode); return; }
     _mainFilterDropdownTrigger = triggerEl;
     normalizeMonthFilters();
-    _sheetBuildMainFilter();
+    _sheetBuildMainFilter(_mainFilterMode);
   };
-  function _sheetBuildMainFilter() {
+  function _sheetBuildMainFilter(mode) {
     var existing = document.getElementById('acc-main-filter-dropdown');
     if (existing) existing.remove();
     var years = getAllYears();
+    var isIncome = mode === 'income';
     /* collect sections + tab labels */
     var sections = [];
     var secIdx = 0;
@@ -638,12 +764,12 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     var yrs = years.map(function (y) { return [y, A.bn ? A.bn(y) : y]; });
     var yearSection = years.length ? _ddGroup('বছর (হিজরী)', yrs, _yearFs, 'toggleAccYear', 'toggleAllAccYears') : '';
     var monthSection = _ddGroup('মাস', A.MONTHS, _monFs, 'toggleAccMonth', 'toggleAllAccMonths');
-    var accSection = _ddGroup('হিসাব বই', expenseBookEntries(), _accFs, 'toggleAccAccount', 'toggleAllAccAccounts');
-    var cats = A.Categories ? A.Categories.getAll() : [];
-    var catSection = _ddGroup('খাত / ক্যাটাগরি', cats, _catFs, 'toggleAccCat', 'toggleAllAccCats');
+    var accSection = isIncome ? '' : _ddGroup('হিসাব বই', expenseBookEntries(), _accFs, 'toggleAccAccount', 'toggleAllAccAccounts');
+    var cats = isIncome ? [] : (A.Categories ? A.Categories.getAll() : []);
+    var catSection = isIncome ? '' : _ddGroup('খাত / ক্যাটাগরি', cats, _catFs, 'toggleAccCat', 'toggleAllAccCats');
     var rangeFromOn = _fromKey !== 'all', rangeToOn = _toKey !== 'all';
     var rangeSid = 'mfs-' + (secIdx++);
-    var rangeSection = '<div class="acc-dd-section" id="' + rangeSid + '">' +
+    var rangeSection = isIncome ? '' : '<div class="acc-dd-section" id="' + rangeSid + '">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
       '<div class="acc-ms-section-head">তারিখ সীমা</div>' +
       ((rangeFromOn || rangeToOn) ? '<button type="button" class="acc-ms-selall" onclick="clearAccDateRangeOnly()">সাফ</button>' : '') +
@@ -652,12 +778,12 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
       '<button type="button" class="acc-range-pick' + (rangeFromOn ? ' is-on' : '') + '" onclick="_rebuildMainFilterDropdown();openAccRangeSheet()"><small>শুরু</small><span>' + esc(rangeFromOn ? A.dateLabel({ dateKey: _fromKey, day: 1 }) : 'নির্বাচন করুন') + '</span></button>' +
       '<button type="button" class="acc-range-pick' + (rangeToOn ? ' is-on' : '') + '" onclick="_rebuildMainFilterDropdown();openAccRangeSheet()"><small>শেষ</small><span>' + esc(rangeToOn ? A.dateLabel({ dateKey: _toKey, day: 1 }) : 'নির্বাচন করুন') + '</span></button>' +
       '</div></div>';
-    sections.push({ id: rangeSid, title: 'তারিখ সীমা' });
+    if (!isIncome) sections.push({ id: rangeSid, title: 'তারিখ সীমা' });
     var daySid = 'mfs-' + (secIdx++);
-    var daySection = '<div class="acc-dd-section" id="' + daySid + '">' +
+    var daySection = isIncome ? '' : '<div class="acc-dd-section" id="' + daySid + '">' +
       '<div class="acc-ms-section-head" style="margin-bottom:6px">দিন</div>' +
       '<select class="acc-sel" onchange="setAccFilter(\'day\',this.value);window._refreshAccDropdownUI()" style="width:100%">' + dayOpts + '</select></div>';
-    sections.push({ id: daySid, title: 'দিন' });
+    if (!isIncome) sections.push({ id: daySid, title: 'দিন' });
     /* build tabs — "সব" first */
     var tabsHtml = '<div class="acc-dd-tabs">' +
       '<button type="button" class="acc-dd-tab acc-dd-tab-on" data-target="all" onclick="window._filterByTab(this)">সব</button>' +
@@ -672,13 +798,13 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     el.innerHTML = '<div class="acc-dd-panel" onclick="event.stopPropagation()">' +
       '<div class="acc-sheet-head" style="padding:10px 12px 6px"><div class="acc-sheet-title">ফিল্টার' + (totalActive ? ' (' + bn(totalActive) + ')' : '') + '</div><button type="button" class="acc-sheet-close" onclick="closeMainFilterDropdown()">✕</button></div>' +
       tabsHtml +
+      '<div class="acc-filter-bar" style="margin:2px 12px 6px;position:sticky;top:0;z-index:2;background:#fffaf1;padding:6px 0;border-radius:10px"><button type="button" class="acc-btn acc-btn-inc" onclick="applyAccFilters()" style="border-radius:10px;flex:2">প্রয়োগ করুন</button><button type="button" class="acc-date-clear" onclick="resetAccFilters()" style="flex:1">সব সাফ</button></div>' +
       (yearSection || '') +
       monthSection +
       accSection +
       catSection +
       rangeSection +
       daySection +
-      '<div class="acc-filter-bar" style="margin:4px 12px 12px"><button type="button" class="acc-btn acc-btn-inc" onclick="applyAccFilters()" style="border-radius:10px;flex:2">প্রয়োগ করুন</button><button type="button" class="acc-date-clear" onclick="resetAccFilters()" style="flex:1">সব সাফ</button></div>' +
       '</div>';
     var trigger = _mainFilterDropdownTrigger;
     if (trigger) {
@@ -1495,6 +1621,8 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   window.openAccAccountDetails = function (account) {
     _metricModalKind = '';
     _settingsModalOpen = false;
+    var detailsModal = document.getElementById('modal-account-details');
+    if (detailsModal) detailsModal.classList.remove('acc-income-detail-open');
     _detailAccount = account;
     _qardTab = 'entries'; /* modal খুললে সর্বদা এন্ট্রি ট্যাব প্রথমে */
     _payQardOpenBucket = null;
@@ -1538,7 +1666,9 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     if (!_metricModalKind) return;
     var root = document.getElementById('account-details-root');
     var title = document.getElementById('account-details-title');
+    var modal = document.getElementById('modal-account-details');
     if (!root) return;
+    if (modal) modal.classList.toggle('acc-income-detail-open', _metricModalKind === 'income' || _metricModalKind === 'expense');
     _detailAccount = '';
     if (title) {
       title.className = '';
@@ -1547,12 +1677,30 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     if (_metricModalKind === 'income') root.innerHTML = buildIncomeList();
     else if (_metricModalKind === 'expense') root.innerHTML = buildExpenseList();
     else if (_metricModalKind === 'dues') root.innerHTML = buildDues('renderAccMetricModal()');
+    /* Keep an open value-filter menu anchored after a table re-render. */
+    if (_colFltOpen) {
+      var openFilter = { key: _colFltOpen.key, label: _colFltOpen.label, query: _colFltOpen.query || '' };
+      var _tr = root.querySelector('[data-col-flt="' + openFilter.key + '"]');
+      if (_tr) window.openColFilter(_tr, openFilter.key, openFilter.label, openFilter.query);
+    }
+    if (_colSearchFocus) {
+      var searchInput = root.querySelector('[data-col-search="' + _colSearchFocus + '"]');
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+      }
+      _colSearchFocus = '';
+    }
   }
 
   window.renderAccMetricModal = renderAccMetricModal;
   window.openAccMetricModal = function (kind) {
     _metricModalKind = kind;
     _settingsModalOpen = false;
+    _colFilters = {};
+    _colSearch = {};
+    _sortF = 'date_desc';
+    window.closeColFilter();
     if (kind === 'income' || kind === 'expense') {
       _accFs = [];
       _catFs = [];
@@ -1683,8 +1831,8 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     el.innerHTML = '<div class="acc-dd-panel" onclick="event.stopPropagation()">' +
       '<div class="acc-sheet-head" style="padding:10px 12px 6px"><div class="acc-sheet-title">ফিল্টার' + (totalActive ? ' (' + bn(totalActive) + ')' : '') + '</div><button type="button" class="acc-sheet-close" onclick="closeAccFilterDropdown()">✕</button></div>' +
       tabsHtml +
+      '<div class="acc-filter-bar" style="margin:2px 12px 6px;position:sticky;top:0;z-index:2;background:#fffaf1;padding:6px 0;border-radius:10px"><button type="button" class="acc-btn acc-btn-inc" onclick="closeAccFilterDropdown();renderAccAccountDetails(_detailAccount)" style="border-radius:10px;flex:2">প্রয়োগ করুন</button><button type="button" class="acc-date-clear" onclick="clearAccDetailFilters();closeAccFilterDropdown()" style="flex:1">রিসেট</button></div>' +
       sectionsHtml +
-      '<div class="acc-filter-bar" style="margin:4px 12px 12px"><button type="button" class="acc-btn acc-btn-inc" onclick="closeAccFilterDropdown();renderAccAccountDetails(_detailAccount)" style="border-radius:10px;flex:2">প্রয়োগ করুন</button><button type="button" class="acc-date-clear" onclick="clearAccDetailFilters();closeAccFilterDropdown()" style="flex:1">রিসেট</button></div>' +
       '</div>';
     var rect = triggerEl.getBoundingClientRect();
     var panelEl = el.querySelector('.acc-dd-panel');
@@ -1763,37 +1911,211 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     }
   };
 
+  /* ── Column-level filter (Excel-style auto-filter) ── */
+  var _colFilters = {};
+  var _colSearch = {};
+  var _colSearchFocus = '';
+  var _colSearchTimer = null;
+  var _colFltOpen = null;
+  var _colFltVals = {};
+  window.closeColFilter = function () {
+    var el = document.querySelector('.col-flt-dropdown');
+    if (el) el.remove();
+    document.removeEventListener('click', _closeColFltHandler);
+    _colFltOpen = null;
+  };
+  function _sq(s) {
+    return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r/g, '\\r').replace(/\n/g, '\\n');
+  }
+  function _ha(s) { return esc(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+  function _searchText(s) {
+    return String(s == null ? '' : s).toLocaleLowerCase('bn')
+      .replace(/[০-৯]/g, function (d) { return '0123456789'['০১২৩৪৫৬৭৮৯'.indexOf(d)]; })
+      .replace(/[৳,\s]+/g, ' ').trim();
+  }
+  window.setColSearch = function (colKey, value) {
+    value = String(value || '').trim();
+    if (value) _colSearch[colKey] = value;
+    else delete _colSearch[colKey];
+    _colSearchFocus = colKey;
+    clearTimeout(_colSearchTimer);
+    _colSearchTimer = setTimeout(rerenderAccountsView, 120);
+  };
+  window.toggleColFlt = function (colKey, val, checked) {
+    var selected = _colFilters[colKey] ? _colFilters[colKey].slice() : [];
+    if (checked) { if (selected.indexOf(val) < 0) selected.push(val); }
+    else selected = selected.filter(function (v) { return v !== val; });
+    if (selected.length) _colFilters[colKey] = selected;
+    else delete _colFilters[colKey];
+    rerenderAccountsView();
+  };
+  window.selectAllColFlt = function (colKey) {
+    _colFilters[colKey] = (_colFltVals[colKey] || []).slice();
+    rerenderAccountsView();
+  };
+  window.deselectAllColFlt = function (colKey) {
+    delete _colFilters[colKey];
+    rerenderAccountsView();
+  };
+  window.filterColFltOptions = function (value) {
+    var dropdown = document.querySelector('.col-flt-dropdown');
+    if (!dropdown) return;
+    if (_colFltOpen) _colFltOpen.query = value || '';
+    var needle = _searchText(value);
+    var items = dropdown.querySelectorAll('[data-col-option]');
+    var visible = 0;
+    for (var i = 0; i < items.length; i++) {
+      var show = !needle || _searchText(items[i].getAttribute('data-col-option')).indexOf(needle) >= 0;
+      items[i].style.display = show ? 'flex' : 'none';
+      if (show) visible++;
+    }
+    var empty = dropdown.querySelector('.col-flt-empty');
+    if (empty) empty.hidden = visible > 0;
+  };
+  window.openColFilter = function (triggerEl, colKey, colLabel, optionQuery) {
+    closeColFilter();
+    _colFltOpen = { key: colKey, label: colLabel, query: optionQuery || '' };
+    var allVals = _colFltVals[colKey] || [];
+    var hasFilter = Object.prototype.hasOwnProperty.call(_colFilters, colKey);
+    var active = hasFilter ? _colFilters[colKey] : [];
+    var itemsHtml = allVals.map(function (v) {
+      var on = active.indexOf(v) >= 0;
+      return '<label class="acc-ms-item' + (on ? ' is-on' : '') + '" data-col-option="' + _ha(v) + '" style="border-radius:10px;display:flex;width:100%;box-sizing:border-box">' +
+        '<input type="checkbox" class="acc-ms-cb" ' + (on ? 'checked' : '') + ' onchange="toggleColFlt(\'' + _ha(_sq(colKey)) + '\',\'' + _ha(_sq(v)) + '\',this.checked)">' +
+        '<span class="acc-ms-circle">✓</span><span style="flex:1">' + esc(v) + '</span></label>';
+    }).join('');
+    var el = document.createElement('div');
+    el.className = 'col-flt-dropdown';
+    el.style.cssText = 'position:fixed;z-index:9997';
+    el.onclick = function (e) { e.stopPropagation(); };
+    el.innerHTML = '<div class="col-flt-panel">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
+      '<span style="font-size:11px;font-weight:800;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em">' + esc(colLabel) + '</span>' +
+      '<button type="button" class="col-flt-link" onclick="closeColFilter()">বন্ধ</button></div>' +
+      '<input type="search" class="col-flt-search" value="' + _ha(optionQuery || '') + '" placeholder="এই কলামে খুঁজুন..." aria-label="' + _ha(colLabel) + ' অপশন খুঁজুন" oninput="filterColFltOptions(this.value)">' +
+      '<div class="col-flt-actions"><button type="button" class="col-flt-link" onclick="selectAllColFlt(\'' + _sq(colKey) + '\')">সব নির্বাচন</button>' +
+      '<button type="button" class="col-flt-link" onclick="deselectAllColFlt(\'' + _sq(colKey) + '\')">সব বাতিল</button></div>' +
+      '<div class="col-flt-options">' + itemsHtml + '<div class="col-flt-empty" hidden>কোনো অপশন মেলেনি</div></div>' +
+      '</div>';
+    var rect = triggerEl.getBoundingClientRect();
+    document.body.appendChild(el);
+    var panelRect = el.getBoundingClientRect();
+    var top = rect.bottom + 4;
+    if (top + panelRect.height > window.innerHeight - 8) top = Math.max(8, rect.top - panelRect.height - 4);
+    el.style.top = top + 'px';
+    el.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - panelRect.width - 8)) + 'px';
+    document.addEventListener('click', _closeColFltHandler);
+    if (optionQuery) window.filterColFltOptions(optionQuery);
+  };
+  function _closeColFltHandler() {
+    closeColFilter();
+    document.removeEventListener('click', _closeColFltHandler);
+  }
+  function _colFltIcon(colKey, active) {
+    var lbl = colKey === 'date' ? 'তারিখ' : colKey === 'desc' ? 'বিবরণ' : colKey === 'amount' ? 'টাকা' : colKey === 'account' ? 'হিসাব বই' : colKey === 'category' ? 'খাত' : colKey === 'supplier' ? 'সরবরাহকারী' : colKey === 'quantity' ? 'পরিমাণ' : colKey === 'receipt' ? 'রশিদ নং' : colKey;
+    return '<button type="button" class="col-flt-icon' + (active ? ' is-on' : '') + '" data-col-flt="' + colKey + '" title="' + esc(lbl) + ' অনুযায়ী বাছাই" aria-label="' + esc(lbl) + ' অনুযায়ী বাছাই" onclick="event.stopPropagation();openColFilter(this,\'' + _sq(colKey) + '\',\'' + _sq(lbl) + '\')">▾</button>';
+  }
+  function _applyColFilters(rows, colKey, fn) {
+    var active = _colFilters[colKey];
+    if (!Object.prototype.hasOwnProperty.call(_colFilters, colKey)) return rows;
+    return rows.filter(function (r) { return active.indexOf(fn(r)) >= 0; });
+  }
+  function _buildColVals(rows, fn) {
+    var seen = {};
+    var out = [];
+    rows.forEach(function (r) {
+      var v = fn(r);
+      if (!seen[v]) { seen[v] = true; out.push(v); }
+    });
+    out.sort(function (a, b) { return a.localeCompare(b, 'bn'); });
+    return out;
+  }
+  function _applyColSearch(rows, colKey, fn) {
+    var needle = _searchText(_colSearch[colKey]);
+    if (!needle) return rows;
+    return rows.filter(function (r) { return _searchText(fn(r)).indexOf(needle) >= 0; });
+  }
+  function _colHeader(label, colKey, sortAsc, sortDesc, align) {
+    var indicator = _sortF === sortAsc ? ' ▲' : (_sortF === sortDesc ? ' ▼' : '');
+    var next = _sortF === sortAsc ? sortDesc : sortAsc;
+    var query = _colSearch[colKey] || '';
+    return '<th' + (align ? ' style="text-align:' + align + '"' : '') + '><div class="acc-col-head">' +
+      '<button type="button" class="acc-col-head-label" style="border:0;background:none;padding:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;text-align:inherit" onclick="setAccSort(\'' + next + '\')">' + label + indicator + '</button>' +
+      _colFltIcon(colKey, Object.prototype.hasOwnProperty.call(_colFilters, colKey)) + '</div>' +
+      '<input type="search" class="acc-col-search' + (query ? ' is-on' : '') + '" data-col-search="' + colKey + '" value="' + _ha(query) + '" placeholder="খুঁজুন..." aria-label="' + _ha(label) + ' খুঁজুন" onclick="event.stopPropagation()" oninput="setColSearch(\'' + _sq(colKey) + '\',this.value)"></th>';
+  }
+
   /* ══════════════ INCOME LIST ══════════════ */
   function buildIncomeList() {
     normalizeMonthFilters();
-    /* করজে হাসানা আদায় (qard_return) আলাদা — মূল আয়ের তালিকায় দেখাবে না */
     var rows = A.Income.getAll().filter(function (r) { return r.account !== 'qard_return'; });
     if (_yearFs.length) rows = rows.filter(function (r) { return _yearFs.indexOf(String(r.hijriYear)) >= 0; });
     if (_monFs.length) rows = rows.filter(function (r) { return _monFs.indexOf(A.monthKey(r.month)) >= 0; });
-    /* নতুন থেকে পুরনো: হিজরী তারিখ (dateKey) প্রথমে, একই তারিখে এন্ট্রি-সময় (_at) */
+    /* column filters */
+    _colFltVals['date'] = _buildColVals(rows, function (r) { return A.dateLabel(r); });
+    _colFltVals['desc'] = _buildColVals(rows, function (r) { return A.clean(r.note, '') || A.clean(r.source, '') || 'আয়'; });
+    _colFltVals['amount'] = _buildColVals(rows, function (r) { return '৳' + fa(r.amount); });
+    rows = _applyColFilters(rows, 'date', function (r) { return A.dateLabel(r); });
+    rows = _applyColFilters(rows, 'desc', function (r) { return A.clean(r.note, '') || A.clean(r.source, '') || 'আয়'; });
+    rows = _applyColFilters(rows, 'amount', function (r) { return '৳' + fa(r.amount); });
+    rows = _applyColSearch(rows, 'date', function (r) { return A.dateLabel(r); });
+    rows = _applyColSearch(rows, 'desc', function (r) { return A.clean(r.note, '') || A.clean(r.source, '') || 'আয়'; });
+    rows = _applyColSearch(rows, 'amount', function (r) { return '৳' + fa(r.amount); });
     rows = rows.slice().sort(function (a, b) {
+      if (_sortF === 'amount_desc') return A.num(b.amount) - A.num(a.amount);
+      if (_sortF === 'amount_asc') return A.num(a.amount) - A.num(b.amount);
+      if (_sortF === 'oldest') return (a._at || 0) - (b._at || 0);
+      if (_sortF === 'newest') return (b._at || 0) - (a._at || 0);
+      if (_sortF === 'text_asc') { var da = A.clean(a.note, '') || A.clean(a.source, '') || 'আয়'; var db = A.clean(b.note, '') || A.clean(b.source, '') || 'আয়'; return da.localeCompare(db); }
+      if (_sortF === 'text_desc') { var da = A.clean(a.note, '') || A.clean(a.source, '') || 'আয়'; var db = A.clean(b.note, '') || A.clean(b.source, '') || 'আয়'; return db.localeCompare(da); }
       var da = a.dateKey || A.dateKey(a.hijriYear, a.month, a.day) || '';
       var db = b.dateKey || A.dateKey(b.hijriYear, b.month, b.day) || '';
-      if (db !== da) return db.localeCompare(da);
-      return (b._at || 0) - (a._at || 0);
+      if (_sortF === 'date_asc') return da.localeCompare(db);
+      return db.localeCompare(da);
     });
     var total = rows.reduce(function (s, r) { return s + A.num(r.amount); }, 0);
     var readOnly = isAccountsReadOnly();
-    var items = rows.map(function (r) {
+    var emptyColspan = readOnly ? 3 : 4;
+    var thead = '<thead><tr>' +
+      _colHeader('তারিখ', 'date', 'date_asc', 'date_desc') +
+      _colHeader('বিবরণ', 'desc', 'text_asc', 'text_desc') +
+      _colHeader('টাকা', 'amount', 'amount_asc', 'amount_desc', 'right') +
+      (readOnly ? '' : '<th style="width:56px"></th>') +
+      '</tr></thead>';
+    var tbody = rows.map(function (r) {
       var desc = A.clean(r.note, '') || A.clean(r.source, '') || 'আয়';
       var dateLabel = A.dateLabel ? A.dateLabel(r) : (A.monthKey(r.month) || '') + (r.day ? ' · ' + bn(r.day) : '');
-      return '<div class="acc-list-item"><div class="acc-list-top">' +
-        '<div class="acc-list-desc">' + esc(desc) + '</div>' +
-        '<div class="acc-list-amt inc">৳' + fa(r.amount) + '</div>' +
-        (readOnly ? '' : '<div class="acc-row-actions"><button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'income\',\'' + esc(r.id) + '\')">✎</button><button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'income\',\'' + esc(r.id) + '\')">✕</button></div>') +
-        '</div><div class="acc-list-meta">' + esc(dateLabel) + '</div></div>';
+      return '<tr>' +
+        '<td style="color:var(--ink3);font-size:11px">' + esc(dateLabel) + '</td>' +
+        '<td>' + esc(desc) + '</td>' +
+        '<td class="acc-list-amt inc">৳' + fa(r.amount) + '</td>' +
+        (readOnly ? '' : '<td><div class="acc-income-actions"><button type="button" class="acc-income-action edit" title="এডিট" aria-label="আয় এডিট করুন" onclick="editAccEntry(\'income\',\'' + esc(r.id) + '\')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button><button type="button" class="acc-income-action delete" title="মুছুন" aria-label="আয় মুছুন" onclick="delAccEntry(\'income\',\'' + esc(r.id) + '\')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-9 0 1 15h8l1-15M10 10v7m4-7v7"/></svg></button></div></td>') +
+        '</tr>';
     }).join('');
-    var filterOn = _monFs.length > 0 || _yearFs.length > 0;
-    var activeCount = _monFs.length + _yearFs.length;
-    var clearBtn = filterOn ? '<button type="button" class="acc-tool-btn" style="color:var(--red);margin-left:auto" onclick="resetAccFilters()">✕ সাফ</button>' : '';
-    return '<div class="acc-money-hero" style="margin-bottom:8px"><div class="acc-money-label">আয়</div><div class="acc-money-main good">৳' + fa(total) + '</div><div class="sub">মোট সংখ্যা: ' + count(rows.length, 'টি') + '</div></div>' +
-      '<div class="acc-toolbar">' + filterIconBtn(filterOn, activeCount) + clearBtn + '</div>' +
-      (items || '<div class="acc-empty">কোনো আয়ের রেকর্ড নেই</div>');
+    if (!tbody) tbody = '<tr><td colspan="' + emptyColspan + '" style="text-align:center;color:var(--ink3);padding:20px 6px">কোনো আয়ের রেকর্ড নেই</td></tr>';
+    var colActiveCount = Object.keys(_colFilters).length + Object.keys(_colSearch).length;
+    var filterOn = _monFs.length > 0 || _yearFs.length > 0 || colActiveCount > 0;
+    var activeCount = _monFs.length + _yearFs.length + colActiveCount;
+    var periodCount = _monFs.length + _yearFs.length;
+    var periodLabel = periodCount ? bn(periodCount) + 'টি নির্বাচিত' : 'সব সময়';
+    var sortLabels = { date_asc:'পুরাতন আগে', date_desc:'নতুন আগে', amount_desc:'বেশি টাকা আগে', amount_asc:'কম টাকা আগে', newest:'নতুন এন্ট্রি আগে', oldest:'পুরাতন এন্ট্রি আগে', text_asc:'বিবরণ: ক-হ', text_desc:'বিবরণ: হ-ক' };
+    var sortLabel = sortLabels[_sortF] || 'নতুন আগে';
+    var periodSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>';
+    var sortSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h8M8 18h4M4 4v16m0 0-2-2m2 2 2-2"/></svg>';
+    var clearSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18M8 5V3h8v2m-9 0 1 16h8l1-16M10 10v7m4-7v7"/></svg>';
+    var toolbar = '<div class="acc-income-toolbar" aria-label="আয়ের তালিকা নিয়ন্ত্রণ">' +
+      '<button type="button" class="acc-income-tool" onclick="openAccFilterSheet(this,\'income\')" aria-label="সময়কাল নির্বাচন করুন">' + periodSvg + '<span class="acc-income-tool-copy"><small>সময়কাল</small><strong>' + esc(periodLabel) + '</strong></span>' + (periodCount ? '<span class="acc-income-tool-badge">' + bn(periodCount) + '</span>' : '') + '</button>' +
+      '<button type="button" class="acc-income-tool" onclick="openAccSortSheet()" aria-label="তালিকা সাজান">' + sortSvg + '<span class="acc-income-tool-copy"><small>সাজান</small><strong>' + esc(sortLabel) + '</strong></span></button>' +
+      (filterOn ? '<button type="button" class="acc-income-tool clear" onclick="resetAccFilters()" aria-label="সব ফিল্টার সাফ করুন">' + clearSvg + '<span class="acc-income-tool-copy"><strong>সব সাফ</strong></span></button>' : '') +
+      '</div>';
+    var filterStatus = activeCount ? bn(activeCount) + 'টি সক্রিয়' : 'সব তথ্য';
+    return '<div class="acc-income-shell">' +
+      '<section class="acc-income-summary" aria-label="আয়ের সংক্ষিপ্তসার">' +
+      '<div class="acc-income-stat"><span class="acc-income-stat-label">মোট আয়</span><strong class="acc-income-stat-value is-income">৳' + fa(total) + '</strong></div>' +
+      '<div class="acc-income-stat"><span class="acc-income-stat-label">রেকর্ড</span><strong class="acc-income-stat-value">' + count(rows.length, 'টি') + '</strong></div>' +
+      '<div class="acc-income-stat"><span class="acc-income-stat-label">ফিল্টার অবস্থা</span><strong class="acc-income-stat-value is-status">' + esc(filterStatus) + '</strong></div>' +
+      '</section>' + toolbar +
+      '<div class="acc-table-wrap"><table class="acc-income-table' + (readOnly ? ' is-readonly' : '') + '">' + thead + '<tbody>' + tbody + '</tbody></table></div></div>';
   }
 
   /* ══════════════ EXPENSE LIST ══════════════ */
@@ -1809,54 +2131,103 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     rows = rows.filter(function (r) { return A.inRange(r, _fromKey, _toKey); });
     if (_dayF === '__none') rows = rows.filter(function (r) { return !r.day; });
     else if (_dayF !== 'all') rows = rows.filter(function (r) { return String(r.day || '') === String(_dayF); });
+    function expenseCategory(r) { return A.clean(r.category, '') || 'অন্যান্য'; }
+    function expenseDesc(r) { return A.clean(r.description, '') || expenseCategory(r) || 'ব্যয়'; }
+    function expenseSupplier(r) { return A.clean(r.supplier, '') || 'উল্লেখ নেই'; }
+    function expenseReceipt(r) { return A.clean(r.receiptNo, '') || '—'; }
+    function expenseQuantity(r) {
+      if (!r.quantity) return 'উল্লেখ নেই';
+      return bn(A.num(r.quantity)) + (r.unit ? ' ' + A.clean(r.unit, '') : '') + (r.unitPrice ? ' × ৳' + fa(r.unitPrice) : '');
+    }
+    var colDefs = [
+      ['date', function (r) { return A.dateLabel(r); }],
+      ['account', function (r) { return A.ACCOUNT_LABELS[r.account] || r.account || ''; }],
+      ['category', expenseCategory],
+      ['desc', expenseDesc],
+      ['quantity', expenseQuantity],
+      ['supplier', expenseSupplier],
+      ['receipt', expenseReceipt],
+      ['amount', function (r) { return '৳' + fa(r.amount); }]
+    ];
+    colDefs.forEach(function (def) { _colFltVals[def[0]] = _buildColVals(rows, def[1]); });
+    colDefs.forEach(function (def) {
+      rows = _applyColFilters(rows, def[0], def[1]);
+      rows = _applyColSearch(rows, def[0], def[1]);
+    });
     rows = rows.slice().sort(function (a, b) {
       if (_sortF === 'amount_desc') return A.num(b.amount) - A.num(a.amount);
       if (_sortF === 'amount_asc') return A.num(a.amount) - A.num(b.amount);
       if (_sortF === 'newest') return (b._at || 0) - (a._at || 0);
       if (_sortF === 'oldest') return (a._at || 0) - (b._at || 0);
-      return _sortF === 'date_desc' ? String(b.dateKey).localeCompare(String(a.dateKey)) : String(a.dateKey).localeCompare(String(b.dateKey));
+      var sortMatch = /^(.+)_(asc|desc)$/.exec(_sortF);
+      var sortGetters = {
+        date: function (r) { return r.dateKey || A.dateKey(r.hijriYear, r.month, r.day) || ''; },
+        account: function (r) { return A.ACCOUNT_LABELS[r.account] || r.account || ''; },
+        category: expenseCategory,
+        desc: expenseDesc,
+        quantity: function (r) { return A.num(r.quantity); },
+        supplier: expenseSupplier,
+        receipt: expenseReceipt
+      };
+      if (sortMatch && sortGetters[sortMatch[1]]) {
+        var av = sortGetters[sortMatch[1]](a), bv = sortGetters[sortMatch[1]](b);
+        var compared = typeof av === 'number' ? av - bv : String(av).localeCompare(String(bv), 'bn');
+        return sortMatch[2] === 'desc' ? -compared : compared;
+      }
+      return String(b.dateKey || '').localeCompare(String(a.dateKey || ''));
     });
     var total = rows.reduce(function (s, r) { return s + A.num(r.amount); }, 0);
     var readOnly = isAccountsReadOnly();
     function rowHtml(r) {
-      var category  = A.clean(r.category, '');
-      var supplier  = A.clean(r.supplier, '');
-      var receiptNo = A.clean(r.receiptNo, '');
-      var desc = A.clean(r.description, '') || category || 'ব্যয়';
-      var qInfo = r.quantity ? bn(A.num(r.quantity)) + (r.unit ? ' ' + esc(r.unit) : '') + (r.unitPrice ? ' × ৳' + fa(r.unitPrice) : '') : 'উল্লেখ নেই';
-      var actionBtns = '<button class="acc-icon-btn edit" title="এডিট" onclick="editAccEntry(\'expense\',\'' + esc(r.id) + '\')">✎</button><button class="acc-icon-btn del" title="মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')">✕</button>';
+      var actionBtns = '<button type="button" class="acc-income-action edit" title="এডিট" aria-label="ব্যয় এডিট করুন" onclick="editAccEntry(\'expense\',\'' + esc(r.id) + '\')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button><button type="button" class="acc-income-action delete" title="মুছুন" aria-label="ব্যয় মুছুন" onclick="delAccEntry(\'expense\',\'' + esc(r.id) + '\')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-9 0 1 15h8l1-15M10 10v7m4-7v7"/></svg></button>';
       return '<tr>' +
         '<td>' + esc(A.dateLabel(r)) + '</td>' +
         '<td>' + esc(A.ACCOUNT_LABELS[r.account] || r.account || '') + '</td>' +
-        '<td>' + esc(category || 'অন্যান্য') + '</td>' +
-        '<td class="acc-desc-cell">' + esc(desc) + '</td>' +
-        '<td>' + qInfo + '</td>' +
-        '<td>' + esc(supplier || 'উল্লেখ নেই') + '</td>' +
-        '<td style="color:var(--ink3);font-size:11px">' + (receiptNo ? esc(receiptNo) : '—') + '</td>' +
-        '<td class="acc-ledger-amt">৳' + fa(r.amount) + '</td>' +
-        (readOnly ? '' : '<td><div class="acc-row-actions">' + actionBtns + '</div></td>') +
+        '<td>' + esc(expenseCategory(r)) + '</td>' +
+        '<td class="acc-desc-cell">' + esc(expenseDesc(r)) + '</td>' +
+        '<td>' + esc(expenseQuantity(r)) + '</td>' +
+        '<td>' + esc(expenseSupplier(r)) + '</td>' +
+        '<td style="color:var(--ink3);font-size:11px">' + esc(expenseReceipt(r)) + '</td>' +
+        '<td class="acc-list-amt expense">৳' + fa(r.amount) + '</td>' +
+        (readOnly ? '' : '<td><div class="acc-income-actions">' + actionBtns + '</div></td>') +
         '</tr>';
     }
     var items = rows.map(rowHtml).join('');
     var filterOn = _monFs.length > 0 || _accFs.length > 0 || _catFs.length > 0 || _dayF !== 'all';
     var rangeOn = _fromKey !== 'all' || _toKey !== 'all';
-    var anyFilterOn = filterOn || rangeOn;
-    var activeCount = _monFs.length + _accFs.length + _catFs.length + _yearFs.length + (_dayF !== 'all' ? 1 : 0) + (rangeOn ? 1 : 0);
-    var sortNames = { date_asc:'পুরাতন আগে', date_desc:'নতুন আগে', amount_desc:'বেশি টাকা', amount_asc:'কম টাকা', newest:'নতুন এন্ট্রি', oldest:'পুরাতন এন্ট্রি' };
-    var chips = [
-      anyFilterOn ? ('ফিল্টার চালু (' + bn(activeCount) + ')') : 'সব তথ্য',
-      sortNames[_sortF] || 'সাজানো',
-    ].map(function (x) { return '<span class="acc-chip">' + esc(x) + '</span>'; }).join('');
-    var clearBtn = anyFilterOn ? '<button type="button" class="acc-tool-btn" style="color:var(--red);margin-left:auto" onclick="resetAccFilters()">✕ সাফ</button>' : '';
-    return '<div class="acc-money-hero" style="margin-bottom:8px"><div class="acc-money-label">নিয়মিত ব্যয়</div><div class="acc-money-main" style="color:var(--red)">৳' + fa(total) + '</div><div class="sub" style="position:relative">মোট সংখ্যা: ' + count(rows.length, 'টি') + '</div></div>' +
-      '<div class="acc-toolbar">' +
-      filterIconBtn(anyFilterOn, activeCount) +
-      '<button type="button" class="acc-tool-btn acc-sort-btn" onclick="openAccSortSheet()" title="সাজান">⇅</button>' +
-      clearBtn +
-      '</div><div class="acc-chipline">' + chips + '</div>' +
-      '<div class="acc-expense-wrap"><table class="acc-expense-table"><thead><tr><th>তারিখ</th><th>হিসাব বই</th><th>খাত</th><th>বিবরণ</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>রশিদ নং</th><th>টাকা</th>' + (readOnly ? '' : '<th></th>') + '</tr></thead><tbody>' +
-      (items || '<tr><td colspan="' + (readOnly ? '8' : '9') + '" style="text-align:center;color:var(--ink3)">কোনো ব্যয়ের রেকর্ড নেই</td></tr>') +
-      '</tbody></table></div>';
+    var colActiveCount = Object.keys(_colFilters).length + Object.keys(_colSearch).length;
+    var anyFilterOn = filterOn || rangeOn || colActiveCount > 0;
+    var activeCount = _monFs.length + _accFs.length + _catFs.length + _yearFs.length + (_dayF !== 'all' ? 1 : 0) + (rangeOn ? 1 : 0) + colActiveCount;
+    var sortNames = { date_asc:'পুরাতন আগে', date_desc:'নতুন আগে', amount_desc:'বেশি টাকা আগে', amount_asc:'কম টাকা আগে', newest:'নতুন এন্ট্রি আগে', oldest:'পুরাতন এন্ট্রি আগে' };
+    var filterSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>';
+    var sortSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h8M8 18h4M4 4v16m0 0-2-2m2 2 2-2"/></svg>';
+    var clearSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18M8 5V3h8v2m-9 0 1 16h8l1-16M10 10v7m4-7v7"/></svg>';
+    var toolbar = '<div class="acc-income-toolbar" aria-label="ব্যয়ের তালিকা নিয়ন্ত্রণ">' +
+      '<button type="button" class="acc-income-tool" onclick="openAccFilterSheet(this)" aria-label="ব্যয়ের ফিল্টার খুলুন">' + filterSvg + '<span class="acc-income-tool-copy"><small>ফিল্টার</small><strong>' + (activeCount ? bn(activeCount) + 'টি সক্রিয়' : 'সব তথ্য') + '</strong></span></button>' +
+      '<button type="button" class="acc-income-tool" onclick="openAccSortSheet()" aria-label="তালিকা সাজান">' + sortSvg + '<span class="acc-income-tool-copy"><small>সাজান</small><strong>' + esc(sortNames[_sortF] || 'নতুন আগে') + '</strong></span></button>' +
+      (anyFilterOn ? '<button type="button" class="acc-income-tool clear" onclick="resetAccFilters()" aria-label="সব ফিল্টার সাফ করুন">' + clearSvg + '<span class="acc-income-tool-copy"><strong>সব সাফ</strong></span></button>' : '') +
+      '</div>';
+    var thead = '<thead><tr>' +
+      _colHeader('তারিখ', 'date', 'date_asc', 'date_desc') +
+      _colHeader('হিসাব বই', 'account', 'account_asc', 'account_desc') +
+      _colHeader('খাত', 'category', 'category_asc', 'category_desc') +
+      _colHeader('বিবরণ', 'desc', 'desc_asc', 'desc_desc') +
+      _colHeader('পরিমাণ', 'quantity', 'quantity_asc', 'quantity_desc') +
+      _colHeader('সরবরাহকারী', 'supplier', 'supplier_asc', 'supplier_desc') +
+      _colHeader('রশিদ নং', 'receipt', 'receipt_asc', 'receipt_desc') +
+      _colHeader('টাকা', 'amount', 'amount_asc', 'amount_desc', 'right') +
+      (readOnly ? '' : '<th></th>') +
+      '</tr></thead>';
+    var filterStatus = activeCount ? bn(activeCount) + 'টি সক্রিয়' : 'সব তথ্য';
+    return '<div class="acc-income-shell">' +
+      '<section class="acc-income-summary" aria-label="ব্যয়ের সংক্ষিপ্তসার">' +
+      '<div class="acc-income-stat"><span class="acc-income-stat-label">মোট ব্যয়</span><strong class="acc-income-stat-value is-expense">৳' + fa(total) + '</strong></div>' +
+      '<div class="acc-income-stat"><span class="acc-income-stat-label">রেকর্ড</span><strong class="acc-income-stat-value">' + count(rows.length, 'টি') + '</strong></div>' +
+      '<div class="acc-income-stat"><span class="acc-income-stat-label">ফিল্টার অবস্থা</span><strong class="acc-income-stat-value is-status">' + esc(filterStatus) + '</strong></div>' +
+      '</section>' + toolbar +
+      '<div class="acc-table-wrap"><table class="acc-income-table acc-expense-detail-table' + (readOnly ? ' is-readonly' : '') + '">' + thead + '<tbody>' +
+      (items || '<tr><td colspan="' + (readOnly ? '8' : '9') + '" style="text-align:center;color:var(--ink3);padding:24px">কোনো ব্যয়ের রেকর্ড নেই</td></tr>') +
+      '</tbody></table></div></div>';
   }
 
   /* ══════════════ DUES (compact table) ══════════════ */
@@ -2141,6 +2512,8 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
     _metricModalKind = '';
     _detailAccount = '';
     _settingsModalOpen = true;
+    var detailsModal = document.getElementById('modal-account-details');
+    if (detailsModal) detailsModal.classList.remove('acc-income-detail-open');
     renderAccSettingsModal();
     openModal('account-details');
   };
@@ -2148,6 +2521,8 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
   window.openAccReportsPanel = function () {
     _metricModalKind = '';
     _settingsModalOpen = false;
+    var detailsModal = document.getElementById('modal-account-details');
+    if (detailsModal) detailsModal.classList.remove('acc-income-detail-open');
     var title = document.getElementById('account-details-title');
     var root = document.getElementById('account-details-root');
     if (title) {
