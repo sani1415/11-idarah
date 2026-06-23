@@ -123,35 +123,35 @@ body.page-daftar #panel-fees{margin-left:-12px;margin-right:-12px}
 .qard-expand-row{display:flex;gap:8px;align-items:center;margin-top:6px}
 .acc-qard-pane{display:flex;flex-direction:column;flex:1;min-height:0}
 .acc-qard-pane--recovery{padding-top:4px;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.acc-tab-btn{padding:6px 10px;border:none;border-radius:11px;background:none;cursor:pointer;font-size:11px;color:var(--ink3);white-space:nowrap;font-family:inherit}
+.acc-tab-btn{padding:7px 11px;border:none;border-radius:11px;background:none;cursor:pointer;font-size:12px;color:var(--ink3);white-space:nowrap;font-family:inherit}
 .acc-tab-btn.active{color:#fff;background:linear-gradient(135deg,var(--gold),#9a6a21);font-weight:800;box-shadow:0 6px 14px rgba(154,106,33,.23)}
 .acc-content{padding:0 4px 10px}
 .acc-dashboard{background:transparent;border:0;border-radius:0;padding:0;box-shadow:none;position:relative;overflow:visible}
 .acc-dashboard:before{display:none}
 .acc-topline{display:flex;align-items:center;gap:8px;margin-bottom:6px;position:relative}
 .acc-topline .acc-sel{max-width:180px;margin-left:auto;background:#fff}
-.acc-period{font-size:11px;color:var(--ink3);font-weight:700}
-.acc-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px;position:relative}
-.acc-metric{background:rgba(255,255,255,.82);border:1px solid rgba(26,18,8,.06);border-radius:14px;padding:8px 5px;text-align:center;box-shadow:0 5px 13px rgba(26,18,8,.055)}
+.acc-period{font-size:12px;color:var(--ink3);font-weight:700}
+.acc-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px;position:relative}
+.acc-metric{min-width:0;max-width:100%;border:none;background:#fff;border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:10px 4px;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-sizing:border-box;overflow:hidden;-webkit-appearance:none;appearance:none;color:inherit}
 .acc-metric-click{cursor:pointer;font-family:inherit}
-.acc-metric-click:hover{background:#fff8e8;border-color:rgba(201,149,42,.26)}
+.acc-metric-click:hover{background:#fff8e8;box-shadow:0 5px 13px rgba(26,18,8,.08)}
 .acc-metric-click:focus-visible{outline:2px solid rgba(154,106,33,.35);outline-offset:2px}
-.acc-metric-lbl{font-size:9px;color:var(--ink3);margin-bottom:3px}
-.acc-metric-val{font-family:'Tiro Bangla',serif;font-size:13px;font-weight:800;color:var(--ink2);white-space:nowrap}
+.acc-metric-lbl{width:100%;font-size:10px;font-weight:700;color:var(--ink3);margin-bottom:4px;line-height:1.2;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.acc-metric-val{width:100%;max-width:100%;font-family:'Tiro Bangla',serif;font-size:17px;font-weight:700;color:var(--ink2);line-height:1.12;overflow:hidden;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;word-break:break-word}
 .acc-metric.good .acc-metric-val{color:var(--green)}.acc-metric.bad .acc-metric-val{color:var(--red)}.acc-metric.warn .acc-metric-val{color:var(--gold)}
 .acc-summary-section{margin-bottom:10px}
 .acc-summary-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 2px 6px}
-.acc-summary-title{font-family:'Tiro Bangla',serif;font-size:13px;font-weight:900;color:var(--ink2)}
-.acc-summary-note{font-size:9px;color:var(--ink3);text-align:right}
+.acc-summary-title{font-family:'Tiro Bangla',serif;font-size:14px;font-weight:900;color:var(--ink2)}
+.acc-summary-note{font-size:10px;color:var(--ink3);text-align:right}
 .acc-summary-section.secondary .acc-metric{background:rgba(255,250,242,.88)}
-.acc-cash-formula{margin:-3px 2px 10px;padding:7px 9px;border-radius:10px;background:rgba(154,106,33,.08);color:var(--ink3);font-size:9px;line-height:1.45;text-align:center}
+.acc-cash-formula{margin:-3px 2px 10px;padding:8px 10px;border-radius:10px;background:rgba(154,106,33,.08);color:var(--ink3);font-size:10px;line-height:1.45;text-align:center}
 .acc-ledger-card{background:#fff;border:1px solid rgba(26,18,8,.07);border-radius:16px;overflow:hidden;position:relative;box-shadow:0 5px 13px rgba(26,18,8,.055);margin-top:2px}
 .acc-ledger-title{display:flex;align-items:center;justify-content:space-between;padding:10px 11px;border-bottom:1px solid var(--cream2);font-size:12px;font-weight:800;color:var(--ink2)}
 .acc-ledger-title--center{justify-content:center;text-align:center}
 .acc-ledger-card.acc-ledger-flat{background:transparent;border:0;border-radius:0;overflow:visible}
 .acc-ledger-flat .acc-ledger-title{padding:6px 2px 8px;border-bottom:0}
 .acc-sum-tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
-.acc-sum-tbl th{background:#faf3e8;padding:7px 5px;text-align:left;font-weight:800;font-size:10px;color:var(--ink3)}
+.acc-sum-tbl th{background:#faf3e8;padding:8px 6px;text-align:left;font-weight:800;font-size:11px;color:var(--ink3)}
 .acc-sum-tbl th:first-child{text-align:left}
 .acc-sum-tbl td{padding:7px 5px;border-bottom:1px solid rgba(26,18,8,.06);text-align:left;background:#fff}
 .acc-sum-tbl tbody tr:nth-child(even) td{background:#fffaf2}
@@ -199,8 +199,8 @@ body.page-daftar #account-details-title.acc-title-root--qard{flex-direction:colu
   background:rgba(255,255,255,.88);border:1px solid rgba(26,18,8,.08);
   border-radius:12px;padding:8px 4px 9px;min-width:0;
 }
-.acc-qard-stat-lbl{display:block;font-size:9px;font-weight:800;color:var(--ink3);margin:0 0 5px;line-height:1.2}
-.acc-qard-stat-val{display:block;font-size:13px;font-weight:900;color:var(--ink2);font-family:'Tiro Bangla',serif;line-height:1.2;word-break:break-word}
+.acc-qard-stat-lbl{display:block;font-size:10px;font-weight:800;color:var(--ink3);margin:0 0 5px;line-height:1.2}
+.acc-qard-stat-val{display:block;font-size:15px;font-weight:900;color:var(--ink2);font-family:'Tiro Bangla',serif;line-height:1.2;word-break:break-word}
 .acc-qard-stat-val--green{color:#15803d}
 .acc-qard-stat-val--gold{color:#a16207}
 .acc-detail-tools{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:stretch}
@@ -435,6 +435,11 @@ body #modal-account-details.acc-income-detail-open #account-details-root{display
 .acc-income-action.delete{border:1px solid rgba(193,68,14,.32);color:var(--red)}
 .acc-income-action:hover{transform:translateY(-1px)}
 .acc-income-action.edit:hover{background:#effaf5}.acc-income-action.delete:hover{background:#fff3ef}
+@media (max-width:520px){
+.acc-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.acc-metric{padding:10px 6px;min-height:88px}
+.acc-metric-val{font-size:18px}
+}
 @media (max-width:700px){
  body #modal-account-details.acc-income-detail-open{padding:12px 0 0;align-items:flex-end}
  body #modal-account-details.acc-income-detail-open .modal{width:100vw;height:calc(100dvh - 12px);max-height:calc(100dvh - 12px);border-radius:24px 24px 0 0;border-bottom:0}

@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="../css/main-admin-nav.css">
 <style>
   .content { padding-bottom:var(--app-content-pad-bottom); }
-  .acc-page-lead { font-size:12px; color:var(--ink3); line-height:1.55; margin:0 0 12px; }
+  .acc-page-lead { font-size:13px; color:var(--ink3); line-height:1.55; margin:0 0 12px; }
   .admin-accounts-shell { background:rgba(255,255,255,.55); border:1px solid rgba(26,18,8,.06); border-radius:22px; padding:10px 0 0; box-shadow:0 10px 28px rgba(26,18,8,.06); overflow:hidden; }
   body.page-admin-accounts .modal-bg { align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px); }
   body.page-admin-accounts .modal { width:min(520px, calc(100vw - 32px)); height:min(680px, calc(100vh - 32px)); max-height:calc(100vh - 32px); border-radius:22px; padding:20px 18px 24px; box-sizing:border-box; overflow-y:auto; }
@@ -24,7 +24,7 @@
     html body .content { max-width: 1100px !important; }
   }
   .acc-hub-tabs{display:flex;gap:4px;margin:0 0 12px;padding:4px;background:rgba(255,255,255,.72);border:1px solid rgba(26,18,8,.07);border-radius:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
-  .acc-hub-tab{flex:1;border:none;border-radius:11px;padding:9px 10px;font-family:'Tiro Bangla',serif;font-size:12px;font-weight:700;color:var(--ink3);background:transparent;cursor:pointer;transition:.12s}
+  .acc-hub-tab{flex:1;border:none;border-radius:11px;padding:10px 10px;font-family:'Tiro Bangla',serif;font-size:13px;font-weight:700;color:var(--ink3);background:transparent;cursor:pointer;transition:.12s}
   .acc-hub-tab.active{color:#fff;background:linear-gradient(135deg,var(--gold),#9a6a21);box-shadow:0 6px 14px rgba(154,106,33,.23)}
   .acc-hub-panel[hidden]{display:none!important}
   .prog-select-wrap{display:flex;gap:8px;align-items:center}
@@ -32,9 +32,9 @@
   .prog-new-btn{flex:0 0 auto;border:1px solid var(--ink);border-radius:var(--radius-sm);background:var(--ink);color:var(--gold2);padding:8px 10px;font-family:'Tiro Bangla',serif;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
   .prog-new-btn:disabled,.t4-btn:disabled{opacity:.45;cursor:not-allowed}
   .kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
-  .kpi-card{background:var(--cream);border:1px solid var(--cream2);border-radius:var(--radius-sm);padding:10px 6px;text-align:center;min-width:0}
-  .kpi-card span{display:block;font-size:10px;color:var(--ink3);margin-bottom:3px;font-weight:700}
-  .kpi-card b{font-family:'Tiro Bangla',serif;font-size:16px;font-weight:800;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+  .kpi-card{background:#fff;border:none;border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:10px 4px;text-align:center;min-width:0;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box}
+  .kpi-card span{display:-webkit-box;width:100%;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:10px;color:var(--ink3);margin-bottom:4px;font-weight:700;line-height:1.2;overflow:hidden}
+  .kpi-card b{font-family:'Tiro Bangla',serif;font-size:20px;font-weight:700;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;width:100%;line-height:1.1}
   .kpi-card b.g{color:var(--green)}.kpi-card b.r{color:var(--red)}.kpi-card b.o{color:var(--gold)}
   .prog-tag{display:inline-block;background:var(--gold-light);color:var(--gold);border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700;margin-top:6px}
   .toolbar-4{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
@@ -71,7 +71,12 @@
   .type-config-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .type-hint{font-size:11px;color:var(--ink3);line-height:1.5;margin-top:-6px;margin-bottom:10px}
   .receipt-list{display:flex;flex-direction:column;gap:6px;margin-top:7px}
-  @media(max-width:640px){.kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.kpi-card{padding:7px 3px}.kpi-card span{font-size:9px}.kpi-card b{font-size:13px}.type-config-grid{grid-template-columns:1fr}}
+  @media(max-width:640px){
+    .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .kpi-card{padding:10px 6px;min-height:88px}
+    .kpi-card b{font-size:18px;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.12}
+    .type-config-grid{grid-template-columns:1fr}
+  }
 </style>
 </head>
 <body class="page-admin-accounts">
