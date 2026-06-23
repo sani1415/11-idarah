@@ -375,34 +375,34 @@ body.page-daftar #modal-account-entry .modal{width:min(920px,calc(100vw - 24px))
 /* Modern income detail workspace */
 body #modal-account-details.acc-income-detail-open{padding:16px;backdrop-filter:blur(5px);background:rgba(26,18,8,.52)}
 body #modal-account-details.acc-income-detail-open .modal{width:min(1180px,calc(100vw - 32px));height:min(820px,calc(100vh - 32px));max-width:none;max-height:calc(100vh - 32px);padding:0;overflow:hidden;border:1px solid rgba(26,18,8,.08);border-radius:22px;background:#fff;box-shadow:0 28px 80px rgba(26,18,8,.24);display:flex;flex-direction:column}
-body #modal-account-details.acc-income-detail-open .modal-title{flex:0 0 auto;align-items:center;margin:0;padding:23px 30px 19px;border-bottom:1px solid rgba(26,18,8,.08);font-family:'Tiro Bangla',serif;font-size:28px;font-weight:900;line-height:1.2;color:var(--ink);background:#fff}
-body #modal-account-details.acc-income-detail-open .modal-close{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0;border:1px solid rgba(26,18,8,.12);border-radius:10px;background:#fff;color:var(--ink2);transition:background .16s,border-color .16s,transform .16s}
+body #modal-account-details.acc-income-detail-open .modal-title{flex:0 0 auto;align-items:center;margin:0;padding:14px 24px 12px;border-bottom:1px solid rgba(26,18,8,.08);font-family:'Tiro Bangla',serif;font-size:22px;font-weight:900;line-height:1.15;color:var(--ink);background:#fff}
+body #modal-account-details.acc-income-detail-open .modal-close{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid rgba(26,18,8,.12);border-radius:9px;background:#fff;color:var(--ink2);transition:background .16s,border-color .16s,transform .16s}
 body #modal-account-details.acc-income-detail-open .modal-close:hover{background:#faf7f2;border-color:rgba(26,18,8,.2);transform:translateY(-1px)}
-body #modal-account-details.acc-income-detail-open .modal-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
-body #modal-account-details.acc-income-detail-open #account-details-root{padding:21px 30px 27px;box-sizing:border-box;background:#fff}
-.acc-income-shell{display:flex;flex-direction:column;gap:14px;flex:1;min-height:0}
-.acc-income-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));min-height:116px;border:1px solid rgba(13,116,80,.2);border-radius:16px;background:#fbfdfc;overflow:hidden}
-.acc-income-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:14px 20px;text-align:center;min-width:0;position:relative}
-.acc-income-stat+.acc-income-stat:before{content:'';position:absolute;left:0;top:22%;bottom:22%;width:1px;background:rgba(26,18,8,.12)}
-.acc-income-stat-label{font-size:12px;font-weight:800;color:var(--ink3);line-height:1.2}
-.acc-income-stat-value{font-family:'Tiro Bangla',serif;font-size:25px;font-weight:900;line-height:1.1;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.acc-income-stat-value.is-income{color:#087a50;font-size:32px}
-.acc-income-stat-value.is-expense{color:var(--red);font-size:32px}
-.acc-income-stat-value.is-status{font-size:19px;color:#087a50}
-.acc-income-toolbar{display:grid;grid-template-columns:minmax(190px,1fr) minmax(170px,.85fr) auto;gap:10px;align-items:center}
-.acc-income-tool{min-height:46px;display:flex;align-items:center;gap:9px;padding:9px 13px;border:1px solid rgba(26,18,8,.13);border-radius:11px;background:#fff;color:var(--ink2);font:800 13px/1.2 inherit;cursor:pointer;text-align:left;transition:border-color .15s,background .15s,box-shadow .15s}
+body #modal-account-details.acc-income-detail-open .modal-close svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
+body #modal-account-details.acc-income-detail-open #account-details-root{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;padding:12px 20px 16px;box-sizing:border-box;background:#fff}
+.acc-income-shell{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0}
+.acc-income-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));min-height:0;border:1px solid rgba(13,116,80,.2);border-radius:12px;background:#fbfdfc;overflow:hidden}
+.acc-income-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 12px;text-align:center;min-width:0;position:relative}
+.acc-income-stat+.acc-income-stat:before{content:'';position:absolute;left:0;top:18%;bottom:18%;width:1px;background:rgba(26,18,8,.12)}
+.acc-income-stat-label{font-size:11px;font-weight:800;color:var(--ink3);line-height:1.15}
+.acc-income-stat-value{font-family:'Tiro Bangla',serif;font-size:20px;font-weight:900;line-height:1.05;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.acc-income-stat-value.is-income{color:#087a50;font-size:24px}
+.acc-income-stat-value.is-expense{color:var(--red);font-size:24px}
+.acc-income-stat-value.is-status{font-size:15px;color:#087a50}
+.acc-income-toolbar{display:grid;grid-template-columns:minmax(170px,1fr) minmax(150px,.85fr) auto;gap:8px;align-items:center;flex:0 0 auto}
+.acc-income-tool{min-height:38px;display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid rgba(26,18,8,.13);border-radius:10px;background:#fff;color:var(--ink2);font:800 12px/1.2 inherit;cursor:pointer;text-align:left;transition:border-color .15s,background .15s,box-shadow .15s}
 .acc-income-tool:hover,.acc-income-tool:focus-visible{border-color:rgba(154,106,33,.45);background:#fffaf2;box-shadow:0 0 0 3px rgba(154,106,33,.08);outline:none}
-.acc-income-tool svg{width:18px;height:18px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.acc-income-tool-copy{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.acc-income-tool svg{width:16px;height:16px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.acc-income-tool-copy{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
 .acc-income-tool-copy small{font-size:9px;font-weight:700;color:var(--ink3)}
-.acc-income-tool-copy strong{font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-income-tool-copy strong{font-size:12px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acc-income-tool-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#087a50;color:#fff;font-size:9px;box-sizing:border-box}
 .acc-income-tool.clear{width:auto;color:#9a6a21;border-color:rgba(154,106,33,.45);justify-content:center;padding-inline:16px}
 .acc-income-tool.clear:hover{background:#fff8e8}
 .acc-income-tool.clear[hidden]{display:none}
 #modal-account-details.acc-income-detail-open .acc-table-wrap{border-color:rgba(26,18,8,.11);border-radius:16px;box-shadow:0 8px 24px rgba(26,18,8,.05);scrollbar-color:rgba(26,18,8,.2) transparent}
 #modal-account-details.acc-income-detail-open .acc-income-table{min-width:700px;margin:0;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:14px}
-#modal-account-details.acc-income-detail-open .acc-income-table th{padding:13px 12px 10px;background:#faf8f4;border-bottom:1px solid rgba(26,18,8,.1);color:var(--ink2);font-size:12px;text-transform:none;letter-spacing:0;z-index:3}
+#modal-account-details.acc-income-detail-open .acc-income-table th{padding:9px 10px 7px;background:#faf8f4;border-bottom:1px solid rgba(26,18,8,.1);color:var(--ink2);font-size:11px;text-transform:none;letter-spacing:0;z-index:3}
 #modal-account-details.acc-income-detail-open .acc-income-table th:nth-child(1){width:21%}
 #modal-account-details.acc-income-detail-open .acc-income-table th:nth-child(2){width:auto}
 #modal-account-details.acc-income-detail-open .acc-income-table th:nth-child(3){width:21%}
@@ -417,17 +417,17 @@ body #modal-account-details.acc-income-detail-open #account-details-root{padding
 #modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(7){width:110px}
 #modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(8){width:145px}
 #modal-account-details.acc-income-detail-open .acc-expense-detail-table .acc-list-amt.expense{color:var(--red)}
-#modal-account-details.acc-income-detail-open .acc-col-head{gap:7px;margin-bottom:8px}
-#modal-account-details.acc-income-detail-open .acc-col-head-label{font-size:13px;font-weight:900;color:var(--ink2)}
-#modal-account-details.acc-income-detail-open .col-flt-icon{width:26px;height:26px;border:1px solid rgba(26,18,8,.1);background:#fff;border-radius:7px}
+#modal-account-details.acc-income-detail-open .acc-col-head{gap:5px;margin-bottom:5px}
+#modal-account-details.acc-income-detail-open .acc-col-head-label{font-size:12px;font-weight:900;color:var(--ink2)}
+#modal-account-details.acc-income-detail-open .col-flt-icon{width:24px;height:24px;border:1px solid rgba(26,18,8,.1);background:#fff;border-radius:6px}
 #modal-account-details.acc-income-detail-open .col-flt-icon:hover,#modal-account-details.acc-income-detail-open .col-flt-icon.is-on{border-color:rgba(154,106,33,.38);background:#fff8e8;color:#9a6a21}
-#modal-account-details.acc-income-detail-open .acc-col-search{height:34px;margin:0;padding:7px 10px;border-color:rgba(26,18,8,.12);border-radius:9px;background:#fff;font-size:11px;font-weight:700}
-#modal-account-details.acc-income-detail-open .acc-income-table td{height:58px;padding:11px 12px;border-bottom:1px solid rgba(26,18,8,.07);background:#fff;color:var(--ink2);box-sizing:border-box}
+#modal-account-details.acc-income-detail-open .acc-col-search{height:30px;margin:0;padding:5px 8px;border-color:rgba(26,18,8,.12);border-radius:8px;background:#fff;font-size:10px;font-weight:700}
+#modal-account-details.acc-income-detail-open .acc-income-table td{height:50px;padding:8px 10px;border-bottom:1px solid rgba(26,18,8,.07);background:#fff;color:var(--ink2);box-sizing:border-box}
 #modal-account-details.acc-income-detail-open .acc-income-table tbody tr:nth-child(even) td{background:#fcfaf7}
 #modal-account-details.acc-income-detail-open .acc-income-table tbody tr:hover td{background:#fff8e8}
 #modal-account-details.acc-income-detail-open .acc-income-table td:first-child{font-size:12px!important;font-weight:700;color:var(--ink3)!important;white-space:nowrap}
 #modal-account-details.acc-income-detail-open .acc-income-table td:nth-child(2){font-size:14px;font-weight:800;line-height:1.35;white-space:normal;overflow-wrap:anywhere}
-#modal-account-details.acc-income-detail-open .acc-income-table .acc-list-amt{font-family:'Tiro Bangla',serif;font-size:17px;font-weight:900;color:#087a50;text-align:right}
+#modal-account-details.acc-income-detail-open .acc-income-table .acc-list-amt{font-family:'Tiro Bangla',serif;font-size:15px;font-weight:900;color:#087a50;text-align:right}
 .acc-income-actions{display:flex;justify-content:flex-end;gap:6px}
 .acc-income-action{display:inline-flex;align-items:center;justify-content:center;width:31px;height:31px;padding:0;border-radius:8px;background:#fff;cursor:pointer;transition:background .15s,transform .15s}
 .acc-income-action svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
@@ -458,11 +458,31 @@ body #modal-account-details.acc-income-detail-open #account-details-root{padding
  .acc-income-tool.clear{padding-inline:10px}
  .acc-income-tool.clear .acc-income-tool-copy{display:none}
  #modal-account-details.acc-income-detail-open .acc-table-wrap{border-radius:14px}
- #modal-account-details.acc-income-detail-open .acc-income-table{min-width:580px;font-size:13px}
- #modal-account-details.acc-income-detail-open .acc-expense-detail-table{min-width:1120px}
- #modal-account-details.acc-income-detail-open .acc-income-table th{padding:11px 9px 9px}
- #modal-account-details.acc-income-detail-open .acc-income-table td{height:54px;padding:9px}
- #modal-account-details.acc-income-detail-open .acc-col-search{height:32px;padding:6px 8px}
+ #modal-account-details.acc-income-detail-open .acc-income-table{min-width:480px;font-size:12px}
+ #modal-account-details.acc-income-detail-open .acc-income-table:not(.acc-expense-detail-table) th:nth-child(1){width:22%}
+ #modal-account-details.acc-income-detail-open .acc-income-table:not(.acc-expense-detail-table) th:nth-child(3){width:22%}
+ #modal-account-details.acc-income-detail-open .acc-income-table:not(.acc-expense-detail-table):not(.is-readonly) th:last-child{width:68px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table{min-width:820px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(1){width:88px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(2){width:90px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(3){width:82px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(4){width:140px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(5){width:95px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(6){width:100px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(7){width:78px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table th:nth-child(8){width:88px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table:not(.is-readonly) th:last-child{width:68px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+ #modal-account-details.acc-income-detail-open .acc-expense-detail-table td.acc-desc-cell{white-space:normal;overflow-wrap:anywhere;line-height:1.3}
+ #modal-account-details.acc-income-detail-open .acc-income-table th{padding:6px 5px 5px}
+ #modal-account-details.acc-income-detail-open .acc-income-table td{height:auto;min-height:44px;padding:6px 5px}
+ #modal-account-details.acc-income-detail-open .acc-col-head{gap:4px;margin-bottom:5px}
+ #modal-account-details.acc-income-detail-open .acc-col-head-label{font-size:11px}
+ #modal-account-details.acc-income-detail-open .col-flt-icon{width:22px;height:22px;border-radius:6px}
+ #modal-account-details.acc-income-detail-open .acc-col-search{height:28px;min-width:0;padding:4px 6px;font-size:10px;border-radius:7px}
+ #modal-account-details.acc-income-detail-open .acc-income-table .acc-list-amt{font-size:14px}
+ #modal-account-details.acc-income-detail-open .acc-income-action{width:28px;height:28px}
+ #modal-account-details.acc-income-detail-open .acc-income-action svg{width:13px;height:13px}
  .col-flt-panel{max-height:min(330px,calc(100vh - 16px))}
 }
 @media (prefers-reduced-motion:reduce){.acc-income-tool,.acc-income-action,body #modal-account-details.acc-income-detail-open .modal-close{transition:none}}`;
