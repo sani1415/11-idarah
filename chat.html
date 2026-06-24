@@ -80,7 +80,9 @@
 <script src="api-shared.js"></script>
 <script src="js/mm-sample-data.js"></script>
 <script src="js/api.js"></script>
+<script src="js/mdr-daftar-supabase.js"></script>
 <script src="js/mm-session.js"></script>
+<script src="js/mdr-daftar-attendance-gate.js?v=20260624-gate4"></script>
 <script src="js/mm-push.js"></script>
 <script src="js/dept-api.js"></script>
 <script src="js/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
@@ -295,6 +297,13 @@
   async function initChatPage() {
     initVisualViewportKeyboard();
     setupChatRealtime();
+
+    if (myRole === 'daftar' && MMSession.ensureDaftarDataReady) {
+      try {
+        var daftarWarm = MMSession.isAppDataWarm && MMSession.isAppDataWarm();
+        await MMSession.ensureDaftarDataReady({ silent: daftarWarm });
+      } catch (e) {}
+    }
 
     if (isAdmin) {
       await syncChatRemote();

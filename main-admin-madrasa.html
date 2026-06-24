@@ -450,7 +450,11 @@
 <script src="js/mam-overlay.js?v=20260521-akhlaq-consistency"></script>
 <script src="js/mdr-home-panels.js?v=20260521-absent-scroll"></script>
 <script>
-  if (!MMSession.requireAdminPerm('dashboard', 'index.html')) { throw new Error('admin permission denied'); }
+  var adminAuthFallback = (function () {
+    try { return /^admin\./i.test(location.hostname) ? 'admin/index.html' : 'index.html'; }
+    catch (e) { return 'index.html'; }
+  })();
+  if (!MMSession.requireAdminPerm('dashboard', adminAuthFallback)) { throw new Error('admin permission denied'); }
 
   const toBn = n => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const MADRASA_DEPT_KEY = 'mm_madrasa_jimmadar_dept';

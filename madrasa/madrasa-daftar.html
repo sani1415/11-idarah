@@ -974,7 +974,7 @@ body.page-daftar #modal-account-entry .modal {
 <script src="../api-shared.js?v=20260516-attendance-persist"></script>
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js?v=20260517-attendance-consistency"></script>
-<script src="../js/mdr-daftar-supabase.js?v=20260516-attendance-persist"></script>
+<script src="../js/mdr-daftar-supabase.js?v=20260624-save-perf"></script>
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
 <script src="../js/chat-api.js"></script>
@@ -982,6 +982,7 @@ body.page-daftar #modal-account-entry .modal {
 <script src="../js/madrasa-accounts-reports.js?v=20260614-live-import-refresh"></script>
 <script src="../js/mm-student-modal.js?v=20260517-attendance-consistency"></script>
 <script src="../js/mm-session.js?v=20260516-attendance-persist"></script>
+<script src="../js/mdr-daftar-attendance-gate.js?v=20260624-gate4"></script>
 <script src="../js/daftar-bottom-nav.js"></script>
 <script src="../js/monitor-mode.js"></script>
 <script>
@@ -1113,7 +1114,7 @@ body.page-daftar #modal-account-entry .modal {
     // ১) শুরু→আজ পর্যন্ত "কোনো হাজিরা নেই" এমন দিনগুলো
     const missingDays = [];
     for (let cur = startISO; cur <= todayISO; cur = isoAddDays(cur, 1)) {
-      const any = API.Attendance.getByDate(cur).length > 0;
+      const any = API.Attendance.hasAnyForDate(cur);
       if (!any) missingDays.push(cur);
     }
 
@@ -1173,7 +1174,7 @@ body.page-daftar #modal-account-entry .modal {
       if (outOfSession || future) {
         btn.disabled = true;
       } else {
-        const taken = API.Attendance.getByDate(iso).length > 0;
+        const taken = API.Attendance.hasAnyForDate(iso);
         btn.classList.add(taken ? 'ad-taken' : 'ad-miss');
         btn.addEventListener('click', () => trySetDaftarAttDate(iso));
       }
@@ -1306,21 +1307,48 @@ body.page-daftar #modal-account-entry .modal {
     trySetDaftarAttDate(v);
   }
 
-  function copyFromPreviousDay() {
+  function findLastAttendedDayBefore(iso) {
+    const start = getSessionStartISO();
+    if (!iso) return null;
+    for (let cur = isoAddDays(iso, -1); !start || cur >= start; cur = isoAddDays(cur, -1)) {
+      if (API.Attendance.hasAnyForDate(cur)) return cur;
+    }
+    return null;
+  }
+
+  function attRecForStudent(recs, student) {
+    const sid = String(student.id || '');
+    const supa = String(student.supabase_id || student.id || '');
+    return recs.find(r => String(r.student_id || '') === sid || String(r.student_id || '') === supa) || null;
+  }
+
+  async function copyFromPreviousDay() {
     if (mmMutationBlocked(showToast)) return;
-    const d = new Date(daftarAttDate + 'T12:00:00');
-    d.setDate(d.getDate() - 1);
-    const prevIso = d.toISOString().split('T')[0];
-    const recs = API.Attendance.getByDate(prevIso);
-    if (!recs.length) {
-      showToast('আগের দিনে কোনো হাজিরা রেকর্ড নেই');
+    const sourceIso = findLastAttendedDayBefore(daftarAttDate);
+    if (!sourceIso) {
+      showToast('আগের কোনো দিনে হাজিরা রেকর্ড নেই');
       return;
     }
-    const bySid = new Map(recs.map(r => [r.student_id, r]));
+    let recs = API.Attendance.getByDate(sourceIso);
+    if (!recs.length && window.MDRDaftarSupabase && MDRDaftarSupabase.ensureDateInCache) {
+      try {
+        showToast('আগের দিনের হাজিরা লোড হচ্ছে…');
+        recs = await MDRDaftarSupabase.ensureDateInCache(sourceIso);
+      } catch (e) {
+        console.warn('[Daftar] ensureDateInCache failed:', e);
+        recs = [];
+      }
+    }
+    if (!recs.length) {
+      showToast('আগের দিনের হাজিরা লোড হয়নি — আবার চেষ্টা করুন');
+      return;
+    }
     const active = getAttendanceStudents();
+    let copied = 0;
     active.forEach(s => {
-      const r = bySid.get(s.id);
+      const r = attRecForStudent(recs, s);
       if (!r) return;
+      copied++;
       const st = API.Attendance.statusOf(r);
       if (st === 'absent') {
         attState[s.id] = 'absent';
@@ -1333,6 +1361,10 @@ body.page-daftar #modal-account-entry .modal {
         delete attReasonState[s.id];
       }
     });
+    if (!copied) {
+      showToast('আগের দিনের হাজিরা পাওয়া গেল কিন্তু ছাত্র মিলেনি');
+      return;
+    }
     showToast('আগের দিনের মতো এডিট করা হয়েছে — «সংরক্ষণ» করুন');
     updateHero();
     renderAttendance();
@@ -1600,7 +1632,17 @@ body.page-daftar #modal-account-entry .modal {
     showToast('সকল বর্ষের উপস্থিতি সংরক্ষিত হয়েছে ✓');
     attState = {};
     attReasonState = {};
+    if (API.Attendance && API.Attendance.noteDateSaved) API.Attendance.noteDateSaved(daftarAttDate);
     renderAttendance();
+    if (window.MDRDaftarAttendanceGate && MDRDaftarAttendanceGate.isGateActive()) {
+      var nextDay = MDRDaftarAttendanceGate.firstMissingDay && MDRDaftarAttendanceGate.firstMissingDay();
+      if (nextDay && !hasPendingEdits()) {
+        daftarAttDate = nextDay;
+        updateHero();
+        renderAttendance();
+      }
+    }
+    if (window.MDRDaftarAttendanceGate) MDRDaftarAttendanceGate.refresh();
   }
 
   /* ── FEES ── */
@@ -1672,6 +1714,7 @@ body.page-daftar #modal-account-entry .modal {
     window.scrollTo(0, 0);
   }
   function switchMadrasaTab(name) {
+    if (window.MDRDaftarAttendanceGate && MDRDaftarAttendanceGate.blockTab(name)) return;
     switchPanel(name || 'home');
     if (!name || name === 'home') {
       updateHero();
@@ -1685,6 +1728,7 @@ body.page-daftar #modal-account-entry .modal {
   }
 
   async function goDaftarAccounts() {
+    if (window.MDRDaftarAttendanceGate && MDRDaftarAttendanceGate.blockAccounts()) return;
     setDaftarHash('#accounts');
     switchPanel('fees');
     if (MMSession.ensureDaftarDataReady) {
@@ -1972,12 +2016,6 @@ body.page-daftar #modal-account-entry .modal {
   async function initDaftarPage() {
     var initialHash = location.hash || '';
     var wantsAccounts = initialHash === '#fees' || initialHash === '#accounts';
-    var navRoot = document.getElementById('daftar-nav-root');
-    if (window.MMDaftarBottomNav && navRoot) {
-      var acc0 = wantsAccounts ? 'accounts' : 'daftar';
-      MMDaftarBottomNav.mount(navRoot, { active: acc0, spaDaftar: true, pathPrefix: '' });
-    }
-    if (wantsAccounts) switchPanel('fees');
     var wasWarm = MMSession.isAppDataWarm && MMSession.isAppDataWarm();
     if (MMSession.ensureDaftarDataReady) {
       try {
@@ -1987,6 +2025,16 @@ body.page-daftar #modal-account-entry .modal {
         showToast('Supabase থেকে দফতর ডেটা লোড হয়নি');
       }
     }
+    if (window.MDRDaftarAttendanceGate && MDRDaftarAttendanceGate.isGateActive && MDRDaftarAttendanceGate.isGateActive()) {
+      wantsAccounts = false;
+    }
+    var navRoot = document.getElementById('daftar-nav-root');
+    if (window.MMDaftarBottomNav && navRoot) {
+      var acc0 = wantsAccounts ? 'accounts' : 'daftar';
+      MMDaftarBottomNav.mount(navRoot, { active: acc0, spaDaftar: true, pathPrefix: '' });
+    }
+    if (window.MDRDaftarAttendanceGate) MDRDaftarAttendanceGate.refresh();
+    if (wantsAccounts) switchPanel('fees');
     if (wantsAccounts) {
       try {
         if (window.MdrAccAPI && MdrAccAPI.bootstrapRemote) {
@@ -2009,8 +2057,13 @@ body.page-daftar #modal-account-entry .modal {
     } else if (location.hash === '#students') {
       location.replace('madrasa-home.html#students');
     }
+    if (window.MDRDaftarAttendanceGate && MDRDaftarAttendanceGate.isGateActive()) {
+      var firstDay = MDRDaftarAttendanceGate.firstMissingDay && MDRDaftarAttendanceGate.firstMissingDay();
+      if (firstDay && !hasPendingEdits()) daftarAttDate = firstDay;
+    }
     updateHero();
     renderAttendance();
+    if (window.MDRDaftarAttendanceGate) MDRDaftarAttendanceGate.refresh();
   }
   async function saveOwnPin(){
     var c=document.getElementById('pc-cur').value,n=document.getElementById('pc-new').value,f=document.getElementById('pc-conf').value,e=document.getElementById('pc-err');

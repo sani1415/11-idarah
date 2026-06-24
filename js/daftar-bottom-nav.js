@@ -57,6 +57,20 @@
       function (e) {
         var item = e.target.closest('.nav-item, a.nav-item');
         if (!item || item.classList.contains('active')) return;
+        if (item.getAttribute('data-gate-allow') === '1') return;
+        if (global.MDRDaftarAttendanceGate && MDRDaftarAttendanceGate.blockNavigation) {
+          var blockHref = item.getAttribute('href') || '';
+          if (!blockHref && isSpaNavItem(item)) {
+            var oc = item.getAttribute('onclick') || '';
+            if (/goDaftarAccounts/.test(oc)) blockHref = '#accounts';
+            else if (/switchMadrasaTab/.test(oc)) blockHref = 'madrasa-daftar.html';
+          }
+          if (MDRDaftarAttendanceGate.blockNavigation(blockHref)) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+        }
         if (isSpaNavItem(item)) return;
         if (isNavDataWarm()) return;
         showNavLoading();
@@ -85,6 +99,8 @@
 
   function go(href) {
     if (!href) return;
+    if (global.MDRDaftarAttendanceGate && MDRDaftarAttendanceGate.blockNavigation &&
+        MDRDaftarAttendanceGate.blockNavigation(href)) return;
     if (!isNavDataWarm()) showNavLoading();
     location.href = href;
   }

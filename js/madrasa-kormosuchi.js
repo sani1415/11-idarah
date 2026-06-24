@@ -1144,8 +1144,8 @@ function confirmYes() {
 /* ── INIT ── */
 async function initKormosuchiPage() {
   var dataWarm = window.MMSession && MMSession.isAppDataWarm && MMSession.isAppDataWarm();
-  if (!dataWarm && window.MDRDaftarSupabase && MDRDaftarSupabase.sync) {
-    try { await MDRDaftarSupabase.sync(); } catch (err) { console.warn('[kormosuchi] student sync failed', err); }
+  if (window.MMSession && MMSession.ensureDaftarDataReady) {
+    try { await MMSession.ensureDaftarDataReady({ silent: dataWarm }); } catch (err) { console.warn('[kormosuchi] daftar bootstrap failed', err); }
   }
   try {
     await dbLoad();

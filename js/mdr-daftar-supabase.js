@@ -187,6 +187,7 @@
   }
 
   async function sync(options) {
+    if (global.API && API.hydrateSessionCache) API.hydrateSessionCache();
     if (!options || !options.force) {
       if (global.API && API.isDaftarSessionCacheWarm && API.isDaftarSessionCacheWarm()) {
         hydrateClassTeachersCache();
@@ -224,13 +225,19 @@
     if (!Array.isArray(records) || !records.length) throw new Error('empty_attendance_payload');
     var res = await MMSharedAPI.saveAttendanceDay(a.id, a.pin, date, records || [], hijriYear || null);
     if (!res || !res.ok) throw new Error((res && res.error) || 'attendance_save_failed');
-    var fresh = await MMSharedAPI.daftarBootstrap(a.id, a.pin);
-    if (!fresh || !fresh.ok) throw new Error((fresh && fresh.error) || 'attendance_readback_failed');
-    var attendanceRows = fresh.attendance || res.attendance || [];
     var expectedDate = String(date || '').slice(0, 10);
+    var attendanceRows = res.attendance || [];
     var savedCount = (attendanceRows || []).filter(function (row) {
       return String(row.date || '').slice(0, 10) === expectedDate;
     }).length;
+    if (savedCount < records.length) {
+      var fresh = await MMSharedAPI.daftarBootstrap(a.id, a.pin);
+      if (!fresh || !fresh.ok) throw new Error((fresh && fresh.error) || 'attendance_readback_failed');
+      attendanceRows = fresh.attendance || attendanceRows;
+      savedCount = (attendanceRows || []).filter(function (row) {
+        return String(row.date || '').slice(0, 10) === expectedDate;
+      }).length;
+    }
     if (savedCount < records.length) {
       var err = new Error('attendance_readback_mismatch');
       err.expected = records.length;
@@ -243,8 +250,30 @@
       }).map(toLocalAttendance);
       if (API.Attendance.replaceDate) API.Attendance.replaceDate(date, dayRows);
       else if (API.Attendance.replaceAll) API.Attendance.replaceAll(dayRows);
+      if (API.Attendance.noteDateSaved) API.Attendance.noteDateSaved(expectedDate);
     }
     return true;
+  }
+
+  async function ensureDateInCache(date) {
+    if (!global.API || !API.Attendance) return [];
+    var iso = String(date || '').slice(0, 10);
+    if (!iso) return [];
+    var existing = API.Attendance.getByDate(iso);
+    if (existing.length) return existing;
+    if (API.Attendance.hasAnyForDate && !API.Attendance.hasAnyForDate(iso)) return [];
+    if (!global.MMSharedAPI) return [];
+    var a = actor();
+    if (!a || !a.id || !a.pin) return [];
+    var fresh = await MMSharedAPI.daftarBootstrap(a.id, a.pin);
+    if (!fresh || !fresh.ok) return [];
+    var dayRows = (fresh.attendance || []).filter(function (row) {
+      return String(row.date || '').slice(0, 10) === iso;
+    }).map(toLocalAttendance);
+    if (dayRows.length && API.Attendance.replaceDate) {
+      API.Attendance.replaceDate(iso, dayRows);
+    }
+    return API.Attendance.getByDate(iso);
   }
 
   hydrateClassTeachersCache();
@@ -252,6 +281,7 @@
   global.MDRDaftarSupabase = {
     sync: sync,
     saveDay: saveDay,
+    ensureDateInCache: ensureDateInCache,
     classTeachersMergedMap: classTeachersMergedMap,
     hydrateClassTeachersCache: hydrateClassTeachersCache,
   };

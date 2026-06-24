@@ -57,6 +57,8 @@ const API = (() => {
   const SESSION_CACHE_META = 'mm_data_cache_meta';
   const SESSION_CACHE_PREFIX = 'mm_sc_';
   const ABSENT_SUMMARY_KEY = 'mm_absent_summary_v1';
+  /** হাজিরা অডিট — শুধু তারিখের তালিকা (হালকা; সেশন জুড়ে নেভে টিকে থাকে) */
+  const ATTENDANCE_DATES_KEY = 'mm_attendance_dates_v1';
   let sessionHydrateAttempted = false;
 
   function sessionActorKey() {
@@ -87,19 +89,77 @@ const API = (() => {
     if (!actor) return;
     try {
       const prev = readSessionCacheMeta() || {};
-      sessionStorage.setItem(SESSION_CACHE_META, JSON.stringify({
+      const next = {
         v: SESSION_CACHE_VERSION,
         actor,
         ts: Date.now(),
         daftar_boot: !!(extra && extra.daftar_boot) || !!prev.daftar_boot,
-      }));
+      };
+      if (extra && Object.prototype.hasOwnProperty.call(extra, 'att_count')) {
+        next.att_count = extra.att_count;
+      } else if (prev.att_count != null) {
+        next.att_count = prev.att_count;
+      }
+      sessionStorage.setItem(SESSION_CACHE_META, JSON.stringify(next));
     } catch (e) {
       console.warn('[API] session cache meta write failed', e);
     }
   }
 
+  function loadAttendanceDateIndex() {
+    try {
+      const raw = sessionStorage.getItem(ATTENDANCE_DATES_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!parsed || parsed.actor !== sessionActorKey()) return [];
+      return Array.isArray(parsed.dates) ? parsed.dates : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function writeAttendanceDateIndex(rows) {
+    const list = Array.isArray(rows) ? rows : [];
+    const fromRows = list.map((a) => String(a && a.date || '').slice(0, 10)).filter(Boolean);
+    const merged = Array.from(new Set(loadAttendanceDateIndex().concat(fromRows))).sort();
+    try {
+      sessionStorage.setItem(ATTENDANCE_DATES_KEY, JSON.stringify({
+        actor: sessionActorKey(),
+        dates: merged,
+        ts: Date.now(),
+      }));
+      return true;
+    } catch (e) {
+      console.warn('[API] attendance date index write failed', e);
+      return false;
+    }
+  }
+
   function markDaftarBootstrapComplete() {
-    touchSessionCacheMeta({ daftar_boot: true });
+    ensureSessionCacheHydrated();
+    const att = Object.prototype.hasOwnProperty.call(volatileStore, KEYS.attendance)
+      ? volatileStore[KEYS.attendance]
+      : load(KEYS.attendance);
+    if (Array.isArray(att) && att.length) writeAttendanceDateIndex(att);
+    const attCount = Array.isArray(att) ? att.length : 0;
+    touchSessionCacheMeta({ daftar_boot: true, att_count: attCount });
+  }
+
+  /** daftar_boot আছে কিন্তু হাজিরা ক্যাশ একদম নেই — একবার heal; তারিখ ইনডেক্স থাকলে stale নয় */
+  function isDaftarSessionCacheStale() {
+    ensureSessionCacheHydrated();
+    const meta = readSessionCacheMeta();
+    if (!meta || !meta.daftar_boot) return false;
+    if (loadAttendanceDateIndex().length > 0) return false;
+    const att = Object.prototype.hasOwnProperty.call(volatileStore, KEYS.attendance)
+      ? volatileStore[KEYS.attendance]
+      : [];
+    const current = Array.isArray(att) ? att.length : 0;
+    if (current > 0) return false;
+    const expected = Number(meta.att_count) || 0;
+    if (expected > 0) return true;
+    const summary = loadDaftarAbsentSummaryRaw();
+    return !!(summary && Array.isArray(summary.rows) && summary.rows.length > 0);
   }
 
   function writeSessionCache(key, data) {
@@ -142,6 +202,7 @@ const API = (() => {
     });
     try { sessionStorage.removeItem(SESSION_CACHE_META); } catch (e) {}
     try { sessionStorage.removeItem(ABSENT_SUMMARY_KEY); } catch (e) {}
+    try { sessionStorage.removeItem(ATTENDANCE_DATES_KEY); } catch (e) {}
     sessionHydrateAttempted = false;
   }
 
@@ -170,12 +231,14 @@ const API = (() => {
     return Array.isArray(students) && students.length > 0 && Array.isArray(classes) && classes.length > 0;
   }
 
-  /** দফতর হোম/হাজিরা — একবার বুটস্ট্র্যাপ সম্পন্ন (হাজিরা বা সারাংশ ক্যাশ) */
+  /** দফতর হোম/হাজিরা — এক সেশনে bootstrap-পর নেভে DB আবার নয় */
   function isDaftarSessionCacheWarm() {
     if (!isSessionCacheWarm()) return false;
+    if (isDaftarSessionCacheStale()) return false;
+    ensureSessionCacheHydrated();
     const meta = readSessionCacheMeta();
     if (meta && meta.daftar_boot) return true;
-    return hasSessionCacheEntry(KEYS.attendance) || !!loadDaftarAbsentSummaryRaw();
+    return hasSessionCacheEntry(KEYS.attendance) || !!loadDaftarAbsentSummaryRaw() || loadAttendanceDateIndex().length > 0;
   }
 
   function loadDaftarAbsentSummaryRaw() {
@@ -261,6 +324,7 @@ const API = (() => {
     volatileStore[key] = data;
     if (DATA_KEYS.has(key)) {
       writeSessionCache(key, data);
+      if (key === KEYS.attendance) writeAttendanceDateIndex(Array.isArray(data) ? data : []);
     } else {
       localStorage.setItem(key, JSON.stringify(data));
     }
@@ -286,6 +350,7 @@ const API = (() => {
   function saveAttendanceCache(rows, requiredDates = []) {
     const list = Array.isArray(rows) ? rows : [];
     volatileStore[KEYS.attendance] = list;
+    writeAttendanceDateIndex(list);
     try {
       save(KEYS.attendance, list);
       volatileStore[KEYS.attendance] = list;
@@ -317,17 +382,9 @@ const API = (() => {
         if (!isQuotaError(e3)) throw e3;
       }
     }
-    try {
-      save(KEYS.attendance, []);
-      volatileStore[KEYS.attendance] = list;
-      return;
-    } catch (e4) {
-      if (!isQuotaError(e4)) throw lastErr || e4 || new Error('attendance_cache_save_failed');
-      console.warn('[API.Attendance] session cache full; keeping compact attendance in session');
-      volatileStore[KEYS.attendance] = list;
-      persistDaftarAttendanceSessionCache();
-      return;
-    }
+    console.warn('[API.Attendance] session cache full; compact persist (memory retains full list)');
+    volatileStore[KEYS.attendance] = list;
+    persistDaftarAttendanceSessionCache();
   }
 
   /** দফতর বুটস্ট্র্যাপ পর হাজিরা sessionStorage-এ লেখা নিশ্চিত */
@@ -336,6 +393,7 @@ const API = (() => {
       ? volatileStore[KEYS.attendance]
       : load(KEYS.attendance);
     if (!Array.isArray(list)) return false;
+    writeAttendanceDateIndex(list);
     const windows = [90, 45, 30, 14, 7, 1];
     for (const days of windows) {
       try {
@@ -723,17 +781,35 @@ const API = (() => {
       if (a.status === 'leave') return 'absent';
       return a.present ? 'present' : 'absent';
     },
-    getByDate: date => load(KEYS.attendance).filter(a => a.date === date),
+    getByDate(date) {
+      const iso = String(date || '').slice(0, 10);
+      if (!iso) return [];
+      return load(KEYS.attendance).filter((a) => String(a.date || '').slice(0, 10) === iso);
+    },
+    /** সেশন ক্যাশ/তারিখ-ইনডেক্স — অডিট ক্যালেন্ডারে “হাজিরা নেওয়া হয়েছে” */
+    hasAnyForDate(date) {
+      const iso = String(date || '').slice(0, 10);
+      if (!iso) return false;
+      if (this.getByDate(iso).length > 0) return true;
+      return loadAttendanceDateIndex().includes(iso);
+    },
     getAll: () => load(KEYS.attendance).slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))),
     replaceAll(list) {
       saveAttendanceCache(Array.isArray(list) ? list : []);
     },
     replaceDate(date, rows) {
-      const day = String(date || '');
+      const day = String(date || '').slice(0, 10);
       if (!day) return;
-      const incoming = (Array.isArray(rows) ? rows : []).filter(a => String(a.date || '') === day);
-      const next = load(KEYS.attendance).filter(a => String(a.date || '') !== day).concat(incoming);
+      const incoming = (Array.isArray(rows) ? rows : []).filter(a => String(a.date || '').slice(0, 10) === day);
+      const next = load(KEYS.attendance).filter(a => String(a.date || '').slice(0, 10) !== day).concat(incoming);
       saveAttendanceCache(next, [day]);
+    },
+    /** সেভের পর গেট/অডিট — তারিখ ইনডেক্সে নিশ্চিত */
+    noteDateSaved(date) {
+      const iso = String(date || '').slice(0, 10);
+      if (!iso) return;
+      writeAttendanceDateIndex([{ date: iso }]);
+      try { persistDaftarAttendanceSessionCache(); } catch (e) {}
     },
     /** ছাত্রের সকল হাজিরা রেকর্ড — নতুন থেকে পুরনো */
     getByStudent: sid =>
@@ -1020,6 +1096,7 @@ const API = (() => {
   /** Raw localStorage array helpers — used by feature pages until moved into domain APIs. */
   function persistLoadArr(storageKey) {
     if (DATA_KEYS.has(storageKey)) {
+      ensureSessionCacheHydrated();
       return Object.prototype.hasOwnProperty.call(volatileStore, storageKey) ? volatileStore[storageKey] : [];
     }
     try { return JSON.parse(localStorage.getItem(storageKey)) || []; } catch { return []; }

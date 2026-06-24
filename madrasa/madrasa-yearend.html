@@ -205,9 +205,14 @@
 
 <script src="../js/mm-sample-data.js"></script>
 <script src="../js/api.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../api-shared.js"></script>
+<script src="../js/mdr-daftar-supabase.js"></script>
 <script src="../js/mm-hijri.js"></script>
 <script src="../js/mm-student-modal.js"></script>
 <script src="../js/mm-session.js"></script>
+<script src="../js/mdr-daftar-attendance-gate.js?v=20260624-gate4"></script>
 <script src="../js/daftar-bottom-nav.js"></script>
 <script>
   if (!MMSession.requireStaffRoleOrAdminPerm('daftar', 'daftar', '../main-admin-madrasa.html')) { throw new Error('daftar permission denied'); }
@@ -458,6 +463,10 @@
   }
 
   async function initYearendPage() {
+    var wasWarm = MMSession.isAppDataWarm && MMSession.isAppDataWarm();
+    if (MMSession.ensureDaftarDataReady) {
+      try { await MMSession.ensureDaftarDataReady({ silent: wasWarm }); } catch (e) {}
+    }
     goStep(1);
     updateYearStartPreview();
   }

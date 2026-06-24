@@ -322,6 +322,9 @@
           }
         } catch (e) {}
       }
+      if (global.MDRDaftarAttendanceGate && MDRDaftarAttendanceGate.enforceAfterBootstrap) {
+        try { MDRDaftarAttendanceGate.enforceAfterBootstrap(); } catch (eGate) {}
+      }
       return true;
     },
     isRestrictedAdmin: function () {
