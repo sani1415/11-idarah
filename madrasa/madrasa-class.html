@@ -109,6 +109,39 @@
   }
 
   /* ── ছাত্র সার্চ ── */
+  /* ── বর্ষের দায়িত্ব (সতর্কতা) ── */
+  .duty-panel { background:#fff; border-radius:var(--radius-sm); box-shadow:var(--shadow); margin-bottom:8px; overflow:hidden; border:1px solid var(--cream3); }
+  .duty-panel--warn { border-color:rgba(220,38,38,.28); }
+  .duty-hd {
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    width:100%; padding:9px 12px; border:none; background:transparent;
+    font-family:'Tiro Bangla',serif; cursor:pointer; text-align:left;
+    -webkit-appearance:none; appearance:none; color:inherit;
+  }
+  .duty-hd:active { opacity:.92; }
+  .duty-hd:focus { outline:none; }
+  .duty-hd:focus-visible { box-shadow:inset 0 0 0 2px rgba(201,149,42,.35); }
+  .duty-hd-left { display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
+  .duty-title { font-size:12px; font-weight:700; color:var(--ink); }
+  .duty-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; flex-shrink:0; }
+  .duty-badge--warn { background:rgba(220,38,38,.12); color:var(--red); }
+  .duty-chevron {
+    flex-shrink:0; width:18px; height:18px; color:var(--ink3);
+    transition:transform .18s ease;
+  }
+  .duty-panel.is-open .duty-chevron { transform:rotate(180deg); }
+  .duty-body { border-top:1px solid var(--cream2); padding:4px 8px 8px; }
+  .duty-panel:not(.is-open) .duty-body { display:none; }
+  .duty-list { padding:0; }
+  .duty-item { display:flex; align-items:flex-start; gap:8px; padding:8px; border-radius:8px; background:var(--cream2); margin-bottom:6px; }
+  .duty-item:last-child { margin-bottom:0; }
+  .duty-item-icon { font-size:14px; line-height:1.2; flex-shrink:0; margin-top:1px; }
+  .duty-item-body { flex:1; min-width:0; }
+  .duty-item-title { font-size:12px; font-weight:700; color:var(--ink); line-height:1.25; }
+  .duty-item-detail { font-size:11px; color:var(--ink3); margin-top:2px; line-height:1.35; }
+  .duty-item-btn { flex-shrink:0; border:1.5px solid var(--cream3); background:#fff; border-radius:8px; padding:5px 9px; font-family:'Tiro Bangla',serif; font-size:11px; font-weight:600; color:var(--ink2); cursor:pointer; white-space:nowrap; }
+  .duty-item-btn:active { opacity:.85; }
+
   .std-search-strip { margin-bottom:8px; }
   .std-search-input { width:100%; padding:9px 12px; border:1px solid var(--cream3); border-radius:var(--radius-sm); font-family:'Tiro Bangla',serif; font-size:12px; color:var(--ink); background:#fff; outline:none; box-sizing:border-box; }
   .std-search-input:focus { border-color:var(--gold); }
@@ -264,6 +297,7 @@
 <!-- PANEL: হোম (স্ট্যাট + ছাত্র তালিকা) -->
 <div class="content" id="panel-std">
   <div class="std-sticky-head">
+  <div id="duty-panel-wrap"></div>
   <div id="home-stats-block" style="padding-bottom:4px;padding-top:4px;">
     <div class="stat-grid" id="stat-grid"></div>
   </div>
@@ -396,6 +430,17 @@
   </div>
 </div>
 
+<!-- MODAL: দায়িত্ব — খুলুক বাকি ছাত্র -->
+<div class="modal-bg" id="modal-duty-khuluk">
+  <div class="modal modal-large">
+    <div class="modal-title">হুসনুল খুলুক — আপডেট বাকি <button type="button" class="modal-close" onclick="closeModal('modal-duty-khuluk')">✕</button></div>
+    <p id="duty-khuluk-sub" class="watch-list-sub">—</p>
+    <div class="modal-panel watch-list-panel">
+      <div id="duty-khuluk-body" class="modal-history-list"></div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: পর্যবেক্ষণ তালিকা (আকৃতি অন্য modal-large-এর মতো — তালিকা ভেতরে স্ক্রল) -->
 <div class="modal-bg" id="modal-watch-list">
   <div class="modal modal-large">
@@ -455,6 +500,7 @@
 <script src="../js/mdr-supabase-sync.js?v=20260521-teacher-class"></script>
 <script src="../js/mm-session.js?v=20260521-teacher-class"></script>
 <script src="../js/mm-student-modal.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/mdr-class-duty-alerts.js?v=20260624-duty3"></script>
 <script>
   if (MMSession.getRole() !== 'teacher') location.href = '../index.html';
 
@@ -597,6 +643,98 @@
       '<div class="stat-kh-hd">' + '\u09B9\u09C1\u09B8\u09A8\u09C1\u09B2 \u0996\u09C1\u09B2\u09C1\u0995' + '</div>' +
       '<div class="kh-mini">' + threeLines + '</div>' +
       '</button>';
+    renderDutyAlerts();
+  }
+
+  var dutyKhulukStudents = [];
+  var dutyPanelOpen = false;
+
+  function toggleDutyPanel() {
+    dutyPanelOpen = !dutyPanelOpen;
+    var panel = document.getElementById('duty-panel');
+    if (panel) panel.classList.toggle('is-open', dutyPanelOpen);
+    var btn = panel && panel.querySelector('.duty-hd');
+    if (btn) btn.setAttribute('aria-expanded', dutyPanelOpen ? 'true' : 'false');
+  }
+
+  function renderDutyAlerts() {
+    var wrap = document.getElementById('duty-panel-wrap');
+    if (!wrap) return;
+    if (!classId || !window.MDRClassDutyAlerts) {
+      wrap.innerHTML = '';
+      return;
+    }
+    var result = MDRClassDutyAlerts.computeClassDutyAlerts(classId);
+    dutyKhulukStudents = [];
+    if (result.ok) {
+      wrap.innerHTML = '';
+      dutyPanelOpen = false;
+      return;
+    }
+    var n = toBn(String(result.overdueCount));
+    var itemsHtml = result.items.map(function (item) {
+      if (item.id === 'khuluk' && item.meta && item.meta.students) {
+        dutyKhulukStudents = item.meta.students.slice();
+      }
+      var icon = item.id === 'kitab' ? '📚' : item.id === 'khuluk' ? '✨' : '📝';
+      var btnLabel = item.action === 'kitab' ? 'কিতাব' : item.action === 'khuluk-list' ? 'তালিকা' : 'লগ';
+      var actionFn = item.action === 'kitab' ? 'dutyGoKitab()' : item.action === 'khuluk-list' ? 'openDutyKhulukList()' : 'dutyGoClassLog()';
+      return '<div class="duty-item">' +
+        '<span class="duty-item-icon" aria-hidden="true">' + icon + '</span>' +
+        '<div class="duty-item-body"><div class="duty-item-title">' + API.esc(item.title) + '</div>' +
+        '<div class="duty-item-detail">' + API.esc(item.detail) + '</div></div>' +
+        '<button type="button" class="duty-item-btn" onclick="' + actionFn + '">' + btnLabel + '</button></div>';
+    }).join('');
+    wrap.innerHTML =
+      '<section class="duty-panel duty-panel--warn' + (dutyPanelOpen ? ' is-open' : '') + '" id="duty-panel" aria-label="বর্ষের দায়িত্ব">' +
+      '<button type="button" class="duty-hd" onclick="toggleDutyPanel()" aria-expanded="' + (dutyPanelOpen ? 'true' : 'false') + '">' +
+      '<span class="duty-hd-left"><span class="duty-title">বর্ষের দায়িত্ব</span><span class="duty-badge duty-badge--warn">' + n + 'টি বাকি</span></span>' +
+      '<svg class="duty-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>' +
+      '</button>' +
+      '<div class="duty-body"><div class="duty-list">' + itemsHtml + '</div></div></section>';
+  }
+
+  function dutyGoKitab() {
+    switchTab('kitab');
+  }
+
+  function dutyGoClassLog() {
+    switchTab('log');
+    setLogSubTab('class');
+    openLogModal();
+  }
+
+  function openDutyKhulukList() {
+    var body = document.getElementById('duty-khuluk-body');
+    var sub = document.getElementById('duty-khuluk-sub');
+    if (!body) return;
+    if (!dutyKhulukStudents.length && classId && window.MDRClassDutyAlerts) {
+      var khItem = MDRClassDutyAlerts.computeClassDutyAlerts(classId).items.find(function (i) { return i.id === 'khuluk'; });
+      if (khItem && khItem.meta && khItem.meta.students) dutyKhulukStudents = khItem.meta.students.slice();
+    }
+    var students = dutyKhulukStudents;
+    if (sub) sub.textContent = students.length
+      ? 'মোট ' + toBn(students.length) + ' জন — গত ৩০ দিনে হুসনুল খুলুক এন্ট্রি নেই'
+      : 'কেউ নেই';
+    if (!students.length) {
+      body.innerHTML = '<div class="log-panel-empty">সব ছাত্রের খুলুক আপ-টু-ডেট।</div>';
+    } else {
+      body.innerHTML = students.map(function (s, i) {
+        var hasR = s.roll != null && String(s.roll).trim() !== '';
+        var rollPill = hasR ? API.escBn(String(s.roll)) : '—';
+        var latest = API.Khuluk.getLatest(s.id);
+        var lastTxt = latest && (latest.date || latest.at)
+          ? 'সর্বশেষ: ' + (MDRClassDutyAlerts.formatIsoShort(latest.date || latest.at) || '—')
+          : 'কোনো রেকর্ড নেই';
+        return '<div class="watch-list-item">' +
+          '<span class="std-roll">' + toBn(i + 1) + '</span>' +
+          '<div class="absent-list-info">' +
+            '<button type="button" class="watch-open-std" onclick="closeModal(\'modal-duty-khuluk\'); openKhuluk(\'' + _jsQuote(s.id) + '\')">' + API.esc(s.name) + '</button>' +
+            '<div class="absent-list-meta">রোল ' + rollPill + ' · ' + API.esc(lastTxt) + '</div>' +
+          '</div></div>';
+      }).join('');
+    }
+    openModal('modal-duty-khuluk');
   }
 
   /* ── অনুপস্থিত তালিকা ── */
@@ -1040,7 +1178,7 @@
         showToast('লোকালি আপডেট হয়েছে, ডাটাবেজে হয়নি');
       }
     }
-    closeModal('modal-book-prog'); renderKitab(); showToast('অগ্রগতি আপডেট হয়েছে');
+    closeModal('modal-book-prog'); renderKitab(); renderStats(); showToast('অগ্রগতি আপডেট হয়েছে');
   }
 
   /* ── LOG (বর্ষ + নির্দিষ্ট ছাত্র — API.Logs type class | student) ── */
@@ -1210,7 +1348,7 @@
         }
       }
       logEditId = '';
-      closeLogModal(); renderLog(); showToast('লগ সংশোধন হয়েছে');
+      closeLogModal(); renderLog(); renderStats(); showToast('লগ সংশোধন হয়েছে');
       return;
     }
     let logType = 'class';
@@ -1233,7 +1371,7 @@
       }
     }
     document.getElementById('log-text').value = '';
-    closeLogModal(); renderLog(); showToast('লগ যোগ হয়েছে');
+    closeLogModal(); renderLog(); renderStats(); showToast('লগ যোগ হয়েছে');
   }
 
   async function initClassPage() {
