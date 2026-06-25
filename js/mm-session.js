@@ -77,8 +77,7 @@
   function isAppSessionCacheWarm() {
     if (global.API) {
       try {
-        var role = sessionStorage.getItem(K.role) || '';
-        if (role !== 'admin' && API.isDaftarSessionCacheWarm) return API.isDaftarSessionCacheWarm();
+        if (API.isDaftarSessionCacheWarm) return API.isDaftarSessionCacheWarm();
       } catch (e0) {}
       if (API.isSessionCacheWarm) return API.isSessionCacheWarm();
     }
@@ -90,13 +89,16 @@
       var students = JSON.parse(sessionStorage.getItem(SESSION_CACHE_PREFIX + 'mm_students') || '[]');
       var classes = JSON.parse(sessionStorage.getItem(SESSION_CACHE_PREFIX + 'mm_classes') || '[]');
       if (!Array.isArray(students) || !students.length || !Array.isArray(classes) || !classes.length) return false;
-      var role = sessionStorage.getItem(K.role) || '';
-      if (role !== 'admin') {
-        if (meta && meta.daftar_boot) return true;
-        if (sessionStorage.getItem(SESSION_CACHE_PREFIX + 'mm_attendance') == null &&
-            sessionStorage.getItem('mm_absent_summary_v1') == null) return false;
+      if (meta && meta.daftar_boot) return true;
+      var attRaw = sessionStorage.getItem(SESSION_CACHE_PREFIX + 'mm_attendance');
+      if (attRaw != null) {
+        try {
+          var att = JSON.parse(attRaw);
+          if (Array.isArray(att) && att.length) return true;
+        } catch (eAtt) {}
       }
-      return true;
+      if (sessionStorage.getItem('mm_absent_summary_v1') != null) return true;
+      return false;
     } catch (e2) {
       return false;
     }

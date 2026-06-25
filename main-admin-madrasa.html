@@ -1294,7 +1294,8 @@
   async function initDashboard() {
     try {
       applyAdminPermissions();
-      const warm = window.MDRSupabaseSync && MDRSupabaseSync.isAdminDataWarm && MDRSupabaseSync.isAdminDataWarm();
+      const warm = window.MDRSupabaseSync && MDRSupabaseSync.isAdminMadrasaExtrasWarm &&
+        MDRSupabaseSync.isAdminMadrasaExtrasWarm();
       if (!warm) {
         await syncMadrasaSettings();
         await MDRSupabaseSync.ensureAdminBootstrap({ force: true });

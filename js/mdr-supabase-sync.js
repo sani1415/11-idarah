@@ -287,6 +287,7 @@
 
   function syncAttendanceRows(res) {
     if (!res || !global.API) return;
+    if (res.attendance === undefined) return;
     var studentIds = scopedStudentIds();
     var rows = (res.attendance || []).map(function (a) {
       return {
@@ -298,6 +299,10 @@
         hijri_year: a.hijri_year || null,
       };
     }).filter(function (a) { return a.id && a.student_id && a.date; });
+    if (!rows.length && API.persistLoadArr) {
+      var existing = API.persistLoadArr('mm_attendance') || [];
+      if (existing.length) return;
+    }
     mergeScopedArray('mm_attendance', function (a) { return studentIds[String(a.student_id)]; }, rows);
   }
 
@@ -348,9 +353,13 @@
     return !!(global.API && API.isSessionCacheWarm && API.isSessionCacheWarm());
   }
 
+  function isAdminMadrasaExtrasWarm() {
+    return !!(global.API && API.isAdminMadrasaExtrasWarm && API.isAdminMadrasaExtrasWarm());
+  }
+
   async function syncAdminStudents(options) {
     if (!options || !options.force) {
-      if (isAdminDataWarm()) return true;
+      if (isAdminMadrasaExtrasWarm()) return true;
     }
     if (!global.MMSession || !global.API) return false;
     var pin = MMSession.getAdminPin && MMSession.getAdminPin();
@@ -372,15 +381,20 @@
     }
     upsertLocalClasses(res.classes || []);
     API.Students.replaceAll((res.students || []).map(toLocalStudent));
+    var attDates = Array.isArray(res.attendance_dates) ? res.attendance_dates : [];
+    if (attDates.length && API.applyAttendanceDateIndexFromServer) {
+      API.applyAttendanceDateIndexFromServer(attDates);
+    }
     syncAttendanceRows(res);
     syncBookRows(res);
     syncAdminTeacherRows(res);
+    if (API.markAdminMadrasaBootstrapComplete) API.markAdminMadrasaBootstrapComplete();
     return true;
   }
 
   async function syncAdminUsers(options) {
     if (!options || !options.force) {
-      if (isAdminDataWarm()) return true;
+      if (isAdminMadrasaExtrasWarm()) return true;
     }
     if (!global.MMSession || !global.MMSharedAPI || !global.API || !API.Teachers) return false;
     var pin = MMSession.getAdminPin && MMSession.getAdminPin();
@@ -407,7 +421,7 @@
 
   async function syncAdminDars(options) {
     if (!options || !options.force) {
-      if (isAdminDataWarm()) return true;
+      if (isAdminMadrasaExtrasWarm()) return true;
     }
     if (!global.MMSession || !global.MMSharedAPI || !global.API) return false;
     var pin = MMSession.getAdminPin && MMSession.getAdminPin();
@@ -507,7 +521,7 @@
 
   async function ensureAdminBootstrap(options) {
     options = options || {};
-    if (!options.force && isAdminDataWarm()) return true;
+    if (!options.force && isAdminMadrasaExtrasWarm()) return true;
     var ok = false;
     try {
       if (await syncAdminUsers()) ok = true;
@@ -524,7 +538,7 @@
     } catch (e) {
       console.warn('[MDRSupabaseSync] admin dars sync failed', e);
     }
-    return ok || isAdminDataWarm();
+    return ok || isAdminMadrasaExtrasWarm();
   }
 
   global.MDRSupabaseSync = {
@@ -540,6 +554,7 @@
     mergeTeacherClassMeta: mergeTeacherClassMeta,
     toLocalStudent: toLocalStudent,
     isAdminDataWarm: isAdminDataWarm,
+    isAdminMadrasaExtrasWarm: isAdminMadrasaExtrasWarm,
     ensureAdminBootstrap: ensureAdminBootstrap,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

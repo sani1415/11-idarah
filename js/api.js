@@ -94,11 +94,17 @@ const API = (() => {
         actor,
         ts: Date.now(),
         daftar_boot: !!(extra && extra.daftar_boot) || !!prev.daftar_boot,
+        admin_madrasa_boot: !!(extra && extra.admin_madrasa_boot) || !!prev.admin_madrasa_boot,
       };
       if (extra && Object.prototype.hasOwnProperty.call(extra, 'att_count')) {
         next.att_count = extra.att_count;
       } else if (prev.att_count != null) {
         next.att_count = prev.att_count;
+      }
+      if (extra && Object.prototype.hasOwnProperty.call(extra, 'att_dates')) {
+        next.att_dates = extra.att_dates;
+      } else if (prev.att_dates != null) {
+        next.att_dates = prev.att_dates;
       }
       sessionStorage.setItem(SESSION_CACHE_META, JSON.stringify(next));
     } catch (e) {
@@ -135,31 +141,83 @@ const API = (() => {
     }
   }
 
-  function markDaftarBootstrapComplete() {
+  /** bootstrap attendance_dates — সার্ভার থেকে পূর্ণ তারিখ তালিকা */
+  function applyAttendanceDateIndexFromServer(dates) {
+    const merged = Array.from(new Set(
+      (Array.isArray(dates) ? dates : [])
+        .map((d) => String(d || '').slice(0, 10))
+        .filter(Boolean)
+    )).sort();
+    try {
+      sessionStorage.setItem(ATTENDANCE_DATES_KEY, JSON.stringify({
+        actor: sessionActorKey(),
+        dates: merged,
+        ts: Date.now(),
+      }));
+      return merged;
+    } catch (e) {
+      console.warn('[API] attendance date index from server failed', e);
+      return loadAttendanceDateIndex();
+    }
+  }
+
+  function markDaftarBootstrapComplete(opts) {
+    opts = opts || {};
     ensureSessionCacheHydrated();
     const att = Object.prototype.hasOwnProperty.call(volatileStore, KEYS.attendance)
       ? volatileStore[KEYS.attendance]
       : load(KEYS.attendance);
-    if (Array.isArray(att) && att.length) writeAttendanceDateIndex(att);
+    if (!opts.skipRowIndex && Array.isArray(att) && att.length) writeAttendanceDateIndex(att);
     const attCount = Array.isArray(att) ? att.length : 0;
-    touchSessionCacheMeta({ daftar_boot: true, att_count: attCount });
+    const attDates = opts.attDatesCount != null
+      ? Number(opts.attDatesCount) || 0
+      : loadAttendanceDateIndex().length;
+    touchSessionCacheMeta({ daftar_boot: true, att_count: attCount, att_dates: attDates });
   }
 
-  /** daftar_boot আছে কিন্তু হাজিরা ক্যাশ একদম নেই — একবার heal; তারিখ ইনডেক্স থাকলে stale নয় */
+  function isAdminMadrasaExtrasWarm() {
+    ensureSessionCacheHydrated();
+    const meta = readSessionCacheMeta();
+    return !!(meta && meta.admin_madrasa_boot);
+  }
+
+  function markAdminMadrasaBootstrapComplete() {
+    touchSessionCacheMeta({ admin_madrasa_boot: true });
+  }
+
+  function studentIdSetForClass(cid) {
+    const sidSet = new Set();
+    Students.getByClass(cid).forEach((s) => {
+      sidSet.add(String(s.id || ''));
+      if (s.supabase_id) sidSet.add(String(s.supabase_id));
+    });
+    return sidSet;
+  }
+
+  /** daftar_boot আছে কিন্তু হাজিরা row ক্যাশ নেই — heal (তারিখ-ইনডেক্স একা যথেষ্ট নয়) */
   function isDaftarSessionCacheStale() {
     ensureSessionCacheHydrated();
     const meta = readSessionCacheMeta();
-    if (!meta || !meta.daftar_boot) return false;
-    if (loadAttendanceDateIndex().length > 0) return false;
     const att = Object.prototype.hasOwnProperty.call(volatileStore, KEYS.attendance)
       ? volatileStore[KEYS.attendance]
-      : [];
+      : load(KEYS.attendance);
     const current = Array.isArray(att) ? att.length : 0;
-    if (current > 0) return false;
-    const expected = Number(meta.att_count) || 0;
-    if (expected > 0) return true;
-    const summary = loadDaftarAbsentSummaryRaw();
-    return !!(summary && Array.isArray(summary.rows) && summary.rows.length > 0);
+    if (meta && meta.daftar_boot) {
+      if (current > 0) return false;
+      if (loadAttendanceDateIndex().length > 0) return false;
+      const expectedDates = Number(meta.att_dates) || 0;
+      if (expectedDates > 0) return true;
+      const expected = Number(meta.att_count) || 0;
+      if (expected > 0) return true;
+      const summary = loadDaftarAbsentSummaryRaw();
+      return !!(summary && Array.isArray(summary.rows) && summary.rows.length > 0);
+    }
+    /* অ্যাডমিন ড্যাশবোর্ড bootstrap — ছাত্র/শ্রেণি ওয়ার্ম, daftar_boot নেই, হাজিরা খালি */
+    if (current === 0 && isSessionCacheWarm()) {
+      if (loadAttendanceDateIndex().length > 0) return true;
+      if (hasSessionCacheEntry(KEYS.attendance)) return true;
+    }
+    return false;
   }
 
   function writeSessionCache(key, data) {
@@ -238,7 +296,13 @@ const API = (() => {
     ensureSessionCacheHydrated();
     const meta = readSessionCacheMeta();
     if (meta && meta.daftar_boot) return true;
-    return hasSessionCacheEntry(KEYS.attendance) || !!loadDaftarAbsentSummaryRaw() || loadAttendanceDateIndex().length > 0;
+    const att = Object.prototype.hasOwnProperty.call(volatileStore, KEYS.attendance)
+      ? volatileStore[KEYS.attendance]
+      : load(KEYS.attendance);
+    if (Array.isArray(att) && att.length > 0) return true;
+    const summary = loadDaftarAbsentSummaryRaw();
+    if (summary && Array.isArray(summary.rows) && summary.rows.length > 0) return true;
+    return false;
   }
 
   function loadDaftarAbsentSummaryRaw() {
@@ -818,8 +882,11 @@ const API = (() => {
         .sort((a, b) => b.date.localeCompare(a.date)),
     getByStudentDate: (sid, date) => load(KEYS.attendance).find(a => a.student_id === sid && a.date === date),
     getByClassDate(cid, date) {
-      const sids = Students.getByClass(cid).map(s => s.id);
-      return load(KEYS.attendance).filter(a => a.date === date && sids.includes(a.student_id));
+      const iso = String(date || '').slice(0, 10);
+      const sidSet = studentIdSetForClass(cid);
+      return load(KEYS.attendance).filter(a =>
+        String(a.date || '').slice(0, 10) === iso && sidSet.has(String(a.student_id || ''))
+      );
     },
     /**
      * @param statusIn 'present' | 'absent' | 'holiday' | boolean (legacy)
@@ -868,10 +935,15 @@ const API = (() => {
     getDateSummaryForDept(date, dept) {
       if (dept !== 'kitab' && dept !== 'maktab') return this.getDateSummary(date);
       const cids = new Set(Classes.getByDept(dept).map(c => c.id));
-      const sidSet = new Set(
-        Students.getAll().filter(s => s.active && cids.has(s.class_id)).map(s => s.id)
+      const sidSet = new Set();
+      Students.getAll().filter(s => s.active && cids.has(s.class_id)).forEach((s) => {
+        sidSet.add(String(s.id || ''));
+        if (s.supabase_id) sidSet.add(String(s.supabase_id));
+      });
+      const iso = String(date || '').slice(0, 10);
+      const all = load(KEYS.attendance).filter(a =>
+        String(a.date || '').slice(0, 10) === iso && sidSet.has(String(a.student_id || ''))
       );
-      const all = load(KEYS.attendance).filter(a => a.date === date && sidSet.has(a.student_id));
       const st = (a) => this.statusOf(a);
       const present = all.filter((a) => st(a) === 'present').length;
       const absent = all.filter((a) => st(a) === 'absent').length;
@@ -1308,7 +1380,8 @@ const API = (() => {
     OldMadrasaImport,
     persistLoadArr, persistSaveArr,
     hydrateSessionCache, clearSessionCache, isSessionCacheWarm, isDaftarSessionCacheWarm, hasSessionCacheEntry,
-    markDaftarBootstrapComplete, persistDaftarAttendanceSessionCache,
+    markDaftarBootstrapComplete, persistDaftarAttendanceSessionCache, applyAttendanceDateIndexFromServer,
+    isAdminMadrasaExtrasWarm, markAdminMadrasaBootstrapComplete,
     rebuildDaftarAbsentSummary, loadDaftarAbsentSummaryRows, loadDaftarAbsentSummaryRaw,
     uid, today, now, esc, escBn, toBn,
   };

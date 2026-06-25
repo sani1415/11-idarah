@@ -244,7 +244,7 @@
   }
   function changeDate(dir) {
     currentDate = isoAddDays(currentDate, dir);
-    render();
+    renderWithDateLoad();
   }
 
   function switchDept(dept) {
@@ -253,7 +253,7 @@
     if (dept !== 'all' && !MMSession.canUseMadrasaDept(dept)) return;
     currentDept = dept;
     syncDeptTabs();
-    render();
+    renderWithDateLoad();
   }
 
   function deptLabel(dept) { return dept === 'maktab' ? 'মক্তব বিভাগ' : 'কিতাব বিভাগ'; }
@@ -274,9 +274,30 @@
     });
     return ids;
   }
+  /** অডিট/ক্যালেন্ডার — date index (attendance_dates); row cache লাগে না (৩০+ দিন lazy) */
   function hasAttendanceForScope(iso) {
-    const ids = scopeStudentIds();
-    return API.Attendance.getByDate(iso).some(a => ids.has(String(a.student_id)));
+    return API.Attendance.hasAnyForDate(iso);
+  }
+
+  function classHasAttendanceForScope(classId, iso) {
+    return API.Attendance.getByClassDate(classId, iso).length > 0;
+  }
+
+  async function ensureScopeDateInCache(iso) {
+    const day = String(iso || '').slice(0, 10);
+    if (!day) return;
+    const classes = getScopedClasses();
+    const activeClasses = classes.filter(cls => API.Students.getByClass(cls.id).length > 0);
+    const allLoaded = activeClasses.length > 0 && activeClasses.every(cls => classHasAttendanceForScope(cls.id, day));
+    if (allLoaded) return;
+    if (!API.Attendance.hasAnyForDate(day)) return;
+    if (window.MDRDaftarSupabase && MDRDaftarSupabase.ensureDateInCache) {
+      try {
+        await MDRDaftarSupabase.ensureDateInCache(day);
+      } catch (e) {
+        console.warn('[AdminDaftar] ensureDateInCache failed', e);
+      }
+    }
   }
   function syncAuditViewFromDate() {
     const d = new Date(currentDate + 'T12:00:00');
@@ -345,7 +366,7 @@
     if (iso > today) return;
     if (start && iso < start) return;
     currentDate = iso;
-    render();
+    renderWithDateLoad();
     if (auditExpanded) {
       syncAuditViewFromDate();
       renderAttendanceAudit(true);
@@ -458,6 +479,11 @@
     document.getElementById('dtab-maktab').style.display = allowed.includes('maktab') ? '' : 'none';
   }
 
+  async function renderWithDateLoad() {
+    await ensureScopeDateInCache(currentDate);
+    render();
+  }
+
   function render() {
     renderDateHeader();
 
@@ -496,15 +522,29 @@
 
   async function initAdminDaftar() {
     syncDeptTabs();
-    if (window.MDRDaftarSupabase && window.MMSharedAPI) {
+    var wasWarm = window.API && API.isDaftarSessionCacheWarm && API.isDaftarSessionCacheWarm();
+    if (MMSession.ensureDaftarDataReady) {
+      try {
+        await MMSession.ensureDaftarDataReady({ silent: !!wasWarm });
+      } catch (e) {
+        console.warn('Admin daftar bootstrap failed', e);
+      }
+    } else if (window.MDRDaftarSupabase && window.MMSharedAPI) {
       try {
         await MDRDaftarSupabase.sync();
-        if (window.MDRSupabaseSync) await MDRSupabaseSync.syncAdminStudents();
-      } catch (e) {
-        console.warn('Admin daftar Supabase sync failed', e);
+      } catch (e2) {
+        console.warn('Admin daftar Supabase sync failed', e2);
       }
     }
-    render();
+    if (window.MDRSupabaseSync && MDRSupabaseSync.ensureAdminBootstrap &&
+        (!window.API || !API.isAdminMadrasaExtrasWarm || !API.isAdminMadrasaExtrasWarm())) {
+      try {
+        await MDRSupabaseSync.ensureAdminBootstrap();
+      } catch (e3) {
+        console.warn('Admin extras bootstrap failed', e3);
+      }
+    }
+    await renderWithDateLoad();
   }
 
   MMLoading.run(initAdminDaftar);

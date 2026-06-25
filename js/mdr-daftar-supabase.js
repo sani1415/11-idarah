@@ -203,12 +203,26 @@
       API.Classes.replaceAll((res.classes || []).map(toLocalClass).filter(function (c) { return c.id; }));
     }
     API.Students.replaceAll((res.students || []).map(toLocalStudent));
+    var attDates = Array.isArray(res.attendance_dates) ? res.attendance_dates : [];
+    var attDateCount = 0;
+    if (API.applyAttendanceDateIndexFromServer) {
+      attDateCount = API.applyAttendanceDateIndexFromServer(attDates).length;
+    }
     if (API.Attendance && API.Attendance.replaceAll) {
       API.Attendance.replaceAll((res.attendance || []).map(toLocalAttendance));
     }
+    if (res.session_start_date && API.Sessions && API.Sessions.setCurrentStartDate && API.Sessions.getCurrent && API.Sessions.getCurrent()) {
+      try {
+        API.Sessions.setCurrentStartDate(String(res.session_start_date).slice(0, 10));
+      } catch (eSd) {
+        console.warn('MDRDaftarSupabase: setCurrentStartDate failed', eSd);
+      }
+    }
     if (API.persistDaftarAttendanceSessionCache) API.persistDaftarAttendanceSessionCache();
     if (API.rebuildDaftarAbsentSummary) API.rebuildDaftarAbsentSummary();
-    if (API.markDaftarBootstrapComplete) API.markDaftarBootstrapComplete();
+    if (API.markDaftarBootstrapComplete) {
+      API.markDaftarBootstrapComplete({ attDatesCount: attDateCount, skipRowIndex: attDateCount > 0 });
+    }
     if (Array.isArray(res.class_teachers)) applyClassTeachers(res.class_teachers);
     try {
       await mergePublicMadrasaSettingsFromServer();
@@ -231,7 +245,9 @@
       return String(row.date || '').slice(0, 10) === expectedDate;
     }).length;
     if (savedCount < records.length) {
-      var fresh = await MMSharedAPI.daftarBootstrap(a.id, a.pin);
+      var fresh = MMSharedAPI.daftarAttendanceForDate
+        ? await MMSharedAPI.daftarAttendanceForDate(a.id, a.pin, expectedDate)
+        : await MMSharedAPI.daftarBootstrap(a.id, a.pin);
       if (!fresh || !fresh.ok) throw new Error((fresh && fresh.error) || 'attendance_readback_failed');
       attendanceRows = fresh.attendance || attendanceRows;
       savedCount = (attendanceRows || []).filter(function (row) {
@@ -265,7 +281,9 @@
     if (!global.MMSharedAPI) return [];
     var a = actor();
     if (!a || !a.id || !a.pin) return [];
-    var fresh = await MMSharedAPI.daftarBootstrap(a.id, a.pin);
+    var fresh = MMSharedAPI.daftarAttendanceForDate
+      ? await MMSharedAPI.daftarAttendanceForDate(a.id, a.pin, iso)
+      : await MMSharedAPI.daftarBootstrap(a.id, a.pin);
     if (!fresh || !fresh.ok) return [];
     var dayRows = (fresh.attendance || []).filter(function (row) {
       return String(row.date || '').slice(0, 10) === iso;

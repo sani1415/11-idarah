@@ -150,6 +150,13 @@ const MMSharedAPI = (() => {
         p_pin: pin,
       });
     },
+    daftarAttendanceForDate(actorId, pin, date) {
+      return rpc('mdr_rel_daftar_attendance_for_date', {
+        p_actor_id: actorId,
+        p_pin: pin,
+        p_date: date,
+      });
+    },
     saveAttendanceDay(actorId, pin, date, records, hijriYear) {
       return rpc('mdr_rel_save_attendance_day', {
         p_actor_id: actorId,
