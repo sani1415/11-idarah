@@ -25,6 +25,11 @@
   .act-amt { font-family:'Tiro Bangla',serif; font-size:13px; font-weight:700; color:var(--red); }
   .act-desc { font-size:12px; color:var(--ink3); line-height:1.5; }
   .act-date { font-size:10px; color:var(--ink3); margin-top:4px; }
+  .item-actions { display:flex; gap:6px; justify-content:flex-end; margin-top:8px; }
+  .mini-action { border:1px solid var(--cream3); background:var(--cream); color:var(--ink2); border-radius:8px; padding:6px 9px; font-family:'Tiro Bangla',serif; font-size:11px; cursor:pointer; }
+  .mini-action.danger { color:var(--red); border-color:rgba(178,67,51,.25); background:rgba(178,67,51,.06); }
+  .log-tools { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
+  .log-tools .form-input { margin:0; }
 
   .act-images { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
   .act-img-thumb { width:60px; height:60px; border-radius:6px; object-fit:cover; border:1px solid var(--cream3); cursor:pointer; transition:transform .12s; background:var(--cream2); }
@@ -51,6 +56,19 @@
   .acct-row:last-child { border-bottom:none; }
   .acct-date { font-size:11px; color:var(--ink3); width:64px; flex-shrink:0; }
   .acct-desc { flex:1; font-size:13px; color:var(--ink); min-width:0; }
+  .txn-row { display:grid; grid-template-columns:68px minmax(0,1fr) minmax(98px,auto); gap:10px; align-items:start; padding:12px 0; border-bottom:1px solid var(--cream2); }
+  .txn-row:last-child { border-bottom:none; }
+  .txn-date { min-height:44px; border:1px solid var(--cream3); border-radius:8px; background:var(--cream); color:var(--ink3); display:flex; align-items:center; justify-content:center; text-align:center; font-size:10px; line-height:1.35; padding:5px 4px; }
+  .txn-main { min-width:0; padding-top:1px; }
+  .txn-title { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--ink); line-height:1.45; }
+  .txn-dir { width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; font-size:11px; background:var(--cream2); }
+  .txn-dir.income { color:var(--green); }
+  .txn-dir.expense { color:var(--red); }
+  .txn-source { font-size:11px; color:var(--ink3); margin-top:3px; line-height:1.4; }
+  .txn-side { display:flex; flex-direction:column; align-items:flex-end; gap:7px; text-align:right; }
+  .txn-actions { display:flex; gap:4px; }
+  .txn-action { min-width:42px; height:26px; padding:0 7px; border:1px solid var(--cream3); border-radius:7px; background:#fff; color:var(--ink3); font-family:'Tiro Bangla',serif; font-size:10.5px; line-height:1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; }
+  .txn-action.danger { color:var(--red); border-color:rgba(178,67,51,.25); background:rgba(178,67,51,.04); }
   .acct-amt-col { text-align:right; flex-shrink:0; min-width:70px; }
   .acct-in { font-family:'Tiro Bangla',serif; font-size:13px; color:var(--green); font-weight:600; }
   .acct-out { font-family:'Tiro Bangla',serif; font-size:13px; color:var(--red); font-weight:600; }
@@ -61,6 +79,9 @@
   .acct-sum-label { color:var(--ink3); }
   .acct-sum-val { font-family:'Tiro Bangla',serif; font-weight:700; color:var(--ink2); }
   .acct-sum-val.green { color:var(--green); } .acct-sum-val.red { color:var(--red); }
+  .ledger-head { display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin:8px 0 10px; }
+  .ledger-title { font-family:'Tiro Bangla',serif; font-size:15px; font-weight:700; color:var(--ink2); }
+  .ledger-sub { font-size:11px; color:var(--ink3); margin-top:2px; }
   .month-sel { display:flex; gap:8px; margin-bottom:12px; align-items:center; }
   .month-sel .form-input { width:auto; flex:1; }
   .lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:300; align-items:center; justify-content:center; }
@@ -110,8 +131,10 @@
 <!-- PANEL: FINANCE (ACCOUNTING) -->
 <div class="content" id="panel-fin" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div id="bal-card"></div>
+  <button class="add-btn" style="margin-bottom:12px;" onclick="openAddFin()">+ আয় / ব্যয় যোগ করুন</button>
   <div class="acct-tabs" id="acct-tabs">
-    <button class="acct-tab active" data-tab="daily" onclick="switchAcctTab('daily')">দৈনিক</button>
+    <button class="acct-tab active" data-tab="all" onclick="switchAcctTab('all')">সব</button>
+    <button class="acct-tab" data-tab="daily" onclick="switchAcctTab('daily')">দৈনিক</button>
     <button class="acct-tab" data-tab="monthly" onclick="switchAcctTab('monthly')">মাসিক</button>
     <button class="acct-tab" data-tab="yearly" onclick="switchAcctTab('yearly')">বার্ষিক</button>
   </div>
@@ -119,7 +142,6 @@
   <div class="card-static" style="margin-bottom:6px;" id="acct-opening"></div>
   <div id="acct-rows"></div>
   <div class="card-static" id="acct-closing" style="margin-top:8px;"></div>
-  <button class="add-btn" style="margin-top:12px;" onclick="openAddFin()">+ আয় / ব্যয় যোগ করুন</button>
 </div>
 
 <!-- PANEL: DAILY LOG -->
@@ -128,6 +150,9 @@
   <div class="card-static" style="margin-bottom:12px;">
     <div class="form-group" style="margin:0;">
       <label class="form-label" id="log-date-label">আজকের লগ লিখুন</label>
+      <div class="log-tools">
+        <input class="form-input" type="date" id="log-date">
+      </div>
       <textarea class="form-input form-textarea" id="log-input" placeholder="আজ কী কী করলেন, কার সাথে কথা হলো..."></textarea>
     </div>
     <button class="submit-btn" style="margin-top:10px;" onclick="saveLog()">লগ সংরক্ষণ করুন</button>
@@ -164,6 +189,7 @@
     <div class="form-group"><label class="form-label">ঠিকানা</label><input class="form-input" id="b-addr" placeholder="গ্রাম / পাড়া"></div>
     <div class="form-group"><label class="form-label">ফোন (ঐচ্ছিক)</label><input class="form-input" id="b-phone" placeholder="০১..."></div>
     <div class="form-group"><label class="form-label">পরিবারের তথ্য</label><input class="form-input" id="b-family" placeholder="স্ত্রী ও ৩ সন্তান"></div>
+    <div class="form-group"><label class="form-label">প্রথম যোগাযোগের তারিখ</label><input class="form-input" type="date" id="b-date"></div>
     <div class="form-group"><label class="form-label">নোট</label><textarea class="form-input form-textarea" id="b-notes" placeholder="প্রয়োজনীয় তথ্য" style="min-height:70px;"></textarea></div>
     <button class="submit-btn" onclick="saveBen()">সংরক্ষণ করুন</button>
   </div>
@@ -172,9 +198,10 @@
 <!-- MODAL: Add Finance -->
 <div class="modal-bg modal-float" id="modal-fin">
   <div class="modal">
-    <div class="modal-title">লেনদেন যোগ করুন <button class="modal-close" onclick="closeModal('modal-fin')">✕</button></div>
+    <div class="modal-title"><span id="modal-fin-title">লেনদেন যোগ করুন</span> <button class="modal-close" onclick="closeModal('modal-fin')">✕</button></div>
     <div class="form-group"><label class="form-label">ধরন</label><select class="form-input form-select" id="fn-type"><option value="income">আয়</option><option value="expense">ব্যয়</option></select></div>
     <div class="form-group"><label class="form-label">পরিমাণ</label><input class="form-input" type="number" id="fn-amount" placeholder="০"></div>
+    <div class="form-group"><label class="form-label">তারিখ</label><input class="form-input" type="date" id="fn-date"></div>
     <div class="form-group"><label class="form-label">বিবরণ</label><input class="form-input" id="fn-desc" placeholder="লেনদেনের বিবরণ"></div>
     <div class="form-group"><label class="form-label">উৎস / খাত (ঐচ্ছিক)</label><input class="form-input" id="fn-source" placeholder="মাদ্রাসা তহবিল / দান"></div>
     <button class="submit-btn" onclick="saveFin()">সংরক্ষণ করুন</button>
@@ -187,6 +214,7 @@
     <span class="detail-back" onclick="closeBenDetail()">←</span>
     <span class="detail-title" id="bd-title">—</span>
     <button class="topbar-btn" style="color:var(--gold2);border-color:var(--gold);margin-left:auto;font-size:11px;" onclick="openEditBen()">তথ্য সম্পাদনা</button>
+    <button class="topbar-btn" style="color:var(--red);border-color:rgba(178,67,51,.35);font-size:11px;" onclick="deleteBen()">ডিলিট</button>
   </div>
   <div class="detail-content" id="bd-content"></div>
 </div>
@@ -194,9 +222,10 @@
 <!-- MODAL: Add Activity -->
 <div class="modal-bg modal-float" id="modal-act">
   <div class="modal">
-    <div class="modal-title">কার্যক্রম যোগ করুন <button class="modal-close" onclick="closeModal('modal-act')">✕</button></div>
+    <div class="modal-title"><span id="modal-act-title">কার্যক্রম যোগ করুন</span> <button class="modal-close" onclick="closeModal('modal-act')">✕</button></div>
     <div class="form-group"><label class="form-label">কার্যক্রমের ধরন</label><select class="form-input form-select" id="act-type"></select></div>
     <div class="form-group"><label class="form-label">শিরোনাম</label><input class="form-input" id="act-title-inp" placeholder="সংক্ষিপ্ত শিরোনাম"></div>
+    <div class="form-group"><label class="form-label">তারিখ</label><input class="form-input" type="date" id="act-date"></div>
     <div class="form-group"><label class="form-label">বিবরণ</label><textarea class="form-input form-textarea" id="act-desc-inp" placeholder="কী প্রদান করা হলো..." style="min-height:70px;"></textarea></div>
     <div class="form-group"><label class="form-label">ব্যয়িত অর্থ (টাকা)</label><input class="form-input" type="number" id="act-amount" placeholder="০"></div>
     <div class="form-group"><label class="form-label">ছবি (ঐচ্ছিক)</label><input type="file" id="act-images-inp" accept="image/*" multiple style="display:block;font-size:12px;"></div>
@@ -212,8 +241,19 @@
     <div class="form-group"><label class="form-label">ঠিকানা</label><input class="form-input" id="eb-addr" placeholder="গ্রাম / পাড়া"></div>
     <div class="form-group"><label class="form-label">ফোন (ঐচ্ছিক)</label><input class="form-input" id="eb-phone" placeholder="০১..."></div>
     <div class="form-group"><label class="form-label">পরিবারের তথ্য</label><input class="form-input" id="eb-family" placeholder="স্ত্রী ও ৩ সন্তান"></div>
+    <div class="form-group"><label class="form-label">প্রথম যোগাযোগের তারিখ</label><input class="form-input" type="date" id="eb-date"></div>
     <div class="form-group"><label class="form-label">নোট</label><textarea class="form-input form-textarea" id="eb-notes" placeholder="প্রয়োজনীয় তথ্য" style="min-height:70px;"></textarea></div>
     <button class="submit-btn" onclick="saveEditBen()">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<!-- MODAL: Edit Daily Log -->
+<div class="modal-bg modal-float" id="modal-log-edit">
+  <div class="modal">
+    <div class="modal-title">লগ সম্পাদনা <button class="modal-close" onclick="closeModal('modal-log-edit')">✕</button></div>
+    <div class="form-group"><label class="form-label">তারিখ</label><input class="form-input" type="date" id="el-date"></div>
+    <div class="form-group"><label class="form-label">লগ</label><textarea class="form-input form-textarea" id="el-content" style="min-height:90px;"></textarea></div>
+    <button class="submit-btn" onclick="saveEditLog()">সংরক্ষণ করুন</button>
   </div>
 </div>
 
@@ -253,11 +293,14 @@
   const fmtYear = y => toBn(y);
 
   let activeBenId = null;
-  let activeAcctTab = 'daily';
+  let activeAcctTab = 'all';
   let activeAcctPeriod = KhAPI.today();
   let lightboxImages = [];
   let lightboxIndex = 0;
   let pendingImgActId = null;
+  let editingActId = null;
+  let editingFinId = null;
+  let editingLogId = null;
 
   function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
   function openModal(id) { if (mmMutationBlocked(showToast)) return; document.getElementById(id).classList.add('open'); }
@@ -271,7 +314,7 @@
       document.getElementById('nav-'+p).classList.toggle('active', p===name);
     });
     if (name==='ben') renderBen();
-    if (name==='fin') { activeAcctPeriod = KhAPI.today(); activeAcctTab = 'daily'; updateAcctTabUI(); renderFin(); }
+    if (name==='fin') { updateAcctTabUI(); renderFin(); }
     if (name==='log') renderLog();
   }
 
@@ -288,7 +331,11 @@
       : '<div style="text-align:center;color:var(--ink3);padding:40px 0;font-size:13px;">কোনো মাখদুম নেই</div>';
   }
 
-  function openAddBen() { ['b-name','b-addr','b-phone','b-family','b-notes'].forEach(id => document.getElementById(id).value=''); openModal('modal-ben'); }
+  function openAddBen() {
+    ['b-name','b-addr','b-phone','b-family','b-notes'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('b-date').value = KhAPI.today();
+    openModal('modal-ben');
+  }
 
   async function saveBen() {
     if (mmMutationBlocked(showToast)) return;
@@ -296,7 +343,7 @@
     const addr = document.getElementById('b-addr').value.trim();
     if (!name) { showToast('নাম দিন'); return; }
     try {
-      await KhAPI.Beneficiaries.add({ name, address:addr, phone:document.getElementById('b-phone').value.trim(), family_info:document.getElementById('b-family').value.trim(), notes:document.getElementById('b-notes').value.trim() }, khActorId, khPin);
+      await KhAPI.Beneficiaries.add({ name, address:addr, phone:document.getElementById('b-phone').value.trim(), family_info:document.getElementById('b-family').value.trim(), notes:document.getElementById('b-notes').value.trim(), first_contact:document.getElementById('b-date').value || KhAPI.today() }, khActorId, khPin);
       closeModal('modal-ben'); renderBen(); showToast('মাখদুম যোগ হয়েছে');
     } catch (err) { showDbError(err); }
   }
@@ -335,6 +382,10 @@
             ${imgs.map((img,i) => `<img class="act-img-thumb" src="${img}" alt="" onclick="event.stopPropagation();openLightbox('${a.id}',${i})" loading="lazy">`).join('')}
             <div class="act-img-add" onclick="event.stopPropagation();triggerImgUpload('${a.id}')" title="ছবি যোগ করুন">+</div>
           </div>
+          <div class="item-actions">
+            <button class="mini-action" onclick="event.stopPropagation();openEditAct('${a.id}')">এডিট</button>
+            <button class="mini-action danger" onclick="event.stopPropagation();deleteAct('${a.id}')">ডিলিট</button>
+          </div>
         </div>`;
       }).join('') : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো কার্যক্রম নেই</div>'}
       </div>`;
@@ -348,6 +399,7 @@
     document.getElementById('eb-addr').value = ben.address || '';
     document.getElementById('eb-phone').value = ben.phone || '';
     document.getElementById('eb-family').value = ben.family_info || '';
+    document.getElementById('eb-date').value = ben.first_contact || KhAPI.today();
     document.getElementById('eb-notes').value = ben.notes || '';
     openModal('modal-edit-ben');
   }
@@ -357,7 +409,7 @@
     const name = document.getElementById('eb-name').value.trim();
     if (!name) { showToast('নাম দিন'); return; }
     try {
-      await KhAPI.Beneficiaries.update(activeBenId, { name, address:document.getElementById('eb-addr').value.trim(), phone:document.getElementById('eb-phone').value.trim(), family_info:document.getElementById('eb-family').value.trim(), notes:document.getElementById('eb-notes').value.trim() }, khActorId, khPin);
+      await KhAPI.Beneficiaries.update(activeBenId, { name, address:document.getElementById('eb-addr').value.trim(), phone:document.getElementById('eb-phone').value.trim(), family_info:document.getElementById('eb-family').value.trim(), first_contact:document.getElementById('eb-date').value || KhAPI.today(), notes:document.getElementById('eb-notes').value.trim() }, khActorId, khPin);
       closeModal('modal-edit-ben');
       const ben = KhAPI.Beneficiaries.getById(activeBenId);
       document.getElementById('bd-title').textContent = ben.name;
@@ -367,11 +419,43 @@
     } catch (err) { showDbError(err); }
   }
 
+  async function deleteBen() {
+    if (mmMutationBlocked(showToast)) return;
+    const ben = KhAPI.Beneficiaries.getById(activeBenId);
+    if (!ben || !confirm('এই মাখদুম ও তার সব কার্যক্রম ডিলিট হবে। নিশ্চিত?')) return;
+    try {
+      await KhAPI.Beneficiaries.delete(activeBenId, khActorId, khPin);
+      closeBenDetail();
+      renderBen();
+      showToast('মাখদুম ডিলিট হয়েছে');
+    } catch (err) { showDbError(err); }
+  }
+
   function openAddAct() {
+    editingActId = null;
+    document.getElementById('modal-act-title').textContent = 'কার্যক্রম যোগ করুন';
     const types = KhAPI.ActivityTypes.getAll();
     document.getElementById('act-type').innerHTML = types.map(t => `<option value="${t.id}">${t.emoji} ${KhAPI.esc(t.name)}</option>`).join('');
     ['act-title-inp','act-desc-inp','act-amount'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('act-date').value = KhAPI.today();
     document.getElementById('act-images-inp').value = '';
+    document.getElementById('act-images-inp').closest('.form-group').style.display = '';
+    openModal('modal-act');
+  }
+
+  function openEditAct(id) {
+    const act = KhAPI.Activities.getAll().find(a => a.id === id);
+    if (!act) return;
+    editingActId = id;
+    document.getElementById('modal-act-title').textContent = 'কার্যক্রম সম্পাদনা';
+    const types = KhAPI.ActivityTypes.getAll();
+    document.getElementById('act-type').innerHTML = types.map(t => `<option value="${t.id}" ${t.id===act.type_id?'selected':''}>${t.emoji} ${KhAPI.esc(t.name)}</option>`).join('');
+    document.getElementById('act-title-inp').value = act.title || '';
+    document.getElementById('act-date').value = act.date || KhAPI.today();
+    document.getElementById('act-desc-inp').value = act.description || '';
+    document.getElementById('act-amount').value = act.amount || '';
+    document.getElementById('act-images-inp').value = '';
+    document.getElementById('act-images-inp').closest('.form-group').style.display = 'none';
     openModal('modal-act');
   }
 
@@ -381,15 +465,29 @@
     const title = document.getElementById('act-title-inp').value.trim();
     const desc = document.getElementById('act-desc-inp').value.trim();
     const amount = parseFloat(document.getElementById('act-amount').value)||0;
+    const date = document.getElementById('act-date').value || KhAPI.today();
     if (!title) { showToast('শিরোনাম দিন'); return; }
     if (!desc) { showToast('বিবরণ দিন'); return; }
     try {
       const files = document.getElementById('act-images-inp').files;
       const images = files && files.length ? await readFilesAsBase64Async(files) : [];
-      await KhAPI.Activities.add({ beneficiary_id:activeBenId, type_id, title, description:desc, amount, images }, khActorId, khPin);
+      if (editingActId) await KhAPI.Activities.update(editingActId, { beneficiary_id:activeBenId, type_id, title, description:desc, amount, date }, khActorId, khPin);
+      else await KhAPI.Activities.add({ beneficiary_id:activeBenId, type_id, title, description:desc, amount, date, images }, khActorId, khPin);
       refreshDetail();
       renderBen();
-      closeModal('modal-act'); showToast('কার্যক্রম যোগ হয়েছে');
+      closeModal('modal-act'); showToast(editingActId ? 'কার্যক্রম আপডেট হয়েছে' : 'কার্যক্রম যোগ হয়েছে');
+      editingActId = null;
+    } catch (err) { showDbError(err); }
+  }
+
+  async function deleteAct(id) {
+    if (mmMutationBlocked(showToast)) return;
+    if (!confirm('এই কার্যক্রম ডিলিট হবে। নিশ্চিত?')) return;
+    try {
+      await KhAPI.Activities.delete(id, khActorId, khPin);
+      refreshDetail();
+      renderBen();
+      showToast('কার্যক্রম ডিলিট হয়েছে');
     } catch (err) { showDbError(err); }
   }
 
@@ -455,7 +553,8 @@
 
   function switchAcctTab(tab) {
     activeAcctTab = tab;
-    if (tab==='daily') activeAcctPeriod = KhAPI.today();
+    if (tab==='all') activeAcctPeriod = '';
+    else if (tab==='daily') activeAcctPeriod = KhAPI.today();
     else if (tab==='monthly') activeAcctPeriod = new Date().toISOString().slice(0,7);
     else activeAcctPeriod = new Date().toISOString().slice(0,4);
     updateAcctTabUI();
@@ -469,7 +568,8 @@
 
   function updateAcctSelector() {
     const sel = document.getElementById('acct-selector');
-    if (activeAcctTab==='daily') sel.innerHTML = `<input type="date" class="form-input" id="acct-date" value="${activeAcctPeriod}" onchange="onAcctPeriodChange()" style="flex:1;max-width:200px;">`;
+    if (activeAcctTab==='all') sel.innerHTML = '';
+    else if (activeAcctTab==='daily') sel.innerHTML = `<input type="date" class="form-input" id="acct-date" value="${activeAcctPeriod}" onchange="onAcctPeriodChange()" style="flex:1;max-width:200px;">`;
     else if (activeAcctTab==='monthly') sel.innerHTML = `<input type="month" class="form-input" id="acct-month" value="${activeAcctPeriod}" onchange="onAcctPeriodChange()" style="flex:1;max-width:220px;">`;
     else {
       const years = KhAPI.Finance.getYearlySummary();
@@ -485,26 +585,47 @@
     renderAcct();
   }
 
+  function renderTxnRow(f) {
+    const isIncome = f.type === 'income';
+    const cls = isIncome ? 'income' : 'expense';
+    const sign = isIncome ? '+' : '−';
+    const dir = isIncome ? '↑' : '↓';
+    return `<div class="txn-row">
+      <div class="txn-date">${fmtDate(f.date)}</div>
+      <div class="txn-main">
+        <div class="txn-title"><span class="txn-dir ${cls}">${dir}</span><span>${KhAPI.esc(f.description)}</span></div>
+        ${f.source ? `<div class="txn-source">${KhAPI.esc(f.source)}</div>` : ''}
+      </div>
+      <div class="txn-side">
+        <div class="fin-amt ${cls}">${sign}${fmtAmt(f.amount)}</div>
+        <div class="txn-actions">
+          <button class="txn-action" onclick="openEditFin('${f.id}')" title="এডিট" aria-label="এডিট">এডিট</button>
+          <button class="txn-action danger" onclick="deleteFin('${f.id}')" title="ডিলিট" aria-label="ডিলিট">ডিলিট</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
   function renderAcct() {
     let openingBalance, rowsHtml, periodIncome, periodExpense, closingBalance;
 
-    if (activeAcctTab === 'daily') {
+    if (activeAcctTab === 'all') {
+      const txns = KhAPI.Finance.getAll();
+      openingBalance = 0;
+      periodIncome = txns.filter(f=>f.type==='income').reduce((s,f)=>s+f.amount,0);
+      periodExpense = txns.filter(f=>f.type==='expense').reduce((s,f)=>s+f.amount,0);
+      closingBalance = periodIncome - periodExpense;
+
+      rowsHtml = txns.length ? txns.map(renderTxnRow).join('') : '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:12px;">কোনো লেনদেন নেই</div>';
+
+    } else if (activeAcctTab === 'daily') {
       openingBalance = KhAPI.Finance.getBalanceBefore(activeAcctPeriod);
       const txns = KhAPI.Finance.getForDay(activeAcctPeriod);
       periodIncome = txns.filter(f=>f.type==='income').reduce((s,f)=>s+f.amount,0);
       periodExpense = txns.filter(f=>f.type==='expense').reduce((s,f)=>s+f.amount,0);
       closingBalance = openingBalance + periodIncome - periodExpense;
 
-      rowsHtml = txns.length ? txns.map(f => {
-        const dir = f.type==='income' ? '↑' : '↓';
-        const cls = f.type==='income' ? 'income' : 'expense';
-        const sign = f.type==='income' ? '+' : '−';
-        return `<div class="acct-row">
-          <div class="acct-date">${fmtDate(f.date)}</div>
-          <div class="acct-desc"><span style="font-size:11px;color:var(--ink3);">${dir}</span> ${KhAPI.esc(f.description)}${f.source?`<br><small style="color:var(--ink3);">${KhAPI.esc(f.source)}</small>`:''}</div>
-          <div class="fin-amt ${cls}">${sign}${fmtAmt(f.amount)}</div>
-        </div>`;
-      }).join('') : '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:12px;">এই দিনে কোনো লেনদেন নেই</div>';
+      rowsHtml = txns.length ? txns.map(renderTxnRow).join('') : '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:12px;">এই দিনে কোনো লেনদেন নেই</div>';
 
     } else if (activeAcctTab === 'monthly') {
       openingBalance = KhAPI.Finance.getBalanceBefore(activeAcctPeriod+'-01');
@@ -541,9 +662,11 @@
       }).join('') : '<div style="text-align:center;color:var(--ink3);padding:20px 0;font-size:12px;">এই বছরে কোনো লেনদেন নেই</div>';
     }
 
-    document.getElementById('acct-opening').innerHTML = openingBalance !== 0
-      ? `<div style="font-size:12px;color:var(--ink3);">উদ্বৃত্ত (পূর্ববর্তী)</div><div style="font-family:'Tiro Bangla',serif;font-size:16px;font-weight:600;color:${openingBalance>=0?'var(--green)':'var(--red)'};">${fmtAmt(openingBalance)}</div>`
-      : '<div style="font-size:12px;color:var(--ink3);text-align:center;">উদ্বৃত্ত (পূর্ববর্তী): ৳০</div>';
+    document.getElementById('acct-opening').innerHTML = activeAcctTab === 'all'
+      ? `<div class="ledger-head"><div><div class="ledger-title">সব আয়-ব্যয়ের এন্ট্রি</div><div class="ledger-sub">${toBn(KhAPI.Finance.getAll().length)}টি লেনদেন · নতুন-পুরনো ক্রমানুসারে</div></div><div style="font-family:'Tiro Bangla',serif;font-size:13px;font-weight:700;color:${closingBalance>=0?'var(--green)':'var(--red)'};">${fmtAmt(closingBalance)}</div></div>`
+      : (openingBalance !== 0
+        ? `<div style="font-size:12px;color:var(--ink3);">উদ্বৃত্ত (পূর্ববর্তী)</div><div style="font-family:'Tiro Bangla',serif;font-size:16px;font-weight:600;color:${openingBalance>=0?'var(--green)':'var(--red)'};">${fmtAmt(openingBalance)}</div>`
+        : '<div style="font-size:12px;color:var(--ink3);text-align:center;">উদ্বৃত্ত (পূর্ববর্তী): ৳০</div>');
 
     document.getElementById('acct-rows').innerHTML = `<div class="card-static" style="margin-top:4px;">${rowsHtml}</div>`;
 
@@ -557,7 +680,27 @@
       </div>`;
   }
 
-  function openAddFin() { ['fn-amount','fn-desc','fn-source'].forEach(id => document.getElementById(id).value=''); openModal('modal-fin'); }
+  function openAddFin() {
+    editingFinId = null;
+    document.getElementById('modal-fin-title').textContent = 'লেনদেন যোগ করুন';
+    document.getElementById('fn-type').value = 'income';
+    ['fn-amount','fn-desc','fn-source'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('fn-date').value = activeAcctTab === 'daily' ? activeAcctPeriod : KhAPI.today();
+    openModal('modal-fin');
+  }
+
+  function openEditFin(id) {
+    const txn = KhAPI.Finance.getAll().find(f => f.id === id);
+    if (!txn) return;
+    editingFinId = id;
+    document.getElementById('modal-fin-title').textContent = 'লেনদেন সম্পাদনা';
+    document.getElementById('fn-type').value = txn.type;
+    document.getElementById('fn-amount').value = txn.amount || '';
+    document.getElementById('fn-date').value = txn.date || KhAPI.today();
+    document.getElementById('fn-desc').value = txn.description || '';
+    document.getElementById('fn-source').value = txn.source || '';
+    openModal('modal-fin');
+  }
 
   async function saveFin() {
     if (mmMutationBlocked(showToast)) return;
@@ -565,28 +708,80 @@
     const amount = parseFloat(document.getElementById('fn-amount').value);
     const desc = document.getElementById('fn-desc').value.trim();
     const source = document.getElementById('fn-source').value.trim();
+    const date = document.getElementById('fn-date').value || KhAPI.today();
     if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
     if (!desc) { showToast('বিবরণ দিন'); return; }
     try {
-      await KhAPI.Finance.add({ type, amount, description:desc, source:source||null }, khActorId, khPin);
-      closeModal('modal-fin'); renderFin(); showToast('লেনদেন সংরক্ষিত হয়েছে');
+      if (editingFinId) await KhAPI.Finance.update(editingFinId, { type, amount, date, description:desc, source:source||null }, khActorId, khPin);
+      else await KhAPI.Finance.add({ type, amount, date, description:desc, source:source||null }, khActorId, khPin);
+      activeAcctTab = 'all';
+      activeAcctPeriod = '';
+      updateAcctTabUI();
+      closeModal('modal-fin'); renderFin(); showToast(editingFinId ? 'লেনদেন আপডেট হয়েছে' : 'লেনদেন সংরক্ষিত হয়েছে');
+      editingFinId = null;
     } catch (err) { showDbError(err); }
-  }  function renderLog() {
-    document.getElementById('log-date-label').textContent = 'আজকের লগ ('+fmtDate(KhAPI.today())+')';
+  }
+
+  async function deleteFin(id) {
+    if (mmMutationBlocked(showToast)) return;
+    if (!confirm('এই লেনদেন ডিলিট হবে। নিশ্চিত?')) return;
+    try {
+      await KhAPI.Finance.delete(id, khActorId, khPin);
+      renderFin();
+      showToast('লেনদেন ডিলিট হয়েছে');
+    } catch (err) { showDbError(err); }
+  }
+
+  function renderLog() {
+    if (!document.getElementById('log-date').value) document.getElementById('log-date').value = KhAPI.today();
+    document.getElementById('log-date-label').textContent = 'দৈনিক লগ লিখুন';
     const logs = KhAPI.DailyLogs.getAll();
     document.getElementById('log-list').innerHTML = logs.length
-      ? logs.map(l => `<div class="log-item"><div class="log-meta"><span>${KhAPI.esc(l.by||'—')}</span><span>${fmtDate(l.date)}</span></div><div class="log-text">${KhAPI.esc(l.content)}</div></div>`).join('')
+      ? logs.map(l => `<div class="log-item"><div class="log-meta"><span>${KhAPI.esc(l.by||'—')}</span><span>${fmtDate(l.date)}</span></div><div class="log-text">${KhAPI.esc(l.content)}</div><div class="item-actions"><button class="mini-action" onclick="openEditLog('${l.id}')">এডিট</button><button class="mini-action danger" onclick="deleteLog('${l.id}')">ডিলিট</button></div></div>`).join('')
       : '<div style="text-align:center;color:var(--ink3);padding:30px 0;font-size:13px;">কোনো লগ নেই</div>';
   }
 
   async function saveLog() {
     if (mmMutationBlocked(showToast)) return;
     const txt = document.getElementById('log-input').value.trim();
+    const date = document.getElementById('log-date').value || KhAPI.today();
     if (!txt) { showToast('লগ লিখুন'); return; }
     try {
-      await KhAPI.DailyLogs.add(txt, myName, khActorId, khPin);
+      await KhAPI.DailyLogs.add(txt, myName, khActorId, khPin, date);
       document.getElementById('log-input').value = '';
       renderLog(); showToast('লগ সংরক্ষিত হয়েছে');
+    } catch (err) { showDbError(err); }
+  }
+
+  function openEditLog(id) {
+    const log = KhAPI.DailyLogs.getAll().find(l => l.id === id);
+    if (!log) return;
+    editingLogId = id;
+    document.getElementById('el-date').value = log.date || KhAPI.today();
+    document.getElementById('el-content').value = log.content || '';
+    openModal('modal-log-edit');
+  }
+
+  async function saveEditLog() {
+    if (mmMutationBlocked(showToast)) return;
+    const content = document.getElementById('el-content').value.trim();
+    if (!content) { showToast('লগ লিখুন'); return; }
+    try {
+      await KhAPI.DailyLogs.update(editingLogId, { content, by:myName, date:document.getElementById('el-date').value || KhAPI.today() }, khActorId, khPin);
+      closeModal('modal-log-edit');
+      renderLog();
+      showToast('লগ আপডেট হয়েছে');
+      editingLogId = null;
+    } catch (err) { showDbError(err); }
+  }
+
+  async function deleteLog(id) {
+    if (mmMutationBlocked(showToast)) return;
+    if (!confirm('এই লগ ডিলিট হবে। নিশ্চিত?')) return;
+    try {
+      await KhAPI.DailyLogs.delete(id, khActorId, khPin);
+      renderLog();
+      showToast('লগ ডিলিট হয়েছে');
     } catch (err) { showDbError(err); }
   }
 

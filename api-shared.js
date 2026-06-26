@@ -711,6 +711,20 @@ const MMSharedAPI = (() => {
         p_payload: payload || {},
       });
     },
+    khedmatUpsertActivity(actorId, pin, payload) {
+      return rpc('mdr_khedmat_rel_upsert_activity', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_payload: payload || {},
+      });
+    },
+    khedmatDeleteActivity(actorId, pin, activityId) {
+      return rpc('mdr_khedmat_rel_delete_activity', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_activity_id: activityId,
+      });
+    },
     khedmatAddActivityImages(actorId, pin, activityId, images) {
       return rpc('mdr_khedmat_rel_add_activity_images', {
         p_actor_id: actorId || null,
@@ -727,11 +741,46 @@ const MMSharedAPI = (() => {
         p_by: byName || null,
       });
     },
+    khedmatUpsertDailyLog(actorId, pin, payload) {
+      return rpc('mdr_khedmat_rel_upsert_daily_log', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_payload: payload || {},
+      });
+    },
+    khedmatDeleteDailyLog(actorId, pin, logId) {
+      return rpc('mdr_khedmat_rel_delete_daily_log', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_log_id: logId,
+      });
+    },
     khedmatInsertFinance(actorId, pin, payload) {
       return rpc('mdr_khedmat_rel_insert_finance', {
         p_actor_id: actorId || null,
         p_pin: pin,
         p_payload: payload || {},
+      });
+    },
+    khedmatUpsertFinance(actorId, pin, payload) {
+      return rpc('mdr_khedmat_rel_upsert_finance', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_payload: payload || {},
+      });
+    },
+    khedmatDeleteFinance(actorId, pin, financeId) {
+      return rpc('mdr_khedmat_rel_delete_finance', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_finance_id: financeId,
+      });
+    },
+    khedmatDeleteBeneficiary(actorId, pin, beneficiaryId) {
+      return rpc('mdr_khedmat_rel_delete_beneficiary', {
+        p_actor_id: actorId || null,
+        p_pin: pin,
+        p_beneficiary_id: beneficiaryId,
       });
     },
     hifzBootstrap(actorId, pin) {

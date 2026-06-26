@@ -93,6 +93,11 @@ const KhAPI = (() => {
     return row;
   }
 
+  function removeById(list, id) {
+    const idx = list.findIndex(item => item.id === id);
+    if (idx >= 0) list.splice(idx, 1);
+  }
+
   function requireSharedAPI() {
     if (!window.MMSharedAPI) throw new Error('Database API is not loaded');
     return window.MMSharedAPI;
@@ -136,6 +141,11 @@ const KhAPI = (() => {
       const row = normalizeBeneficiary(unwrap(await requireSharedAPI().khedmatUpsertBeneficiary(getActorId(actorId), getPin(pin), payload), 'beneficiary'));
       return replaceById(CACHE.beneficiaries, row);
     },
+    async delete(id, actorId, pin) {
+      unwrap(await requireSharedAPI().khedmatDeleteBeneficiary(getActorId(actorId), getPin(pin), id), 'beneficiary');
+      removeById(CACHE.beneficiaries, id);
+      CACHE.activities = CACHE.activities.filter(a => a.beneficiary_id !== id);
+    },
   };
 
   const ActivityTypes = {
@@ -145,6 +155,15 @@ const KhAPI = (() => {
       const payload = { id: 'at_' + uid(), is_active: true, emoji: '🤝', ...(data || {}) };
       const row = normalizeType(unwrap(await requireSharedAPI().khedmatUpsertActivityType(getActorId(actorId), getPin(pin), payload), 'activity_type'));
       return replaceById(CACHE.activity_types, row);
+    },
+    async update(id, data, actorId, pin) {
+      const current = this.getById(id) || {};
+      const payload = { ...current, ...(data || {}), id };
+      const row = normalizeType(unwrap(await requireSharedAPI().khedmatUpsertActivityType(getActorId(actorId), getPin(pin), payload), 'activity_type'));
+      return replaceById(CACHE.activity_types, row);
+    },
+    async delete(id, actorId, pin) {
+      return this.update(id, { is_active: false }, actorId, pin);
     },
   };
 
@@ -157,12 +176,25 @@ const KhAPI = (() => {
     },
     async add(data, actorId, pin) {
       const payload = { id: 'act_' + uid(), date: today(), images: [], ...(data || {}) };
-      const row = normalizeActivity(unwrap(await requireSharedAPI().khedmatInsertActivity(getActorId(actorId), getPin(pin), payload), 'activity'));
+      const row = normalizeActivity(unwrap(await requireSharedAPI().khedmatUpsertActivity(getActorId(actorId), getPin(pin), payload), 'activity'));
+      return replaceById(CACHE.activities, row);
+    },
+    async update(id, data, actorId, pin) {
+      const current = CACHE.activities.find(a => a.id === id) || {};
+      const payload = { ...current, ...(data || {}), id };
+      const row = normalizeActivity(unwrap(await requireSharedAPI().khedmatUpsertActivity(getActorId(actorId), getPin(pin), payload), 'activity'));
       return replaceById(CACHE.activities, row);
     },
     async addImages(activityId, imageBase64Arr, actorId, pin) {
       const row = normalizeActivity(unwrap(await requireSharedAPI().khedmatAddActivityImages(getActorId(actorId), getPin(pin), activityId, imageBase64Arr || []), 'activity'));
       return replaceById(CACHE.activities, row);
+    },
+    async delete(activityId, actorId, pin) {
+      unwrap(await requireSharedAPI().khedmatDeleteActivity(getActorId(actorId), getPin(pin), activityId), 'activity');
+      removeById(CACHE.activities, activityId);
+      CACHE.finance.forEach(f => {
+        if (f.activity_id === activityId) f.activity_id = null;
+      });
     },
     getSummaryByType() {
       const acts = CACHE.activities;
@@ -177,9 +209,20 @@ const KhAPI = (() => {
   const DailyLogs = {
     getAll: () => CACHE.daily_logs.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))),
     getLatest: () => DailyLogs.getAll()[0] || null,
-    async add(content, by, actorId, pin) {
-      const row = normalizeLog(unwrap(await requireSharedAPI().khedmatInsertDailyLog(getActorId(actorId), getPin(pin), content, by), 'log'));
+    async add(content, by, actorId, pin, date) {
+      const payload = { id: 'lg_' + uid(), content, by, date: date || today() };
+      const row = normalizeLog(unwrap(await requireSharedAPI().khedmatUpsertDailyLog(getActorId(actorId), getPin(pin), payload), 'log'));
       return replaceById(CACHE.daily_logs, row);
+    },
+    async update(id, data, actorId, pin) {
+      const current = CACHE.daily_logs.find(l => l.id === id) || {};
+      const payload = { ...current, ...(data || {}), id };
+      const row = normalizeLog(unwrap(await requireSharedAPI().khedmatUpsertDailyLog(getActorId(actorId), getPin(pin), payload), 'log'));
+      return replaceById(CACHE.daily_logs, row);
+    },
+    async delete(id, actorId, pin) {
+      unwrap(await requireSharedAPI().khedmatDeleteDailyLog(getActorId(actorId), getPin(pin), id), 'log');
+      removeById(CACHE.daily_logs, id);
     },
   };
 
@@ -187,8 +230,18 @@ const KhAPI = (() => {
     getAll: () => CACHE.finance.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))),
     async add(data, actorId, pin) {
       const payload = { id: 'fn_' + uid(), date: today(), activity_id: null, source: null, ...(data || {}) };
-      const row = normalizeFinance(unwrap(await requireSharedAPI().khedmatInsertFinance(getActorId(actorId), getPin(pin), payload), 'finance'));
+      const row = normalizeFinance(unwrap(await requireSharedAPI().khedmatUpsertFinance(getActorId(actorId), getPin(pin), payload), 'finance'));
       return replaceById(CACHE.finance, row);
+    },
+    async update(id, data, actorId, pin) {
+      const current = CACHE.finance.find(f => f.id === id) || {};
+      const payload = { ...current, ...(data || {}), id };
+      const row = normalizeFinance(unwrap(await requireSharedAPI().khedmatUpsertFinance(getActorId(actorId), getPin(pin), payload), 'finance'));
+      return replaceById(CACHE.finance, row);
+    },
+    async delete(id, actorId, pin) {
+      unwrap(await requireSharedAPI().khedmatDeleteFinance(getActorId(actorId), getPin(pin), id), 'finance');
+      removeById(CACHE.finance, id);
     },
     getSummary(month) {
       const txns = month ? CACHE.finance.filter(f => String(f.date || '').startsWith(month)) : CACHE.finance;

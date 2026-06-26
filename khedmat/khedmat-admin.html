@@ -22,7 +22,6 @@
   .ben-row-sub  { font-size:11px; color:var(--ink3); margin-top:2px; }
 
   .month-sel { background:#fff; border:1px solid var(--cream3); border-radius:var(--radius-sm); padding:10px 14px; font-family:'Tiro Bangla',serif; font-size:13px; color:var(--ink); width:100%; margin-bottom:14px; outline:none; }
-
   /* ══ Desktop (≥ 960px) ══ */
   @media (min-width: 960px) {
     .content { max-width: 900px; }
@@ -60,14 +59,12 @@
 <!-- PANEL: FINANCE -->
 <div class="content" id="panel-finance" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div class="stat-row-2" style="margin-top:10px;" id="fin-stats"></div>
-  <button class="add-btn" onclick="openModal('modal-fin')">+ তহবিল লেনদেন যোগ করুন</button>
   <div id="fin-list"></div>
 </div>
 
 <!-- PANEL: SETTINGS -->
 <div class="content" id="panel-settings" style="display:none;padding-bottom: var(--app-content-pad-bottom);">
   <div class="sec-header" style="margin-top:10px;"><div class="sec-title">কার্যক্রমের ধরন</div></div>
-  <button class="add-btn" onclick="openModal('modal-type')">+ নতুন ধরন যোগ করুন</button>
   <div id="type-list"></div>
 </div>
 
@@ -90,33 +87,6 @@
     <span class="nav-label">সেটিং</span>
   </div>
 </nav>
-
-<!-- ADD FINANCE MODAL -->
-<div class="modal-bg" id="modal-fin">
-  <div class="modal">
-    <div class="modal-title">তহবিল লেনদেন <button class="modal-close" onclick="closeModal('modal-fin')">✕</button></div>
-    <div class="form-group">
-      <label class="form-label">ধরন</label>
-      <select class="form-input form-select" id="fn-type"><option value="income">আয়</option><option value="expense">ব্যয়</option></select>
-    </div>
-    <div class="form-group"><label class="form-label">পরিমাণ</label><input class="form-input" type="number" id="fn-amount" placeholder="০"></div>
-    <div class="form-group"><label class="form-label">বিবরণ</label><input class="form-input" id="fn-desc" placeholder="লেনদেনের বিবরণ"></div>
-    <div class="form-group"><label class="form-label">উৎস (ঐচ্ছিক)</label><input class="form-input" id="fn-source" placeholder="মাদ্রাসা তহবিল / দান"></div>
-    <button class="submit-btn" onclick="saveFin()">সংরক্ষণ করুন</button>
-  </div>
-</div>
-
-<!-- ADD TYPE MODAL -->
-<div class="modal-bg" id="modal-type">
-  <div class="modal">
-    <div class="modal-title">নতুন ধরন <button class="modal-close" onclick="closeModal('modal-type')">✕</button></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">ইমোজি</label><input class="form-input" id="tp-emoji" placeholder="🤝" maxlength="2"></div>
-      <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="tp-name" placeholder="ধরনের নাম"></div>
-    </div>
-    <button class="submit-btn" onclick="saveType()">সংরক্ষণ করুন</button>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 
@@ -143,13 +113,7 @@
     const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2200);
   }
-  function showDbError(err) { console.error('[Khedmat Admin] database operation failed:', err); showToast('ডাটাবেজে সংরক্ষণ হয়নি'); }
   async function refreshKhedmatData() { await KhAPI.bootstrapRemote(khActorId, khPin); }
-  function openModal(id) {
-    if (mmMutationBlocked(showToast)) return;
-    document.getElementById(id).classList.add('open');
-  }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
   function buildMonthOptions() {
     const sel = document.getElementById('month-sel');
@@ -183,14 +147,17 @@
     const monthActs = allActs.filter(a => a.date?.startsWith(selectedMonth));
     const bens = KhAPI.Beneficiaries.getAll();
     const totalSpent = monthActs.reduce((s,a) => s+(a.amount||0), 0);
-    const finSum = KhAPI.Finance.getSummary(selectedMonth);
-
     document.getElementById('stats-row').innerHTML =
       `<div class="stat-card"><span class="stat-num">${toBn(bens.length)}</span><span class="stat-label">মাখদুম</span></div>
        <div class="stat-card"><span class="stat-num">${toBn(monthActs.length)}</span><span class="stat-label">এই মাসে কার্যক্রম</span></div>
        <div class="stat-card"><span class="stat-num" style="font-size:14px;color:var(--red);">${fmtAmt(totalSpent)}</span><span class="stat-label">ব্যয়</span></div>`;
 
-    const breakdown = KhAPI.Activities.getSummaryByType();
+    const types = KhAPI.ActivityTypes.getAll();
+    const breakdown = types.map(t => ({
+      ...t,
+      count: monthActs.filter(a => a.type_id === t.id).length,
+      total: monthActs.filter(a => a.type_id === t.id).reduce((s, a) => s + (a.amount || 0), 0),
+    }));
     document.getElementById('type-breakdown').innerHTML = breakdown.filter(t=>t.count>0).map(t =>
       `<div class="type-card">
         <div class="type-emoji">${t.emoji}</div>
@@ -231,6 +198,7 @@
     const sum = KhAPI.Finance.getSummary(null);
     document.getElementById('fin-stats').innerHTML =
       `<div class="stat-card"><span class="stat-num" style="color:var(--green)">${fmtAmt(sum.income)}</span><span class="stat-label">মোট আয়</span></div>
+       <div class="stat-card"><span class="stat-num" style="color:var(--red)">${fmtAmt(sum.expense)}</span><span class="stat-label">মোট ব্যয়</span></div>
        <div class="stat-card"><span class="stat-num" style="color:${sum.balance<0?'var(--red)':'var(--ink2)'}">${fmtAmt(sum.balance)}</span><span class="stat-label">ব্যালেন্স</span></div>`;
     const fins = KhAPI.Finance.getAll();
     document.getElementById('fin-list').innerHTML = fins.length
@@ -251,35 +219,6 @@
         <div class="type-name">${KhAPI.esc(t.name)}</div>
       </div>`
     ).join('');
-  }
-
-  async function saveFin() {
-    if (mmMutationBlocked(showToast)) return;
-    const type   = document.getElementById('fn-type').value;
-    const amount = parseFloat(document.getElementById('fn-amount').value);
-    const desc   = document.getElementById('fn-desc').value.trim();
-    const source = document.getElementById('fn-source').value.trim();
-    if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
-    if (!desc) { showToast('বিবরণ দিন'); return; }
-    try {
-      await KhAPI.Finance.add({ type, amount, description:desc, source:source||null }, khActorId, khPin);
-      closeModal('modal-fin');
-      renderFinance();
-      showToast('লেনদেন সংরক্ষিত হয়েছে');
-    } catch (err) { showDbError(err); }
-  }
-
-  async function saveType() {
-    if (mmMutationBlocked(showToast)) return;
-    const emoji = document.getElementById('tp-emoji').value.trim() || '🤝';
-    const name  = document.getElementById('tp-name').value.trim();
-    if (!name) { showToast('নাম দিন'); return; }
-    try {
-      await KhAPI.ActivityTypes.add({ name, emoji }, khActorId, khPin);
-      closeModal('modal-type');
-      renderSettings();
-      showToast('ধরন যোগ হয়েছে');
-    } catch (err) { showDbError(err); }
   }
 
   async function initKhedmatAdmin() {
