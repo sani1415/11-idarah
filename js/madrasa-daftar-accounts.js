@@ -39,6 +39,40 @@ var _qardGiveInlineOpen = false; /* করজ বিস্তারিত মড
   var count = function (n, label) { return A.count ? A.count(n, label) : bn(n) + (label ? ' ' + label : ''); };
   var bn  = function (s) { return String(s || '').replace(/[0-9]/g, function (d) { return '০১২৩৪৫৬৭৮৯'[d]; }); };
 
+  /* সংখ্যার ঘরে ভুলবশত বাংলা মাত্রা/অক্ষর (যেমন "১০া") ঢুকে গেলে ডাটাবেজ সেভ ভেঙে
+     যায় ("invalid input syntax for type numeric")। তাই সংখ্যা-ঘরের মান এখানে
+     পরিষ্কার করা হয়: বাংলা/আরবি অঙ্ক → ইংরেজি অঙ্ক, এবং শুধু অঙ্ক + একটি দশমিক বিন্দু রাখা হয়। */
+  function sanitizeNumStr(v) {
+    var s = String(v == null ? '' : v)
+      .replace(/[০-৯]/g, function (d) { return String('০১২৩৪৫৬৭৮৯'.indexOf(d)); })
+      .replace(/[٠-٩]/g, function (d) { return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)); })
+      .replace(/[۰-۹]/g, function (d) { return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)); })
+      .replace(/[^\d.]/g, '');
+    var dot = s.indexOf('.');
+    if (dot !== -1) s = s.slice(0, dot + 1) + s.slice(dot + 1).replace(/\./g, '');
+    return s;
+  }
+
+  /* সংখ্যা-ঘরে টাইপ করার সময়ই অবৈধ অক্ষর বাদ দেওয়া হয় — তাই ব্যবহারকারী সাথে সাথে
+     বোঝেন ঘরটা অক্ষর নিচ্ছে না, এবং খারাপ মান কখনো ডাটাবেজ পর্যন্ত যায় না।
+     (type="number" ঘর ব্রাউজার নিজেই আটকায়, তাই শুধু text ঘরগুলো এখানে ধরা হয়।) */
+  document.addEventListener('input', function (e) {
+    var el = e.target;
+    if (!el || el.type === 'number' || typeof el.value !== 'string') return;
+    var isNumField = (el.classList && el.classList.contains('acc-num-input')) ||
+      el.id === 'acc-qard-amt' || el.id === 'acc-qard-inline-amt' || el.id === 'qpay-expand-amt';
+    if (!isNumField) return;
+    var cleaned = sanitizeNumStr(el.value);
+    if (cleaned === el.value) return;
+    var pos = null;
+    try { pos = el.selectionStart; } catch (e2) { pos = null; }
+    var removed = el.value.length - cleaned.length;
+    el.value = cleaned;
+    if (pos !== null) {
+      try { var np = Math.max(0, pos - removed); el.setSelectionRange(np, np); } catch (e3) {}
+    }
+  }, true);
+
   /* হিসাব বই ফিল্টার/সারাংশে শুধু ব্যয়-বই — qard_return শুধু আয়ের ধরন */
   function expenseBookKeys() {
     return Object.keys(A.ACCOUNT_LABELS).filter(function (k) { return k !== 'qard_return'; });
@@ -519,9 +553,9 @@ body #modal-account-details.acc-income-detail-open #account-details-root{display
       return '<tr>' +
         '<td><select class="form-input form-select" onchange="updateAccItem(' + i + ',\'category\',this.value)"><option value="">— খাত —</option>' + catOpts + '</select></td>' +
         '<td><input class="form-input" value="' + esc(item.description) + '" placeholder="পণ্য / বিবরণ" oninput="updateAccItem(' + i + ',\'description\',this.value)"></td>' +
-        '<td><input class="form-input" value="' + (item.quantity || '') + '" type="text" inputmode="decimal" placeholder="০" oninput="updateAccItem(' + i + ',\'quantity\',this.value)"></td>' +
+        '<td><input class="form-input acc-num-input" value="' + (item.quantity || '') + '" type="text" inputmode="decimal" placeholder="০" oninput="updateAccItem(' + i + ',\'quantity\',this.value)"></td>' +
         '<td><select class="form-input form-select" onchange="updateAccItem(' + i + ',\'unit\',this.value)">' + unitOptions(item.unit) + '</select></td>' +
-        '<td><input class="form-input" value="' + (item.unitPrice || '') + '" type="text" inputmode="decimal" placeholder="০" oninput="updateAccItem(' + i + ',\'unitPrice\',this.value)"></td>' +
+        '<td><input class="form-input acc-num-input" value="' + (item.unitPrice || '') + '" type="text" inputmode="decimal" placeholder="০" oninput="updateAccItem(' + i + ',\'unitPrice\',this.value)"></td>' +
         '<td><span class="acc-item-amt-val" id="acc-item-amt-' + i + '">' + fa(item.amount || '') + '</span></td>' +
         '<td>' + (_items.length > 1 ? '<button type="button" class="acc-item-del" onclick="removeAccItem(' + i + ')">✕</button>' : '') + '</td>' +
       '</tr>';
@@ -540,6 +574,7 @@ body #modal-account-details.acc-income-detail-open #account-details-root{display
   window.removeAccItem  = function (i) { _items.splice(i, 1); if (!_items.length) _items.push(_blank()); _renderItems(); };
   window.updateAccItem  = function (i, field, val) {
     if (!_items[i]) return;
+    if (field === 'quantity' || field === 'unitPrice') val = sanitizeNumStr(val);
     _items[i][field] = val;
     if (field === 'quantity' || field === 'unitPrice') {
       var q = parseFloat(_items[i].quantity) || 0;
@@ -1206,7 +1241,7 @@ body #modal-account-details.acc-income-detail-open #account-details-root{display
       }
       if (isEdit) {
         var x = valid[0];
-        var expensePatch = { account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: x.category, description: x.description, quantity: x.quantity, unit: x.unit, unitPrice: x.unitPrice, amount: parseFloat(x.amount), supplier: isQardEntry ? '' : supplier, receiptNo, paymentMethod: isOnCredit ? 'due' : 'cash' };
+        var expensePatch = { account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: x.category, description: x.description, quantity: sanitizeNumStr(x.quantity), unit: x.unit, unitPrice: sanitizeNumStr(x.unitPrice), amount: parseFloat(x.amount), supplier: isQardEntry ? '' : supplier, receiptNo, paymentMethod: isOnCredit ? 'due' : 'cash' };
         if (_editNeedsApproval) {
           submitEntryApproval(type, originalEntry, { ...(originalEntry || {}), ...expensePatch });
           return;
@@ -1223,7 +1258,7 @@ body #modal-account-details.acc-income-detail-open #account-details-root{display
         for (var vi = 0; vi < valid.length; vi++) {
           var item = valid[vi];
           var supSave = isQardEntry ? '' : supplier;
-          await A.Expense.add({ account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: item.category, description: item.description, quantity: item.quantity, unit: item.unit, unitPrice: item.unitPrice, amount: parseFloat(item.amount), supplier: supSave, receiptNo, paymentMethod: isOnCredit ? 'due' : 'cash' });
+          await A.Expense.add({ account, hijriYear: parsed.year, month: parsed.month, day: parsed.day, category: item.category, description: item.description, quantity: sanitizeNumStr(item.quantity), unit: item.unit, unitPrice: sanitizeNumStr(item.unitPrice), amount: parseFloat(item.amount), supplier: supSave, receiptNo, paymentMethod: isOnCredit ? 'due' : 'cash' });
           if (supSave && isOnCredit) await A.Dues.addOrUpdate(supSave, account, parseFloat(item.amount));
         }
         showToast(count(valid.length, 'টি') + ' ব্যয় সংরক্ষিত ✓');
