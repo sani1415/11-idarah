@@ -436,10 +436,6 @@
       <label class="settings-check"><span>মর্যাদা মূল্য দেখাবে</span><input type="checkbox" id="set-show-honor"></label>
       <label class="settings-check"><span>বিবরণ বাধ্যতামূলক</span><input type="checkbox" id="set-require-desc"></label>
       <label class="settings-check"><span>ব্যয়ে রশিদ বাধ্যতামূলক</span><input type="checkbox" id="set-require-receipt"></label>
-      <div class="form-group">
-        <label class="form-label">এডিট/ডিলিট অনুমতি লাগবে কত ঘণ্টা পর</label>
-        <input class="form-input" id="set-edit-hours" type="number" min="0" placeholder="২৪">
-      </div>
     </div>
     <div class="dept-settings-panel" data-panel="inventory">
       <label class="settings-check"><span>পণ্য variant / pack size চালু</span><input type="checkbox" id="set-enable-variants"></label>
@@ -536,7 +532,7 @@
 
   const DEFAULT_DEPT_SETTINGS = {
     profile: { display_name:'', note:'' },
-    accounting: { show_honor:true, require_description:false, require_expense_receipt:false, edit_approval_hours:24 },
+    accounting: { show_honor:true, require_description:false, require_expense_receipt:false },
     inventory: { enable_variants:true, default_stock_unit:'পিস', low_stock_qty:0, require_waste_note:false },
     report: { default_range:'month', top_products_count:5 },
     ui: { show_summary:true }
@@ -650,10 +646,10 @@
   }
 
   function canDirectModify(txn) {
-    const hours = Number(deptSettings().accounting.edit_approval_hours);
-    if (hours <= 0) return false;
+    // দপ্তর হিসাব বিভাগের মতোই: ২৪ ঘণ্টার মধ্যে সরাসরি এডিট/ডিলিট, এর পর এডমিন অনুমোদন লাগবে।
+    const EDIT_GRACE_HOURS = 24;
     const created = new Date(txn.created_at || txn.created || txn.date || txn.txn_date || Date.now()).getTime();
-    return Date.now() - created <= hours * 60 * 60 * 1000;
+    return Date.now() - created <= EDIT_GRACE_HOURS * 60 * 60 * 1000;
   }
 
   function switchPanel(name) {
@@ -2190,7 +2186,6 @@
     document.getElementById('set-show-honor').checked = s.accounting.show_honor !== false;
     document.getElementById('set-require-desc').checked = !!s.accounting.require_description;
     document.getElementById('set-require-receipt').checked = !!s.accounting.require_expense_receipt;
-    document.getElementById('set-edit-hours').value = Number(s.accounting.edit_approval_hours || 24);
     document.getElementById('set-enable-variants').checked = s.inventory.enable_variants !== false;
     document.getElementById('set-require-waste-note').checked = !!s.inventory.require_waste_note;
     document.getElementById('set-default-unit').innerHTML = unitOptionsHtml(s.inventory.default_stock_unit || 'পিস');
@@ -2201,7 +2196,6 @@
   }
 
   function readDeptSettingsForm() {
-    const editHours = Number(document.getElementById('set-edit-hours').value || 24);
     const topCount = Number(document.getElementById('set-top-count').value || 5);
     return {
       profile: {
@@ -2211,8 +2205,7 @@
       accounting: {
         show_honor: document.getElementById('set-show-honor').checked,
         require_description: document.getElementById('set-require-desc').checked,
-        require_expense_receipt: document.getElementById('set-require-receipt').checked,
-        edit_approval_hours: Math.max(0, editHours || 0)
+        require_expense_receipt: document.getElementById('set-require-receipt').checked
       },
       inventory: {
         enable_variants: document.getElementById('set-enable-variants').checked,

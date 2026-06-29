@@ -212,7 +212,7 @@
 </nav>
 
 <!-- MODAL: Add Beneficiary -->
-<div class="modal-bg modal-float" id="modal-ben">
+<div class="modal-bg modal-float" id="modal-ben" onclick="if(event.target===this)closeModal('modal-ben')">
   <div class="modal">
     <div class="modal-title">নতুন মাখদুম <button class="modal-close" onclick="closeModal('modal-ben')">✕</button></div>
     <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="b-name" placeholder="পুরো নাম"></div>
@@ -221,12 +221,12 @@
     <div class="form-group"><label class="form-label">পরিবারের তথ্য</label><input class="form-input" id="b-family" placeholder="স্ত্রী ও ৩ সন্তান"></div>
     <div class="form-group"><label class="form-label">প্রথম যোগাযোগের তারিখ</label><input class="form-input" type="date" id="b-date"></div>
     <div class="form-group"><label class="form-label">নোট</label><textarea class="form-input form-textarea" id="b-notes" placeholder="প্রয়োজনীয় তথ্য" style="min-height:70px;"></textarea></div>
-    <button class="submit-btn" onclick="saveBen()">সংরক্ষণ করুন</button>
+    <button type="button" class="submit-btn" onclick="saveBen()">সংরক্ষণ করুন</button>
   </div>
 </div>
 
 <!-- MODAL: Add Finance -->
-<div class="modal-bg modal-float" id="modal-fin">
+<div class="modal-bg modal-float" id="modal-fin" onclick="if(event.target===this)closeModal('modal-fin')">
   <div class="modal">
     <div class="modal-title"><span id="modal-fin-title">লেনদেন যোগ করুন</span> <button class="modal-close" onclick="closeModal('modal-fin')">✕</button></div>
     <div class="form-group"><label class="form-label">ধরন</label><select class="form-input form-select" id="fn-type"><option value="income">আয়</option><option value="expense">ব্যয়</option></select></div>
@@ -234,7 +234,7 @@
     <div class="form-group"><label class="form-label">তারিখ</label><input class="form-input" type="date" id="fn-date"></div>
     <div class="form-group"><label class="form-label">বিবরণ</label><input class="form-input" id="fn-desc" placeholder="লেনদেনের বিবরণ"></div>
     <div class="form-group"><label class="form-label">উৎস / খাত (ঐচ্ছিক)</label><input class="form-input" id="fn-source" placeholder="মাদ্রাসা তহবিল / দান"></div>
-    <button class="submit-btn" onclick="saveFin()">সংরক্ষণ করুন</button>
+    <button type="button" class="submit-btn" onclick="saveFin()">সংরক্ষণ করুন</button>
   </div>
 </div>
 
@@ -250,7 +250,7 @@
 </div>
 
 <!-- MODAL: Add Activity -->
-<div class="modal-bg modal-float" id="modal-act">
+<div class="modal-bg modal-float" id="modal-act" onclick="if(event.target===this)closeModal('modal-act')">
   <div class="modal">
     <div class="modal-title"><span id="modal-act-title">কার্যক্রম যোগ করুন</span> <button class="modal-close" onclick="closeModal('modal-act')">✕</button></div>
     <div class="form-group"><label class="form-label">কার্যক্রমের ধরন</label><select class="form-input form-select" id="act-type"></select></div>
@@ -259,12 +259,12 @@
     <div class="form-group"><label class="form-label">বিবরণ</label><textarea class="form-input form-textarea" id="act-desc-inp" placeholder="কী প্রদান করা হলো..." style="min-height:70px;"></textarea></div>
     <div class="form-group"><label class="form-label">ব্যয়িত অর্থ (টাকা)</label><input class="form-input" type="number" id="act-amount" placeholder="০"></div>
     <div class="form-group"><label class="form-label">ছবি (ঐচ্ছিক)</label><input type="file" id="act-images-inp" accept="image/*" multiple style="display:block;font-size:12px;"></div>
-    <button class="submit-btn" onclick="saveAct()">সংরক্ষণ করুন</button>
+    <button type="button" class="submit-btn" onclick="saveAct()">সংরক্ষণ করুন</button>
   </div>
 </div>
 
 <!-- MODAL: Edit Beneficiary -->
-<div class="modal-bg modal-float" id="modal-edit-ben">
+<div class="modal-bg modal-float" id="modal-edit-ben" onclick="if(event.target===this)closeModal('modal-edit-ben')">
   <div class="modal">
     <div class="modal-title">মাখদুম তথ্য সম্পাদনা <button class="modal-close" onclick="closeModal('modal-edit-ben')">✕</button></div>
     <div class="form-group"><label class="form-label">নাম</label><input class="form-input" id="eb-name" placeholder="পুরো নাম"></div>
@@ -273,17 +273,17 @@
     <div class="form-group"><label class="form-label">পরিবারের তথ্য</label><input class="form-input" id="eb-family" placeholder="স্ত্রী ও ৩ সন্তান"></div>
     <div class="form-group"><label class="form-label">প্রথম যোগাযোগের তারিখ</label><input class="form-input" type="date" id="eb-date"></div>
     <div class="form-group"><label class="form-label">নোট</label><textarea class="form-input form-textarea" id="eb-notes" placeholder="প্রয়োজনীয় তথ্য" style="min-height:70px;"></textarea></div>
-    <button class="submit-btn" onclick="saveEditBen()">সংরক্ষণ করুন</button>
+    <button type="button" class="submit-btn" onclick="saveEditBen()">সংরক্ষণ করুন</button>
   </div>
 </div>
 
 <!-- MODAL: Edit Daily Log -->
-<div class="modal-bg modal-float" id="modal-log-edit">
+<div class="modal-bg modal-float" id="modal-log-edit" onclick="if(event.target===this)closeModal('modal-log-edit')">
   <div class="modal">
     <div class="modal-title">লগ সম্পাদনা <button class="modal-close" onclick="closeModal('modal-log-edit')">✕</button></div>
     <div class="form-group"><label class="form-label">তারিখ</label><input class="form-input" type="date" id="el-date"></div>
     <div class="form-group"><label class="form-label">লগ</label><textarea class="form-input form-textarea" id="el-content" style="min-height:90px;"></textarea></div>
-    <button class="submit-btn" onclick="saveEditLog()">সংরক্ষণ করুন</button>
+    <button type="button" class="submit-btn" onclick="saveEditLog()">সংরক্ষণ করুন</button>
   </div>
 </div>
 
@@ -336,7 +336,19 @@
 
   function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
   function openModal(id) { if (mmMutationBlocked(showToast)) return; document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  function closeModal(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('open');
+    if (document.activeElement && el.contains(document.activeElement)) document.activeElement.blur();
+  }
+  function afterSave(id, renderFn, toastMsg) {
+    closeModal(id);
+    if (renderFn) {
+      try { renderFn(); } catch (err) { console.error('[Khedmat] render after save failed:', err); }
+    }
+    if (toastMsg) showToast(toastMsg);
+  }
   function showDbError(err) { console.error('[Khedmat] database operation failed:', err); showToast('ডাটাবেজে সংরক্ষণ হয়নি'); }
   async function refreshKhedmatData() { await KhAPI.bootstrapRemote(khActorId, khPin); }
 
@@ -414,8 +426,8 @@
     if (!name) { showToast('নাম দিন'); return; }
     try {
       await KhAPI.Beneficiaries.add({ name, address:addr, phone:document.getElementById('b-phone').value.trim(), family_info:document.getElementById('b-family').value.trim(), notes:document.getElementById('b-notes').value.trim(), first_contact:document.getElementById('b-date').value || KhAPI.today() }, khActorId, khPin);
-      closeModal('modal-ben'); renderBen(); showToast('মাখদুম যোগ হয়েছে');
-    } catch (err) { showDbError(err); }
+    } catch (err) { showDbError(err); return; }
+    afterSave('modal-ben', renderBen, 'মাখদুম যোগ হয়েছে');
   }
 
   function openBenDetail(id) {
@@ -509,13 +521,15 @@
     if (!name) { showToast('নাম দিন'); return; }
     try {
       await KhAPI.Beneficiaries.update(activeBenId, { name, address:document.getElementById('eb-addr').value.trim(), phone:document.getElementById('eb-phone').value.trim(), family_info:document.getElementById('eb-family').value.trim(), first_contact:document.getElementById('eb-date').value || KhAPI.today(), notes:document.getElementById('eb-notes').value.trim() }, khActorId, khPin);
-      closeModal('modal-edit-ben');
+    } catch (err) { showDbError(err); return; }
+    afterSave('modal-edit-ben', () => {
       const ben = KhAPI.Beneficiaries.getById(activeBenId);
-      document.getElementById('bd-title').textContent = ben.name;
-      renderBenDetail(ben);
+      if (ben) {
+        document.getElementById('bd-title').textContent = ben.name;
+        renderBenDetail(ben);
+      }
       renderBen();
-      showToast('তথ্য আপডেট হয়েছে');
-    } catch (err) { showDbError(err); }
+    }, 'তথ্য আপডেট হয়েছে');
   }
 
   async function deleteBen() {
@@ -567,16 +581,15 @@
     const date = document.getElementById('act-date').value || KhAPI.today();
     if (!title) { showToast('শিরোনাম দিন'); return; }
     if (!desc) { showToast('বিবরণ দিন'); return; }
+    const wasEdit = editingActId;
     try {
       const files = document.getElementById('act-images-inp').files;
       const images = files && files.length ? await readFilesAsBase64Async(files) : [];
       if (editingActId) await KhAPI.Activities.update(editingActId, { beneficiary_id:activeBenId, type_id, title, description:desc, amount, date }, khActorId, khPin);
       else await KhAPI.Activities.add({ beneficiary_id:activeBenId, type_id, title, description:desc, amount, date, images }, khActorId, khPin);
-      refreshDetail();
-      renderBen();
-      closeModal('modal-act'); showToast(editingActId ? 'কার্যক্রম আপডেট হয়েছে' : 'কার্যক্রম যোগ হয়েছে');
-      editingActId = null;
-    } catch (err) { showDbError(err); }
+    } catch (err) { showDbError(err); return; }
+    editingActId = null;
+    afterSave('modal-act', () => { refreshDetail(); renderBen(); }, wasEdit ? 'কার্যক্রম আপডেট হয়েছে' : 'কার্যক্রম যোগ হয়েছে');
   }
 
   async function deleteAct(id) {
@@ -874,12 +887,13 @@
     const date = document.getElementById('fn-date').value || KhAPI.today();
     if (!amount || amount <= 0) { showToast('সঠিক পরিমাণ দিন'); return; }
     if (!desc) { showToast('বিবরণ দিন'); return; }
+    const wasEdit = editingFinId;
     try {
       if (editingFinId) await KhAPI.Finance.update(editingFinId, { type, amount, date, description:desc, source:source||null }, khActorId, khPin);
       else await KhAPI.Finance.add({ type, amount, date, description:desc, source:source||null }, khActorId, khPin);
-      closeModal('modal-fin'); renderFin(); showToast(editingFinId ? 'লেনদেন আপডেট হয়েছে' : 'লেনদেন সংরক্ষিত হয়েছে');
-      editingFinId = null;
-    } catch (err) { showDbError(err); }
+    } catch (err) { showDbError(err); return; }
+    editingFinId = null;
+    afterSave('modal-fin', renderFin, wasEdit ? 'লেনদেন আপডেট হয়েছে' : 'লেনদেন সংরক্ষিত হয়েছে');
   }
 
   async function deleteFin(id) {
@@ -928,11 +942,9 @@
     if (!content) { showToast('লগ লিখুন'); return; }
     try {
       await KhAPI.DailyLogs.update(editingLogId, { content, by:myName, date:document.getElementById('el-date').value || KhAPI.today() }, khActorId, khPin);
-      closeModal('modal-log-edit');
-      renderLog();
-      showToast('লগ আপডেট হয়েছে');
-      editingLogId = null;
-    } catch (err) { showDbError(err); }
+    } catch (err) { showDbError(err); return; }
+    editingLogId = null;
+    afterSave('modal-log-edit', renderLog, 'লগ আপডেট হয়েছে');
   }
 
   async function deleteLog(id) {

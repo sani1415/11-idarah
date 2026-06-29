@@ -6,7 +6,9 @@
   'use strict';
 
   // VAPID public key (নিরাপদ/public; private key শুধু Edge Function secret-এ)।
-  var VAPID_PUBLIC_KEY = 'BEYljfp8CpXqcsnq24Z9DIKXhgcBVfegaFUduxtFDYtC9sreO5k8XlptNgoLRZRRdw_YLm_Mgvxjc7GRxs3ZcTU';
+  // এই value-টি অবশ্যই Supabase project-এর VAPID_PUBLIC_KEY env-এর সমান হতে হবে,
+  // নইলে push পাঠানোর সময় FCM 403 দেয়।
+  var VAPID_PUBLIC_KEY = 'BGZXq0n_Pi7CK9sMsslUflJ4Vo1b6lP7xUatroi5uEjSrBKZMEWfzOzK2FZ-vfxIs1KDUY3WhQiMhPmvyEWXwr0';
 
   function urlBase64ToUint8Array(base64String) {
     var padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -15,6 +17,23 @@
     var out = new Uint8Array(raw.length);
     for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
     return out;
+  }
+
+  function uint8ToBase64Url(buf) {
+    var bytes = new Uint8Array(buf);
+    var bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  // বিদ্যমান subscription বর্তমান VAPID key দিয়েই তৈরি কিনা যাচাই করে।
+  // আগে অন্য key দিয়ে subscribe করা থাকলে false → পুনরায় subscribe করাতে হবে।
+  function subKeyMatches(sub) {
+    try {
+      var ask = sub && sub.options && sub.options.applicationServerKey;
+      if (!ask) return false;
+      return uint8ToBase64Url(ask) === VAPID_PUBLIC_KEY;
+    } catch (e) { return false; }
   }
 
   function supported() {
@@ -61,6 +80,10 @@
     var perm = await Notification.requestPermission();
     if (perm !== 'granted') return { ok: false, error: 'denied' };
     var sub = await reg.pushManager.getSubscription();
+    if (sub && !subKeyMatches(sub)) {
+      try { await sub.unsubscribe(); } catch (e) {}
+      sub = null;
+    }
     if (!sub) {
       try {
         sub = await reg.pushManager.subscribe({
@@ -80,6 +103,19 @@
     await registerSW();
     var reg = await navigator.serviceWorker.ready;
     var sub = await reg.pushManager.getSubscription();
+    // পুরনো/ভুল key দিয়ে subscribe থাকলে সরিয়ে সঠিক key দিয়ে আবার subscribe করি।
+    if (sub && !subKeyMatches(sub)) {
+      try { await sub.unsubscribe(); } catch (e) {}
+      sub = null;
+    }
+    if (!sub) {
+      try {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      } catch (e) { return false; }
+    }
     if (sub) return await saveSub(sub);
     return false;
   }

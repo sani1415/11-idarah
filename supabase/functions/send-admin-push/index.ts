@@ -1,0 +1,93 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
+import webpush from "npm:web-push@3.6.7";
+
+// staff → admin নতুন বার্তা এলে admin-এর PWA-তে web push নোটিফিকেশন পাঠায়।
+// mdr_shared_messages-এর AFTER INSERT trigger (private.mdr_notify_admin_new_message)
+// pg_net দিয়ে এটিকে x-notify-secret header সহ কল করে।
+//
+// deploy: verify_jwt = false (নিজস্ব secret auth)।
+// প্রয়োজনীয় env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
+//   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT, NOTIFY_WEBHOOK_SECRET।
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const VAPID_PUBLIC = Deno.env.get("VAPID_PUBLIC_KEY") ?? "";
+const VAPID_PRIVATE = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
+const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:abunooroin@gmail.com";
+const NOTIFY_SECRET = (Deno.env.get("NOTIFY_WEBHOOK_SECRET") ?? "").trim();
+
+const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
+
+function jsonResponse(obj: unknown, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method !== "POST") return jsonResponse({ ok: false, error: "method_not_allowed" }, 405);
+
+  // DB trigger পাঠানো x-notify-secret যাচাই (verify_jwt:false, তাই নিজস্ব auth)।
+  const hdr = (req.headers.get("x-notify-secret") || "").trim();
+  if (!NOTIFY_SECRET || hdr !== NOTIFY_SECRET) {
+    return jsonResponse({ ok: false, error: "unauthorized" }, 401);
+  }
+
+  if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
+    return jsonResponse({ ok: false, error: "vapid_not_configured" }, 500);
+  }
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+
+  let payloadIn: { from_role?: string; from_name?: string; body?: string } = {};
+  try { payloadIn = await req.json(); } catch (_e) { payloadIn = {}; }
+
+  // admin নিজের পাঠানো বার্তা হলে admin-কে notify করার দরকার নেই।
+  if (String(payloadIn.from_role || "") === "admin") {
+    return jsonResponse({ ok: true, skipped: "admin_message" });
+  }
+
+  // admin subscriptions
+  const { data: subs, error: subErr } = await admin
+    .from("mdr_shared_push_subscriptions")
+    .select("id, endpoint, p256dh, auth")
+    .eq("actor_role", "admin");
+  if (subErr) return jsonResponse({ ok: false, error: subErr.message }, 500);
+
+  // অপঠিত admin বার্তার সংখ্যা → app-icon badge।
+  let count = 0;
+  const { count: unread } = await admin
+    .from("mdr_shared_messages")
+    .select("id", { count: "exact", head: true })
+    .neq("from_role", "admin")
+    .eq("read_admin", false);
+  if (typeof unread === "number") count = unread;
+
+  const fromName = String(payloadIn.from_name || "").trim();
+  const preview = String(payloadIn.body || "").trim();
+  const title = fromName ? `${fromName} — নতুন বার্তা` : "নতুন বার্তা";
+  const body = preview
+    ? (preview.length > 80 ? preview.slice(0, 80) + "…" : preview)
+    : "আপনাকে একটি নতুন বার্তা পাঠানো হয়েছে।";
+
+  const payload = JSON.stringify({ title, body, url: "/chat.html", tag: "admin-chat", count });
+
+  let sent = 0, removed = 0;
+  await Promise.all((subs ?? []).map(async (s) => {
+    const subscription = { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } };
+    try {
+      await webpush.sendNotification(subscription, payload);
+      sent++;
+    } catch (e) {
+      const code = (e as { statusCode?: number })?.statusCode;
+      if (code === 404 || code === 410) {
+        await admin.from("mdr_shared_push_subscriptions").delete().eq("id", s.id);
+        removed++;
+      }
+    }
+  }));
+
+  return jsonResponse({ ok: true, sent, removed, count });
+});
