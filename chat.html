@@ -197,9 +197,14 @@
         if (isAdmin) ChatAPI.markReadAdmin(threadId);
         else ChatAPI.markReadStaff(threadId);
         refreshChatUi();
-        if (!ChatAPI.markReadRemote) return true;
+        if (!ChatAPI.markReadRemote) {
+          if (typeof window.MMSyncChatBadges === 'function') window.MMSyncChatBadges();
+          return true;
+        }
         await ChatAPI.markReadRemote(chatActorId(), chatPin(), threadId, isAdmin);
         await announceChatRealtime('read', threadId);
+        // পড়ার পর সার্ভার থেকে অপঠিত সংখ্যা পুনঃগণনা করে OS app-icon badge হালনাগাদ/মুছে দিই।
+        if (typeof window.MMSyncChatBadges === 'function') window.MMSyncChatBadges();
         return true;
       } catch (e) {
         console.warn('Chat mark read failed', e);

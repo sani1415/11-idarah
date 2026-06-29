@@ -41,7 +41,7 @@ Deno.serve(async (req: Request) => {
   }
   webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
-  let payloadIn: { from_role?: string; from_name?: string; body?: string } = {};
+  let payloadIn: { from_role?: string; from_name?: string; body?: string; thread_id?: string } = {};
   try { payloadIn = await req.json(); } catch (_e) { payloadIn = {}; }
 
   // admin নিজের পাঠানো বার্তা হলে admin-কে notify করার দরকার নেই।
@@ -72,7 +72,11 @@ Deno.serve(async (req: Request) => {
     ? (preview.length > 80 ? preview.slice(0, 80) + "…" : preview)
     : "আপনাকে একটি নতুন বার্তা পাঠানো হয়েছে।";
 
-  const payload = JSON.stringify({ title, body, url: "/chat.html", tag: "admin-chat", count });
+  // নোটিফিকেশনে ক্লিক করলে সরাসরি সংশ্লিষ্ট thread-এ নিয়ে যায়।
+  const threadId = String(payloadIn.thread_id || "").trim();
+  const url = threadId ? `/chat.html?thread=${encodeURIComponent(threadId)}` : "/chat.html";
+
+  const payload = JSON.stringify({ title, body, url, tag: "admin-chat", count });
 
   let sent = 0, removed = 0;
   await Promise.all((subs ?? []).map(async (s) => {

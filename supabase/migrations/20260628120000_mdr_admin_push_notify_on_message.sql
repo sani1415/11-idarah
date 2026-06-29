@@ -39,7 +39,8 @@ begin
     body := jsonb_build_object(
       'from_role', NEW.from_role,
       'from_name', NEW.from_name,
-      'body', NEW.body
+      'body', NEW.body,
+      'thread_id', NEW.thread_id
     ),
     timeout_milliseconds := 5000
   );
