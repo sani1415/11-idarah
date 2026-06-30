@@ -12,9 +12,9 @@
 | খেদমত admin | `main-admin-khedmat.html`, `khedmat/` |
 | shared JS | `js/` |
 | shared CSS | `css/style.css` |
-| Supabase helper | `api-shared.js`, `api-mdr.js`, `supabase-config.js` |
+| Supabase helper | `js/api/api-shared.js`, `js/api/api-mdr.js`, `supabase-config.js` |
 | Supabase migrations | `supabase/migrations/` |
-| older/legacy migrations | `migrations/` |
+| older/legacy migrations | `_archive/legacy-migrations/` |
 | scripts/tools | `scripts/`, `tools/` |
 | agent rules | `CLAUDE.md` |
 | user guide | `USER_MANUAL.md` |
@@ -23,7 +23,7 @@
 
 - Frontend: plain HTML, CSS, vanilla JavaScript.
 - Backend/data: Supabase PostgreSQL through RPC functions.
-- Auth model: app-level PIN/login verification through Supabase RPCs and `js/mm-session.js`.
+- Auth model: app-level PIN/login verification through Supabase RPCs and `js/core/mm-session.js`.
 - Styling: shared `css/style.css` plus page-specific CSS where needed.
 - Build check: `npm run build`.
 
@@ -35,12 +35,12 @@ The app started as a local prototype, so some old helpers and local sample-data 
 
 Important client-side files:
 
-- `api-shared.js`: shared Supabase RPC wrapper.
-- `api-mdr.js`: madrasa-specific RPC wrapper.
-- `js/mm-session.js`: shared session/login state helper.
-- `js/mdr-supabase-sync.js`: madrasa Supabase sync layer.
-- `js/dept-supabase-sync.js`: department Supabase sync layer.
-- `js/api.js`, `js/dept-api.js`, `js/khedmat-api.js`: module-facing APIs; inspect current implementation before assuming storage behavior.
+- `js/api/api-shared.js`: shared Supabase RPC wrapper.
+- `js/api/api-mdr.js`: madrasa-specific RPC wrapper.
+- `js/core/mm-session.js`: shared session/login state helper.
+- `js/madrasa/mdr-supabase-sync.js`: madrasa Supabase sync layer.
+- `js/dept/dept-supabase-sync.js`: department Supabase sync layer.
+- `js/api/api.js`, `js/dept/dept-api.js`, `js/khedmat/khedmat-api.js`: module-facing APIs; inspect current implementation before assuming storage behavior.
 
 Important database prefixes:
 
