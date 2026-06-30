@@ -125,16 +125,16 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../supabase-config.js"></script>
-<script src="../api-shared.js"></script>
-<script src="../js/mm-sample-data.js"></script>
-<script src="../js/api.js"></script>
-<script src="../js/mm-session.js"></script>
-<script src="../js/mdr-supabase-sync.js"></script>
-<script src="../js/mm-hijri.js"></script>
-<script src="../js/mm-student-modal.js"></script>
-<script src="../js/mam-overlay.js"></script>
-<script src="../js/madrasa-exams-analytics.js"></script>
-<script src="../js/mdr-exams-supabase.js"></script>
+<script src="../js/api/api-shared.js"></script>
+<script src="../js/core/mm-sample-data.js"></script>
+<script src="../js/api/api.js"></script>
+<script src="../js/core/mm-session.js"></script>
+<script src="../js/madrasa/mdr-supabase-sync.js"></script>
+<script src="../js/core/mm-hijri.js"></script>
+<script src="../js/shared/mm-student-modal.js"></script>
+<script src="../js/shared/mam-overlay.js"></script>
+<script src="../js/madrasa/madrasa-exams-analytics.js"></script>
+<script src="../js/madrasa/mdr-exams-supabase.js"></script>
 <script>
   if (!MMSession.requireAdminPerm('exams', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
   function toBn(n) { return String(n).replace(/[0-9]/g, d=>'০১২৩৪৫৬৭৮৯'[d]); }

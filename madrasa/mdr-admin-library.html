@@ -117,11 +117,11 @@
 
 
 <div class="toast" id="toast"></div>
-<script src="../js/mm-sample-data.js"></script>
-<script src="../js/api.js"></script>
-<script src="../js/mm-session.js"></script>
-<script src="../js/mm-hijri.js"></script>
-<script src="../js/mm-student-modal.js"></script>
+<script src="../js/core/mm-sample-data.js"></script>
+<script src="../js/api/api.js"></script>
+<script src="../js/core/mm-session.js"></script>
+<script src="../js/core/mm-hijri.js"></script>
+<script src="../js/shared/mm-student-modal.js"></script>
 <script>
   if (!MMSession.requireAdminPerm('library', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
   const LIB_BOOKS='mm_lib_books', LIB_ISSUES='mm_lib_issues';
@@ -201,6 +201,6 @@
   </div>
   <div class="cls-ov-body" id="cls-ov-body"></div>
 </div>
-<script src="../js/mam-overlay.js"></script>
+<script src="../js/shared/mam-overlay.js"></script>
 </body>
 </html>

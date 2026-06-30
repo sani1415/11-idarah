@@ -64,16 +64,16 @@ function versionAssetUrl(url, version) {
 }
 
 function injectAppUpdate(html, relativeRoot, version) {
-  if (html.includes('js/app-update.js')) return html;
-  const src = `${relativeRoot}js/app-update.js?v=${encodeURIComponent(version)}`;
+  if (html.includes('js/core/app-update.js')) return html;
+  const src = `${relativeRoot}js/core/app-update.js?v=${encodeURIComponent(version)}`;
   const tag = `<script src="${src}" defer></script>`;
   if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${tag}\n</body>`);
   return `${html}\n${tag}\n`;
 }
 
 function injectInstallPrompt(html, relativeRoot, version) {
-  if (html.includes('js/mm-install.js')) return html;
-  const src = `${relativeRoot}js/mm-install.js?v=${encodeURIComponent(version)}`;
+  if (html.includes('js/core/mm-install.js')) return html;
+  const src = `${relativeRoot}js/core/mm-install.js?v=${encodeURIComponent(version)}`;
   const tag = `<script src="${src}" defer></script>`;
   if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${tag}\n</body>`);
   return `${html}\n${tag}\n`;
@@ -87,7 +87,7 @@ function injectCapacitorNative(html, relativeRoot, version) {
     `<script src="${vendor}capacitor.js?v=${v}"></script>`,
     `<script src="${vendor}capacitor-app.js?v=${v}"></script>`,
     `<script src="${vendor}capacitor-status-bar.js?v=${v}"></script>`,
-    `<script src="${relativeRoot}js/capacitor-native.js?v=${v}" defer></script>`,
+    `<script src="${relativeRoot}js/core/capacitor-native.js?v=${v}" defer></script>`,
   ].join('\n');
   if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${tags}\n</body>`);
   return `${html}\n${tags}\n`;
@@ -95,7 +95,7 @@ function injectCapacitorNative(html, relativeRoot, version) {
 
 function injectBootScript(html, relativeRoot, version) {
   if (!/mm-session\.js/i.test(html) || /mm-boot\.js/i.test(html)) return html;
-  const tag = `<script src="${relativeRoot}js/mm-boot.js?v=${encodeURIComponent(version)}"></script>`;
+  const tag = `<script src="${relativeRoot}js/core/mm-boot.js?v=${encodeURIComponent(version)}"></script>`;
   if (/<meta\s+charset=/i.test(html)) {
     return html.replace(/(<meta\s+charset=[^>]+>)/i, `$1\n${tag}`);
   }
@@ -185,7 +185,7 @@ for (const d of dirs) {
   }
 }
 
-for (const f of ['api-shared.js', 'api-mdr.js', 'supabase-config.example.js', 'manifest.webmanifest', 'sw.js']) {
+for (const f of ['supabase-config.example.js', 'manifest.webmanifest', 'sw.js']) {
   const src = path.join(ROOT, f);
   if (fs.existsSync(src)) fs.copyFileSync(src, path.join(OUT, f));
 }

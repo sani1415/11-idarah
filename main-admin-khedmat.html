@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<script src="js/mm-boot.js"></script>
+<script src="js/core/mm-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>খেদমত — জিম্মাদার</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -133,10 +133,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
-<script src="api-shared.js"></script>
-<script src="js/mm-session.js"></script>
-<script src="js/monitor-mode.js"></script>
-<script src="js/khedmat-api.js"></script>
+<script src="js/api/api-shared.js"></script>
+<script src="js/core/mm-session.js"></script>
+<script src="js/core/monitor-mode.js"></script>
+<script src="js/khedmat/khedmat-api.js"></script>
 <script>
   if (!MMSession.isAdmin() || MMSession.isRestrictedAdmin()) { location.href = 'main-admin-madrasa.html'; }
   mmInsertMonitorBanner();
@@ -272,6 +272,6 @@
   }
   MMLoading.run(initKhedmatAdmin);
 </script>
-<script src="js/admin-nav.js"></script>
+<script src="js/shared/admin-nav.js"></script>
 </body>
 </html>

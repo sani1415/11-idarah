@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<script src="js/mm-boot.js"></script>
+<script src="js/core/mm-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>বার্তা (স্টাফ ↔ জিম্মাদার) — মাদরাসাতুল মদীনা</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -77,18 +77,18 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
-<script src="api-shared.js"></script>
-<script src="js/mm-sample-data.js"></script>
-<script src="js/api.js"></script>
-<script src="js/mdr-daftar-supabase.js"></script>
-<script src="js/mm-session.js"></script>
-<script src="js/mdr-daftar-attendance-gate.js?v=20260624-gate4"></script>
-<script src="js/mm-push.js"></script>
-<script src="js/dept-api.js"></script>
-<script src="js/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
-<script src="js/chat-api.js"></script>
-<script src="js/daftar-bottom-nav.js"></script>
-<script src="js/chat-staff-nav.js"></script>
+<script src="js/api/api-shared.js"></script>
+<script src="js/core/mm-sample-data.js"></script>
+<script src="js/api/api.js"></script>
+<script src="js/madrasa/mdr-daftar-supabase.js"></script>
+<script src="js/core/mm-session.js"></script>
+<script src="js/madrasa/mdr-daftar-attendance-gate.js?v=20260624-gate4"></script>
+<script src="js/core/mm-push.js"></script>
+<script src="js/dept/dept-api.js"></script>
+<script src="js/madrasa/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
+<script src="js/shared/chat-api.js"></script>
+<script src="js/shared/daftar-bottom-nav.js"></script>
+<script src="js/shared/chat-staff-nav.js"></script>
 <script>
   /* ── IDENTITY ── */
   const myRole     = MMSession.getRole()     || '';
@@ -730,6 +730,6 @@
 
   MMLoading.run(initChatPage);
 </script>
-<script src="js/admin-nav.js"></script>
+<script src="js/shared/admin-nav.js"></script>
 </body>
 </html>

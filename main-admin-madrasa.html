@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<script src="js/mm-boot.js"></script>
+<script src="js/core/mm-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>মাদ্রাসা — জিম্মাদার</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -434,21 +434,21 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js?v=20260521-akhlaq-consistency"></script>
-<script src="api-shared.js?v=20260521-akhlaq-consistency"></script>
-<script src="api-mdr.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/api.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/mm-sample-data.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/mm-session.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/mdr-supabase-sync.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/hijri-utils.js"></script>
-<script src="js/mm-hijri.js"></script>
-<script src="js/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
-<script src="js/dept-api.js"></script>
-<script src="js/dept-supabase-sync.js"></script>
-<script src="js/mm-student-modal.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/mm-teacher-modal.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/mam-overlay.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/mdr-home-panels.js?v=20260521-absent-scroll"></script>
+<script src="js/api/api-shared.js?v=20260521-akhlaq-consistency"></script>
+<script src="js/api/api-mdr.js?v=20260521-akhlaq-consistency"></script>
+<script src="js/api/api.js?v=20260521-akhlaq-consistency"></script>
+<script src="js/core/mm-sample-data.js?v=20260521-akhlaq-consistency"></script>
+<script src="js/core/mm-session.js?v=20260521-akhlaq-consistency"></script>
+<script src="js/madrasa/mdr-supabase-sync.js?v=20260521-akhlaq-consistency"></script>
+<script src="js/core/hijri-utils.js"></script>
+<script src="js/core/mm-hijri.js"></script>
+<script src="js/madrasa/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
+<script src="js/dept/dept-api.js"></script>
+<script src="js/dept/dept-supabase-sync.js"></script>
+<script src="js/shared/mm-student-modal.js?v=20260521-akhlaq-consistency"></script>
+<script src="js/shared/mm-teacher-modal.js?v=20260521-akhlaq-consistency"></script>
+<script src="js/shared/mam-overlay.js?v=20260521-akhlaq-consistency"></script>
+<script src="js/madrasa/mdr-home-panels.js?v=20260521-absent-scroll"></script>
 <script>
   var adminAuthFallback = (function () {
     try { return /^admin\./i.test(location.hostname) ? 'admin/index.html' : 'index.html'; }
@@ -1318,6 +1318,6 @@
   }
   MMLoading.run(initDashboard);
 </script>
-<script src="js/admin-nav.js?v=20260521-akhlaq-consistency"></script>
+<script src="js/shared/admin-nav.js?v=20260521-akhlaq-consistency"></script>
 </body>
 </html>

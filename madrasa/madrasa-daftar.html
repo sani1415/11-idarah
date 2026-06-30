@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<script src="../js/mm-boot.js"></script>
+<script src="../js/core/mm-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>দফতর — মাদরাসাতুল মদীনা</title>
 <script>
@@ -851,7 +851,7 @@ body.page-daftar #modal-account-entry .modal {
 
 </div>
 
-<!-- BOTTOM NAV (শেয়ার্ড: js/daftar-bottom-nav.js) -->
+<!-- BOTTOM NAV (শেয়ার্ড: js/shared/daftar-bottom-nav.js) -->
 <nav class="bottom-nav" id="daftar-nav-root" aria-label="নিচের নেভিগেশন"></nav>
 
 <!-- FEES MODAL -->
@@ -971,20 +971,20 @@ body.page-daftar #modal-account-entry .modal {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../supabase-config.js?v=20260516-attendance-persist"></script>
-<script src="../api-shared.js?v=20260516-attendance-persist"></script>
-<script src="../js/mm-sample-data.js"></script>
-<script src="../js/api.js?v=20260517-attendance-consistency"></script>
-<script src="../js/mdr-daftar-supabase.js?v=20260624-save-perf"></script>
-<script src="../js/mm-hijri.js"></script>
-<script src="../js/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
-<script src="../js/chat-api.js"></script>
-<script src="../js/madrasa-daftar-accounts.js?v=20260622-detail-modal-modern-v2"></script>
-<script src="../js/madrasa-accounts-reports.js?v=20260614-live-import-refresh"></script>
-<script src="../js/mm-student-modal.js?v=20260517-attendance-consistency"></script>
-<script src="../js/mm-session.js?v=20260516-attendance-persist"></script>
-<script src="../js/mdr-daftar-attendance-gate.js?v=20260624-gate4"></script>
-<script src="../js/daftar-bottom-nav.js"></script>
-<script src="../js/monitor-mode.js"></script>
+<script src="../js/api/api-shared.js?v=20260516-attendance-persist"></script>
+<script src="../js/core/mm-sample-data.js"></script>
+<script src="../js/api/api.js?v=20260517-attendance-consistency"></script>
+<script src="../js/madrasa/mdr-daftar-supabase.js?v=20260624-save-perf"></script>
+<script src="../js/core/mm-hijri.js"></script>
+<script src="../js/madrasa/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
+<script src="../js/shared/chat-api.js"></script>
+<script src="../js/madrasa/madrasa-daftar-accounts.js?v=20260622-detail-modal-modern-v2"></script>
+<script src="../js/madrasa/madrasa-accounts-reports.js?v=20260614-live-import-refresh"></script>
+<script src="../js/shared/mm-student-modal.js?v=20260517-attendance-consistency"></script>
+<script src="../js/core/mm-session.js?v=20260516-attendance-persist"></script>
+<script src="../js/madrasa/mdr-daftar-attendance-gate.js?v=20260624-gate4"></script>
+<script src="../js/shared/daftar-bottom-nav.js"></script>
+<script src="../js/core/monitor-mode.js"></script>
 <script>
   if (!MMSession.requireStaffRoleOrAdminPerm('daftar', 'daftar', '../main-admin-madrasa.html')) { throw new Error('daftar permission denied'); }
   document.getElementById('top-name').textContent = MMSession.getName() || 'দফতর';

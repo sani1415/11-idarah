@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<script src="../js/mm-boot.js"></script>
+<script src="../js/core/mm-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>মাদ্রাসা — দফতর</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -220,27 +220,27 @@ body.page-daftar .topbar-btn:not(.topbar-btn--icon) { padding:6px 10px; font-siz
   </div>
 </div>
 
-<!-- BOTTOM NAV (শেয়ার্ড: js/daftar-bottom-nav.js) -->
+<!-- BOTTOM NAV (শেয়ার্ড: js/shared/daftar-bottom-nav.js) -->
 <nav class="bottom-nav" id="daftar-nav-root" aria-label="নিচের নেভিগেশন"></nav>
 
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../supabase-config.js"></script>
-<script src="../api-shared.js"></script>
-<script src="../js/mm-sample-data.js"></script>
-<script src="../js/api.js?v=20260517-attendance-consistency"></script>
-<script src="../js/mdr-daftar-supabase.js"></script>
-<script src="../js/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
-<script src="../js/madrasa-kormosuchi.js"></script>
-<script src="../js/mdr-khadimin-supabase.js"></script>
-<script src="../js/mm-session.js"></script>
-<script src="../js/mdr-daftar-attendance-gate.js?v=20260624-gate4"></script>
-<script src="../js/mm-student-modal.js?v=20260517-attendance-consistency"></script>
-<script src="../js/monitor-mode.js"></script>
-<script src="../js/daftar-bottom-nav.js"></script>
-<script src="../js/mdr-home-panels.js?v=20260521-absent-scroll"></script>
-<script src="../js/mdr-dastarkhan.js"></script>
-<script src="../js/mdr-daftar-notes.js"></script>
+<script src="../js/api/api-shared.js"></script>
+<script src="../js/core/mm-sample-data.js"></script>
+<script src="../js/api/api.js?v=20260517-attendance-consistency"></script>
+<script src="../js/madrasa/mdr-daftar-supabase.js"></script>
+<script src="../js/madrasa/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
+<script src="../js/madrasa/madrasa-kormosuchi.js"></script>
+<script src="../js/madrasa/mdr-khadimin-supabase.js"></script>
+<script src="../js/core/mm-session.js"></script>
+<script src="../js/madrasa/mdr-daftar-attendance-gate.js?v=20260624-gate4"></script>
+<script src="../js/shared/mm-student-modal.js?v=20260517-attendance-consistency"></script>
+<script src="../js/core/monitor-mode.js"></script>
+<script src="../js/shared/daftar-bottom-nav.js"></script>
+<script src="../js/madrasa/mdr-home-panels.js?v=20260521-absent-scroll"></script>
+<script src="../js/madrasa/mdr-dastarkhan.js"></script>
+<script src="../js/madrasa/mdr-daftar-notes.js"></script>
 <script>
   if (!MMSession.requireStaffRoleOrAdminPerm('daftar', 'daftar', '../main-admin-madrasa.html')) { throw new Error('daftar permission denied'); }
   var dn = document.getElementById('daftar-nav-root');
