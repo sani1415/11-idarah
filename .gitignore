@@ -18,3 +18,11 @@ android/capacitor-cordova-android-plugins/build/
 
 .vercel
 .vapid.local.json
+
+# Temp/analysis artifacts and generated data (not source)
+.tmp-analysis/
+.tmp_admin_bootstrap.sql
+.playwright-cli/
+scripts/__pycache__/
+outputs/
+*.xlsx

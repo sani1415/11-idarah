@@ -1,6 +1,0 @@
-[    1752ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://localhost:5502/favicon.ico:0
-[   10056ms] [WARNING] madrasa settings sync skipped Error: invalid_pin
-    at requireOk (http://localhost:5502/api-mdr.js?v=20260623111143:17:13)
-    at async syncMadrasaSettings (http://localhost:5502/main-admin-madrasa.html:448:19)
-    at async initDashboard (http://localhost:5502/main-admin-madrasa.html:1034:9)
-    at async Object.run (http://localhost:5502/js/mm-session.js?v=20260623111143:736:16) @ http://localhost:5502/main-admin-madrasa.html:465
