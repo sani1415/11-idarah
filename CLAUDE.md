@@ -2,6 +2,8 @@
 
 এই repo-তে কাজ করা AI agent-এর জন্য সংক্ষিপ্ত নিয়ম। Project overview দরকার হলে আগে `README.md` পড়বে, user-facing behavior দরকার হলে `USER_MANUAL.md` পড়বে।
 
+কোন কাজের কোড কোথায় আছে দ্রুত জানতে `AGENTS_MAP.md` দেখবে।
+
 ## Critical Boundaries
 
 - Existing Waqf app/repo/data স্পর্শ করা যাবে না।
