@@ -75,6 +75,11 @@ Run the repo build check:
 npm run build
 ```
 
+Local preview (Live Server): the deployable frontend lives under `app/`, so Live Server is
+configured to serve `app/` as web root (`.vscode/settings.json` → `liveServer.settings.root: "/app"`).
+`npm run build` writes `app/supabase-config.js` (git-ignored) so the source preview has Supabase config.
+For a fully-built preview instead, serve `public/` after building.
+
 For a focused JS syntax check:
 
 ```bash

@@ -4,7 +4,7 @@ const path = require('path');
 const ROOT = __dirname;
 const SRC = path.join(ROOT, 'app'); // deployable frontend source lives under app/
 const OUT = path.join(ROOT, 'public');
-const ROOT_CONFIG = path.join(ROOT, 'supabase-config.js');
+const ROOT_CONFIG = path.join(SRC, 'supabase-config.js'); // cache lives with app source (also enables Live Server preview of app/)
 
 function createBuildVersion() {
   const raw =
