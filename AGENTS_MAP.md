@@ -21,7 +21,7 @@
 ## `app/js/` ফোল্ডার মানচিত্র
 
 - **`app/js/core/`** — app-wide foundation: `mm-session` (auth/session), `mm-boot`,
-  `mm-permissions`, `mm-push`, `mm-install`, `app-update`, `capacitor-native`,
+  `mm-permissions`, `mm-push`, `mm-install`, `app-update`,
   `mm-hijri` / `hijri-utils` (তারিখ), `monitor-mode`, `mm-sample-data`।
 - **`app/js/api/`** — Supabase data layer (RPC wrapper): `api-shared.js`, `api-mdr.js`, `api.js`।
   > RPC নাম পাল্টালে এখানকার wrapper **আর** `supabase/migrations/` একসাথে আপডেট করতে হবে।
@@ -33,7 +33,6 @@
   dastarkhan, home-panels) + `mm-old-madrasa-import-data`।
 - **`app/js/dept/`** — `dept-api`, `dept-supabase-sync`, `dept-units`।
 - **`app/js/khedmat/`** — `khedmat-api`।
-- **`app/js/vendor/`** — build-এ generated Capacitor shims (gitignored)।
 
 ## Backend / build
 
@@ -41,8 +40,7 @@
   পুরনো numbered migrations শুধু reference হিসেবে `_archive/legacy-migrations/`-এ।
 - **Edge function** → `supabase/functions/send-admin-push/`।
 - **Build/deploy** → `build.js` (static copy + `?v=` cache-bust + script inject),
-  `vercel.json`, `capacitor.config.json`। Output → `public/` (gitignored)।
-- **Native (Android)** → `android/` (Capacitor)।
+  `vercel.json`। Output → `public/` (gitignored)। App **PWA-only** (Capacitor/Android সরানো হয়েছে)।
 - **Dev/data scripts** → `scripts/`।
 
 ## জরুরি নিয়ম (CLAUDE.md থেকে সংক্ষেপে)
