@@ -3,33 +3,37 @@
 > এই repo-তে কাজ শুরুর আগে এক নজরে দেখে নাও কোন কাজের কোড কোথায়।
 > বিস্তারিত নিয়ম: `CLAUDE.md` • behavior: `USER_MANUAL.md` • reorg ইতিহাস: `REORG_PLAN.md`
 
-## এক নজরে — কাজ → ফাইল
+> **সব deployable frontend source `app/` এর নিচে।** `build.js` `app/`-এর ভেতরটা `public/`-এ কপি
+> করে, তাই `app/admin/madrasa.html` সার্ভ হয় `/admin/madrasa.html` URL-এ (নিচের path গুলো source path)।
+> Backend/config/native/docs `app/`-এর বাইরে root-এ আলাদা।
+
+## এক নজরে — কাজ → ফাইল (source path)
 
 | কাজ | HTML | JS |
 |-----|------|----|
-| Login hub / entry | `index.html`, `chat.html` | `js/core/` |
-| Admin hub (subdomain `admin.idarah786.com`) | `admin/` (`index.html`, `madrasa.html`, `dept.html`, `khedmat.html`, `recent.html`) | `js/shared/admin-nav.js`, `js/shared/admin-recent-feed.js` |
-| মাদরাসা — staff UI | `madrasa/madrasa-*.html` | `js/madrasa/madrasa-*.js`, `js/madrasa/mdr-*.js` |
-| মাদরাসা — admin UI | `madrasa/admin/*.html` (জিম্মাদার view) | `js/madrasa/mdr-*.js` |
-| বিভাগ (Department) | `dept/*.html` | `js/dept/` |
-| খেদমত (Khedmat) | `khedmat/*.html` | `js/khedmat/` |
+| Login hub / entry | `app/index.html`, `app/chat.html` | `app/js/core/` |
+| Admin hub (subdomain `admin.idarah786.com`) | `app/admin/` (`index.html`, `madrasa.html`, `dept.html`, `khedmat.html`, `recent.html`) | `app/js/shared/admin-nav.js`, `app/js/shared/admin-recent-feed.js` |
+| মাদরাসা — staff UI | `app/madrasa/madrasa-*.html` | `app/js/madrasa/madrasa-*.js`, `mdr-*.js` |
+| মাদরাসা — admin UI | `app/madrasa/admin/*.html` (জিম্মাদার view) | `app/js/madrasa/mdr-*.js` |
+| বিভাগ (Department) | `app/dept/*.html` | `app/js/dept/` |
+| খেদমত (Khedmat) | `app/khedmat/*.html` | `app/js/khedmat/` |
 
-## `js/` ফোল্ডার মানচিত্র
+## `app/js/` ফোল্ডার মানচিত্র
 
-- **`js/core/`** — app-wide foundation: `mm-session` (auth/session), `mm-boot`,
+- **`app/js/core/`** — app-wide foundation: `mm-session` (auth/session), `mm-boot`,
   `mm-permissions`, `mm-push`, `mm-install`, `app-update`, `capacitor-native`,
   `mm-hijri` / `hijri-utils` (তারিখ), `monitor-mode`, `mm-sample-data`।
-- **`js/api/`** — Supabase data layer (RPC wrapper): `api-shared.js`, `api-mdr.js`, `api.js`।
+- **`app/js/api/`** — Supabase data layer (RPC wrapper): `api-shared.js`, `api-mdr.js`, `api.js`।
   > RPC নাম পাল্টালে এখানকার wrapper **আর** `supabase/migrations/` একসাথে আপডেট করতে হবে।
-- **`js/shared/`** — cross-module UI/helper: `admin-nav`, `admin-recent-feed`,
+- **`app/js/shared/`** — cross-module UI/helper: `admin-nav`, `admin-recent-feed`,
   `chat-api`, `chat-staff-nav`, `daftar-bottom-nav`, `alumni-integration`,
   `mm-student-modal`, `mm-teacher-modal`, `mam-overlay`।
-- **`js/madrasa/`** — মাদরাসার সব feature: `madrasa-*` (accounts, attendance, exams,
+- **`app/js/madrasa/`** — মাদরাসার সব feature: `madrasa-*` (accounts, attendance, exams,
   kormosuchi, print, daftar) + `mdr-*` (supabase sync, daftar, exams, khadimin,
   dastarkhan, home-panels) + `mm-old-madrasa-import-data`।
-- **`js/dept/`** — `dept-api`, `dept-supabase-sync`, `dept-units`।
-- **`js/khedmat/`** — `khedmat-api`।
-- **`js/vendor/`** — build-এ generated Capacitor shims (gitignored)।
+- **`app/js/dept/`** — `dept-api`, `dept-supabase-sync`, `dept-units`।
+- **`app/js/khedmat/`** — `khedmat-api`।
+- **`app/js/vendor/`** — build-এ generated Capacitor shims (gitignored)।
 
 ## Backend / build
 
@@ -50,11 +54,11 @@
 
 ## Build constraint (path move করার আগে পড়ো)
 
-`build.js` `['css','js','madrasa','dept','khedmat','admin','icons']` folder + root `*.html`
-recursive copy করে এবং প্রতিটা HTML-এ depth অনুযায়ী `../` সহ boot script inject করে (nested
-subfolder যেমন `madrasa/admin/` সাপোর্টেড)। `js/`-এর **ভেতরে** subfolder নিরাপদ, কিন্তু কোনো
-top-level folder rename/HTML নাম পরিবর্তন করলে `build.js` + প্রতিটা HTML reference + `vercel.json`
-redirect একসাথে আপডেট করতে হবে।
+`build.js` `app/` এর ভেতর থেকে `['css','js','madrasa','dept','khedmat','admin','icons']` folder +
+`app/*.html` recursive copy করে `public/`-এ, এবং প্রতিটা HTML-এ depth অনুযায়ী `../` সহ boot script
+inject করে (nested subfolder যেমন `app/madrasa/admin/` সাপোর্টেড)। `app/js/`-এর **ভেতরে** subfolder
+নিরাপদ, কিন্তু কোনো top-level folder rename/HTML নাম পরিবর্তন করলে `build.js` (`SRC`/`dirs`) + প্রতিটা
+HTML reference + `vercel.json` redirect একসাথে আপডেট করতে হবে।
 
 **Nav convention:** `admin/*.html` (hub) আর `madrasa/admin/*.html` পেজে **navigation link
 absolute path** দিয়ে হয় (`/admin/madrasa.html`, `/madrasa/admin/students.html`) — এতে depth আর

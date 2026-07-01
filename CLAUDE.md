@@ -23,7 +23,7 @@
 - Vanilla HTML/CSS/JS বজায় রাখবে।
 - Existing UI pattern, Bangla wording, modal/navigation style অনুসরণ করবে।
 - User-facing text বাংলায় রাখবে।
-- Repeated shared behavior হলে existing helper আগে খুঁজবে: `js/core/mm-session.js`, `js/api/api-shared.js`, `js/api/api-mdr.js`, `js/<module>/*-supabase-sync.js`.
+- Repeated shared behavior হলে existing helper আগে খুঁজবে: `app/js/core/mm-session.js`, `app/js/api/api-shared.js`, `app/js/api/api-mdr.js`, `app/js/<module>/*-supabase-sync.js`.
 - User data render করলে escaping/safe rendering ব্যবহার করবে; raw HTML injection এড়াবে।
 - Mobile layout ভাঙে কিনা খেয়াল করবে, কারণ app-এর অনেক কাজ mobile-first.
 

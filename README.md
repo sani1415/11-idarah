@@ -6,13 +6,13 @@
 
 | অংশ | পথ / ফাইল |
 | --- | --- |
-| মূল login | `index.html` |
-| মাদরাসা admin | `admin/madrasa.html`, `madrasa/admin/`, `madrasa/` |
-| বিভাগ admin | `admin/dept.html`, `dept/` |
-| খেদমত admin | `admin/khedmat.html`, `khedmat/` |
-| shared JS | `js/` |
-| shared CSS | `css/style.css` |
-| Supabase helper | `js/api/api-shared.js`, `js/api/api-mdr.js`, `supabase-config.js` |
+| মূল login | `app/index.html` |
+| মাদরাসা admin | `app/admin/madrasa.html`, `app/madrasa/admin/`, `app/madrasa/` |
+| বিভাগ admin | `app/admin/dept.html`, `app/dept/` |
+| খেদমত admin | `app/admin/khedmat.html`, `app/khedmat/` |
+| shared JS | `app/js/` |
+| shared CSS | `app/css/style.css` |
+| Supabase helper | `app/js/api/api-shared.js`, `app/js/api/api-mdr.js`, `supabase-config.js` |
 | Supabase migrations | `supabase/migrations/` |
 | older/legacy migrations | `_archive/legacy-migrations/` |
 | scripts/tools | `scripts/`, `tools/` |
@@ -23,8 +23,8 @@
 
 - Frontend: plain HTML, CSS, vanilla JavaScript.
 - Backend/data: Supabase PostgreSQL through RPC functions.
-- Auth model: app-level PIN/login verification through Supabase RPCs and `js/core/mm-session.js`.
-- Styling: shared `css/style.css` plus page-specific CSS where needed.
+- Auth model: app-level PIN/login verification through Supabase RPCs and `app/js/core/mm-session.js`.
+- Styling: shared `app/css/style.css` plus page-specific CSS where needed.
 - Build check: `npm run build`.
 
 This is not a React/Vue/Next app. Do not add a framework unless the user explicitly asks.
@@ -35,12 +35,12 @@ The app started as a local prototype, so some old helpers and local sample-data 
 
 Important client-side files:
 
-- `js/api/api-shared.js`: shared Supabase RPC wrapper.
-- `js/api/api-mdr.js`: madrasa-specific RPC wrapper.
-- `js/core/mm-session.js`: shared session/login state helper.
-- `js/madrasa/mdr-supabase-sync.js`: madrasa Supabase sync layer.
-- `js/dept/dept-supabase-sync.js`: department Supabase sync layer.
-- `js/api/api.js`, `js/dept/dept-api.js`, `js/khedmat/khedmat-api.js`: module-facing APIs; inspect current implementation before assuming storage behavior.
+- `app/js/api/api-shared.js`: shared Supabase RPC wrapper.
+- `app/js/api/api-mdr.js`: madrasa-specific RPC wrapper.
+- `app/js/core/mm-session.js`: shared session/login state helper.
+- `app/js/madrasa/mdr-supabase-sync.js`: madrasa Supabase sync layer.
+- `app/js/dept/dept-supabase-sync.js`: department Supabase sync layer.
+- `app/js/api/api.js`, `app/js/dept/dept-api.js`, `app/js/khedmat/khedmat-api.js`: module-facing APIs; inspect current implementation before assuming storage behavior.
 
 Important database prefixes:
 
@@ -54,9 +54,9 @@ RPC functions are usually `SECURITY DEFINER`; public tables generally keep RLS e
 
 ## Module Notes
 
-- Madrasa: students, attendance, daftar/accounts, dars, exams, hifz, library, alumni, kormosuchi, settings live under `madrasa/` (staff) and `madrasa/admin/` (জিম্মাদার/admin views), with JS in `js/madrasa/`.
-- Department: department login, staff portal, admin view, transactions, inventory, dynamic fields and edit requests live under `dept/`, `admin/dept.html`, `js/dept/`.
-- Khedmat: admin/staff flows live under `khedmat/`, `admin/khedmat.html`, `js/khedmat/`, and newer Supabase migration/RPC work.
+- Madrasa: students, attendance, daftar/accounts, dars, exams, hifz, library, alumni, kormosuchi, settings live under `app/madrasa/` (staff) and `app/madrasa/admin/` (জিম্মাদার/admin views), with JS in `app/js/madrasa/`.
+- Department: department login, staff portal, admin view, transactions, inventory, dynamic fields and edit requests live under `app/dept/`, `app/admin/dept.html`, `app/js/dept/`.
+- Khedmat: admin/staff flows live under `app/khedmat/`, `app/admin/khedmat.html`, `app/js/khedmat/`, and newer Supabase migration/RPC work.
 - Chat/session/navigation helpers are shared across modules.
 
 Always verify the exact current file before changing behavior; several modules have been migrated gradually.
@@ -78,7 +78,7 @@ npm run build
 For a focused JS syntax check:
 
 ```bash
-node --check js/some-file.js
+node --check app/js/some-file.js
 ```
 
 For Supabase changes:

@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = __dirname;
+const SRC = path.join(ROOT, 'app'); // deployable frontend source lives under app/
 const OUT = path.join(ROOT, 'public');
 const ROOT_CONFIG = path.join(ROOT, 'supabase-config.js');
 
@@ -144,7 +145,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const dirs = ['css', 'js', 'madrasa', 'dept', 'khedmat', 'admin', 'icons'];
 for (const d of dirs) {
-  copyDir(path.join(ROOT, d), path.join(OUT, d));
+  copyDir(path.join(SRC, d), path.join(OUT, d));
 }
 
 const vendorDir = path.join(OUT, 'js', 'vendor');
@@ -163,9 +164,9 @@ for (const [srcRel, name] of vendorFiles) {
 }
 
 try {
-  for (const name of fs.readdirSync(ROOT)) {
+  for (const name of fs.readdirSync(SRC)) {
     if (!name.endsWith('.html')) continue;
-    const src = path.join(ROOT, name);
+    const src = path.join(SRC, name);
     if (!fs.statSync(src).isFile()) continue;
     const dest = path.join(OUT, name);
     fs.copyFileSync(src, dest);
@@ -195,7 +196,7 @@ for (const d of dirs) {
 }
 
 for (const f of ['supabase-config.example.js', 'manifest.webmanifest', 'sw.js']) {
-  const src = path.join(ROOT, f);
+  const src = path.join(SRC, f);
   if (fs.existsSync(src)) fs.copyFileSync(src, path.join(OUT, f));
 }
 
