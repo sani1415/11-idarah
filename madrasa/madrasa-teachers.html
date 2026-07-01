@@ -61,7 +61,7 @@
     <div class="topbar-name" id="mmt-top-name">শ্রেণি শিক্ষক</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn" onclick="location.href='../main-admin-madrasa.html'">← এডমিন</button>
+    <button type="button" class="topbar-btn" onclick="location.href='/admin/madrasa.html'">← এডমিন</button>
   </div>
 </div>
 
@@ -80,7 +80,7 @@
 <script src="../js/madrasa/mdr-supabase-sync.js"></script>
 <script src="../js/core/mm-session.js"></script>
 <script>
-  if (!MMSession.requireAdminPerm('teachers', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
+  if (!MMSession.requireAdminPerm('teachers', '/admin/madrasa.html')) { throw new Error('admin permission denied'); }
 
   const params = new URLSearchParams(location.search);
   let dept = params.get('dept') === 'maktab' ? 'maktab' : 'kitab';

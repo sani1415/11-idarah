@@ -70,7 +70,7 @@
 <script src="../js/api/api.js"></script>
 <script src="../js/madrasa/mm-old-madrasa-import-data.js"></script>
 <script>
-  if (!MMSession.requireAdminPerm('dashboard', '../main-admin-madrasa.html')) {
+  if (!MMSession.requireAdminPerm('dashboard', '/admin/madrasa.html')) {
     throw new Error('permission denied');
   }
 
@@ -113,7 +113,7 @@
     if (!ok) return;
     const summary = API.OldMadrasaImport.replaceCoreData(pack);
     showToast(`ইমপোর্ট সম্পন্ন: ${bn(summary.students)} জন ছাত্র`);
-    setTimeout(() => { location.href = '../main-admin-madrasa.html?dept=all'; }, 900);
+    setTimeout(() => { location.href = '/admin/madrasa.html?dept=all'; }, 900);
   }
 
   renderPreview();

@@ -8,7 +8,7 @@
   // Persistent admin login: আগের session থাকলে login না দেখিয়ে সরাসরি ড্যাশবোর্ডে।
   try {
     if (/^admin\./i.test(location.hostname) && localStorage.getItem('mm_admin_persist_v1')) {
-      location.replace('../main-admin-madrasa.html');
+      location.replace('/admin/madrasa.html');
     }
   } catch (e) {}
 </script>
@@ -155,7 +155,7 @@
       if (res && res.ok && res.user) {
         ok = true;
         MMSession.setAdminSession(res.user.name || 'জিম্মাদার', res.user.admin_perms, res.user.id, pinVal);
-        redirect = '../main-admin-madrasa.html';
+        redirect = '/admin/madrasa.html';
         if (settings && settings.admin_pin !== pinVal && window.API && API.Settings) {
           settings.admin_pin = pinVal;
           API.Settings.save(settings);
@@ -165,7 +165,7 @@
     if (!ok && !supaOn && settings && pinVal === settings.admin_pin) {
       ok = true;
       MMSession.setAdminSession('জিম্মাদার', null, null, pinVal);
-      redirect = '../main-admin-madrasa.html';
+      redirect = '/admin/madrasa.html';
     }
 
     if (ok) {

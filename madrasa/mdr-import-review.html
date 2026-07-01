@@ -115,7 +115,7 @@
 <script src="../js/api/api-mdr.js"></script>
 <script src="../js/core/mm-session.js"></script>
 <script>
-  if (!MMSession.isMainAdmin()) location.href = '../main-admin-madrasa.html';
+  if (!MMSession.isMainAdmin()) location.href = '/admin/madrasa.html';
 
   const bn = (n) => String(n ?? 0).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[Number(d)]);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));

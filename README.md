@@ -7,9 +7,9 @@
 | অংশ | পথ / ফাইল |
 | --- | --- |
 | মূল login | `index.html` |
-| মাদরাসা admin | `main-admin-madrasa.html`, `madrasa/` |
-| বিভাগ admin | `main-admin-dept.html`, `dept/` |
-| খেদমত admin | `main-admin-khedmat.html`, `khedmat/` |
+| মাদরাসা admin | `admin/madrasa.html`, `madrasa/admin/`, `madrasa/` |
+| বিভাগ admin | `admin/dept.html`, `dept/` |
+| খেদমত admin | `admin/khedmat.html`, `khedmat/` |
 | shared JS | `js/` |
 | shared CSS | `css/style.css` |
 | Supabase helper | `js/api/api-shared.js`, `js/api/api-mdr.js`, `supabase-config.js` |
@@ -54,9 +54,9 @@ RPC functions are usually `SECURITY DEFINER`; public tables generally keep RLS e
 
 ## Module Notes
 
-- Madrasa: students, attendance, daftar/accounts, dars, exams, hifz, library, alumni, kormosuchi, settings and admin views live mostly under `madrasa/` and `js/mdr-*`.
-- Department: department login, staff portal, admin view, transactions, inventory, dynamic fields and edit requests live under `dept/`, `main-admin-dept.html`, `js/dept-*`.
-- Khedmat: admin/staff flows live under `khedmat/`, `main-admin-khedmat.html`, `js/khedmat-api.js`, and newer Supabase migration/RPC work.
+- Madrasa: students, attendance, daftar/accounts, dars, exams, hifz, library, alumni, kormosuchi, settings live under `madrasa/` (staff) and `madrasa/admin/` (জিম্মাদার/admin views), with JS in `js/madrasa/`.
+- Department: department login, staff portal, admin view, transactions, inventory, dynamic fields and edit requests live under `dept/`, `admin/dept.html`, `js/dept/`.
+- Khedmat: admin/staff flows live under `khedmat/`, `admin/khedmat.html`, `js/khedmat/`, and newer Supabase migration/RPC work.
 - Chat/session/navigation helpers are shared across modules.
 
 Always verify the exact current file before changing behavior; several modules have been migrated gradually.

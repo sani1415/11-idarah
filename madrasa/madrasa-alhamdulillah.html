@@ -55,7 +55,7 @@
     <div class="topbar-name">আলহামদুলিল্লাহ</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn" onclick="location.href='../main-admin-madrasa.html'">← এডমিন</button>
+    <button type="button" class="topbar-btn" onclick="location.href='/admin/madrasa.html'">← এডমিন</button>
   </div>
 </div>
 
@@ -75,7 +75,7 @@
 <script src="../js/core/mm-session.js"></script>
 <script src="../js/shared/mm-student-modal.js"></script>
 <script>
-  if (!MMSession.requireAdminPerm('dashboard', '../main-admin-madrasa.html')) { throw new Error('admin permission denied'); }
+  if (!MMSession.requireAdminPerm('dashboard', '/admin/madrasa.html')) { throw new Error('admin permission denied'); }
 
   const toBn = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
 

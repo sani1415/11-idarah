@@ -181,7 +181,7 @@
           date: h.date,
           text: `${k.className} — ${k.name}: ${bn(h.pages_done || 0)} পৃষ্ঠা সম্পন্ন`,
           meta: k.className,
-          href: 'madrasa/mdr-admin-dars.html',
+          href: '/madrasa/admin/dars.html',
           color: '#5b4d9a',
         }))
       )
@@ -305,7 +305,7 @@
             date: isoDate(l.date),
             text: (prefix ? prefix + ' — ' : '') + (l.text || ''),
             meta: l.type === 'student' ? 'ছাত্র নোট' : l.type === 'teacher' ? 'শিক্ষক' : l.type === 'class' ? 'বর্ষ' : 'নোট',
-            href: 'main-admin-madrasa.html',
+            href: '/admin/madrasa.html',
             color: 'var(--blue)',
           });
         });
@@ -323,7 +323,7 @@
             date: isoDate(t.date || t.txn_date),
             text: `${dept ? dept.name : 'বিভাগ'} — ${t.description || t.category || 'লেনদেন'} ${money(t.amount)}`,
             meta: isIncome ? 'আয়' : 'ব্যয়',
-            href: 'main-admin-dept.html',
+            href: '/admin/dept.html',
             color: isIncome ? 'var(--green)' : 'var(--red)',
           });
         });
@@ -338,7 +338,7 @@
             date: isoDate(r.created_at),
             text: `${dept ? dept.name : 'বিভাগ'} — সম্পাদনা অনুরোধ: ${r.reason || 'কারণ উল্লেখ নেই'}`,
             meta: 'অনুমোদন বাকি',
-            href: 'main-admin-dept.html',
+            href: '/admin/dept.html',
             color: 'var(--gold)',
           });
         });
@@ -359,7 +359,7 @@
             date: isoDate(r.date),
             text: `${r.programName || 'কর্মসূচি'} — ${r.note || r.description || r.type || 'এন্ট্রি'} ${money(r.amount)}`,
             meta: isIncome ? 'আয়' : 'ব্যয়',
-            href: 'madrasa/mdr-admin-accounts.html?view=prog',
+            href: '/madrasa/admin/accounts.html?view=prog',
             color: 'var(--gold)',
           });
         });
@@ -375,7 +375,7 @@
             date: isoDate(log.date),
             text: 'দৈনিক লগ: ' + (log.content || ''),
             meta: log.by || 'খেদমত',
-            href: 'main-admin-khedmat.html',
+            href: '/admin/khedmat.html',
             color: 'var(--gold)',
           });
         });
@@ -390,7 +390,7 @@
             date: isoDate(a.date),
             text: `${ben ? ben.name : '—'} — ${a.title || 'সেবা'}${a.amount ? ' ' + money(a.amount) : ''}`,
             meta: a.description || 'সেবা কার্যক্রম',
-            href: 'main-admin-khedmat.html',
+            href: '/admin/khedmat.html',
             color: 'var(--teal)',
           });
         });
@@ -404,7 +404,7 @@
             date: isoDate(f.date),
             text: `${f.type === 'income' ? 'আয়' : 'ব্যয়'} — ${f.note || f.source || 'হিসাব'} ${money(f.amount)}`,
             meta: 'খেদমত হিসাব',
-            href: 'main-admin-khedmat.html',
+            href: '/admin/khedmat.html',
             color: f.type === 'income' ? 'var(--green)' : 'var(--red)',
           });
         });
@@ -437,7 +437,7 @@
           date: isoDate(m.ts),
           text: line,
           meta: lbl + unreadNote,
-          href: 'chat.html?thread=' + encodeURIComponent(m.thread_id || ''),
+          href: '/chat.html?thread=' + encodeURIComponent(m.thread_id || ''),
           color: 'var(--ink2)',
         });
       });

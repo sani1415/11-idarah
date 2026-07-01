@@ -361,11 +361,11 @@
     },
     requireAdminPerm: function (permKey, fallbackHref) {
       if (!this.isAdmin()) {
-        location.href = fallbackHref || 'main-admin-madrasa.html';
+        location.href = fallbackHref || '/admin/madrasa.html';
         return false;
       }
       if (!this.canAdmin(permKey)) {
-        location.href = fallbackHref || 'main-admin-madrasa.html';
+        location.href = fallbackHref || '/admin/madrasa.html';
         return false;
       }
       return true;
@@ -382,12 +382,12 @@
       if (!this.isRestrictedAdmin()) return;
       var firstDept = this.getAllowedMadrasaDepts()[0] || 'kitab';
       var deptQuery = '?dept=' + encodeURIComponent(firstDept);
-      document.querySelectorAll('a[href*="main-admin-madrasa.html"]').forEach(function (a) {
+      document.querySelectorAll('a[href*="/admin/madrasa.html"]').forEach(function (a) {
         var href = a.getAttribute('href') || '';
         a.setAttribute('href', href.split('?')[0] + deptQuery);
       });
       document.querySelectorAll(
-        'a[href*="main-admin-dept.html"], a[href*="main-admin-khedmat.html"], [data-admin-hub="dept"]'
+        'a[href*="/admin/dept.html"], a[href*="/admin/khedmat.html"], [data-admin-hub="dept"]'
       ).forEach(function (el) {
         el.style.display = 'none';
       });
@@ -400,7 +400,7 @@
         document.querySelectorAll('a[href*="chat.html"]').forEach(function (a) { a.style.display = 'none'; });
       }
       if (!this.canAdmin('recent')) {
-        document.querySelectorAll('a[href*="main-admin-recent.html"]').forEach(function (a) { a.style.display = 'none'; });
+        document.querySelectorAll('a[href*="/admin/recent.html"]').forEach(function (a) { a.style.display = 'none'; });
       }
     },
 

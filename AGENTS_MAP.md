@@ -8,9 +8,9 @@
 | কাজ | HTML | JS |
 |-----|------|----|
 | Login hub / entry | `index.html`, `chat.html` | `js/core/` |
-| Admin hub (subdomain `admin.idarah786.com`) | `admin/`, root `main-admin-*.html` | `js/shared/admin-nav.js`, `js/shared/admin-recent-feed.js` |
+| Admin hub (subdomain `admin.idarah786.com`) | `admin/` (`index.html`, `madrasa.html`, `dept.html`, `khedmat.html`, `recent.html`) | `js/shared/admin-nav.js`, `js/shared/admin-recent-feed.js` |
 | মাদরাসা — staff UI | `madrasa/madrasa-*.html` | `js/madrasa/madrasa-*.js`, `js/madrasa/mdr-*.js` |
-| মাদরাসা — admin UI | `madrasa/mdr-admin-*.html` | `js/madrasa/mdr-*.js` |
+| মাদরাসা — admin UI | `madrasa/admin/*.html` (জিম্মাদার view) | `js/madrasa/mdr-*.js` |
 | বিভাগ (Department) | `dept/*.html` | `js/dept/` |
 | খেদমত (Khedmat) | `khedmat/*.html` | `js/khedmat/` |
 
@@ -51,6 +51,12 @@
 ## Build constraint (path move করার আগে পড়ো)
 
 `build.js` `['css','js','madrasa','dept','khedmat','admin','icons']` folder + root `*.html`
-recursive copy করে। `js/`-এর **ভেতরে** subfolder নিরাপদ (recursive copy), কিন্তু কোনো top-level
-folder rename/HTML নাম পরিবর্তন করলে `build.js` + প্রতিটা HTML reference + `vercel.json` redirect
-একসাথে আপডেট করতে হবে (~১৯৫ inter-page link)।
+recursive copy করে এবং প্রতিটা HTML-এ depth অনুযায়ী `../` সহ boot script inject করে (nested
+subfolder যেমন `madrasa/admin/` সাপোর্টেড)। `js/`-এর **ভেতরে** subfolder নিরাপদ, কিন্তু কোনো
+top-level folder rename/HTML নাম পরিবর্তন করলে `build.js` + প্রতিটা HTML reference + `vercel.json`
+redirect একসাথে আপডেট করতে হবে।
+
+**Nav convention:** `admin/*.html` (hub) আর `madrasa/admin/*.html` পেজে **navigation link
+absolute path** দিয়ে হয় (`/admin/madrasa.html`, `/madrasa/admin/students.html`) — এতে depth আর
+`mm-session.js`-এর `a[href*="..."]` restricted-admin selector দুটোই page-location নির্বিশেষে কাজ করে।
+পুরনো `main-admin-*.html` / `mdr-admin-*.html` URL-গুলো `vercel.json`-এ redirect করা আছে।

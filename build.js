@@ -175,14 +175,23 @@ try {
   console.warn('[build] skip root html copy:', e.message);
 }
 
+function transformDirHtml(dir) {
+  for (const name of fs.readdirSync(dir)) {
+    const full = path.join(dir, name);
+    const st = fs.statSync(full);
+    if (st.isDirectory()) {
+      transformDirHtml(full);
+      continue;
+    }
+    if (!name.endsWith('.html')) continue;
+    const depth = path.relative(OUT, full).split(path.sep).length - 1;
+    transformHtmlFile(full, '../'.repeat(depth), buildVersion);
+  }
+}
 for (const d of dirs) {
   const dir = path.join(OUT, d);
   if (!fs.existsSync(dir)) continue;
-  for (const name of fs.readdirSync(dir)) {
-    if (!name.endsWith('.html')) continue;
-    const file = path.join(dir, name);
-    if (fs.statSync(file).isFile()) transformHtmlFile(file, '../', buildVersion);
-  }
+  transformDirHtml(dir);
 }
 
 for (const f of ['supabase-config.example.js', 'manifest.webmanifest', 'sw.js']) {

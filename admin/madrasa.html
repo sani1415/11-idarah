@@ -2,14 +2,14 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<script src="js/core/mm-boot.js"></script>
+<script src="../js/core/mm-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>মাদ্রাসা — জিম্মাদার</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260521-akhlaq-consistency">
-<link rel="stylesheet" href="css/main-admin-nav.css?v=20260521-akhlaq-consistency">
+<link rel="stylesheet" href="../css/style.css?v=20260521-akhlaq-consistency">
+<link rel="stylesheet" href="../css/main-admin-nav.css?v=20260521-akhlaq-consistency">
 <style>
   .content { max-width:760px; }
 
@@ -237,8 +237,8 @@
     <div class="topbar-name">মাদ্রাসা মডিউল</div>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="topbar-btn topbar-btn--icon" id="btn-madrasa-settings" onclick="location.href='madrasa/madrasa-settings.html'" title="সেটিং" aria-label="সেটিং"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
-    <button type="button" class="topbar-btn topbar-btn--icon" onclick="MMSession.logoutToIndex('index.html')" title="লগআউট" aria-label="লগআউট"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+    <button type="button" class="topbar-btn topbar-btn--icon" id="btn-madrasa-settings" onclick="location.href='../madrasa/madrasa-settings.html'" title="সেটিং" aria-label="সেটিং"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+    <button type="button" class="topbar-btn topbar-btn--icon" onclick="MMSession.logoutToIndex('../index.html')" title="লগআউট" aria-label="লগআউট"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
   </div>
 </div>
 
@@ -312,35 +312,35 @@
 
   <!-- shortcuts -->
   <div class="shortcut-grid">
-    <div class="shortcut-card" data-admin-perm="daftar" onclick="openDeptRoute('madrasa/mdr-admin-daftar.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="daftar" onclick="openDeptRoute('/madrasa/admin/daftar.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span>
       <span class="shortcut-label">দফতর</span>
     </div>
-    <div class="shortcut-card" data-admin-hub="dept" onclick="location.href='main-admin-dept.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-hub="dept" onclick="location.href='/admin/dept.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1 2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></span>
       <span class="shortcut-label">বিভাগ</span>
     </div>
-    <div class="shortcut-card" data-admin-perm="teachers" onclick="openDeptRoute('madrasa/mdr-admin-teachers.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="teachers" onclick="openDeptRoute('/madrasa/admin/teachers.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
       <span class="shortcut-label">শিক্ষক</span>
     </div>
-    <div class="shortcut-card" data-admin-perm="dars" onclick="openDeptRoute('madrasa/mdr-admin-dars.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="dars" onclick="openDeptRoute('/madrasa/admin/dars.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 12h5"/></svg></span>
       <span class="shortcut-label">দরস</span>
     </div>
-    <div class="shortcut-card" data-admin-perm="exams" onclick="openDeptRoute('madrasa/mdr-admin-exams.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="exams" onclick="openDeptRoute('/madrasa/admin/exams.html')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M10 12h4M10 16h4"/></svg></span>
       <span class="shortcut-label">পরীক্ষা</span>
     </div>
-    <div class="shortcut-card" data-admin-perm="hifz" onclick="location.href='madrasa/mdr-admin-hifz.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="hifz" onclick="location.href='/madrasa/admin/hifz.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
       <span class="shortcut-label">হিফজ</span>
     </div>
-    <div class="shortcut-card" data-admin-perm="library" onclick="location.href='madrasa/mdr-admin-library.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="library" onclick="location.href='/madrasa/admin/library.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
       <span class="shortcut-label">মাকতাবা</span>
     </div>
-    <div class="shortcut-card" data-admin-perm="alumni" onclick="location.href='madrasa/mdr-admin-alumni.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="shortcut-card" data-admin-perm="alumni" onclick="location.href='/madrasa/admin/alumni.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
       <span class="shortcut-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
       <span class="shortcut-label">পুরনো ছাত্র</span>
     </div>
@@ -410,49 +410,49 @@
 
 <!-- BOTTOM NAV -->
 <nav class="main-nav" role="navigation" aria-label="জিম্মাদার নেভিগেশন">
-  <a class="main-nav-btn is-active" href="main-admin-madrasa.html" aria-label="মাদ্রাসা">
+  <a class="main-nav-btn is-active" href="/admin/madrasa.html" aria-label="মাদ্রাসা">
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
     <span class="main-nav-lbl">মাদ্রাসা</span>
   </a>
-  <a class="main-nav-btn" href="madrasa/mdr-admin-accounts.html" aria-label="হিসাব" data-admin-perm="daftar">
+  <a class="main-nav-btn" href="/madrasa/admin/accounts.html" aria-label="হিসাব" data-admin-perm="daftar">
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M3 6h18v12H3z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M7 10h.01M17 14h.01"/><circle stroke-width="1.75" cx="12" cy="12" r="2.5"/></svg>
     <span class="main-nav-lbl">হিসাব</span>
   </a>
-  <a class="main-nav-btn" href="main-admin-khedmat.html" aria-label="খেদমত">
+  <a class="main-nav-btn" href="/admin/khedmat.html" aria-label="খেদমত">
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
     <span class="main-nav-lbl">খেদমত</span>
   </a>
-  <a class="main-nav-btn" href="chat.html" aria-label="বার্তা" data-admin-perm="messages">
+  <a class="main-nav-btn" href="../chat.html" aria-label="বার্তা" data-admin-perm="messages">
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/></svg>
     <span class="main-nav-lbl">বার্তা</span>
   </a>
-  <a class="main-nav-btn" href="main-admin-recent.html" aria-label="কার্যক্রম" data-admin-perm="recent">
+  <a class="main-nav-btn" href="/admin/recent.html" aria-label="কার্যক্রম" data-admin-perm="recent">
     <svg class="main-nav-ico" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle stroke-width="1.75" cx="12" cy="12" r="9"/><path stroke-width="1.75" stroke-linecap="round" d="M12 7v5l3 3"/></svg>
     <span class="main-nav-lbl">কার্যক্রম</span>
   </a>
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/api/api-shared.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/api/api-mdr.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/api/api.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/core/mm-sample-data.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/core/mm-session.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/madrasa/mdr-supabase-sync.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/core/hijri-utils.js"></script>
-<script src="js/core/mm-hijri.js"></script>
-<script src="js/madrasa/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
-<script src="js/dept/dept-api.js"></script>
-<script src="js/dept/dept-supabase-sync.js"></script>
-<script src="js/shared/mm-student-modal.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/shared/mm-teacher-modal.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/shared/mam-overlay.js?v=20260521-akhlaq-consistency"></script>
-<script src="js/madrasa/mdr-home-panels.js?v=20260521-absent-scroll"></script>
+<script src="../supabase-config.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/api/api-shared.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/api/api-mdr.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/api/api.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/core/mm-sample-data.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/core/mm-session.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/madrasa/mdr-supabase-sync.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/core/hijri-utils.js"></script>
+<script src="../js/core/mm-hijri.js"></script>
+<script src="../js/madrasa/madrasa-accounts-api.js?v=20260614-live-import-refresh"></script>
+<script src="../js/dept/dept-api.js"></script>
+<script src="../js/dept/dept-supabase-sync.js"></script>
+<script src="../js/shared/mm-student-modal.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/shared/mm-teacher-modal.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/shared/mam-overlay.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/madrasa/mdr-home-panels.js?v=20260521-absent-scroll"></script>
 <script>
   var adminAuthFallback = (function () {
-    try { return /^admin\./i.test(location.hostname) ? 'admin/index.html' : 'index.html'; }
-    catch (e) { return 'index.html'; }
+    try { return /^admin\./i.test(location.hostname) ? '../admin/index.html' : '../index.html'; }
+    catch (e) { return '../index.html'; }
   })();
   if (!MMSession.requireAdminPerm('dashboard', adminAuthFallback)) { throw new Error('admin permission denied'); }
 
@@ -674,24 +674,24 @@
     const qardReturned = Number(summary && summary.qardReturned || 0);
     const qardRemaining = Number(summary && summary.qardRemaining || 0);
     const cards = [
-      ccCard('নিয়মিত আয়', summary ? ccMoney(summary.regularIncome) : '—', 'করজ বাদে', summary && summary.regularIncome ? 'is-good' : '', "location.href='madrasa/mdr-admin-accounts.html'"),
-      ccCard('নিয়মিত ব্যয়', summary ? ccMoney(summary.regularExpense) : '—', 'করজ বাদে', summary && summary.regularExpense ? 'is-danger' : '', "location.href='madrasa/mdr-admin-accounts.html'"),
-      ccCard('আয়-ব্যয় ব্যালেন্স', summary ? (operatingBalance < 0 ? '−' : '+') + ccMoney(Math.abs(operatingBalance)) : '—', 'নিয়মিত হিসাব', operatingBalance < 0 ? 'is-danger' : 'is-good', "location.href='madrasa/mdr-admin-accounts.html'"),
-      ccCard('বর্তমান বকেয়া', summary ? ccMoney(dueTotal) : '—', 'সরবরাহকারী', dueTotal ? 'is-warn' : 'is-good', "location.href='madrasa/mdr-admin-accounts.html'"),
-      ccCard('করজ দেওয়া', summary ? ccMoney(qardGiven) : '—', 'আলাদা হিসাব', qardGiven ? 'is-warn' : '', "location.href='madrasa/mdr-admin-accounts.html'"),
-      ccCard('করজ আদায়', summary ? ccMoney(qardReturned) : '—', 'আলাদা হিসাব', qardReturned ? 'is-good' : '', "location.href='madrasa/mdr-admin-accounts.html'"),
-      ccCard('করজ বাকি', summary ? ccMoney(qardRemaining) : '—', 'ফেরত বাকি', qardRemaining ? 'is-warn' : 'is-good', "location.href='madrasa/mdr-admin-accounts.html'"),
-      ccCard('নেট নগদ প্রবাহ', summary ? (cashFlow < 0 ? '−' : '+') + ccMoney(Math.abs(cashFlow)) : '—', 'আসা-যাওয়া', cashFlow < 0 ? 'is-danger' : 'is-good', "location.href='madrasa/mdr-admin-accounts.html'"),
+      ccCard('নিয়মিত আয়', summary ? ccMoney(summary.regularIncome) : '—', 'করজ বাদে', summary && summary.regularIncome ? 'is-good' : '', "location.href='/madrasa/admin/accounts.html'"),
+      ccCard('নিয়মিত ব্যয়', summary ? ccMoney(summary.regularExpense) : '—', 'করজ বাদে', summary && summary.regularExpense ? 'is-danger' : '', "location.href='/madrasa/admin/accounts.html'"),
+      ccCard('আয়-ব্যয় ব্যালেন্স', summary ? (operatingBalance < 0 ? '−' : '+') + ccMoney(Math.abs(operatingBalance)) : '—', 'নিয়মিত হিসাব', operatingBalance < 0 ? 'is-danger' : 'is-good', "location.href='/madrasa/admin/accounts.html'"),
+      ccCard('বর্তমান বকেয়া', summary ? ccMoney(dueTotal) : '—', 'সরবরাহকারী', dueTotal ? 'is-warn' : 'is-good', "location.href='/madrasa/admin/accounts.html'"),
+      ccCard('করজ দেওয়া', summary ? ccMoney(qardGiven) : '—', 'আলাদা হিসাব', qardGiven ? 'is-warn' : '', "location.href='/madrasa/admin/accounts.html'"),
+      ccCard('করজ আদায়', summary ? ccMoney(qardReturned) : '—', 'আলাদা হিসাব', qardReturned ? 'is-good' : '', "location.href='/madrasa/admin/accounts.html'"),
+      ccCard('করজ বাকি', summary ? ccMoney(qardRemaining) : '—', 'ফেরত বাকি', qardRemaining ? 'is-warn' : 'is-good', "location.href='/madrasa/admin/accounts.html'"),
+      ccCard('নেট নগদ প্রবাহ', summary ? (cashFlow < 0 ? '−' : '+') + ccMoney(Math.abs(cashFlow)) : '—', 'আসা-যাওয়া', cashFlow < 0 ? 'is-danger' : 'is-good', "location.href='/madrasa/admin/accounts.html'"),
     ];
     ccSetGrid('cc-accounts-grid', cards);
 
     const alerts = [];
     if (!ready) {
-      alerts.push(ccAlert('watch', 'হিসাব cache পাওয়া যায়নি', 'হিসাব পেজ খুললে data refresh হবে', '—', 'is-warn', "location.href='madrasa/mdr-admin-accounts.html'"));
+      alerts.push(ccAlert('watch', 'হিসাব cache পাওয়া যায়নি', 'হিসাব পেজ খুললে data refresh হবে', '—', 'is-warn', "location.href='/madrasa/admin/accounts.html'"));
     } else {
-      if (operatingBalance < 0) alerts.push(ccAlert('absent', 'মাসিক ঘাটতি', 'চলতি মাসে ব্যয় বেশি', ccMoney(Math.abs(operatingBalance)), 'is-danger', "location.href='madrasa/mdr-admin-accounts.html'"));
-      if (dueTotal > 0) alerts.push(ccAlert('watch', 'বকেয়া নজর দরকার', toBn(dueRows.length) + 'টি বকেয়া হিসাব', ccMoney(dueTotal), 'is-warn', "location.href='madrasa/mdr-admin-accounts.html'"));
-      if (qardRemaining > 0) alerts.push(ccAlert('class', 'করজ বাকি', 'ফেরত/সমন্বয় বাকি', ccMoney(qardRemaining), 'is-warn', "location.href='madrasa/mdr-admin-accounts.html'"));
+      if (operatingBalance < 0) alerts.push(ccAlert('absent', 'মাসিক ঘাটতি', 'চলতি মাসে ব্যয় বেশি', ccMoney(Math.abs(operatingBalance)), 'is-danger', "location.href='/madrasa/admin/accounts.html'"));
+      if (dueTotal > 0) alerts.push(ccAlert('watch', 'বকেয়া নজর দরকার', toBn(dueRows.length) + 'টি বকেয়া হিসাব', ccMoney(dueTotal), 'is-warn', "location.href='/madrasa/admin/accounts.html'"));
+      if (qardRemaining > 0) alerts.push(ccAlert('class', 'করজ বাকি', 'ফেরত/সমন্বয় বাকি', ccMoney(qardRemaining), 'is-warn', "location.href='/madrasa/admin/accounts.html'"));
     }
     ccSetAlerts('cc-accounts-list', 'cc-accounts-meta', alerts, 'হিসাবের বড় কোনো সতর্কতা নেই।');
   }
@@ -721,24 +721,24 @@
     const best = rows.slice().sort((a, b) => b.net - a.net)[0];
     const lossCount = rows.filter(r => r.net < 0).length;
     const cards = [
-      ccCard('সক্রিয় বিভাগ', toBn(depts.length), 'বিভাগ মেনু', '', "location.href='main-admin-dept.html'"),
-      ccCard('বিভাগ আয়', ccMoney(totalIncome), 'চলতি মাস', totalIncome ? 'is-good' : '', "location.href='main-admin-dept.html'"),
-      ccCard('বিভাগ ব্যয়', ccMoney(totalExpense), 'চলতি মাস', totalExpense ? 'is-danger' : '', "location.href='main-admin-dept.html'"),
-      ccCard('নেট লাভ', ccMoney(totalNet), 'আয় - ব্যয়', totalNet < 0 ? 'is-danger' : 'is-good', "location.href='main-admin-dept.html'"),
-      ccCard('লেনদেন', toBn(txns.length), 'চলতি মাস', txns.length ? '' : 'is-warn', "location.href='main-admin-dept.html'"),
-      ccCard('পণ্য', toBn(products.length), 'সক্রিয় পণ্য', products.length ? 'is-good' : '', "location.href='main-admin-dept.html'"),
-      ccCard('স্টক সারি', toBn(inventory), 'ইনভেন্টরি', inventory ? '' : 'is-warn', "location.href='main-admin-dept.html'"),
-      ccCard('সংশোধন অনুরোধ', toBn(pending.length), 'অনুমোদন বাকি', pending.length ? 'is-warn' : 'is-good', "location.href='main-admin-dept.html'"),
+      ccCard('সক্রিয় বিভাগ', toBn(depts.length), 'বিভাগ মেনু', '', "location.href='/admin/dept.html'"),
+      ccCard('বিভাগ আয়', ccMoney(totalIncome), 'চলতি মাস', totalIncome ? 'is-good' : '', "location.href='/admin/dept.html'"),
+      ccCard('বিভাগ ব্যয়', ccMoney(totalExpense), 'চলতি মাস', totalExpense ? 'is-danger' : '', "location.href='/admin/dept.html'"),
+      ccCard('নেট লাভ', ccMoney(totalNet), 'আয় - ব্যয়', totalNet < 0 ? 'is-danger' : 'is-good', "location.href='/admin/dept.html'"),
+      ccCard('লেনদেন', toBn(txns.length), 'চলতি মাস', txns.length ? '' : 'is-warn', "location.href='/admin/dept.html'"),
+      ccCard('পণ্য', toBn(products.length), 'সক্রিয় পণ্য', products.length ? 'is-good' : '', "location.href='/admin/dept.html'"),
+      ccCard('স্টক সারি', toBn(inventory), 'ইনভেন্টরি', inventory ? '' : 'is-warn', "location.href='/admin/dept.html'"),
+      ccCard('সংশোধন অনুরোধ', toBn(pending.length), 'অনুমোদন বাকি', pending.length ? 'is-warn' : 'is-good', "location.href='/admin/dept.html'"),
     ];
     ccSetGrid('cc-dept-grid', cards);
 
     const alerts = [];
     if (!ready) {
-      alerts.push(ccAlert('watch', 'বিভাগ cache পাওয়া যায়নি', 'বিভাগ পেজ খুললে data refresh হবে', '—', 'is-warn', "location.href='main-admin-dept.html'"));
+      alerts.push(ccAlert('watch', 'বিভাগ cache পাওয়া যায়নি', 'বিভাগ পেজ খুললে data refresh হবে', '—', 'is-warn', "location.href='/admin/dept.html'"));
     } else {
-      if (pending.length) alerts.push(ccAlert('watch', 'সংশোধন অনুরোধ', 'অনুমোদনের অপেক্ষায়', toBn(pending.length), 'is-warn', "location.href='main-admin-dept.html'"));
-      if (lossCount) alerts.push(ccAlert('absent', 'লোকসানে থাকা বিভাগ', 'চলতি মাসের হিসাব', toBn(lossCount), 'is-danger', "location.href='main-admin-dept.html'"));
-      if (best && best.net > 0) alerts.push(ccAlert('ok', 'সেরা বিভাগ', deptDisplayName(best.dept.name), ccMoney(best.net), 'is-good', "location.href='main-admin-dept.html'"));
+      if (pending.length) alerts.push(ccAlert('watch', 'সংশোধন অনুরোধ', 'অনুমোদনের অপেক্ষায়', toBn(pending.length), 'is-warn', "location.href='/admin/dept.html'"));
+      if (lossCount) alerts.push(ccAlert('absent', 'লোকসানে থাকা বিভাগ', 'চলতি মাসের হিসাব', toBn(lossCount), 'is-danger', "location.href='/admin/dept.html'"));
+      if (best && best.net > 0) alerts.push(ccAlert('ok', 'সেরা বিভাগ', deptDisplayName(best.dept.name), ccMoney(best.net), 'is-good', "location.href='/admin/dept.html'"));
     }
     ccSetAlerts('cc-dept-list', 'cc-dept-meta', alerts, 'বিভাগের বড় কোনো সতর্কতা নেই।');
   }
@@ -1020,10 +1020,10 @@
         ccCard('আজ অনুপস্থিত', toBn(data.att.absent), data.att.absent ? 'তালিকা দেখুন' : 'আজ কোনো রেকর্ড নেই', data.att.absent ? 'is-danger' : 'is-good', 'goAbsentList()'),
         ccCard('নজর দরকার', toBn(data.watchLoad), 'অনুপস্থিত + পর্যবেক্ষণ + কম খুলুক', data.watchLoad ? 'is-warn' : 'is-good', 'goSpecialWatch()'),
         ccCard('খুলুক গড়', data.khAvg !== null ? toBn(data.khAvg) : '—', toBn(data.bands.none.length) + ' জনের রেকর্ড নেই', khState, 'openKhulukPanel()'),
-        ccCard('মোট ছাত্র', toBn(data.total), scope, '', "openDeptRoute('madrasa/mdr-admin-students.html')"),
+        ccCard('মোট ছাত্র', toBn(data.total), scope, '', "openDeptRoute('/madrasa/admin/students.html')"),
       ];
       if (MMSession.canAdmin('withdrawn')) {
-        cards.push(ccCard('বিদায় ছাত্র', toBn(countWithdrawalsByDept(currentDept)), 'বিদায় তালিকা', 'is-warn', "openDeptRoute('madrasa/mdr-admin-withdrawn.html')"));
+        cards.push(ccCard('বিদায় ছাত্র', toBn(countWithdrawalsByDept(currentDept)), 'বিদায় তালিকা', 'is-warn', "openDeptRoute('/madrasa/admin/withdrawn.html')"));
       }
       cards.push(
         ccCard('বিশেষ পর্যবেক্ষণ', toBn(data.special), data.special ? 'ফলোআপ দরকার' : 'কেউ নেই', data.special ? 'is-warn' : 'is-good', 'goSpecialWatch()'),
@@ -1218,13 +1218,13 @@
       MDRHomePanels.openAbsent({ depts: getScopeDepts() });
       return;
     }
-    openDeptRoute('madrasa/madrasa-absent-students.html');
+    openDeptRoute('../madrasa/madrasa-absent-students.html');
   }
   function goSpecialWatch() {
-    openDeptRoute('madrasa/madrasa-special-watch.html');
+    openDeptRoute('../madrasa/madrasa-special-watch.html');
   }
   function goAlhamdulillah() {
-    openDeptRoute('madrasa/madrasa-alhamdulillah.html');
+    openDeptRoute('../madrasa/madrasa-alhamdulillah.html');
   }
 
   function deptLabel(dept) {
@@ -1318,6 +1318,6 @@
   }
   MMLoading.run(initDashboard);
 </script>
-<script src="js/shared/admin-nav.js?v=20260521-akhlaq-consistency"></script>
+<script src="../js/shared/admin-nav.js?v=20260521-akhlaq-consistency"></script>
 </body>
 </html>

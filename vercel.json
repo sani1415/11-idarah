@@ -15,7 +15,22 @@
       "has": [{ "type": "host", "value": "admin.idarah786.com" }],
       "destination": "/admin/",
       "permanent": false
-    }
+    },
+    { "source": "/main-admin-madrasa.html", "destination": "/admin/madrasa.html", "permanent": false },
+    { "source": "/main-admin-dept.html", "destination": "/admin/dept.html", "permanent": false },
+    { "source": "/main-admin-khedmat.html", "destination": "/admin/khedmat.html", "permanent": false },
+    { "source": "/main-admin-recent.html", "destination": "/admin/recent.html", "permanent": false },
+    { "source": "/madrasa/mdr-admin-accounts.html", "destination": "/madrasa/admin/accounts.html", "permanent": false },
+    { "source": "/madrasa/mdr-admin-alumni.html", "destination": "/madrasa/admin/alumni.html", "permanent": false },
+    { "source": "/madrasa/mdr-admin-daftar.html", "destination": "/madrasa/admin/daftar.html", "permanent": false },
+    { "source": "/madrasa/mdr-admin-dars.html", "destination": "/madrasa/admin/dars.html", "permanent": false },
+    { "source": "/madrasa/mdr-admin-exams.html", "destination": "/madrasa/admin/exams.html", "permanent": false },
+    { "source": "/madrasa/mdr-admin-hifz.html", "destination": "/madrasa/admin/hifz.html", "permanent": false },
+    { "source": "/madrasa/mdr-admin-kormosuchi.html", "destination": "/madrasa/admin/kormosuchi.html", "permanent": false },
+    { "source": "/madrasa/mdr-admin-library.html", "destination": "/madrasa/admin/library.html", "permanent": false },
+    { "source": "/madrasa/mdr-admin-students.html", "destination": "/madrasa/admin/students.html", "permanent": false },
+    { "source": "/madrasa/mdr-admin-teachers.html", "destination": "/madrasa/admin/teachers.html", "permanent": false },
+    { "source": "/madrasa/mdr-admin-withdrawn.html", "destination": "/madrasa/admin/withdrawn.html", "permanent": false }
   ],
   "headers": [
     {

@@ -215,7 +215,7 @@
 <script src="../js/madrasa/mdr-daftar-attendance-gate.js?v=20260624-gate4"></script>
 <script src="../js/shared/daftar-bottom-nav.js"></script>
 <script>
-  if (!MMSession.requireStaffRoleOrAdminPerm('daftar', 'daftar', '../main-admin-madrasa.html')) { throw new Error('daftar permission denied'); }
+  if (!MMSession.requireStaffRoleOrAdminPerm('daftar', 'daftar', '/admin/madrasa.html')) { throw new Error('daftar permission denied'); }
   document.getElementById('top-name').textContent = MMSession.getName() || 'দফতর';
   var dn = document.getElementById('daftar-nav-root');
   if (window.MMDaftarBottomNav && dn) MMDaftarBottomNav.mount(dn, { active: 'yearend', pathPrefix: '' });
